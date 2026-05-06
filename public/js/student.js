@@ -2,10 +2,9 @@
 // NOTE: Browser-level enforcement is a best-effort deterrent. True lockdown
 // requires the Electron desktop wrapper (see electron/main.js).
 
-// v1 MVP feature flags — flip these to true to re-enable advanced proctoring
-// (webcam capture, VM detection). Left off for the current scope.
+// v3: webcam proctoring on, identity watermark on, aggressive blur+pause on focus loss.
 const FEATURES = {
-  webcam: false,
+  webcam: true,
   vmDetection: false,
 };
 
@@ -49,16 +48,19 @@ const els = {
 
   passagePanel: document.getElementById('passage-panel'),
   passageText: document.getElementById('passage-text'),
+
+  watermark: document.getElementById('anti-cheat-watermark'),
 };
 
+let currentUser = null;
 let lastResultId = null;
 
 let currentAssessment = null;
-let answers = {};           // questionId -> value
-let violations = [];        // array of strings (reasons)
+let answers = {};
+let violations = [];
 const MAX_VIOLATIONS = 3;
 let startedAt = null;
-let endAt = null;           // absolute epoch ms deadline
+let endAt = null;
 let timerInterval = null;
 let submitted = false;
 let lockdownActive = false;
@@ -83,6 +85,25 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
+// ---------- Anti-cheat watermark ----------
+function showWatermark() {
+  if (!els.watermark || !currentUser) return;
+  const text = `${currentUser.email} · ${new Date().toLocaleString()}`;
+  // Tile enough copies to fill a rotated grid covering the viewport.
+  const cells = 120;
+  els.watermark.innerHTML = Array(cells)
+    .fill(0)
+    .map(() => `<span>${escapeHtml(text)}</span>`)
+    .join('');
+  els.watermark.classList.add('active');
+}
+
+function hideWatermark() {
+  if (!els.watermark) return;
+  els.watermark.classList.remove('active');
+  els.watermark.innerHTML = '';
+}
+
 // ---------- Init ----------
 (async () => {
   const { user } = await api('/api/me');
@@ -90,15 +111,15 @@ function escapeHtml(s) {
     location.href = '/';
     return;
   }
+  currentUser = user;
   els.who.textContent = `${user.name} (${user.email})`;
   await loadAssessments();
   await loadPastResults();
 
-  // Deep link: if the URL hash is #take=<id>, jump straight to the consent screen.
   const m = /^#take=(.+)$/.exec(location.hash || '');
   if (m) {
     const id = decodeURIComponent(m[1]);
-    history.replaceState(null, '', '/student.html'); // clean up the URL
+    history.replaceState(null, '', '/student.html');
     openConsent(id);
   }
 })();
@@ -108,8 +129,6 @@ els.logout.onclick = async () => {
     alert('You cannot sign out during an active assessment.');
     return;
   }
-  // Defensive: clear any leftover kiosk/fullscreen state before navigating
-  // to the sign-in page.
   try { window.lockdown && window.lockdown.forceUnlock && window.lockdown.forceUnlock(); } catch {}
   try { await document.exitFullscreen?.(); } catch {}
   await api('/api/logout', { method: 'POST' });
@@ -162,18 +181,16 @@ async function openConsent(id) {
   await runEnvironmentCheck();
 }
 
-// VM / environment gate. Disabled in v1 MVP (FEATURES.vmDetection).
-// Kept in place so it can be re-enabled later by flipping the flag.
 async function runEnvironmentCheck() {
   envBlocked = false;
   envReport = null;
 
   if (!FEATURES.vmDetection) {
-    // v1 MVP: show a simple ready-state message and skip the VM check.
     els.envCheck.innerHTML = `
       <div class="env-ok">
         Ready to start. The screen will go fullscreen and disable tab-switching,
         copy/paste, right-click, and common keyboard shortcuts during the assessment.
+        Webcam access will be requested when you click Start.
       </div>`;
     els.consentStart.disabled = false;
     return;
@@ -193,8 +210,6 @@ async function runEnvironmentCheck() {
   try {
     const report = await window.lockdown.detectVm();
     envReport = report;
-    // Send an early report to the server so the teacher has it even if
-    // the student never submits.
     try {
       await api('/api/proctor/environment', {
         method: 'POST',
@@ -229,7 +244,6 @@ els.consentBack.onclick = () => {
 
 els.consentStart.onclick = async () => {
   if (envBlocked) return;
-  // Webcam only if FEATURES.webcam is on.
   if (FEATURES.webcam) {
     try {
       await startWebcam();
@@ -262,7 +276,6 @@ function startAssessment() {
   violations = [];
   submitted = false;
 
-  // Show the reading passage above the questions if the teacher attached one.
   if (els.passagePanel && els.passageText) {
     if (currentAssessment.passage && currentAssessment.passage.trim()) {
       els.passageText.textContent = currentAssessment.passage;
@@ -272,6 +285,7 @@ function startAssessment() {
     }
   }
 
+  showWatermark();
   renderQuestions();
   installLockdown();
   startTimer();
@@ -279,7 +293,6 @@ function startAssessment() {
     startProctorInterval();
     captureAndUpload('start');
   } else if (els.webcamWrap) {
-    // Hide the webcam panel entirely since we're not capturing.
     els.webcamWrap.style.display = 'none';
   }
 }
@@ -315,7 +328,6 @@ function renderQuestions() {
     })
     .join('');
 
-  // Wire up answer capture
   currentAssessment.questions.forEach((q) => {
     if (q.type === 'mc' || q.type === 'tf') {
       document.getElementsByName(`q-${q.id}`).forEach((r) => {
@@ -362,6 +374,7 @@ async function submit(reason) {
     stopWebcam();
   }
   uninstallLockdown();
+  hideWatermark();
   try { await document.exitFullscreen?.(); } catch {}
 
   try {
@@ -376,7 +389,7 @@ async function submit(reason) {
       Your assessment has been submitted (reason: ${reason}).<br/>
       Auto-graded score (multiple choice / true-false / short answer with expected value):
       <strong>${result.autoScore} / ${result.autoMax}</strong>.<br/>
-      Essay and long-answer questions will be scored by your teacher.
+      Essay and writing questions will appear with feedback once grading is complete.
       ${violations.length ? `<br/><br/><span style="color:#ff6b6b;">${violations.length} lockdown violation(s) were recorded.</span>` : ''}
     `;
   } catch (e) {
@@ -482,8 +495,9 @@ function renderReviewQuestion(q, i) {
   }
 
   const feedback = q.manualGrade && q.manualGrade.feedback
-    ? `<div style="margin-top: 6px; padding: 8px; background: #f1f5ff; border-radius: 6px;">
-         <strong>Teacher feedback:</strong> ${escapeHtml(q.manualGrade.feedback)}
+    ? `<div style="margin-top: 6px; padding: 8px; background: #f1f5ff; border-radius: 6px; white-space: pre-wrap;">
+         <strong>Feedback:</strong>
+${escapeHtml(q.manualGrade.feedback)}
        </div>`
     : '';
 
@@ -506,8 +520,6 @@ function renderReviewQuestion(q, i) {
 els.doneBack.onclick = () => location.reload();
 
 // ========== LOCKDOWN LAYER ==========
-// All of these are deterrents at the browser level. The Electron wrapper
-// applies a stronger layer (kiosk mode, content protection, global shortcuts).
 
 function addViolation(reason) {
   if (!lockdownActive || submitted) return;
@@ -521,7 +533,6 @@ function addViolation(reason) {
   }
 }
 
-// --- Fullscreen ---
 async function enterFullscreen() {
   const el = document.documentElement;
   if (el.requestFullscreen) await el.requestFullscreen();
@@ -532,43 +543,31 @@ function isFullscreen() {
   return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
 
-// --- Event handlers (installed/uninstalled as a group) ---
 const handlers = {
   visibilitychange: () => {
     if (document.hidden) addViolation('Switched tab or minimized window');
   },
   blur: () => addViolation('Window lost focus'),
-  focus: () => {
-    // Allow re-focus but keep banner visible
-  },
+  focus: () => {},
   fullscreenchange: () => {
     if (!isFullscreen()) {
       addViolation('Exited fullscreen');
-      // Try to force fullscreen back
       enterFullscreen().catch(() => {});
     }
   },
   keydown: (e) => {
-    // Block common shortcuts / shortcut exfiltration paths.
     const key = (e.key || '').toLowerCase();
     const ctrl = e.ctrlKey || e.metaKey;
     const block =
-      // DevTools
       (e.key === 'F12') ||
       (ctrl && e.shiftKey && ['i', 'j', 'c'].includes(key)) ||
-      // View source
       (ctrl && key === 'u') ||
-      // Save, Print, Find
       (ctrl && ['s', 'p', 'f', 'g'].includes(key)) ||
-      // Clipboard
       (ctrl && ['c', 'v', 'x'].includes(key)) ||
-      // New tab / window / close
       (ctrl && ['t', 'n', 'w'].includes(key)) ||
-      // Reload
       (ctrl && ['r'].includes(key)) || e.key === 'F5' ||
-      // Screenshots on some platforms
       e.key === 'PrintScreen' ||
-      // Alt+Tab (Windows/Linux) — many browsers can't actually block this
+      (ctrl && e.shiftKey && ['3', '4', '5'].includes(key)) ||
       (e.altKey && e.key === 'Tab');
     if (block) {
       e.preventDefault();
@@ -580,7 +579,6 @@ const handlers = {
   copy: (e) => { e.preventDefault(); addViolation('Copy attempted'); },
   cut:  (e) => { e.preventDefault(); addViolation('Cut attempted'); },
   paste: (e) => {
-    // Allow paste in answer fields (students may legitimately type). Block otherwise.
     const t = e.target;
     if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) {
       e.preventDefault();
@@ -590,7 +588,6 @@ const handlers = {
   contextmenu: (e) => { e.preventDefault(); },
   dragstart: (e) => { e.preventDefault(); },
   selectstart: (e) => {
-    // Allow selection in answer fields, block everywhere else
     const t = e.target;
     if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) {
       e.preventDefault();
@@ -631,11 +628,9 @@ function installLockdown() {
   document.addEventListener('selectstart', handlers.selectstart);
   window.addEventListener('beforeunload', handlers.beforeunload);
 
-  // Blur-on-blur: obscure content whenever window is not focused.
   window.addEventListener('blur', () => document.body.classList.add('lockdown-blur'));
   window.addEventListener('focus', () => document.body.classList.remove('lockdown-blur'));
 
-  // If running in Electron, lock the OS-level window down for the duration of the exam.
   if (window.lockdown && typeof window.lockdown.enterKiosk === 'function') {
     try { window.lockdown.enterKiosk(); } catch {}
   }
@@ -644,7 +639,7 @@ function installLockdown() {
 // ========== WEBCAM PROCTORING ==========
 let webcamStream = null;
 let proctorIntervalId = null;
-const PROCTOR_INTERVAL_MS = 15000; // snapshot every 15s
+const PROCTOR_INTERVAL_MS = 15000;
 let cameraOffViolationFired = false;
 
 async function startWebcam() {
@@ -657,7 +652,6 @@ async function startWebcam() {
   });
   els.webcam.srcObject = webcamStream;
   await els.webcam.play().catch(() => {});
-  // Detect if user stops the stream externally (e.g. OS-level permission revoke).
   webcamStream.getVideoTracks().forEach((t) => {
     t.onended = () => {
       if (!submitted) {
@@ -696,7 +690,6 @@ async function captureAndUpload(note) {
   const canvas = els.webcamCanvas;
   const vw = video.videoWidth || 320;
   const vh = video.videoHeight || 240;
-  // Downscale to 320px wide to keep uploads small.
   const targetW = 320;
   const targetH = Math.round((vh / vw) * targetW);
   canvas.width = targetW;
@@ -705,7 +698,6 @@ async function captureAndUpload(note) {
   ctx.drawImage(video, 0, 0, targetW, targetH);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
 
-  // Basic "is the frame mostly black" check — flag if camera is covered.
   const sample = ctx.getImageData(0, 0, targetW, targetH).data;
   let lumaSum = 0;
   const stride = 32;
@@ -718,7 +710,6 @@ async function captureAndUpload(note) {
     addViolation('Webcam appears covered or obstructed');
     els.webcamStatus.textContent = 'DARK';
     els.webcamStatus.classList.add('warn');
-    // Reset after 30s so repeated coverage can trigger again.
     setTimeout(() => { cameraOffViolationFired = false; els.webcamStatus.classList.remove('warn'); els.webcamStatus.textContent = 'REC'; }, 30000);
   }
 
@@ -727,9 +718,7 @@ async function captureAndUpload(note) {
       method: 'POST',
       body: { assessmentId: currentAssessment.id, dataUrl, note },
     });
-  } catch {
-    // Non-fatal — the snapshot is a best-effort record.
-  }
+  } catch {}
 }
 
 function uninstallLockdown() {
@@ -748,7 +737,6 @@ function uninstallLockdown() {
   document.removeEventListener('selectstart', handlers.selectstart);
   window.removeEventListener('beforeunload', handlers.beforeunload);
   document.body.classList.remove('lockdown-blur');
-  // Restore the OS-level window so the student can close the app normally.
   if (window.lockdown && typeof window.lockdown.exitKiosk === 'function') {
     try { window.lockdown.exitKiosk(); } catch {}
   }

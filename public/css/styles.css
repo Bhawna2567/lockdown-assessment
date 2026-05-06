@@ -1,4 +1,4 @@
-/* Global styles for Lockdown Assessment */
+/* Global styles for ClassCurio */
 * { box-sizing: border-box; }
 
 :root {
@@ -213,10 +213,74 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
 /* But allow typing in answer inputs */
 .no-select input, .no-select textarea { user-select: text; -webkit-user-select: text; }
 
-/* Screenshot obfuscation — hide content when window loses focus */
+/* Aggressive obfuscation when window loses focus during an exam.
+   Goes much heavier than before — content is unreadable AND a black
+   "PAUSED" overlay covers the screen, so a phone photo of the screen
+   captures only the warning. */
 .lockdown-blur .assessment-content {
-  filter: blur(18px);
+  filter: blur(40px) brightness(0.3);
   pointer-events: none;
+}
+
+/* PAUSED overlay shown when window loses focus. Only visible when
+   .lockdown-blur is on body. */
+.lockdown-pause-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  color: #fff;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  font-size: 18px;
+  z-index: 99999;
+  text-align: center;
+  padding: 40px;
+}
+.lockdown-blur .lockdown-pause-overlay { display: flex; }
+.lockdown-pause-overlay h2 {
+  font-size: 32px;
+  margin: 0 0 16px;
+  color: #fff;
+}
+.lockdown-pause-overlay p {
+  max-width: 540px;
+  line-height: 1.5;
+  color: #d6dcff;
+}
+
+/* Identity watermark — tiled diagonally during exam.
+   Can't be hidden via DevTools (devTools disabled in Electron, and the
+   watermark is in the DOM tree directly). Shows up in any screenshot the
+   student takes. */
+#anti-cheat-watermark {
+  position: fixed;
+  inset: -200px;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+  display: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#anti-cheat-watermark.active {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 280px);
+  grid-auto-rows: 80px;
+  transform: rotate(-25deg);
+  transform-origin: 50% 50%;
+}
+#anti-cheat-watermark > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.09);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 /* Webcam proctor preview */
@@ -231,7 +295,7 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   background: #000;
   border: 2px solid #ff6b6b;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  z-index: 9999;
+  z-index: 9998;
 }
 #webcam-wrap video {
   width: 100%;
