@@ -5,8 +5,8 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "electron": "electron electron/main.js ",
-    "dev": "concurrently \"npm run start\" \"wait-on http://localhost:3000 && electron electron/main.js \"",
+    "electron": "electron electron/main.js",
+    "dev": "concurrently \"npm run start\" \"wait-on http://localhost:3000 && electron electron/main.js\"",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
     "build:linux": "electron-builder --linux"
