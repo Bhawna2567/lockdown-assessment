@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ClassCurio — Sign in</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="narrow">
+    <div class="panel">
+      <h1>ClassCurio</h1>
+      <p class="muted">Sign in to your teacher or student account, or create a new one.</p>
+
+      <div id="err" class="error" style="display:none;"></div>
+
+      <div class="row" style="margin-bottom: 16px;">
+        <button id="tab-login" class="btn primary">Sign in</button>
+        <button id="tab-register" class="btn">Register</button>
+      </div>
+
+      <form id="login-form">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="email" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" required />
+        </div>
+        <button class="btn primary" type="submit">Sign in</button>
+      </form>
+
+      <form id="register-form" style="display:none;">
+        <div class="field">
+          <label>Full name</label>
+          <input type="text" name="name" required />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" name="email" required />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" name="password" minlength="6" required />
+        </div>
+        <div class="field">
+          <label>I am a...</label>
+          <select name="role" required>
+            <option value="student">Student</option>
+            <option value="teacher">Teacher</option>
+          </select>
+        </div>
+        <button class="btn primary" type="submit">Create account</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Belt-and-braces: if the Electron window is in some leftover locked
+    // state (e.g., a student force-killed an exam earlier), clear it now so
+    // the teacher can always close or move the window from the sign-in page.
+    try { window.lockdown && window.lockdown.forceUnlock && window.lockdown.forceUnlock(); } catch {}
+    try { document.exitFullscreen && document.exitFullscreen().catch(() => {}); } catch {}
+
+    const err = document.getElementById('err');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+
+    function showError(msg) {
+      err.textContent = msg;
+      err.style.display = 'block';
+    }
+    function clearError() { err.style.display = 'none'; }
+
+    tabLogin.onclick = () => {
+      tabLogin.classList.add('primary');
+      tabRegister.classList.remove('primary');
+      loginForm.style.display = 'block';
+      registerForm.style.display = 'none';
+      clearError();
+    };
+    tabRegister.onclick = () => {
+      tabRegister.classList.add('primary');
+      tabLogin.classList.remove('primary');
+      registerForm.style.display = 'block';
+      loginForm.style.display = 'none';
+      clearError();
+    };
+
+    // If we landed here from /take/:id, ?next= will tell us where to go after login.
+    const nextParam = new URLSearchParams(location.search).get('next');
+
+    function routeByRole(user) {
+      if (nextParam) {
+        location.href = nextParam;
+        return;
+      }
+      if (user.role === 'teacher') location.href = '/teacher.html';
+      else location.href = '/student.html';
+    }
+
+    async function post(url, body) {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      clearError();
+      const fd = new FormData(loginForm);
+      try {
+        const { user } = await post('/api/login', { email: fd.get('email'), password: fd.get('password') });
+        routeByRole(user);
+      } catch (e) {
+        showError(e.message);
+      }
+    };
+
+    registerForm.onsubmit = async (e) => {
+      e.preventDefault();
+      clearError();
+      const fd = new FormData(registerForm);
+      try {
+        const { user } = await post('/api/register', {
+          name: fd.get('name'),
+          email: fd.get('email'),
+          password: fd.get('password'),
+          role: fd.get('role'),
+        });
+        routeByRole(user);
+      } catch (e) {
+        showError(e.message);
+      }
+    };
+
+    // Already signed in? Redirect.
+    fetch('/api/me').then((r) => r.json()).then((d) => {
+      if (d.user) routeByRole(d.user);
+    });
+  </script>
+</body>
+</html>

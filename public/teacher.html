@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard — ClassCurio</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">ClassCurio</div>
+    <span class="muted">Teacher dashboard</span>
+    <div class="spacer"></div>
+    <span id="who" class="muted"></span>
+    <button id="logout" class="btn">Sign out</button>
+  </div>
+
+  <div class="container">
+    <div id="list-view">
+      <div class="row" style="margin-bottom: 12px;">
+        <h1 style="margin:0;">Your assessments</h1>
+        <div class="spacer"></div>
+        <button id="settings-btn" class="btn">⚙ Settings</button>
+        <button id="essay-queue-btn" class="btn">📝 Grade essays <span id="queue-count" class="badge" style="display:none;"></span></button>
+        <button id="import-btn" class="btn">⇪ Quick Import (PDF/DOCX)</button>
+        <button id="new-btn" class="btn primary">+ New assessment</button>
+      </div>
+
+      <div id="settings-panel" class="panel" style="display:none;">
+        <h2>Settings</h2>
+        <div class="field">
+          <label>Anthropic API key (for automatic essay grading)</label>
+          <input type="password" id="api-key-input" placeholder="sk-ant-…" autocomplete="off" />
+          <div class="muted" style="margin-top: 6px;">
+            Stored locally in <code>data/config.json</code>. Get a key from
+            <strong>console.anthropic.com</strong> → API Keys. Without a key, writing
+            questions land in the manual essay queue instead of being auto-graded.
+            <span id="api-key-state" style="margin-left: 6px;"></span>
+          </div>
+        </div>
+        <div class="row">
+          <button id="settings-close" class="btn ghost">Close</button>
+          <div class="spacer"></div>
+          <button id="settings-clear" class="btn danger">Remove key</button>
+          <button id="settings-save" class="btn primary">Save key</button>
+          <span id="settings-status" class="muted"></span>
+        </div>
+      </div>
+
+      <div id="import-panel" class="panel" style="display:none;">
+        <h2>Quick Import</h2>
+        <p class="muted">Upload a PDF, DOCX, or TXT exam paper. We'll extract the questions so you can review and save as a new assessment.</p>
+        <div id="import-drop" class="import-drop">
+          <p><strong>Drop a file here</strong> or</p>
+          <input type="file" id="import-file" accept=".pdf,.docx,.txt" />
+          <div id="import-status" class="muted" style="margin-top:10px;"></div>
+        </div>
+        <div class="row" style="margin-top: 12px;">
+          <button id="import-close" class="btn ghost">Close</button>
+        </div>
+      </div>
+
+      <div id="assessments"></div>
+    </div>
+
+    <div id="builder-view" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="back-btn" class="btn">&larr; Back</button>
+        <h1 id="builder-title" style="margin:0;">New assessment</h1>
+      </div>
+
+      <div class="panel">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="title" placeholder="e.g., Midterm Chapter 1-3" />
+        </div>
+        <div class="field">
+          <label>Description (optional)</label>
+          <textarea id="description"></textarea>
+        </div>
+        <div class="field">
+          <label>Reading passage / source text (optional)</label>
+          <textarea id="passage" rows="8" placeholder="Paste a reading passage here. Students will see this above the questions when they take the assessment. Imported PDFs/DOCX files will pre-fill this automatically."></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label>Duration (minutes)</label>
+            <input type="number" id="duration" value="30" min="1" />
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Writing rubric (for &quot;Writing&quot; questions)</label>
+            <select id="rubric-stage">
+              <option value="">No rubric — manual grading</option>
+              <option value="7">Stage 7 (auto-grade out of 12)</option>
+              <option value="8">Stage 8 (auto-grade out of 12)</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Status</label>
+            <select id="published">
+              <option value="false">Draft (students can't see)</option>
+              <option value="true">Published (students can take)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row" style="margin-bottom: 10px;">
+          <h2 style="margin:0;">Questions</h2>
+          <div class="spacer"></div>
+          <button class="btn" data-add="mc">+ Multiple choice</button>
+          <button class="btn" data-add="tf">+ True/False</button>
+          <button class="btn" data-add="short">+ Short answer</button>
+          <button class="btn" data-add="essay">+ Essay (manual grade)</button>
+          <button class="btn" data-add="writing">+ Writing (auto-graded)</button>
+        </div>
+        <div id="questions"></div>
+      </div>
+
+      <div class="row">
+        <button id="save-btn" class="btn primary">Save assessment</button>
+        <span id="save-status" class="muted"></span>
+      </div>
+    </div>
+
+    <div id="results-view" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="results-back" class="btn">&larr; Back</button>
+        <h1 id="results-title" style="margin:0;"></h1>
+        <div class="spacer"></div>
+        <button id="download-xlsx" class="btn primary">⬇ Download scoresheet (.xlsx)</button>
+      </div>
+      <div class="panel">
+        <div id="results-body"></div>
+      </div>
+    </div>
+
+    <div id="essay-queue-view" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="queue-back" class="btn">&larr; Back</button>
+        <h1 style="margin:0;">Essay grading queue</h1>
+      </div>
+      <div id="queue-body"></div>
+    </div>
+  </div>
+
+  <script src="/js/teacher.js"></script>
+</body>
+</html>

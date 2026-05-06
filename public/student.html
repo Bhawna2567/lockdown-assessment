@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student — ClassCurio</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="lockdown-body no-select" oncontextmenu="return false;">
+  <div class="topbar" style="background:#1a1e33; color:#fff; border-bottom-color:#2b3152;">
+    <div class="brand">ClassCurio</div>
+    <span class="muted" style="color:#9ba0bd;">Student view</span>
+    <div class="spacer"></div>
+    <span id="who" class="muted" style="color:#9ba0bd;"></span>
+    <button id="logout" class="btn">Sign out</button>
+  </div>
+
+  <div class="container">
+    <!-- LIST VIEW -->
+    <div id="list-view">
+      <h1>Available assessments</h1>
+      <div id="assessments"></div>
+      <div id="past-results" style="margin-top: 24px;"></div>
+    </div>
+
+    <!-- CONSENT VIEW -->
+    <div id="consent-view" style="display:none;">
+      <div class="panel">
+        <h1 id="consent-title"></h1>
+        <p id="consent-desc" class="muted"></p>
+        <p><strong>Duration:</strong> <span id="consent-duration"></span></p>
+
+        <h2>Before you start</h2>
+        <ul>
+          <li>You must remain in fullscreen mode for the entire assessment.</li>
+          <li>Leaving this window, switching tabs, or opening another app will be recorded as a violation.</li>
+          <li>After 3 violations, your assessment is auto-submitted with the answers recorded so far.</li>
+          <li>Copy, paste, right-click, and common keyboard shortcuts are disabled.</li>
+          <li>The screen will blur when it loses focus.</li>
+          <li>Once started, you cannot leave and come back — the assessment is one attempt only.</li>
+        </ul>
+
+        <div id="env-check" class="muted" style="margin: 10px 0;"></div>
+
+        <div class="row">
+          <button id="consent-back" class="btn">Cancel</button>
+          <div class="spacer"></div>
+          <button id="consent-start" class="btn primary">I understand — start</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSESSMENT VIEW -->
+    <div id="assessment-view" style="display:none;" class="assessment-content">
+      <div class="row" style="margin-bottom: 10px;">
+        <h1 id="assess-title" style="margin:0; color:#fff;"></h1>
+        <div class="spacer"></div>
+        <div id="timer" class="timer">--:--</div>
+      </div>
+
+      <div id="violation-banner" class="violation-banner" style="display:none;"></div>
+
+      <!-- Webcam proctor preview (bottom-right corner) -->
+      <div id="webcam-wrap">
+        <video id="webcam" autoplay playsinline muted></video>
+        <div id="webcam-status">REC</div>
+      </div>
+      <canvas id="webcam-canvas" style="display:none;"></canvas>
+
+      <!-- Reading passage (shown above questions when the teacher attached one) -->
+      <div id="passage-panel" class="panel" style="display:none; max-height: 320px; overflow-y: auto; background:#1a1e33; color:#eef0ff; border-color:#2b3152;">
+        <h2 style="margin-top:0; color:#fff;">Reading passage</h2>
+        <div id="passage-text" style="white-space: pre-wrap; line-height: 1.55;"></div>
+      </div>
+
+      <div id="questions"></div>
+
+      <div class="panel" style="text-align:center;">
+        <button id="submit-btn" class="btn primary">Submit assessment</button>
+      </div>
+    </div>
+
+    <!-- DONE VIEW -->
+    <div id="done-view" style="display:none;">
+      <div class="panel">
+        <h1>Submitted</h1>
+        <p id="done-msg" class="muted"></p>
+        <div class="row" style="margin-top: 12px;">
+          <button id="done-review" class="btn primary">View my answers and feedback</button>
+          <div class="spacer"></div>
+          <button id="done-back" class="btn">Back to assessments</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEW VIEW -->
+    <div id="review-view" style="display:none;">
+      <div class="row" style="margin-bottom: 10px;">
+        <h1 id="review-title" style="margin:0;"></h1>
+        <div class="spacer"></div>
+        <button id="review-back" class="btn">Back</button>
+      </div>
+      <div class="panel" id="review-summary"></div>
+      <div id="review-body"></div>
+    </div>
+  </div>
+
+  <script src="/js/student.js"></script>
+</body>
+</html>
