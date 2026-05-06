@@ -1,0 +1,308 @@
+/* Global styles for Lockdown Assessment */
+* { box-sizing: border-box; }
+
+:root {
+  --bg: #f6f7fb;
+  --panel: #ffffff;
+  --text: #1a1c2b;
+  --muted: #5b6075;
+  --primary: #3b5bdb;
+  --primary-hover: #2d49b8;
+  --danger: #d63939;
+  --success: #2b8a3e;
+  --border: #e3e6ef;
+  --radius: 10px;
+  --shadow: 0 2px 8px rgba(20, 20, 60, 0.06);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.narrow {
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 24px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+h1, h2, h3 { margin-top: 0; }
+h1 { font-size: 26px; }
+h2 { font-size: 20px; }
+
+.muted { color: var(--muted); font-size: 14px; }
+
+.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn:hover { border-color: var(--primary); }
+.btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+.btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn.danger { background: var(--danger); color: white; border-color: var(--danger); }
+.btn.ghost { background: transparent; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.spacer { flex: 1; }
+
+label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--muted); }
+input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+textarea, select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text);
+}
+textarea { min-height: 80px; resize: vertical; }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.15);
+}
+
+.field { margin-bottom: 14px; }
+
+.error {
+  color: var(--danger);
+  background: #fee;
+  border: 1px solid #fcc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+.success {
+  color: var(--success);
+  background: #e6f7e9;
+  border: 1px solid #b7e1c2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+/* Nav */
+.topbar {
+  background: white;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.topbar .brand { font-weight: 700; font-size: 16px; }
+
+/* Lists / cards */
+.card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  background: white;
+}
+.card-title { font-weight: 600; font-size: 15px; }
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef;
+  color: #339;
+  margin-left: 6px;
+}
+.badge.green { background: #e6f7e9; color: var(--success); }
+.badge.red { background: #fee; color: var(--danger); }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+
+/* Question builder */
+.q-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 10px;
+  background: #fafbff;
+}
+
+/* Lockdown student screen */
+.lockdown-body {
+  background: #0f1220;
+  color: #fff;
+  min-height: 100vh;
+}
+.lockdown-body .panel {
+  background: #1a1e33;
+  color: #fff;
+  border-color: #2b3152;
+}
+.lockdown-body input, .lockdown-body textarea, .lockdown-body select {
+  background: #0f1220;
+  color: #fff;
+  border-color: #2b3152;
+}
+.lockdown-body .muted { color: #9ba0bd; }
+.lockdown-body table th, .lockdown-body table td { border-color: #2b3152; }
+.lockdown-body .btn { background: #1a1e33; color: #fff; border-color: #2b3152; }
+.lockdown-body .btn.primary { background: #3b5bdb; border-color: #3b5bdb; }
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+.timer.warn { color: #ffd43b; }
+.timer.danger { color: #ff6b6b; background: rgba(255,100,100,0.15); }
+
+.violation-banner {
+  background: #d63939;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+/* No-select by default on lockdown pages */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* But allow typing in answer inputs */
+.no-select input, .no-select textarea { user-select: text; -webkit-user-select: text; }
+
+/* Screenshot obfuscation — hide content when window loses focus */
+.lockdown-blur .assessment-content {
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+/* Webcam proctor preview */
+#webcam-wrap {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 180px;
+  height: 135px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid #ff6b6b;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  z-index: 9999;
+}
+#webcam-wrap video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror for natural feel */
+}
+#webcam-status {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: #ff3939;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+#webcam-status.warn { background: #f59f00; }
+#webcam-status.off  { background: #555; }
+
+/* VM / environment panel on consent screen */
+.env-warn {
+  background: #fff5e6;
+  border: 1px solid #f59f00;
+  color: #6b4800;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.env-block {
+  background: #fee;
+  border: 1px solid #fcc;
+  color: #8a1a1a;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.env-ok {
+  background: #e6f7e9;
+  border: 1px solid #b7e1c2;
+  color: #1e6b2b;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Proctor gallery (teacher results) */
+.proctor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.proctor-grid img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+}
+
+/* Quick Import modal */
+.import-drop {
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  background: #fafbff;
+}
+.import-drop.drag { border-color: var(--primary); background: #eef2ff; }
