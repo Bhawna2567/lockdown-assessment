@@ -2,7 +2,7 @@
   "name": "classcurio",
   "version": "1.0.0",
   "description": "ClassCurio — classroom assessment platform with lockdown browser, PDF/Word import, and Excel export.",
-  "main": "server/server.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server/server.js",
     "electron": "electron electron/main.js",
@@ -34,15 +34,20 @@
   "build": {
     "appId": "com.bhavna.classcurio",
     "productName": "ClassCurio",
+    "publish": null,
     "files": [
       "electron/**/*",
-      "server/**/*",
-      "public/**/*",
-      "data/**/*",
       "package.json"
     ],
-    "mac": { "category": "public.app-category.education" },
-    "win": { "target": "nsis" },
-    "linux": { "target": "AppImage" }
+    "mac": {
+      "category": "public.app-category.education",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
