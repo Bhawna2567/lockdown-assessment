@@ -1,0 +1,104 @@
+name: Build ClassCurio Desktop App
+
+# Triggers:
+#  - Every push to the main branch
+#  - Manual click of "Run workflow" in the GitHub Actions tab
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow this workflow to create / update releases.
+permissions:
+  contents: write
+
+jobs:
+  # ---------- macOS build ----------
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build .dmg
+        run: npm run build:mac
+        env:
+          # Don't try to code-sign on CI — we don't have an Apple identity
+          # uploaded. Students will see "unidentified developer" warning,
+          # which is acceptable for this use case.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/*.dmg
+          if-no-files-found: error
+
+  # ---------- Windows build ----------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build .exe
+        run: npm run build:win
+
+      - name: Upload .exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/*.exe
+          if-no-files-found: error
+
+  # ---------- Publish a single "latest" release with both files ----------
+  release:
+    needs: [build-mac, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List downloaded files
+        run: ls -la artifacts/
+
+      - name: Update "latest" release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: ClassCurio — latest build
+          body: |
+            Auto-built from the latest commit on `main`.
+
+            ### Downloads
+
+            - **Windows:** `ClassCurio Setup 1.0.0.exe` (NSIS installer, ~80 MB)
+            - **Mac:** `ClassCurio-1.0.0.dmg` (Apple Silicon and Intel)
+
+            ### Installation
+
+            **Windows:** Double-click the `.exe`. If SmartScreen blocks it, click *More info → Run anyway* (one-time per machine, because the app isn't code-signed).
+
+            **Mac:** Open the `.dmg`, drag ClassCurio to Applications. The first time you launch it: right-click the app → *Open* → *Open* (one-time, same reason).
+
+            See `DESKTOP-DEPLOY.md` in the repo for the full distribution guide.
+          files: artifacts/*
+          make_latest: true
