@@ -108,10 +108,97 @@ const LABELS = {
   },
 };
 
-const LANG_NAME = { ar: 'Arabic', hi: 'Hindi', th: 'Thai' };
+const LANG_NAME = {
+  // Most common in international schools
+  ar: 'Arabic', hi: 'Hindi', th: 'Thai',
+  zh: 'Mandarin Chinese (Simplified)', es: 'Spanish', fr: 'French',
+  // South Asia
+  bn: 'Bengali', ur: 'Urdu', ta: 'Tamil', pa: 'Punjabi (Gurmukhi)',
+  te: 'Telugu', ml: 'Malayalam',
+  // South-east Asia
+  id: 'Indonesian', ms: 'Malay', vi: 'Vietnamese',
+  tl: 'Filipino (Tagalog)', km: 'Khmer',
+  // East Asia
+  ja: 'Japanese', ko: 'Korean',
+  // Middle East / Africa
+  fa: 'Persian (Farsi)', tr: 'Turkish', he: 'Hebrew', sw: 'Swahili',
+  // Europe / Americas
+  de: 'German', it: 'Italian', pt: 'Portuguese',
+  ru: 'Russian', pl: 'Polish', nl: 'Dutch',
+};
 
-function L(lang, key) {
+// Right-to-left scripts — used for Excel sheet view direction.
+const RTL_LANGS = new Set(['ar', 'he', 'fa', 'ur']);
+
+// Runtime cache for translated label sets so we don't call Claude on every
+// report download. Keyed by language code; value is a labels object with the
+// same keys as LABELS.en.
+const labelCache = new Map();
+
+function L(lang, key, labels) {
+  // If a labels object has been passed in (runtime-translated), use it first.
+  if (labels && labels[key]) return labels[key];
   return (LABELS[lang] && LABELS[lang][key]) || LABELS.en[key] || key;
+}
+
+// Returns a labels dict for the requested language, translating the English
+// LABELS via Claude when no hardcoded translation exists. Falls back to
+// English labels (so the report still renders) if translation fails.
+async function getLabels(lang) {
+  if (!lang || lang === 'en') return LABELS.en;
+  if (LABELS[lang]) return LABELS[lang];
+  if (labelCache.has(lang)) return labelCache.get(lang);
+
+  const apiKey = readApiKey();
+  if (!apiKey) return LABELS.en;
+
+  const keys = Object.keys(LABELS.en);
+  const englishValues = keys.map((k) => LABELS.en[k]);
+  const langName = LANG_NAME[lang] || lang;
+
+  const prompt = [
+    `Translate the following English labels for a school progress report into ${langName}.`,
+    `These are short structural labels that will appear in a parent-facing document — keep them concise and formal.`,
+    `Return ONLY a JSON array of translated strings, the same length as the input, in the same order.`,
+    `Do not add explanations or commentary.`,
+    ``,
+    `Input array:`,
+    JSON.stringify(englishValues),
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      console.error('[getLabels] API error', res.status);
+      return LABELS.en;
+    }
+    const data = await res.json();
+    const text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed) && parsed.length === keys.length) {
+      const dict = {};
+      keys.forEach((k, i) => { dict[k] = String(parsed[i]); });
+      labelCache.set(lang, dict);
+      return dict;
+    }
+    return LABELS.en;
+  } catch (e) {
+    console.error('[getLabels] failed', e.message);
+    return LABELS.en;
+  }
 }
 
 // Translate a list of free-text strings via the Claude API. Returns a parallel
@@ -395,32 +482,35 @@ async function generateStudentExcelReport({
   }
 
   // ---- Bilingual: optional translated summary sheet ----
-  if (secondLang && LABELS[secondLang]) {
-    const ws5 = wb.addWorksheet(LANG_NAME[secondLang] || secondLang);
+  if (secondLang && secondLang !== 'en') {
+    const labels = await getLabels(secondLang);
+    // Sheet names have a 31-char limit; trim if needed.
+    const sheetName = (LANG_NAME[secondLang] || secondLang).slice(0, 31);
+    const ws5 = wb.addWorksheet(sheetName);
     ws5.mergeCells('A1:E1');
-    ws5.getCell('A1').value = `${L(secondLang, 'title')} — ${student.name}`;
+    ws5.getCell('A1').value = `${L(secondLang, 'title', labels)} — ${student.name}`;
     ws5.getCell('A1').font = { size: 18, bold: true };
     ws5.getCell('A1').alignment = { horizontal: 'center' };
 
-    ws5.getCell('A3').value = L(secondLang, 'student');
+    ws5.getCell('A3').value = L(secondLang, 'student', labels);
     ws5.getCell('B3').value = student.name;
-    ws5.getCell('A4').value = L(secondLang, 'email');
+    ws5.getCell('A4').value = L(secondLang, 'email', labels);
     ws5.getCell('B4').value = student.email;
-    ws5.getCell('A5').value = L(secondLang, 'term');
-    ws5.getCell('B5').value = term ? `${L(secondLang, 'term')} ${term}` : '—';
-    ws5.getCell('A6').value = L(secondLang, 'year');
+    ws5.getCell('A5').value = L(secondLang, 'term', labels);
+    ws5.getCell('B5').value = term ? `${L(secondLang, 'term', labels)} ${term}` : '—';
+    ws5.getCell('A6').value = L(secondLang, 'year', labels);
     ws5.getCell('B6').value = academicYear || '—';
-    ws5.getCell('A7').value = L(secondLang, 'teacher');
+    ws5.getCell('A7').value = L(secondLang, 'teacher', labels);
     ws5.getCell('B7').value = teacherName || '—';
     for (const r of [3, 4, 5, 6, 7]) ws5.getCell(`A${r}`).font = { bold: true };
 
     const HR = 9;
     ws5.getRow(HR).values = [
-      L(secondLang, 'assessment'),
-      L(secondLang, 'dateCol'),
-      L(secondLang, 'score'),
-      L(secondLang, 'percent'),
-      L(secondLang, 'classAvg'),
+      L(secondLang, 'assessment', labels),
+      L(secondLang, 'dateCol', labels),
+      L(secondLang, 'score', labels),
+      L(secondLang, 'percent', labels),
+      L(secondLang, 'classAvg', labels),
     ];
     ws5.getRow(HR).font = { bold: true };
     ws5.getRow(HR).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
@@ -444,7 +534,7 @@ async function generateStudentExcelReport({
     }
 
     ws5.columns.forEach((c, i) => { c.width = i === 0 ? 36 : 16; });
-    if (secondLang === 'ar') {
+    if (RTL_LANGS.has(secondLang)) {
       ws5.views = [{ rightToLeft: true, state: 'frozen', ySplit: HR }];
     } else {
       ws5.views = [{ state: 'frozen', ySplit: HR }];
@@ -455,7 +545,7 @@ async function generateStudentExcelReport({
       const commentsToTranslate = withComments.map((s) => s.teacherComment);
       const translated = await translateStrings(commentsToTranslate, secondLang);
       r5 += 1; // blank row spacer
-      ws5.getRow(r5).values = [L(secondLang, 'teacherComments')];
+      ws5.getRow(r5).values = [L(secondLang, 'teacherComments', labels)];
       ws5.getRow(r5).font = { bold: true, size: 14 };
       r5++;
       for (let i = 0; i < withComments.length; i++) {
@@ -699,10 +789,11 @@ async function generateStudentWordReport({
   }));
 
   // ---- Bilingual section: same content in the chosen regional language ----
-  if (secondLang && LABELS[secondLang]) {
+  if (secondLang && secondLang !== 'en') {
+    const labels = await getLabels(secondLang);
     children.push(new Paragraph({ text: '', pageBreakBefore: true }));
     children.push(new Paragraph({
-      text: L(secondLang, 'title'),
+      text: L(secondLang, 'title', labels),
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
       spacing: { after: 300 },
@@ -710,12 +801,12 @@ async function generateStudentWordReport({
 
     // Student info block (translated labels, untranslated values).
     const infoLinesT = [
-      [L(secondLang, 'student'), student.name],
-      [L(secondLang, 'email'), student.email],
-      [L(secondLang, 'term'), term ? `${L(secondLang, 'term')} ${term}` : '—'],
-      [L(secondLang, 'year'), academicYear || '—'],
-      [L(secondLang, 'teacher'), teacherName || '—'],
-      [L(secondLang, 'date'), new Date().toLocaleDateString()],
+      [L(secondLang, 'student', labels), student.name],
+      [L(secondLang, 'email', labels), student.email],
+      [L(secondLang, 'term', labels), term ? `${L(secondLang, 'term', labels)} ${term}` : '—'],
+      [L(secondLang, 'year', labels), academicYear || '—'],
+      [L(secondLang, 'teacher', labels), teacherName || '—'],
+      [L(secondLang, 'date', labels), new Date().toLocaleDateString()],
     ];
     for (const [k, v] of infoLinesT) {
       children.push(new Paragraph({
@@ -729,7 +820,7 @@ async function generateStudentWordReport({
 
     // Summary table in the regional language.
     children.push(new Paragraph({
-      text: L(secondLang, 'summary'),
+      text: L(secondLang, 'summary', labels),
       heading: HeadingLevel.HEADING_1,
       spacing: { before: 300, after: 200 },
     }));
@@ -737,11 +828,11 @@ async function generateStudentWordReport({
     const summaryRowsT = [
       new TableRow({
         children: [
-          L(secondLang, 'assessment'),
-          L(secondLang, 'dateCol'),
-          L(secondLang, 'score'),
-          L(secondLang, 'percent'),
-          L(secondLang, 'classAvg'),
+          L(secondLang, 'assessment', labels),
+          L(secondLang, 'dateCol', labels),
+          L(secondLang, 'score', labels),
+          L(secondLang, 'percent', labels),
+          L(secondLang, 'classAvg', labels),
         ].map(tableHeaderCell),
       }),
     ];
@@ -767,7 +858,7 @@ async function generateStudentWordReport({
     if (submissions.length) {
       summaryRowsT.push(new TableRow({
         children: [
-          tableCell(L(secondLang, 'overall')),
+          tableCell(L(secondLang, 'overall', labels)),
           tableCell(''),
           tableCell(`${totalScore2} / ${totalMax2}`),
           tableCell(`${Math.round(pct(totalScore2, totalMax2) * 100)}%`),
@@ -803,7 +894,7 @@ async function generateStudentWordReport({
 
     if (submissions.length) {
       children.push(new Paragraph({
-        text: L(secondLang, 'commentary'),
+        text: L(secondLang, 'commentary', labels),
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 300, after: 200 },
       }));
@@ -817,7 +908,7 @@ async function generateStudentWordReport({
     const writingSubsT = submissions.filter((s) => rubricAverages(s));
     if (writingSubsT.length) {
       children.push(new Paragraph({
-        text: L(secondLang, 'rubric'),
+        text: L(secondLang, 'rubric', labels),
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 300, after: 200 },
       }));
@@ -839,21 +930,25 @@ async function generateStudentWordReport({
 
       const rubricRowsT = [
         new TableRow({
-          children: [L(secondLang, 'criterion'), L(secondLang, 'average'), L(secondLang, 'level')].map(tableHeaderCell),
+          children: [
+            L(secondLang, 'criterion', labels),
+            L(secondLang, 'average', labels),
+            L(secondLang, 'level', labels),
+          ].map(tableHeaderCell),
         }),
       ];
       const niceNamesT = {
-        content: L(secondLang, 'content'),
-        organisation: L(secondLang, 'organisation'),
-        grammar: L(secondLang, 'grammar'),
-        lexis: L(secondLang, 'lexis'),
+        content: L(secondLang, 'content', labels),
+        organisation: L(secondLang, 'organisation', labels),
+        grammar: L(secondLang, 'grammar', labels),
+        lexis: L(secondLang, 'lexis', labels),
       };
       for (const k of ['content', 'organisation', 'grammar', 'lexis']) {
         const v = avgs[k];
         let level;
-        if (v >= 2.5) level = L(secondLang, 'beyond');
-        else if (v >= 1.5) level = L(secondLang, 'at');
-        else level = L(secondLang, 'towards');
+        if (v >= 2.5) level = L(secondLang, 'beyond', labels);
+        else if (v >= 1.5) level = L(secondLang, 'at', labels);
+        else level = L(secondLang, 'towards', labels);
         rubricRowsT.push(new TableRow({
           children: [
             tableCell(niceNamesT[k]),
@@ -871,7 +966,7 @@ async function generateStudentWordReport({
     // Translated teacher comments
     if (withCommentsT.length) {
       children.push(new Paragraph({
-        text: L(secondLang, 'teacherComments'),
+        text: L(secondLang, 'teacherComments', labels),
         heading: HeadingLevel.HEADING_1,
         spacing: { before: 300, after: 200 },
       }));

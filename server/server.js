@@ -1053,7 +1053,19 @@ app.get('/api/students/:studentId/progress', requireTeacher, (req, res) => {
   });
 });
 
-// Excel download per student. ?lang=ar|hi|th|en for bilingual mode.
+// Allowed regional language codes for bilingual reports. Hardcoded labels
+// exist for ar/hi/th; everything else uses Claude API to translate labels at
+// runtime. The full list mirrors the dropdown in public/teacher.html.
+const SUPPORTED_LANGS = new Set([
+  'ar', 'hi', 'th', 'zh', 'es', 'fr',
+  'bn', 'ur', 'ta', 'pa', 'te', 'ml',
+  'id', 'ms', 'vi', 'tl', 'km',
+  'ja', 'ko',
+  'fa', 'tr', 'he', 'sw',
+  'de', 'it', 'pt', 'ru', 'pl', 'nl',
+]);
+
+// Excel download per student. ?lang=<code> for bilingual mode.
 app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res) => {
   const teacherId = req.session.user.id;
   const term = req.query.term || null;
@@ -1080,7 +1092,7 @@ app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res
     term,
     academicYear,
     teacherName: req.session.user.name,
-    secondLang: ['ar', 'hi', 'th'].includes(secondLang) ? secondLang : null,
+    secondLang: SUPPORTED_LANGS.has(secondLang) ? secondLang : null,
   });
 
   const safeName = (sample.studentName || 'student').replace(/[^a-z0-9]/gi, '_');
@@ -1092,7 +1104,7 @@ app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res
   res.end();
 });
 
-// Word download per student. ?lang=ar|hi|th|en for bilingual mode.
+// Word download per student. ?lang=<code> for bilingual mode.
 app.get('/api/students/:studentId/word-report', requireTeacher, async (req, res) => {
   const teacherId = req.session.user.id;
   const term = req.query.term || null;
@@ -1119,7 +1131,7 @@ app.get('/api/students/:studentId/word-report', requireTeacher, async (req, res)
     teacherName: req.session.user.name,
     term,
     academicYear,
-    secondLang: ['ar', 'hi', 'th'].includes(secondLang) ? secondLang : null,
+    secondLang: SUPPORTED_LANGS.has(secondLang) ? secondLang : null,
   });
 
   const buffer = await Packer.toBuffer(doc);

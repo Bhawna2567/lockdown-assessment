@@ -235,6 +235,10 @@
         <button id="progress-excel" class="btn">⬇ Excel report</button>
         <button id="progress-word" class="btn primary">⬇ Word report</button>
       </div>
+      <div class="panel" style="background: linear-gradient(135deg, #eef2ff, #fdf2f8); margin-bottom: 14px; padding: 14px 18px;">
+        <div style="font-weight: 600; margin-bottom: 6px;">🌐 Report language</div>
+        <div class="muted" style="margin-bottom: 10px;">Pick a regional language below — your downloaded report will be <strong>bilingual</strong> (English first, then the language you choose). Leave as &ldquo;English only&rdquo; for a single-language report.</div>
+      </div>
       <div class="row" style="margin-bottom: 12px;">
         <div class="field" style="margin: 0; flex: 0 0 160px;">
           <label>Term</label>
@@ -249,13 +253,51 @@
           <label>Academic year</label>
           <input type="text" id="progress-year" placeholder="e.g. 2025-2026" />
         </div>
-        <div class="field" style="margin: 0; flex: 0 0 220px;">
-          <label>Bilingual report (parent-friendly)</label>
+        <div class="field" style="margin: 0; flex: 0 0 320px;">
+          <label>🌐 Bilingual report language</label>
           <select id="progress-lang">
             <option value="">English only</option>
-            <option value="ar">English + Arabic (UAE, KSA, etc.)</option>
-            <option value="hi">English + Hindi (India)</option>
-            <option value="th">English + Thai (Thailand)</option>
+            <optgroup label="Most common in international schools">
+              <option value="ar">English + Arabic</option>
+              <option value="hi">English + Hindi</option>
+              <option value="th">English + Thai</option>
+              <option value="zh">English + Mandarin Chinese</option>
+              <option value="es">English + Spanish</option>
+              <option value="fr">English + French</option>
+            </optgroup>
+            <optgroup label="South Asia">
+              <option value="bn">English + Bengali</option>
+              <option value="ur">English + Urdu</option>
+              <option value="ta">English + Tamil</option>
+              <option value="pa">English + Punjabi</option>
+              <option value="te">English + Telugu</option>
+              <option value="ml">English + Malayalam</option>
+            </optgroup>
+            <optgroup label="South-east Asia">
+              <option value="id">English + Indonesian</option>
+              <option value="ms">English + Malay</option>
+              <option value="vi">English + Vietnamese</option>
+              <option value="tl">English + Filipino / Tagalog</option>
+              <option value="km">English + Khmer</option>
+            </optgroup>
+            <optgroup label="East Asia">
+              <option value="ja">English + Japanese</option>
+              <option value="ko">English + Korean</option>
+            </optgroup>
+            <optgroup label="Middle East / Africa">
+              <option value="fa">English + Persian / Farsi</option>
+              <option value="tr">English + Turkish</option>
+              <option value="he">English + Hebrew</option>
+              <option value="sw">English + Swahili</option>
+            </optgroup>
+            <optgroup label="Europe / Americas">
+              <option value="de">English + German</option>
+              <option value="it">English + Italian</option>
+              <option value="pt">English + Portuguese</option>
+              <option value="ru">English + Russian</option>
+              <option value="pl">English + Polish</option>
+              <option value="nl">English + Dutch</option>
+            </optgroup>
           </select>
         </div>
       </div>
