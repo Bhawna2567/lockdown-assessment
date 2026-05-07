@@ -285,7 +285,23 @@ function startAssessment() {
 }
 
 function renderQuestions() {
-  els.questions.innerHTML = currentAssessment.questions
+  // Show subject + language banner at the top of the question list when set.
+  const a = currentAssessment;
+  let banner = '';
+  if (a.subject || a.assessmentLanguage) {
+    const subj = a.subject ? `📚 <strong>${escapeHtml(a.subject)}</strong>` : '';
+    const lang = a.assessmentLanguage
+      ? `🌐 <strong>Please write your answers in: ${escapeHtml(a.assessmentLanguage)}</strong>`
+      : '';
+    banner = `
+      <div class="panel" style="background: linear-gradient(135deg, #312e81, #5b21b6); color: #fff; border-color: #4338ca;">
+        ${subj ? `<div style="margin-bottom: ${lang ? '6px' : '0'};">${subj}</div>` : ''}
+        ${lang ? `<div>${lang}</div>` : ''}
+      </div>
+    `;
+  }
+
+  const questionsHtml = currentAssessment.questions
     .map((q, i) => {
       let body = '';
       if (q.type === 'mc') {
@@ -299,8 +315,16 @@ function renderQuestions() {
           <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
           <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
         `;
+      } else if (q.type === 'tfng') {
+        body = `
+          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
+          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
+          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
+        `;
       } else if (q.type === 'short') {
         body = `<input type="text" data-q="${q.id}" placeholder="Your answer" />`;
+      } else if (q.type === 'long') {
+        body = `<textarea data-q="${q.id}" rows="10" placeholder="Write your full answer here. Use complete sentences and explain your reasoning."></textarea>`;
       } else if (q.type === 'essay' || q.type === 'writing') {
         const rows = q.type === 'writing' ? 14 : 6;
         body = `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>`;
@@ -315,15 +339,19 @@ function renderQuestions() {
     })
     .join('');
 
+  els.questions.innerHTML = banner + questionsHtml;
+
   // Wire up answer capture
   currentAssessment.questions.forEach((q) => {
-    if (q.type === 'mc' || q.type === 'tf') {
+    if (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng') {
       document.getElementsByName(`q-${q.id}`).forEach((r) => {
         r.addEventListener('change', (e) => {
-          answers[q.id] = q.type === 'mc' ? Number(e.target.value) : e.target.value === 'true';
+          if (q.type === 'mc') answers[q.id] = Number(e.target.value);
+          else if (q.type === 'tf') answers[q.id] = e.target.value === 'true';
+          else answers[q.id] = e.target.value; // tfng: 'true' | 'false' | 'ng'
         });
       });
-    } else if (q.type === 'short' || q.type === 'essay' || q.type === 'writing') {
+    } else if (q.type === 'short' || q.type === 'long' || q.type === 'essay' || q.type === 'writing') {
       const input = document.querySelector(`[data-q="${q.id}"]`);
       input.addEventListener('input', (e) => { answers[q.id] = e.target.value; });
     }
@@ -559,10 +587,13 @@ function renderReviewQuestion(q, i) {
     q.manualGrade ? `<span class="badge green">Graded: ${q.manualGrade.score}/${q.manualGrade.maxScore}</span>` :
     '<span class="badge">Awaiting teacher review</span>';
 
+  const tfngLabel = (v) => v === 'true' ? 'True' : v === 'false' ? 'False' : v === 'ng' ? 'Not Given' : String(v);
+
   let givenDisplay = '<em>(no answer)</em>';
   if (q.given !== null && q.given !== undefined) {
     if (q.type === 'mc') givenDisplay = escapeHtml(String(q.options[q.given] ?? q.given));
     else if (q.type === 'tf') givenDisplay = q.given ? 'True' : 'False';
+    else if (q.type === 'tfng') givenDisplay = tfngLabel(q.given);
     else givenDisplay = escapeHtml(String(q.given));
   }
 
@@ -571,6 +602,7 @@ function renderReviewQuestion(q, i) {
     let text = '';
     if (q.type === 'mc') text = String(q.options[q.correctAnswer] ?? q.correctAnswer);
     else if (q.type === 'tf') text = q.correctAnswer ? 'True' : 'False';
+    else if (q.type === 'tfng') text = tfngLabel(q.correctAnswer);
     else text = String(q.correctAnswer);
     correctDisplay = `<div class="success" style="margin-top: 6px;">
       <strong>Correct answer:</strong> ${escapeHtml(text)}

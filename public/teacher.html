@@ -154,6 +154,24 @@
       <div id="calendar-view" style="display:none;"></div>
     </div>
 
+    <!-- TEMPLATE PICKER: shown when user clicks "+ New assessment" -->
+    <div id="template-picker" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="template-back" class="btn">&larr; Back</button>
+        <h1 style="margin:0;">Start a new assessment</h1>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top: 0;">📝 Blank assessment</h2>
+        <p class="muted">Start from scratch — no subject, no questions. Add everything yourself.</p>
+        <button id="template-blank" class="btn primary">Start blank</button>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top: 0;">📚 Or pick a subject template</h2>
+        <p class="muted">Pre-sets the subject and gives you a quick reminder of the question types most commonly used in that subject. The questions list starts empty — you build the assessment, the template just gets you started faster.</p>
+        <div id="template-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 12px;"></div>
+      </div>
+    </div>
+
     <div id="builder-view" style="display:none;">
       <div class="row" style="margin-bottom: 12px;">
         <button id="back-btn" class="btn">&larr; Back</button>
@@ -164,6 +182,73 @@
         <div class="field">
           <label>Title</label>
           <input type="text" id="title" placeholder="e.g., Midterm Chapter 1-3" />
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label>📚 Subject</label>
+            <select id="subject">
+              <option value="">No subject</option>
+              <option value="Math">Math</option>
+              <option value="Physics">Physics</option>
+              <option value="Chemistry">Chemistry</option>
+              <option value="Biology">Biology</option>
+              <option value="Health Science">Health Science</option>
+              <option value="Islamic Studies">Islamic Studies</option>
+              <option value="Social Studies">Social Studies</option>
+              <option value="French">French</option>
+              <option value="English">English</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label>🌐 Language of assessment</label>
+            <select id="assessment-language">
+              <option value="">No language preference</option>
+              <option value="English">English</option>
+              <optgroup label="Most common in international schools">
+                <option value="Arabic">Arabic</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Thai">Thai</option>
+                <option value="Mandarin Chinese">Mandarin Chinese</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+              </optgroup>
+              <optgroup label="South Asia">
+                <option value="Bengali">Bengali</option>
+                <option value="Urdu">Urdu</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Punjabi">Punjabi</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Malayalam">Malayalam</option>
+              </optgroup>
+              <optgroup label="South-east Asia">
+                <option value="Indonesian">Indonesian</option>
+                <option value="Malay">Malay</option>
+                <option value="Vietnamese">Vietnamese</option>
+                <option value="Filipino">Filipino / Tagalog</option>
+                <option value="Khmer">Khmer</option>
+              </optgroup>
+              <optgroup label="East Asia">
+                <option value="Japanese">Japanese</option>
+                <option value="Korean">Korean</option>
+              </optgroup>
+              <optgroup label="Middle East / Africa">
+                <option value="Persian">Persian / Farsi</option>
+                <option value="Turkish">Turkish</option>
+                <option value="Hebrew">Hebrew</option>
+                <option value="Swahili">Swahili</option>
+              </optgroup>
+              <optgroup label="Europe / Americas">
+                <option value="German">German</option>
+                <option value="Italian">Italian</option>
+                <option value="Portuguese">Portuguese</option>
+                <option value="Russian">Russian</option>
+                <option value="Polish">Polish</option>
+                <option value="Dutch">Dutch</option>
+              </optgroup>
+            </select>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">Students will see "Please answer in: [language]" at the top of the assessment.</div>
+          </div>
         </div>
         <div class="field">
           <label>Description (optional)</label>
@@ -239,9 +324,11 @@
           <div class="spacer"></div>
           <button class="btn" data-add="mc">+ Multiple choice</button>
           <button class="btn" data-add="tf">+ True/False</button>
+          <button class="btn" data-add="tfng">+ True/False/Not Given</button>
           <button class="btn" data-add="short">+ Short answer</button>
+          <button class="btn" data-add="long">+ Long answer (manual)</button>
           <button class="btn" data-add="essay">+ Essay (manual grade)</button>
-          <button class="btn" data-add="writing">+ Writing (auto-graded)</button>
+          <button class="btn" data-add="writing">+ Essay (auto-graded)</button>
         </div>
         <div id="questions"></div>
       </div>

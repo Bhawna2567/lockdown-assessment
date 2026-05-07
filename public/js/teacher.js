@@ -74,7 +74,36 @@ const els = {
   apiKeyState: document.getElementById('api-key-state'),
 
   topbarLang: document.getElementById('topbar-lang'),
+
+  subject: document.getElementById('subject'),
+  assessmentLanguage: document.getElementById('assessment-language'),
+
+  templatePicker: document.getElementById('template-picker'),
+  templateBack: document.getElementById('template-back'),
+  templateBlank: document.getElementById('template-blank'),
+  templateGrid: document.getElementById('template-grid'),
 };
+
+// Subject templates — empty (just pre-set the subject + suggest question
+// types). Teachers add all the actual questions themselves.
+const SUBJECT_TEMPLATES = [
+  { id: 'math', subject: 'Math', icon: '🔢',
+    blurb: 'Multiple choice, short answer, and long answer for problem-solving steps.' },
+  { id: 'physics', subject: 'Physics', icon: '⚛️',
+    blurb: 'MCQs for concepts, long answers for derivations, short answers for unit-conversion.' },
+  { id: 'chemistry', subject: 'Chemistry', icon: '🧪',
+    blurb: 'MCQs for periodic-table facts, short answers for balanced equations, long answers for mechanisms.' },
+  { id: 'biology', subject: 'Biology', icon: '🧬',
+    blurb: 'MCQs, True/False/Not Given on diagrams, long answers on processes (photosynthesis, respiration).' },
+  { id: 'health', subject: 'Health Science', icon: '🩺',
+    blurb: 'Mix of MCQs, True/False, and short essays on case studies and ethics.' },
+  { id: 'islamic', subject: 'Islamic Studies', icon: '☪️',
+    blurb: 'Short answers on key terms, long answers on hadith / surah interpretation, essays on ethics.' },
+  { id: 'social', subject: 'Social Studies', icon: '🌍',
+    blurb: 'MCQs on dates and figures, True/False/Not Given on source extracts, essays on causation.' },
+  { id: 'french', subject: 'French', icon: '🇫🇷',
+    blurb: 'MCQs for vocabulary, short answers for translation, essay for composition (auto-graded with rubric).' },
+];
 
 // ----- Global report-language preference (persisted to localStorage) -----
 const LANG_KEY = 'classcurio.reportLang';
@@ -246,6 +275,8 @@ function renderList() {
       const meta = [
         `${a.questions.length} questions`,
         `${a.durationMinutes} min`,
+        a.subject ? `📚 ${a.subject}` : null,
+        a.assessmentLanguage ? `🌐 ${a.assessmentLanguage}` : null,
         a.grade ? `Grade ${a.grade}` : null,
         a.term ? `Term ${a.term}` : null,
         a.academicYear ? a.academicYear : null,
@@ -420,16 +451,58 @@ function toggleShare(id) {
 }
 
 // ---------- Builder view ----------
-els.newBtn.onclick = () => openBuilder(null);
+// "+ New assessment" now goes to the template picker first, where the user
+// chooses to start blank or pre-set a subject. Editing an existing assessment
+// skips the picker.
+els.newBtn.onclick = () => openTemplatePicker();
 els.backBtn.onclick = () => {
   els.builderView.style.display = 'none';
   els.listView.style.display = 'block';
   loadAssessments();
 };
 
-function openBuilder(a) {
+// ----- Template picker -----
+function openTemplatePicker() {
   els.listView.style.display = 'none';
   els.resultsView.style.display = 'none';
+  els.builderView.style.display = 'none';
+  if (!els.templatePicker) return openBuilder(null);
+  els.templatePicker.style.display = 'block';
+  renderTemplateGrid();
+}
+function closeTemplatePicker() {
+  if (els.templatePicker) els.templatePicker.style.display = 'none';
+}
+function renderTemplateGrid() {
+  if (!els.templateGrid) return;
+  els.templateGrid.innerHTML = SUBJECT_TEMPLATES.map((t) => `
+    <button class="btn" data-tmpl-id="${t.id}" style="display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding: 14px; height: auto; line-height: 1.4; gap: 6px;">
+      <div style="font-size: 28px;">${t.icon}</div>
+      <div style="font-weight: 600; font-size: 15px;">${t.subject}</div>
+      <div class="muted" style="font-size: 12px;">${t.blurb}</div>
+    </button>
+  `).join('');
+  els.templateGrid.querySelectorAll('[data-tmpl-id]').forEach((btn) => {
+    btn.onclick = () => {
+      const tmpl = SUBJECT_TEMPLATES.find((x) => x.id === btn.dataset.tmplId);
+      closeTemplatePicker();
+      openBuilder(null, { subject: tmpl ? tmpl.subject : '' });
+    };
+  });
+}
+if (els.templateBack) els.templateBack.onclick = () => {
+  closeTemplatePicker();
+  els.listView.style.display = 'block';
+};
+if (els.templateBlank) els.templateBlank.onclick = () => {
+  closeTemplatePicker();
+  openBuilder(null);
+};
+
+function openBuilder(a, presets) {
+  els.listView.style.display = 'none';
+  els.resultsView.style.display = 'none';
+  closeTemplatePicker();
   els.builderView.style.display = 'block';
   editingId = a ? a.id : null;
   els.builderTitle.textContent = a ? 'Edit assessment' : 'New assessment';
@@ -441,6 +514,12 @@ function openBuilder(a) {
   if (els.grade) els.grade.value = a && a.grade ? a.grade : '';
   if (els.academicYear) els.academicYear.value = a && a.academicYear ? a.academicYear : defaultAcademicYear();
   if (els.scheduledDate) els.scheduledDate.value = a && a.scheduledDate ? a.scheduledDate : '';
+  if (els.subject) {
+    els.subject.value = a && a.subject ? a.subject : (presets && presets.subject) || '';
+  }
+  if (els.assessmentLanguage) {
+    els.assessmentLanguage.value = a && a.assessmentLanguage ? a.assessmentLanguage : '';
+  }
   els.duration.value = a ? a.durationMinutes : 30;
   els.published.value = a ? String(a.published) : 'false';
   questions = a ? JSON.parse(JSON.stringify(a.questions)) : [];
@@ -453,7 +532,9 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
     const q = { id: uid(), type, prompt: '', points: 1 };
     if (type === 'mc') { q.options = ['', '']; q.correctAnswer = 0; }
     if (type === 'tf') { q.correctAnswer = true; }
+    if (type === 'tfng') { q.correctAnswer = 'true'; }
     if (type === 'short') { q.correctAnswer = ''; }
+    if (type === 'long') { q.points = 5; }
     if (type === 'essay') { q.points = 5; }
     if (type === 'writing') { q.points = 12; } // 4 criteria x 3 marks (CEFR rubric)
     questions.push(q);
@@ -506,6 +587,11 @@ function renderQuestions() {
         q.correctAnswer = e.target.value === 'true';
       };
     }
+    if (q.type === 'tfng') {
+      root.querySelector('[data-tfng]').onchange = (e) => {
+        q.correctAnswer = e.target.value;
+      };
+    }
     if (q.type === 'short') {
       root.querySelector('[data-f=correct]').oninput = (e) => { q.correctAnswer = e.target.value; };
     }
@@ -513,7 +599,15 @@ function renderQuestions() {
 }
 
 function renderQuestion(q, idx) {
-  const typeLabel = { mc: 'Multiple choice', tf: 'True/False', short: 'Short answer', essay: 'Essay', writing: 'Writing (auto-graded)' }[q.type];
+  const typeLabel = {
+    mc: 'Multiple choice',
+    tf: 'True/False',
+    tfng: 'True/False/Not Given',
+    short: 'Short answer',
+    long: 'Long answer (manual)',
+    essay: 'Essay (manual)',
+    writing: 'Essay (auto-graded)',
+  }[q.type];
   let body = '';
   if (q.type === 'mc') {
     body = `
@@ -539,6 +633,18 @@ function renderQuestion(q, idx) {
         </select>
       </div>
     `;
+  } else if (q.type === 'tfng') {
+    body = `
+      <div class="field">
+        <label>Correct answer</label>
+        <select data-tfng>
+          <option value="true" ${q.correctAnswer === 'true' ? 'selected' : ''}>True</option>
+          <option value="false" ${q.correctAnswer === 'false' ? 'selected' : ''}>False</option>
+          <option value="ng" ${q.correctAnswer === 'ng' ? 'selected' : ''}>Not Given</option>
+        </select>
+        <div class="muted" style="font-size: 12px; margin-top: 4px;">"Not Given" means the passage doesn't say either way.</div>
+      </div>
+    `;
   } else if (q.type === 'short') {
     body = `
       <div class="field">
@@ -546,10 +652,12 @@ function renderQuestion(q, idx) {
         <input type="text" data-f="correct" value="${escapeAttr(q.correctAnswer || '')}" />
       </div>
     `;
+  } else if (q.type === 'long') {
+    body = `<div class="muted">Long-answer questions are graded manually by the teacher in the Results view. Default: 5 marks — adjust as needed.</div>`;
   } else if (q.type === 'essay') {
     body = `<div class="muted">Essay questions are graded manually by the teacher in the Results view.</div>`;
   } else if (q.type === 'writing') {
-    body = `<div class="muted">Writing questions are auto-graded against the Stage 7/8 rubric you select for the assessment (4 criteria × 3 marks = 12 points). You can review and override the AI grade in the essay queue.</div>`;
+    body = `<div class="muted">Auto-graded essays use the Stage 7/8 writing rubric you select for the assessment (4 criteria × 3 marks = 12 points). You can review and override the AI grade in the essay queue.</div>`;
   }
   return `
     <div class="q-row" id="q-${q.id}">
@@ -584,6 +692,8 @@ els.saveBtn.onclick = async () => {
       rubricStage: els.rubricStage ? els.rubricStage.value || null : null,
       term: els.term ? els.term.value || null : null,
       grade: els.grade ? els.grade.value || null : null,
+      subject: els.subject ? els.subject.value || null : null,
+      assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
@@ -901,10 +1011,13 @@ function renderReviewQuestion(q, i) {
     q.manualGrade ? `<span class="badge green">Graded: ${q.manualGrade.score}/${q.manualGrade.maxScore}</span>` :
     '<span class="badge">Awaiting review</span>';
 
+  const tfngLabel = (v) => v === 'true' ? 'True' : v === 'false' ? 'False' : v === 'ng' ? 'Not Given' : String(v);
+
   let givenDisplay = '<em>(no answer)</em>';
   if (q.given !== null && q.given !== undefined) {
     if (q.type === 'mc') givenDisplay = escapeHtml(String(q.options[q.given] ?? q.given));
     else if (q.type === 'tf') givenDisplay = q.given ? 'True' : 'False';
+    else if (q.type === 'tfng') givenDisplay = tfngLabel(q.given);
     else givenDisplay = escapeHtml(String(q.given));
   }
 
@@ -913,6 +1026,7 @@ function renderReviewQuestion(q, i) {
     let text = '';
     if (q.type === 'mc') text = String(q.options[q.correctAnswer] ?? q.correctAnswer);
     else if (q.type === 'tf') text = q.correctAnswer ? 'True' : 'False';
+    else if (q.type === 'tfng') text = tfngLabel(q.correctAnswer);
     else text = String(q.correctAnswer);
     correctDisplay = `<div class="success" style="margin-top: 6px;"><strong>Correct answer:</strong> ${escapeHtml(text)}</div>`;
   }

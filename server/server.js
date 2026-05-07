@@ -134,10 +134,45 @@ function normalizeGrade(g) {
   return n >= 1 && n <= 12 ? String(n) : null;
 }
 
+// Allowed subject values. Free-text 'Other' is allowed too — anything not in
+// this list gets stored as 'Other'.
+const SUBJECTS = new Set([
+  'Math', 'Physics', 'Chemistry', 'Biology',
+  'Health Science', 'Islamic Studies', 'Social Studies', 'French',
+  'English', 'Other',
+]);
+function normalizeSubject(s) {
+  if (!s) return null;
+  const v = String(s).trim();
+  return SUBJECTS.has(v) ? v : (v ? 'Other' : null);
+}
+function normalizeAssessmentLanguage(l) {
+  if (!l) return null;
+  const v = String(l).trim().slice(0, 60);
+  return v || null;
+}
+
+// Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
+// 'long' = long-answer text (manually graded). Anything else is rejected.
+const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+function normalizeQuestionType(t) {
+  return QUESTION_TYPES.has(t) ? t : 'short';
+}
+
+// Normalize a tfng correctAnswer into one of 'true' | 'false' | 'ng'.
+function normalizeTfngAnswer(v) {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (s === 'true' || s === 't') return 'true';
+  if (s === 'false' || s === 'f') return 'false';
+  if (s === 'ng' || s === 'notgiven' || s === 'not given') return 'ng';
+  return 'true';
+}
+
 app.post('/api/assessments', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
+    subject, assessmentLanguage,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -146,6 +181,8 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     id: uuidv4(),
     teacherId: req.session.user.id,
     teacherName: req.session.user.name,
+    subject: normalizeSubject(subject),
+    assessmentLanguage: normalizeAssessmentLanguage(assessmentLanguage),
     title: String(title),
     description: String(description || ''),
     passage: String(passage || ''),
@@ -156,15 +193,24 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     scheduledDate: scheduledDate ? String(scheduledDate).slice(0, 10) : null,
     durationMinutes: Number(durationMinutes) || 30,
     published: Boolean(published),
-    questions: questions.map((q, i) => ({
-      id: q.id || uuidv4(),
-      order: i,
-      type: q.type, // 'mc' | 'tf' | 'short' | 'essay' | 'writing'
-      prompt: q.prompt,
-      options: q.options || [], // for mc
-      correctAnswer: q.correctAnswer ?? null, // mc index, tf bool, short string
-      points: Number(q.points) || 1,
-    })),
+    questions: questions.map((q, i) => {
+      const type = normalizeQuestionType(q.type);
+      const out = {
+        id: q.id || uuidv4(),
+        order: i,
+        type, // 'mc' | 'tf' | 'tfng' | 'short' | 'long' | 'essay' | 'writing'
+        prompt: q.prompt,
+        options: q.options || [], // for mc
+        correctAnswer: null,
+        points: Number(q.points) || 1,
+      };
+      if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
+      else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
+      else if (type === 'tfng') out.correctAnswer = normalizeTfngAnswer(q.correctAnswer);
+      else if (type === 'short') out.correctAnswer = q.correctAnswer ?? null;
+      // long / essay / writing: no correctAnswer (manual / rubric)
+      return out;
+    }),
     createdAt: new Date().toISOString(),
   };
   const all = readAll('assessments.json');
@@ -216,9 +262,14 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
+    subject, assessmentLanguage,
   } = req.body || {};
   const updated = {
     ...all[idx],
+    subject: subject === undefined ? (all[idx].subject ?? null) : normalizeSubject(subject),
+    assessmentLanguage: assessmentLanguage === undefined
+      ? (all[idx].assessmentLanguage ?? null)
+      : normalizeAssessmentLanguage(assessmentLanguage),
     title: title ?? all[idx].title,
     description: description ?? all[idx].description,
     passage: passage ?? all[idx].passage ?? '',
@@ -238,15 +289,23 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     questions: Array.isArray(questions)
-      ? questions.map((q, i) => ({
-          id: q.id || uuidv4(),
-          order: i,
-          type: q.type,
-          prompt: q.prompt,
-          options: q.options || [],
-          correctAnswer: q.correctAnswer ?? null,
-          points: Number(q.points) || 1,
-        }))
+      ? questions.map((q, i) => {
+          const type = normalizeQuestionType(q.type);
+          const out = {
+            id: q.id || uuidv4(),
+            order: i,
+            type,
+            prompt: q.prompt,
+            options: q.options || [],
+            correctAnswer: null,
+            points: Number(q.points) || 1,
+          };
+          if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
+          else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
+          else if (type === 'tfng') out.correctAnswer = normalizeTfngAnswer(q.correctAnswer);
+          else if (type === 'short') out.correctAnswer = q.correctAnswer ?? null;
+          return out;
+        })
       : all[idx].questions,
     updatedAt: new Date().toISOString(),
   };
@@ -287,6 +346,8 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     rubricStage: a.rubricStage || null,
     durationMinutes: a.durationMinutes,
     teacherName: a.teacherName,
+    subject: a.subject || null,
+    assessmentLanguage: a.assessmentLanguage || null,
     questions: a.questions.map((q) => ({
       id: q.id,
       order: q.order,
@@ -322,6 +383,10 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
       autoMax += q.points;
       correct = String(given) === String(q.correctAnswer);
       if (correct) autoScore += q.points;
+    } else if (q.type === 'tfng') {
+      autoMax += q.points;
+      correct = String(given).toLowerCase() === String(q.correctAnswer).toLowerCase();
+      if (correct) autoScore += q.points;
     } else if (q.type === 'short' && q.correctAnswer) {
       // Case-insensitive exact match as a soft auto-grade
       autoMax += q.points;
@@ -330,10 +395,11 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
         given.trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
       if (correct) autoScore += q.points;
     }
+    // 'long' and 'essay' types are always manual; 'writing' is rubric-based.
     return {
       questionId: q.id,
       given: given ?? null,
-      correct, // null for essay / ungradable
+      correct, // null for essay / long / ungradable
     };
   });
 
@@ -454,7 +520,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
       given: ans.given ?? null,
       correct: ans.correct ?? null,
       correctAnswer:
-        (q.type === 'mc' || q.type === 'tf' || (q.type === 'short' && q.correctAnswer))
+        (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || (q.type === 'short' && q.correctAnswer))
           ? q.correctAnswer
           : null,
       explanation: q.explanation || null,
@@ -466,7 +532,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
   let manualScore = 0;
   let manualMax = 0;
   for (const q of a.questions) {
-    if (q.type === 'essay' || q.type === 'writing' || (q.type === 'short' && !q.correctAnswer)) {
+    if (q.type === 'essay' || q.type === 'writing' || q.type === 'long' || (q.type === 'short' && !q.correctAnswer)) {
       const m = (result.manualGrades || {})[q.id];
       if (m) {
         manualScore += Number(m.score) || 0;
@@ -496,7 +562,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
     teacherComment: result.teacherComment || '',
     review,
     awaitingReview: review.some((r) =>
-      (r.type === 'essay' || r.type === 'writing' || (r.type === 'short' && r.correctAnswer == null)) && !r.manualGrade
+      (r.type === 'essay' || r.type === 'writing' || r.type === 'long' || (r.type === 'short' && r.correctAnswer == null)) && !r.manualGrade
     ),
   });
 });
@@ -526,7 +592,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
       given: ans.given ?? null,
       correct: ans.correct ?? null,
       correctAnswer:
-        (q.type === 'mc' || q.type === 'tf' || (q.type === 'short' && q.correctAnswer))
+        (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || (q.type === 'short' && q.correctAnswer))
           ? q.correctAnswer
           : null,
       explanation: q.explanation || null,
@@ -537,7 +603,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
   let manualScore = 0;
   let manualMax = 0;
   for (const q of a.questions) {
-    if (q.type === 'essay' || q.type === 'writing' || (q.type === 'short' && !q.correctAnswer)) {
+    if (q.type === 'essay' || q.type === 'writing' || q.type === 'long' || (q.type === 'short' && !q.correctAnswer)) {
       const m = (result.manualGrades || {})[q.id];
       if (m) {
         manualScore += Number(m.score) || 0;
@@ -717,7 +783,7 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
     let correctRate = null;
     let mostCommonWrong = null;
 
-    if (q.type === 'mc' || q.type === 'tf' || (q.type === 'short' && q.correctAnswer)) {
+    if (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || (q.type === 'short' && q.correctAnswer)) {
       const countable = answers.filter((x) => x).length;
       const correctCount = answers.filter((x) => x && x.correct === true).length;
       correctRate = countable > 0 ? correctCount / countable : null;
@@ -871,7 +937,7 @@ function buildStudentSubmissions({ teacherId, studentId, term, academicYear }) {
 
     let manualScore = 0, manualMax = 0;
     for (const q of a.questions) {
-      if (q.type === 'essay' || q.type === 'writing' || (q.type === 'short' && !q.correctAnswer)) {
+      if (q.type === 'essay' || q.type === 'writing' || q.type === 'long' || (q.type === 'short' && !q.correctAnswer)) {
         const m = (r.manualGrades || {})[q.id];
         if (m) {
           manualScore += Number(m.score) || 0;
@@ -1226,7 +1292,7 @@ app.get('/api/assessments/:id/scoresheet', requireTeacher, async (req, res) => {
       const ans = (r.answers || []).find((x) => x.questionId === q.id) || {};
       const manual = (r.manualGrades || {})[q.id];
 
-      if (q.type === 'mc' || q.type === 'tf') {
+      if (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng') {
         row.push(ans.correct === true ? q.points : 0);
       } else if (q.type === 'short' && q.correctAnswer) {
         row.push(ans.correct === true ? q.points : 0);
