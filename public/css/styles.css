@@ -87,9 +87,19 @@ html, body {
    on top the soft brand glows. If the photo URL ever 404s, the gradients
    below still render so the page never looks broken. */
 body:has(.narrow) {
+  /* Sign-in / register page background:
+     1. Indigo→pink gradient overlay (60–70% opacity) for text contrast.
+     2. Photographic background: students in graduation gowns / caps.
+        Two URLs are listed — the first is the primary, the second is a
+        backup in case the first ever 404s (browsers fall through layers).
+     3. Solid gradient fallback at the bottom in case both photos fail.
+     To swap to a different photo: change either URL below to any other
+     Unsplash photo URL of the form
+     https://images.unsplash.com/photo-XXXXXXXXXXX-XXXXXXXXXX?w=1920&q=80 */
   background:
-    linear-gradient(135deg, rgba(30, 27, 75, 0.78) 0%, rgba(67, 56, 202, 0.72) 50%, rgba(236, 72, 153, 0.62) 100%),
-    url("https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=1920&q=80") center / cover no-repeat,
+    linear-gradient(135deg, rgba(30, 27, 75, 0.72) 0%, rgba(67, 56, 202, 0.68) 50%, rgba(236, 72, 153, 0.58) 100%),
+    url("https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80") center / cover no-repeat,
+    url("https://images.unsplash.com/photo-1627556704290-2b1f5848d037?w=1920&q=80") center / cover no-repeat,
     linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #ec4899 100%) !important;
   background-attachment: fixed !important;
   display: flex;
