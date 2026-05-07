@@ -72,7 +72,26 @@ const els = {
   settingsStatus: document.getElementById('settings-status'),
   apiKeyInput: document.getElementById('api-key-input'),
   apiKeyState: document.getElementById('api-key-state'),
+
+  topbarLang: document.getElementById('topbar-lang'),
 };
+
+// ----- Global report-language preference (persisted to localStorage) -----
+const LANG_KEY = 'classcurio.reportLang';
+function getReportLang() {
+  return localStorage.getItem(LANG_KEY) || '';
+}
+function setReportLang(v) {
+  if (v) localStorage.setItem(LANG_KEY, v);
+  else localStorage.removeItem(LANG_KEY);
+  // Keep the per-student dropdown in sync if it's mounted.
+  if (els.progressLang) els.progressLang.value = v;
+  if (els.topbarLang) els.topbarLang.value = v;
+}
+if (els.topbarLang) {
+  els.topbarLang.value = getReportLang();
+  els.topbarLang.onchange = () => setReportLang(els.topbarLang.value);
+}
 
 let currentResultsAssessmentId = null;
 
@@ -1005,7 +1024,7 @@ if (els.progressExcel) {
     if (!currentProgressStudentId) return;
     const term = els.progressTerm.value || '';
     const year = (els.progressYear.value || '').trim();
-    const lang = els.progressLang ? els.progressLang.value || '' : '';
+    const lang = (els.progressLang && els.progressLang.value) || getReportLang();
     window.location.href = `/api/students/${currentProgressStudentId}/excel-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}&lang=${encodeURIComponent(lang)}`;
   };
 }
@@ -1014,9 +1033,15 @@ if (els.progressWord) {
     if (!currentProgressStudentId) return;
     const term = els.progressTerm.value || '';
     const year = (els.progressYear.value || '').trim();
-    const lang = els.progressLang ? els.progressLang.value || '' : '';
+    const lang = (els.progressLang && els.progressLang.value) || getReportLang();
     window.location.href = `/api/students/${currentProgressStudentId}/word-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}&lang=${encodeURIComponent(lang)}`;
   };
+}
+// Sync the per-student dropdown with the saved global preference whenever
+// the Student Progress view opens.
+if (els.progressLang) {
+  els.progressLang.value = getReportLang();
+  els.progressLang.onchange = () => setReportLang(els.progressLang.value);
 }
 
 function renderProgress(data) {
