@@ -1,0 +1,480 @@
+// Per-student term/year reports for parent meetings.
+//
+// Two formats:
+//   - Word (.docx) — formatted parent-friendly document with student info
+//     header, summary table, teacher narrative, rubric breakdown.
+//   - Excel (.xlsx) — multi-sheet workbook with summary, class-comparison,
+//     and rubric-progress data. Conditional cell colors signal performance
+//     bands. (No embedded charts — ExcelJS doesn't support them well; the
+//     teacher can use Excel's chart wizard on the data tables.)
+
+const ExcelJS = require('exceljs');
+const {
+  Document, Packer, Paragraph, TextRun,
+  HeadingLevel, AlignmentType, WidthType,
+  Table, TableRow, TableCell, BorderStyle,
+} = require('docx');
+
+// -- helpers ----------------------------------------------------------------
+
+function pct(num, denom) {
+  return denom > 0 ? num / denom : 0;
+}
+function pctText(num, denom) {
+  return `${Math.round(pct(num, denom) * 100)}%`;
+}
+function dateStr(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString();
+}
+
+// Aggregate rubric-criteria scores across writing questions in a submission.
+function rubricAverages(submission) {
+  const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+  let count = 0;
+  for (const q of submission.review || []) {
+    const breakdown = q.manualGrade && q.manualGrade.breakdown;
+    if (q.type !== 'writing' || !breakdown) continue;
+    for (const k of Object.keys(sums)) {
+      if (breakdown[k] && typeof breakdown[k].score === 'number') {
+        sums[k] += breakdown[k].score;
+      }
+    }
+    count++;
+  }
+  if (count === 0) return null;
+  return {
+    content: sums.content / count,
+    organisation: sums.organisation / count,
+    grammar: sums.grammar / count,
+    lexis: sums.lexis / count,
+    count,
+    total: (sums.content + sums.organisation + sums.grammar + sums.lexis) / count,
+  };
+}
+
+// -- Excel ------------------------------------------------------------------
+
+async function generateStudentExcelReport({
+  student, submissions, assessmentsById, classAverages, term, academicYear, teacherName,
+}) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'ClassCurio';
+  wb.created = new Date();
+
+  // ---- Sheet 1: Summary ----
+  const ws1 = wb.addWorksheet('Summary');
+  ws1.mergeCells('A1:G1');
+  ws1.getCell('A1').value = `Student Report — ${student.name}`;
+  ws1.getCell('A1').font = { size: 18, bold: true };
+  ws1.getCell('A1').alignment = { horizontal: 'center' };
+
+  ws1.getCell('A3').value = 'Email';
+  ws1.getCell('B3').value = student.email;
+  ws1.getCell('A4').value = 'Term';
+  ws1.getCell('B4').value = term ? `Term ${term}` : 'All terms';
+  ws1.getCell('A5').value = 'Academic Year';
+  ws1.getCell('B5').value = academicYear || '—';
+  ws1.getCell('A6').value = 'Class Teacher';
+  ws1.getCell('B6').value = teacherName || '—';
+  ws1.getCell('A7').value = 'Report generated';
+  ws1.getCell('B7').value = new Date().toLocaleDateString();
+
+  for (const r of [3, 4, 5, 6, 7]) ws1.getCell(`A${r}`).font = { bold: true };
+
+  // Header row
+  const HEADER_ROW = 9;
+  ws1.getRow(HEADER_ROW).values = ['Assessment', 'Date', 'Term', 'Academic Year', 'Score', 'Max', 'Percent'];
+  ws1.getRow(HEADER_ROW).font = { bold: true };
+  ws1.getRow(HEADER_ROW).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+
+  let row = HEADER_ROW + 1;
+  let totalScore = 0;
+  let totalMax = 0;
+
+  for (const sub of submissions) {
+    const a = assessmentsById.get(sub.assessmentId);
+    const p = pct(sub.totalScore, sub.totalMax);
+    ws1.getRow(row).values = [
+      a ? a.title : '(deleted assessment)',
+      sub.submittedAt ? new Date(sub.submittedAt) : '',
+      a && a.term ? `Term ${a.term}` : '',
+      a ? a.academicYear || '' : '',
+      sub.totalScore,
+      sub.totalMax,
+      p,
+    ];
+    ws1.getCell(`B${row}`).numFmt = 'yyyy-mm-dd';
+    ws1.getCell(`G${row}`).numFmt = '0%';
+    // Performance-band coloring on the Percent cell.
+    const pCell = ws1.getCell(`G${row}`);
+    if (p >= 0.7) pCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7E9' } };
+    else if (p >= 0.4) pCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF5E6' } };
+    else pCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEEEEE' } };
+
+    totalScore += sub.totalScore;
+    totalMax += sub.totalMax;
+    row++;
+  }
+
+  // Totals row
+  if (submissions.length > 0) {
+    ws1.getRow(row).values = ['Overall', '', '', '', totalScore, totalMax, pct(totalScore, totalMax)];
+    ws1.getRow(row).font = { bold: true };
+    ws1.getCell(`G${row}`).numFmt = '0%';
+    ws1.getRow(row).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+  }
+
+  ws1.columns.forEach((c, i) => {
+    c.width = i === 0 ? 38 : i === 1 ? 12 : 14;
+  });
+  ws1.views = [{ state: 'frozen', ySplit: HEADER_ROW }];
+
+  // ---- Sheet 2: Class comparison ----
+  const ws2 = wb.addWorksheet('Class Comparison');
+  ws2.getRow(1).values = ['Assessment', 'Date', 'Student %', 'Class average %', 'Class min %', 'Class max %'];
+  ws2.getRow(1).font = { bold: true };
+  ws2.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+
+  let r2 = 2;
+  for (const sub of submissions) {
+    const a = assessmentsById.get(sub.assessmentId);
+    const avg = classAverages[sub.assessmentId];
+    const studentP = pct(sub.totalScore, sub.totalMax);
+    ws2.getRow(r2).values = [
+      a ? a.title : '(deleted)',
+      sub.submittedAt ? new Date(sub.submittedAt) : '',
+      studentP,
+      avg ? pct(avg.mean, avg.maxPossible) : null,
+      avg ? pct(avg.min, avg.maxPossible) : null,
+      avg ? pct(avg.max, avg.maxPossible) : null,
+    ];
+    ws2.getCell(`B${r2}`).numFmt = 'yyyy-mm-dd';
+    for (const col of ['C', 'D', 'E', 'F']) {
+      ws2.getCell(`${col}${r2}`).numFmt = '0%';
+    }
+    // Highlight student vs class average comparison
+    if (avg) {
+      const classAvgPct = pct(avg.mean, avg.maxPossible);
+      const cell = ws2.getCell(`C${r2}`);
+      if (studentP > classAvgPct + 0.05) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6F7E9' } };
+      } else if (studentP < classAvgPct - 0.05) {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEEEEE' } };
+      }
+    }
+    r2++;
+  }
+  ws2.columns.forEach((c, i) => { c.width = i === 0 ? 38 : 14; });
+  ws2.views = [{ state: 'frozen', ySplit: 1 }];
+
+  // ---- Sheet 3: Rubric Progress (only if any writing assessments) ----
+  const writingSubs = submissions.filter((s) => rubricAverages(s));
+  if (writingSubs.length) {
+    const ws3 = wb.addWorksheet('Rubric Progress');
+    ws3.getRow(1).values = ['Assessment', 'Date', 'Content / 3', 'Organisation / 3', 'Grammar / 3', 'Lexis / 3', 'Total / 12'];
+    ws3.getRow(1).font = { bold: true };
+    ws3.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+
+    let r3 = 2;
+    let sumContent = 0, sumOrg = 0, sumGram = 0, sumLex = 0, sumTotal = 0;
+
+    for (const sub of writingSubs) {
+      const a = assessmentsById.get(sub.assessmentId);
+      const av = rubricAverages(sub);
+      const total = av.content + av.organisation + av.grammar + av.lexis;
+      ws3.getRow(r3).values = [
+        a ? a.title : '(deleted)',
+        sub.submittedAt ? new Date(sub.submittedAt) : '',
+        Math.round(av.content * 10) / 10,
+        Math.round(av.organisation * 10) / 10,
+        Math.round(av.grammar * 10) / 10,
+        Math.round(av.lexis * 10) / 10,
+        Math.round(total * 10) / 10,
+      ];
+      ws3.getCell(`B${r3}`).numFmt = 'yyyy-mm-dd';
+      sumContent += av.content;
+      sumOrg += av.organisation;
+      sumGram += av.grammar;
+      sumLex += av.lexis;
+      sumTotal += total;
+      r3++;
+    }
+
+    // Average row
+    if (writingSubs.length > 0) {
+      ws3.getRow(r3).values = [
+        'Average across writing assessments',
+        '',
+        Math.round((sumContent / writingSubs.length) * 10) / 10,
+        Math.round((sumOrg / writingSubs.length) * 10) / 10,
+        Math.round((sumGram / writingSubs.length) * 10) / 10,
+        Math.round((sumLex / writingSubs.length) * 10) / 10,
+        Math.round((sumTotal / writingSubs.length) * 10) / 10,
+      ];
+      ws3.getRow(r3).font = { bold: true };
+      ws3.getRow(r3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+    }
+
+    ws3.columns.forEach((c, i) => { c.width = i === 0 ? 38 : 16; });
+    ws3.views = [{ state: 'frozen', ySplit: 1 }];
+  }
+
+  // ---- Sheet 4: Teacher comments aggregated ----
+  const withComments = submissions.filter((s) => (s.teacherComment || '').trim());
+  if (withComments.length) {
+    const ws4 = wb.addWorksheet('Teacher Comments');
+    ws4.getRow(1).values = ['Assessment', 'Date', 'Comment'];
+    ws4.getRow(1).font = { bold: true };
+    ws4.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+    let r4 = 2;
+    for (const sub of withComments) {
+      const a = assessmentsById.get(sub.assessmentId);
+      ws4.getRow(r4).values = [
+        a ? a.title : '(deleted)',
+        sub.submittedAt ? new Date(sub.submittedAt) : '',
+        sub.teacherComment,
+      ];
+      ws4.getCell(`B${r4}`).numFmt = 'yyyy-mm-dd';
+      ws4.getCell(`C${r4}`).alignment = { wrapText: true, vertical: 'top' };
+      r4++;
+    }
+    ws4.columns = [{ width: 30 }, { width: 14 }, { width: 80 }];
+    ws4.views = [{ state: 'frozen', ySplit: 1 }];
+  }
+
+  return wb;
+}
+
+// -- Word -------------------------------------------------------------------
+
+function tableHeaderCell(text) {
+  return new TableCell({
+    children: [new Paragraph({ children: [new TextRun({ text, bold: true })] })],
+    shading: { fill: 'EEF2FF' },
+  });
+}
+function tableCell(text) {
+  return new TableCell({
+    children: [new Paragraph(String(text))],
+  });
+}
+
+async function generateStudentWordReport({
+  student, submissions, assessmentsById, classAverages, teacherName, term, academicYear, schoolName,
+}) {
+  const children = [];
+
+  // ---- Title ----
+  children.push(new Paragraph({
+    children: [new TextRun({
+      text: schoolName ? schoolName.toUpperCase() : 'CLASSCURIO',
+      bold: true, size: 24,
+    })],
+    alignment: AlignmentType.CENTER,
+  }));
+  children.push(new Paragraph({
+    text: 'Student Term Report',
+    heading: HeadingLevel.TITLE,
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 300 },
+  }));
+
+  // ---- Student info block ----
+  const infoLines = [
+    ['Student', student.name],
+    ['Email', student.email],
+    ['Term', term ? `Term ${term}` : 'All terms'],
+    ['Academic Year', academicYear || '—'],
+    ['Class Teacher', teacherName || '—'],
+    ['Report Date', new Date().toLocaleDateString()],
+  ];
+  for (const [k, v] of infoLines) {
+    children.push(new Paragraph({
+      children: [
+        new TextRun({ text: `${k}: `, bold: true }),
+        new TextRun(String(v)),
+      ],
+      spacing: { after: 80 },
+    }));
+  }
+
+  // ---- Summary table ----
+  children.push(new Paragraph({
+    text: 'Summary of Assessments',
+    heading: HeadingLevel.HEADING_1,
+    spacing: { before: 300, after: 200 },
+  }));
+
+  const summaryRows = [
+    new TableRow({
+      children: ['Assessment', 'Date', 'Score', 'Percent', 'Class Average %'].map(tableHeaderCell),
+    }),
+  ];
+
+  let totalScore = 0;
+  let totalMax = 0;
+  for (const sub of submissions) {
+    const a = assessmentsById.get(sub.assessmentId);
+    const p = Math.round(pct(sub.totalScore, sub.totalMax) * 100);
+    const avg = classAverages[sub.assessmentId];
+    const classP = avg ? Math.round(pct(avg.mean, avg.maxPossible) * 100) : null;
+    summaryRows.push(new TableRow({
+      children: [
+        tableCell(a ? a.title : '(deleted)'),
+        tableCell(dateStr(sub.submittedAt)),
+        tableCell(`${sub.totalScore} / ${sub.totalMax}`),
+        tableCell(`${p}%`),
+        tableCell(classP != null ? `${classP}%` : '—'),
+      ],
+    }));
+    totalScore += sub.totalScore;
+    totalMax += sub.totalMax;
+  }
+  // Overall row
+  if (submissions.length) {
+    summaryRows.push(new TableRow({
+      children: [
+        tableCell('Overall'),
+        tableCell(''),
+        tableCell(`${totalScore} / ${totalMax}`),
+        tableCell(`${Math.round(pct(totalScore, totalMax) * 100)}%`),
+        tableCell(''),
+      ],
+    }));
+  }
+
+  children.push(new Table({
+    rows: summaryRows,
+    width: { size: 100, type: WidthType.PERCENTAGE },
+  }));
+
+  // ---- Performance commentary (auto-generated narrative) ----
+  if (submissions.length) {
+    const overallPct = Math.round(pct(totalScore, totalMax) * 100);
+    let band;
+    if (overallPct >= 80) band = 'consistently strong';
+    else if (overallPct >= 65) band = 'solid and at grade level';
+    else if (overallPct >= 50) band = 'developing — meeting some expectations';
+    else band = 'needing focused support to reach grade-level expectations';
+
+    children.push(new Paragraph({
+      text: 'Performance Commentary',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 300, after: 200 },
+    }));
+    children.push(new Paragraph({
+      text: `${student.name} has completed ${submissions.length} assessment${submissions.length === 1 ? '' : 's'} this term, achieving an overall score of ${totalScore} / ${totalMax} (${overallPct}%). Performance this term has been ${band}.`,
+      spacing: { after: 200 },
+    }));
+  }
+
+  // ---- Rubric progress (writing assessments) ----
+  const writingSubs = submissions.filter((s) => rubricAverages(s));
+  if (writingSubs.length) {
+    children.push(new Paragraph({
+      text: 'Writing Rubric Progress',
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 300, after: 200 },
+    }));
+
+    const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+    for (const sub of writingSubs) {
+      const av = rubricAverages(sub);
+      sums.content += av.content;
+      sums.organisation += av.organisation;
+      sums.grammar += av.grammar;
+      sums.lexis += av.lexis;
+    }
+    const avgs = {
+      content: sums.content / writingSubs.length,
+      organisation: sums.organisation / writingSubs.length,
+      grammar: sums.grammar / writingSubs.length,
+      lexis: sums.lexis / writingSubs.length,
+    };
+
+    const niceNames = {
+      content: 'Content & Task Achievement',
+      organisation: 'Organisation & Cohesion',
+      grammar: 'Grammatical Range & Accuracy',
+      lexis: 'Lexical Range & Accuracy',
+    };
+
+    const rubricRows = [
+      new TableRow({
+        children: ['Criterion', 'Average', 'Level'].map(tableHeaderCell),
+      }),
+    ];
+    for (const k of ['content', 'organisation', 'grammar', 'lexis']) {
+      const v = avgs[k];
+      let level;
+      if (v >= 2.5) level = 'Beyond grade level';
+      else if (v >= 1.5) level = 'At grade level';
+      else level = 'Towards grade level';
+      rubricRows.push(new TableRow({
+        children: [
+          tableCell(niceNames[k]),
+          tableCell(`${v.toFixed(1)} / 3`),
+          tableCell(level),
+        ],
+      }));
+    }
+    children.push(new Table({
+      rows: rubricRows,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+    }));
+
+    children.push(new Paragraph({
+      text: `Based on ${writingSubs.length} writing assessment${writingSubs.length === 1 ? '' : 's'} this term.`,
+      spacing: { before: 100 },
+    }));
+  }
+
+  // ---- Teacher's narrative comments per assessment ----
+  const withComments = submissions.filter((s) => (s.teacherComment || '').trim());
+  if (withComments.length) {
+    children.push(new Paragraph({
+      text: "Teacher's Comments",
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 300, after: 200 },
+    }));
+    for (const sub of withComments) {
+      const a = assessmentsById.get(sub.assessmentId);
+      children.push(new Paragraph({
+        children: [new TextRun({
+          text: `${a ? a.title : 'Assessment'} (${dateStr(sub.submittedAt)})`,
+          bold: true,
+        })],
+        spacing: { after: 80 },
+      }));
+      children.push(new Paragraph({
+        text: sub.teacherComment,
+        spacing: { after: 200 },
+      }));
+    }
+  }
+
+  // ---- Footer / signature line ----
+  children.push(new Paragraph({
+    text: '',
+    spacing: { before: 600 },
+  }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: '_______________________________', }) ],
+  }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: `${teacherName || 'Class Teacher'}`, bold: true })],
+  }));
+
+  return new Document({
+    creator: 'ClassCurio',
+    title: `${student.name} — Term Report`,
+    sections: [{ children }],
+  });
+}
+
+module.exports = {
+  generateStudentExcelReport,
+  generateStudentWordReport,
+  rubricAverages,
+};

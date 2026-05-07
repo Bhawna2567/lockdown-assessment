@@ -13,6 +13,8 @@ const ExcelJS = require('exceljs');
 const { readAll, writeAll } = require('./store');
 const { importFile } = require('./importer');
 const { gradeWriting, readApiKey } = require('./grader');
+const reports = require('./reports');
+const { Packer } = require('docx');
 
 // Uploads go to a tmp dir; we delete after parsing.
 const UPLOAD_DIR = path.join(__dirname, '..', 'data', 'uploads');
@@ -822,6 +824,302 @@ app.get('/api/essay-queue', requireTeacher, (req, res) => {
   }
   queue.sort((x, y) => (x.submittedAt || '').localeCompare(y.submittedAt || ''));
   res.json({ queue });
+});
+
+// ---------- Cross-assessment student reports (Phase 2) ----------
+
+// Helper: build a list of submissions for a student, restricted to
+// assessments owned by the given teacher, optionally filtered by term/year.
+function buildStudentSubmissions({ teacherId, studentId, term, academicYear }) {
+  const assessments = readAll('assessments.json').filter((a) => a.teacherId === teacherId);
+  const byId = new Map(assessments.map((a) => [a.id, a]));
+  const all = readAll('results.json').filter((r) =>
+    r.studentId === studentId && byId.has(r.assessmentId)
+  );
+
+  const filtered = all.filter((r) => {
+    const a = byId.get(r.assessmentId);
+    if (term && a.term !== term) return false;
+    if (academicYear && a.academicYear !== academicYear) return false;
+    return true;
+  });
+
+  // Build the same enriched "review" structure as /api/results/teacher/:id
+  // so the report can show per-question detail.
+  const enriched = filtered.map((r) => {
+    const a = byId.get(r.assessmentId);
+    const review = a.questions.map((q) => {
+      const ans = (r.answers || []).find((x) => x.questionId === q.id) || {};
+      const manual = (r.manualGrades || {})[q.id] || null;
+      return {
+        questionId: q.id,
+        type: q.type,
+        prompt: q.prompt,
+        options: q.options || [],
+        points: q.points,
+        given: ans.given ?? null,
+        correct: ans.correct ?? null,
+        manualGrade: manual,
+      };
+    });
+
+    let manualScore = 0, manualMax = 0;
+    for (const q of a.questions) {
+      if (q.type === 'essay' || q.type === 'writing' || (q.type === 'short' && !q.correctAnswer)) {
+        const m = (r.manualGrades || {})[q.id];
+        if (m) {
+          manualScore += Number(m.score) || 0;
+          manualMax += Number(m.maxScore) || q.points;
+        } else {
+          manualMax += q.points;
+        }
+      }
+    }
+
+    return {
+      id: r.id,
+      assessmentId: r.assessmentId,
+      submittedAt: r.submittedAt,
+      startedAt: r.startedAt,
+      autoScore: r.autoScore || 0,
+      autoMax: r.autoMax || 0,
+      manualScore,
+      manualMax,
+      totalScore: (r.autoScore || 0) + manualScore,
+      totalMax: (r.autoMax || 0) + manualMax,
+      teacherComment: r.teacherComment || '',
+      review,
+    };
+  });
+
+  // Sort by date ascending (chronological progress).
+  enriched.sort((x, y) => (x.submittedAt || '').localeCompare(y.submittedAt || ''));
+  return { submissions: enriched, assessments, byId };
+}
+
+// Helper: precompute class min/mean/max for each assessment so per-student
+// reports can show how the student compares.
+function computeClassAverages(assessmentIds) {
+  const allResults = readAll('results.json');
+  const out = {};
+  for (const aid of assessmentIds) {
+    const submissions = allResults.filter((r) => r.assessmentId === aid);
+    if (!submissions.length) continue;
+    const totals = submissions.map((r) => {
+      const m = Object.values(r.manualGrades || {}).reduce(
+        (s, g) => s + (Number(g.score) || 0), 0
+      );
+      return (r.autoScore || 0) + m;
+    });
+    const maxes = submissions.map((r) => {
+      const mx = Object.values(r.manualGrades || {}).reduce(
+        (s, g) => s + (Number(g.maxScore) || 0), 0
+      );
+      return (r.autoMax || 0) + mx;
+    });
+    out[aid] = {
+      mean: totals.reduce((s, x) => s + x, 0) / totals.length,
+      min: Math.min(...totals),
+      max: Math.max(...totals),
+      maxPossible: maxes.length ? Math.max(...maxes) : 0,
+      submissionCount: submissions.length,
+    };
+  }
+  return out;
+}
+
+// List of all students who've submitted to any of this teacher's
+// assessments, with submission counts.
+app.get('/api/teachers/students', requireTeacher, (req, res) => {
+  const teacherId = req.session.user.id;
+  const myAssessmentIds = new Set(
+    readAll('assessments.json')
+      .filter((a) => a.teacherId === teacherId)
+      .map((a) => a.id)
+  );
+  const allResults = readAll('results.json').filter((r) => myAssessmentIds.has(r.assessmentId));
+
+  const byStudent = new Map();
+  for (const r of allResults) {
+    if (!byStudent.has(r.studentId)) {
+      byStudent.set(r.studentId, {
+        studentId: r.studentId,
+        name: r.studentName,
+        email: r.studentEmail,
+        submissions: 0,
+        lastSubmittedAt: null,
+      });
+    }
+    const e = byStudent.get(r.studentId);
+    e.submissions++;
+    if (!e.lastSubmittedAt || r.submittedAt > e.lastSubmittedAt) {
+      e.lastSubmittedAt = r.submittedAt;
+    }
+  }
+  const students = Array.from(byStudent.values()).sort(
+    (a, b) => a.name.localeCompare(b.name)
+  );
+  res.json({ students });
+});
+
+// JSON aggregated progress data for one student (for the teacher's web view).
+app.get('/api/students/:studentId/progress', requireTeacher, (req, res) => {
+  const teacherId = req.session.user.id;
+  const term = req.query.term || null;
+  const academicYear = req.query.year || null;
+
+  const { submissions, byId } = buildStudentSubmissions({
+    teacherId, studentId: req.params.studentId, term, academicYear,
+  });
+
+  if (!submissions.length) {
+    return res.json({
+      studentName: '', studentEmail: '', term, academicYear,
+      submissions: [], rubricAverages: null, overall: null,
+    });
+  }
+
+  // Get student name/email from any submission
+  const allResults = readAll('results.json');
+  const sample = allResults.find((r) => r.studentId === req.params.studentId);
+  const studentName = sample ? sample.studentName : '';
+  const studentEmail = sample ? sample.studentEmail : '';
+
+  // Build per-submission summary with assessment metadata and rubric
+  const rows = submissions.map((s) => {
+    const a = byId.get(s.assessmentId);
+    return {
+      resultId: s.id,
+      assessmentId: s.assessmentId,
+      title: a ? a.title : '(deleted)',
+      term: a ? a.term : null,
+      academicYear: a ? a.academicYear : null,
+      submittedAt: s.submittedAt,
+      score: s.totalScore,
+      max: s.totalMax,
+      percent: s.totalMax > 0 ? s.totalScore / s.totalMax : 0,
+      teacherComment: s.teacherComment,
+      rubric: reports.rubricAverages(s),
+    };
+  });
+
+  // Class averages for each assessment in scope
+  const classAverages = computeClassAverages([...new Set(rows.map((r) => r.assessmentId))]);
+  rows.forEach((r) => {
+    const a = classAverages[r.assessmentId];
+    r.classAverage = a ? a.mean / a.maxPossible : null;
+  });
+
+  // Overall student totals
+  let totalScore = 0, totalMax = 0;
+  for (const s of submissions) { totalScore += s.totalScore; totalMax += s.totalMax; }
+
+  // Aggregate rubric averages across writing assessments
+  const writingSubs = submissions.filter((s) => reports.rubricAverages(s));
+  let aggRubric = null;
+  if (writingSubs.length) {
+    const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+    for (const s of writingSubs) {
+      const av = reports.rubricAverages(s);
+      sums.content += av.content;
+      sums.organisation += av.organisation;
+      sums.grammar += av.grammar;
+      sums.lexis += av.lexis;
+    }
+    aggRubric = {
+      content: sums.content / writingSubs.length,
+      organisation: sums.organisation / writingSubs.length,
+      grammar: sums.grammar / writingSubs.length,
+      lexis: sums.lexis / writingSubs.length,
+      submissionCount: writingSubs.length,
+    };
+  }
+
+  res.json({
+    studentName, studentEmail, term, academicYear,
+    submissions: rows,
+    rubricAverages: aggRubric,
+    overall: {
+      score: totalScore, max: totalMax,
+      percent: totalMax > 0 ? totalScore / totalMax : 0,
+      submissionCount: submissions.length,
+    },
+  });
+});
+
+// Excel download per student.
+app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res) => {
+  const teacherId = req.session.user.id;
+  const term = req.query.term || null;
+  const academicYear = req.query.year || null;
+
+  const { submissions, byId, assessments } = buildStudentSubmissions({
+    teacherId, studentId: req.params.studentId, term, academicYear,
+  });
+
+  if (!submissions.length) return res.status(404).send('No submissions in scope');
+
+  const allResults = readAll('results.json');
+  const sample = allResults.find((r) => r.studentId === req.params.studentId);
+  if (!sample) return res.status(404).send('Student not found');
+
+  const classAverages = computeClassAverages([...new Set(submissions.map((s) => s.assessmentId))]);
+
+  const wb = await reports.generateStudentExcelReport({
+    student: { name: sample.studentName, email: sample.studentEmail },
+    submissions,
+    assessmentsById: byId,
+    classAverages,
+    term,
+    academicYear,
+    teacherName: req.session.user.name,
+  });
+
+  const safeName = (sample.studentName || 'student').replace(/[^a-z0-9]/gi, '_');
+  const safeTerm = term ? `_term${term}` : '';
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}_report.xlsx"`);
+  await wb.xlsx.write(res);
+  res.end();
+});
+
+// Word download per student.
+app.get('/api/students/:studentId/word-report', requireTeacher, async (req, res) => {
+  const teacherId = req.session.user.id;
+  const term = req.query.term || null;
+  const academicYear = req.query.year || null;
+
+  const { submissions, byId } = buildStudentSubmissions({
+    teacherId, studentId: req.params.studentId, term, academicYear,
+  });
+
+  if (!submissions.length) return res.status(404).send('No submissions in scope');
+
+  const allResults = readAll('results.json');
+  const sample = allResults.find((r) => r.studentId === req.params.studentId);
+  if (!sample) return res.status(404).send('Student not found');
+
+  const classAverages = computeClassAverages([...new Set(submissions.map((s) => s.assessmentId))]);
+
+  const doc = await reports.generateStudentWordReport({
+    student: { name: sample.studentName, email: sample.studentEmail },
+    submissions,
+    assessmentsById: byId,
+    classAverages,
+    teacherName: req.session.user.name,
+    term,
+    academicYear,
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  const safeName = (sample.studentName || 'student').replace(/[^a-z0-9]/gi, '_');
+  const safeTerm = term ? `_term${term}` : '';
+  res.setHeader(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  );
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}_term_report.docx"`);
+  res.send(buffer);
 });
 
 // ---------- Settings (teacher) — Anthropic API key for auto-grading ----------

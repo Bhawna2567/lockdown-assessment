@@ -29,6 +29,18 @@ const els = {
   reportCardBody: document.getElementById('report-card-body'),
   reportCardBack: document.getElementById('report-card-back'),
   reportCardPrint: document.getElementById('report-card-print'),
+  studentsBtn: document.getElementById('students-btn'),
+  studentsView: document.getElementById('students-view'),
+  studentsList: document.getElementById('students-list'),
+  studentsBack: document.getElementById('students-back'),
+  progressView: document.getElementById('student-progress-view'),
+  progressTitle: document.getElementById('progress-title'),
+  progressBack: document.getElementById('progress-back'),
+  progressExcel: document.getElementById('progress-excel'),
+  progressWord: document.getElementById('progress-word'),
+  progressTerm: document.getElementById('progress-term'),
+  progressYear: document.getElementById('progress-year'),
+  progressBody: document.getElementById('progress-body'),
   questions: document.getElementById('questions'),
   builderTitle: document.getElementById('builder-title'),
   resultsBack: document.getElementById('results-back'),
@@ -902,6 +914,217 @@ function hideAllViews() {
   els.resultsView.style.display = 'none';
   els.essayQueueView.style.display = 'none';
   if (els.reportCardView) els.reportCardView.style.display = 'none';
+  if (els.studentsView) els.studentsView.style.display = 'none';
+  if (els.progressView) els.progressView.style.display = 'none';
+}
+
+// ---------- Students list + progress (Phase 2) ----------
+let currentProgressStudentId = null;
+
+if (els.studentsBtn) {
+  els.studentsBtn.onclick = () => openStudentsList();
+}
+if (els.studentsBack) {
+  els.studentsBack.onclick = () => {
+    hideAllViews();
+    els.listView.style.display = 'block';
+    loadAssessments();
+  };
+}
+if (els.progressBack) {
+  els.progressBack.onclick = () => openStudentsList();
+}
+
+async function openStudentsList() {
+  hideAllViews();
+  els.studentsView.style.display = 'block';
+  els.studentsList.innerHTML = '<div class="muted">Loading…</div>';
+  try {
+    const { students } = await api('/api/teachers/students');
+    if (!students.length) {
+      els.studentsList.innerHTML = `<div class="panel muted">No students have submitted any of your assessments yet.</div>`;
+      return;
+    }
+    els.studentsList.innerHTML = students.map((s) => `
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="card-title">${escapeHtml(s.name)}</div>
+            <div class="muted">${escapeHtml(s.email)} · ${s.submissions} submission${s.submissions === 1 ? '' : 's'}${s.lastSubmittedAt ? ` · last on ${new Date(s.lastSubmittedAt).toLocaleDateString()}` : ''}</div>
+          </div>
+          <div class="spacer"></div>
+          <button class="btn primary" data-progress="${s.studentId}">View progress &amp; reports →</button>
+        </div>
+      </div>
+    `).join('');
+    els.studentsList.querySelectorAll('button[data-progress]').forEach((btn) => {
+      btn.onclick = () => openStudentProgress(btn.dataset.progress);
+    });
+  } catch (e) {
+    els.studentsList.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+async function openStudentProgress(studentId) {
+  hideAllViews();
+  currentProgressStudentId = studentId;
+  els.progressView.style.display = 'block';
+  await refreshProgress();
+}
+
+async function refreshProgress() {
+  if (!currentProgressStudentId) return;
+  els.progressBody.innerHTML = '<div class="muted">Loading…</div>';
+  const term = els.progressTerm.value || '';
+  const year = (els.progressYear.value || '').trim();
+  const url = `/api/students/${currentProgressStudentId}/progress?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`;
+  try {
+    const data = await api(url);
+    els.progressTitle.textContent = data.studentName
+      ? `${data.studentName} — progress`
+      : 'Student progress';
+    renderProgress(data);
+  } catch (e) {
+    els.progressBody.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+if (els.progressTerm) els.progressTerm.onchange = refreshProgress;
+if (els.progressYear) els.progressYear.onchange = refreshProgress;
+
+if (els.progressExcel) {
+  els.progressExcel.onclick = () => {
+    if (!currentProgressStudentId) return;
+    const term = els.progressTerm.value || '';
+    const year = (els.progressYear.value || '').trim();
+    window.location.href = `/api/students/${currentProgressStudentId}/excel-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`;
+  };
+}
+if (els.progressWord) {
+  els.progressWord.onclick = () => {
+    if (!currentProgressStudentId) return;
+    const term = els.progressTerm.value || '';
+    const year = (els.progressYear.value || '').trim();
+    window.location.href = `/api/students/${currentProgressStudentId}/word-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`;
+  };
+}
+
+function renderProgress(data) {
+  if (!data.submissions.length) {
+    els.progressBody.innerHTML = `<div class="panel muted">No submissions in scope. Try clearing the term/year filter.</div>`;
+    return;
+  }
+
+  const overallPct = data.overall ? Math.round(data.overall.percent * 100) : 0;
+
+  // Per-assessment bar chart with class-average overlay
+  const barsHtml = data.submissions.map((s) => {
+    const studentP = Math.round(s.percent * 100);
+    const classP = s.classAverage != null ? Math.round(s.classAverage * 100) : null;
+    return `
+      <div class="progress-bar-row">
+        <div class="pb-label">
+          <div class="pb-title">${escapeHtml(s.title)}</div>
+          <div class="muted" style="font-size: 11px;">${s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : ''}${s.term ? ` · Term ${s.term}` : ''}${s.academicYear ? ` · ${escapeHtml(s.academicYear)}` : ''}</div>
+        </div>
+        <div class="pb-track">
+          <div class="pb-fill" style="width: ${studentP}%"></div>
+          ${classP != null ? `<div class="pb-class-marker" style="left: ${classP}%" title="Class average: ${classP}%"></div>` : ''}
+        </div>
+        <div class="pb-score">${s.score}/${s.max} · ${studentP}%</div>
+      </div>
+    `;
+  }).join('');
+
+  // Rubric criterion progress (if any writing assessments)
+  let rubricHtml = '';
+  if (data.rubricAverages) {
+    const r = data.rubricAverages;
+    const criteria = [
+      ['content', 'Content & Task Achievement'],
+      ['organisation', 'Organisation & Cohesion'],
+      ['grammar', 'Grammatical Range & Accuracy'],
+      ['lexis', 'Lexical Range & Accuracy'],
+    ];
+    rubricHtml = `
+      <div class="panel" style="margin-top: 14px;">
+        <h2 style="margin-top: 0;">Writing rubric averages</h2>
+        <div class="muted" style="margin-bottom: 12px;">Across ${r.submissionCount} writing assessment${r.submissionCount === 1 ? '' : 's'} in scope.</div>
+        ${criteria.map(([k, name]) => {
+          const v = r[k];
+          const pct = (v / 3) * 100;
+          let level;
+          if (v >= 2.5) level = '<span class="badge green">Beyond grade level</span>';
+          else if (v >= 1.5) level = '<span class="badge">At grade level</span>';
+          else level = '<span class="badge red">Towards grade level</span>';
+          return `
+            <div class="progress-bar-row">
+              <div class="pb-label">
+                <div class="pb-title">${escapeHtml(name)}</div>
+              </div>
+              <div class="pb-track">
+                <div class="pb-fill" style="width: ${pct}%; background: linear-gradient(90deg, #6c7ff2, #3b5bdb);"></div>
+              </div>
+              <div class="pb-score">${v.toFixed(1)} / 3 ${level}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // Submissions table
+  const rowsHtml = data.submissions.map((s) => `
+    <tr>
+      <td>${escapeHtml(s.title)}</td>
+      <td>${s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : ''}</td>
+      <td>${s.term ? `Term ${s.term}` : '—'}</td>
+      <td>${s.score}/${s.max} (${Math.round(s.percent * 100)}%)</td>
+      <td>${s.classAverage != null ? `${Math.round(s.classAverage * 100)}%` : '—'}</td>
+      <td>${s.teacherComment ? '<span class="badge green">Yes</span>' : '<span class="muted">—</span>'}</td>
+      <td><button class="btn ghost" data-open-card="${s.resultId}">📋 Open report</button></td>
+    </tr>
+  `).join('');
+
+  els.progressBody.innerHTML = `
+    <div class="panel">
+      <h2 style="margin-top: 0;">Overall</h2>
+      <div class="row">
+        <div class="stat" style="flex: 0 0 140px;">
+          <div class="stat-num">${data.overall.score} / ${data.overall.max}</div>
+          <div class="stat-label">Total points</div>
+        </div>
+        <div class="stat" style="flex: 0 0 140px;">
+          <div class="stat-num">${overallPct}%</div>
+          <div class="stat-label">Average</div>
+        </div>
+        <div class="stat" style="flex: 0 0 140px;">
+          <div class="stat-num">${data.overall.submissionCount}</div>
+          <div class="stat-label">Submissions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 style="margin-top: 0;">Score trend</h2>
+      <div class="muted" style="margin-bottom: 12px; font-size: 13px;">The blue bar is the student's score. The black tick on the same bar is the class average for that assessment.</div>
+      <div class="progress-bars">${barsHtml}</div>
+    </div>
+
+    ${rubricHtml}
+
+    <div class="panel">
+      <h2 style="margin-top: 0;">Submissions</h2>
+      <table>
+        <thead><tr><th>Assessment</th><th>Date</th><th>Term</th><th>Score</th><th>Class avg</th><th>Comment</th><th></th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+  `;
+
+  els.progressBody.querySelectorAll('button[data-open-card]').forEach((btn) => {
+    btn.onclick = () => openReportCard(btn.dataset.openCard);
+  });
 }
 
 if (els.reportCardBack) {

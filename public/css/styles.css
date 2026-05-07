@@ -296,6 +296,58 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   cursor: zoom-in;
 }
 
+/* ===== Per-student progress bar charts ===== */
+.progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.progress-bar-row {
+  display: grid;
+  grid-template-columns: 1fr 4fr 1.5fr;
+  align-items: center;
+  gap: 12px;
+}
+.pb-label .pb-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.pb-track {
+  position: relative;
+  height: 18px;
+  background: #f1f1f1;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pb-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #6c7ff2);
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.pb-class-marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: #1a1c2b;
+  z-index: 2;
+}
+.pb-class-marker::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  background: #1a1c2b;
+}
+.pb-score {
+  font-size: 13px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ===== Class analytics panel (teacher Results page) ===== */
 .analytics-panel { padding: 20px 24px; }
 .stats-grid {

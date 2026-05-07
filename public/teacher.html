@@ -21,6 +21,7 @@
         <h1 style="margin:0;">Your assessments</h1>
         <div class="spacer"></div>
         <button id="settings-btn" class="btn">⚙ Settings</button>
+        <button id="students-btn" class="btn">👥 Students</button>
         <button id="essay-queue-btn" class="btn">📝 Grade essays <span id="queue-count" class="badge" style="display:none;"></span></button>
         <button id="import-btn" class="btn">⇪ Quick Import (PDF/DOCX)</button>
         <button id="new-btn" class="btn primary">+ New assessment</button>
@@ -180,6 +181,40 @@
       <div class="panel">
         <div id="results-body"></div>
       </div>
+    </div>
+
+    <div id="students-view" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="students-back" class="btn">&larr; Back</button>
+        <h1 style="margin:0;">Students</h1>
+      </div>
+      <div id="students-list"></div>
+    </div>
+
+    <div id="student-progress-view" style="display:none;">
+      <div class="row" style="margin-bottom: 12px;">
+        <button id="progress-back" class="btn">&larr; Back to students</button>
+        <h1 id="progress-title" style="margin:0;">Student progress</h1>
+        <div class="spacer"></div>
+        <button id="progress-excel" class="btn">⬇ Excel report</button>
+        <button id="progress-word" class="btn primary">⬇ Word report</button>
+      </div>
+      <div class="row" style="margin-bottom: 12px;">
+        <div class="field" style="margin: 0; flex: 0 0 160px;">
+          <label>Term</label>
+          <select id="progress-term">
+            <option value="">All terms</option>
+            <option value="1">Term 1</option>
+            <option value="2">Term 2</option>
+            <option value="3">Term 3</option>
+          </select>
+        </div>
+        <div class="field" style="margin: 0; flex: 0 0 200px;">
+          <label>Academic year</label>
+          <input type="text" id="progress-year" placeholder="e.g. 2025-2026" />
+        </div>
+      </div>
+      <div id="progress-body"></div>
     </div>
 
     <div id="report-card-view" style="display:none;">
