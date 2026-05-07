@@ -14,6 +14,157 @@ const {
   HeadingLevel, AlignmentType, WidthType,
   Table, TableRow, TableCell, BorderStyle,
 } = require('docx');
+const { readApiKey } = require('./grader');
+
+// -- Bilingual support ------------------------------------------------------
+// Hardcoded translations of structural labels we control. Native-speaker
+// review is recommended before using these in formal parent-facing reports.
+// Dynamic content (teacher comments, narrative summary) is translated at
+// runtime via the Claude API.
+const LABELS = {
+  en: {
+    title: 'Student Term Report',
+    student: 'Student', email: 'Email', term: 'Term', year: 'Academic Year',
+    teacher: 'Class Teacher', date: 'Report Date',
+    summary: 'Summary of Assessments',
+    assessment: 'Assessment', dateCol: 'Date', score: 'Score', percent: 'Percent',
+    classAvg: 'Class Average %', overall: 'Overall',
+    commentary: 'Performance Commentary',
+    rubric: 'Writing Rubric Progress',
+    criterion: 'Criterion', average: 'Average', level: 'Level',
+    content: 'Content & Task Achievement',
+    organisation: 'Organisation & Cohesion',
+    grammar: 'Grammatical Range & Accuracy',
+    lexis: 'Lexical Range & Accuracy',
+    towards: 'Towards grade level',
+    at: 'At grade level',
+    beyond: 'Beyond grade level',
+    teacherComments: "Teacher's Comments",
+    basedOn: 'Based on',
+    writingAssessments: 'writing assessment(s) this term.',
+  },
+  ar: {
+    title: 'تقرير الفصل الدراسي للطالب',
+    student: 'الطالب', email: 'البريد الإلكتروني', term: 'الفصل', year: 'العام الدراسي',
+    teacher: 'المعلم', date: 'تاريخ التقرير',
+    summary: 'ملخص التقييمات',
+    assessment: 'التقييم', dateCol: 'التاريخ', score: 'الدرجة', percent: 'النسبة المئوية',
+    classAvg: 'متوسط الفصل %', overall: 'الإجمالي',
+    commentary: 'تعليق على الأداء',
+    rubric: 'تقدم رؤوس الكتابة',
+    criterion: 'المعيار', average: 'المتوسط', level: 'المستوى',
+    content: 'المحتوى وإنجاز المهمة',
+    organisation: 'التنظيم والترابط',
+    grammar: 'النطاق النحوي والدقة',
+    lexis: 'النطاق المفرداتي والدقة',
+    towards: 'نحو مستوى الصف',
+    at: 'في مستوى الصف',
+    beyond: 'أعلى من مستوى الصف',
+    teacherComments: 'تعليقات المعلم',
+    basedOn: 'بناءً على',
+    writingAssessments: 'تقييم(ات) الكتابة هذا الفصل.',
+  },
+  hi: {
+    title: 'छात्र सत्र रिपोर्ट',
+    student: 'छात्र', email: 'ईमेल', term: 'सत्र', year: 'शैक्षणिक वर्ष',
+    teacher: 'कक्षा शिक्षक', date: 'रिपोर्ट दिनांक',
+    summary: 'मूल्यांकन का सारांश',
+    assessment: 'मूल्यांकन', dateCol: 'दिनांक', score: 'अंक', percent: 'प्रतिशत',
+    classAvg: 'कक्षा औसत %', overall: 'कुल',
+    commentary: 'प्रदर्शन टिप्पणी',
+    rubric: 'लेखन रूब्रिक प्रगति',
+    criterion: 'मानदंड', average: 'औसत', level: 'स्तर',
+    content: 'सामग्री और कार्य उपलब्धि',
+    organisation: 'संगठन और सामंजस्य',
+    grammar: 'व्याकरणिक श्रेणी और शुद्धता',
+    lexis: 'शब्दावली श्रेणी और शुद्धता',
+    towards: 'कक्षा स्तर की ओर',
+    at: 'कक्षा स्तर पर',
+    beyond: 'कक्षा स्तर से ऊपर',
+    teacherComments: 'शिक्षक की टिप्पणियाँ',
+    basedOn: 'इस पर आधारित',
+    writingAssessments: 'इस सत्र के लेखन मूल्यांकन।',
+  },
+  th: {
+    title: 'รายงานภาคเรียนของนักเรียน',
+    student: 'นักเรียน', email: 'อีเมล', term: 'ภาคเรียน', year: 'ปีการศึกษา',
+    teacher: 'ครูประจำชั้น', date: 'วันที่รายงาน',
+    summary: 'สรุปการประเมิน',
+    assessment: 'การประเมิน', dateCol: 'วันที่', score: 'คะแนน', percent: 'ร้อยละ',
+    classAvg: 'ค่าเฉลี่ยชั้นเรียน %', overall: 'รวม',
+    commentary: 'ความคิดเห็นเกี่ยวกับผลการเรียน',
+    rubric: 'ความก้าวหน้าตามเกณฑ์การเขียน',
+    criterion: 'เกณฑ์', average: 'ค่าเฉลี่ย', level: 'ระดับ',
+    content: 'เนื้อหาและการบรรลุภารกิจ',
+    organisation: 'การจัดระเบียบและความเชื่อมโยง',
+    grammar: 'ความหลากหลายและความถูกต้องของไวยากรณ์',
+    lexis: 'ความหลากหลายและความถูกต้องของคำศัพท์',
+    towards: 'กำลังพัฒนาสู่ระดับชั้น',
+    at: 'อยู่ในระดับชั้น',
+    beyond: 'เกินระดับชั้น',
+    teacherComments: 'ความเห็นของครู',
+    basedOn: 'อิงจาก',
+    writingAssessments: 'การประเมินการเขียนในภาคเรียนนี้',
+  },
+};
+
+const LANG_NAME = { ar: 'Arabic', hi: 'Hindi', th: 'Thai' };
+
+function L(lang, key) {
+  return (LABELS[lang] && LABELS[lang][key]) || LABELS.en[key] || key;
+}
+
+// Translate a list of free-text strings via the Claude API. Returns a parallel
+// array. Returns the original strings unchanged if translation fails so the
+// report still renders.
+async function translateStrings(strings, targetLang) {
+  if (!targetLang || targetLang === 'en') return strings;
+  const apiKey = readApiKey();
+  if (!apiKey) return strings;
+  if (!strings.length || strings.every((s) => !s || !s.trim())) return strings;
+
+  const langName = LANG_NAME[targetLang] || targetLang;
+  const prompt = [
+    `Translate the following English text snippets into ${langName}.`,
+    `Return ONLY a JSON array of strings, the same length as the input, in the same order.`,
+    `Preserve any numbers, names, dates, and email addresses unchanged inside the translation.`,
+    `Use a formal, professional tone suitable for a school progress report given to parents.`,
+    ``,
+    `Input array:`,
+    JSON.stringify(strings),
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      console.error('[translate] API error', res.status);
+      return strings;
+    }
+    const data = await res.json();
+    const text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed) && parsed.length === strings.length) {
+      return parsed.map(String);
+    }
+    return strings;
+  } catch (e) {
+    console.error('[translate] failed', e.message);
+    return strings;
+  }
+}
 
 // -- helpers ----------------------------------------------------------------
 
@@ -56,7 +207,7 @@ function rubricAverages(submission) {
 // -- Excel ------------------------------------------------------------------
 
 async function generateStudentExcelReport({
-  student, submissions, assessmentsById, classAverages, term, academicYear, teacherName,
+  student, submissions, assessmentsById, classAverages, term, academicYear, teacherName, secondLang,
 }) {
   const wb = new ExcelJS.Workbook();
   wb.creator = 'ClassCurio';
@@ -243,6 +394,85 @@ async function generateStudentExcelReport({
     ws4.views = [{ state: 'frozen', ySplit: 1 }];
   }
 
+  // ---- Bilingual: optional translated summary sheet ----
+  if (secondLang && LABELS[secondLang]) {
+    const ws5 = wb.addWorksheet(LANG_NAME[secondLang] || secondLang);
+    ws5.mergeCells('A1:E1');
+    ws5.getCell('A1').value = `${L(secondLang, 'title')} — ${student.name}`;
+    ws5.getCell('A1').font = { size: 18, bold: true };
+    ws5.getCell('A1').alignment = { horizontal: 'center' };
+
+    ws5.getCell('A3').value = L(secondLang, 'student');
+    ws5.getCell('B3').value = student.name;
+    ws5.getCell('A4').value = L(secondLang, 'email');
+    ws5.getCell('B4').value = student.email;
+    ws5.getCell('A5').value = L(secondLang, 'term');
+    ws5.getCell('B5').value = term ? `${L(secondLang, 'term')} ${term}` : '—';
+    ws5.getCell('A6').value = L(secondLang, 'year');
+    ws5.getCell('B6').value = academicYear || '—';
+    ws5.getCell('A7').value = L(secondLang, 'teacher');
+    ws5.getCell('B7').value = teacherName || '—';
+    for (const r of [3, 4, 5, 6, 7]) ws5.getCell(`A${r}`).font = { bold: true };
+
+    const HR = 9;
+    ws5.getRow(HR).values = [
+      L(secondLang, 'assessment'),
+      L(secondLang, 'dateCol'),
+      L(secondLang, 'score'),
+      L(secondLang, 'percent'),
+      L(secondLang, 'classAvg'),
+    ];
+    ws5.getRow(HR).font = { bold: true };
+    ws5.getRow(HR).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
+
+    let r5 = HR + 1;
+    for (const sub of submissions) {
+      const a = assessmentsById.get(sub.assessmentId);
+      const p = pct(sub.totalScore, sub.totalMax);
+      const avg = classAverages[sub.assessmentId];
+      ws5.getRow(r5).values = [
+        a ? a.title : '(deleted)',
+        sub.submittedAt ? new Date(sub.submittedAt) : '',
+        `${sub.totalScore} / ${sub.totalMax}`,
+        p,
+        avg ? pct(avg.mean, avg.maxPossible) : null,
+      ];
+      ws5.getCell(`B${r5}`).numFmt = 'yyyy-mm-dd';
+      ws5.getCell(`D${r5}`).numFmt = '0%';
+      ws5.getCell(`E${r5}`).numFmt = '0%';
+      r5++;
+    }
+
+    ws5.columns.forEach((c, i) => { c.width = i === 0 ? 36 : 16; });
+    if (secondLang === 'ar') {
+      ws5.views = [{ rightToLeft: true, state: 'frozen', ySplit: HR }];
+    } else {
+      ws5.views = [{ state: 'frozen', ySplit: HR }];
+    }
+
+    // Translate teacher comments and append below the table
+    if (withComments.length) {
+      const commentsToTranslate = withComments.map((s) => s.teacherComment);
+      const translated = await translateStrings(commentsToTranslate, secondLang);
+      r5 += 1; // blank row spacer
+      ws5.getRow(r5).values = [L(secondLang, 'teacherComments')];
+      ws5.getRow(r5).font = { bold: true, size: 14 };
+      r5++;
+      for (let i = 0; i < withComments.length; i++) {
+        const sub = withComments[i];
+        const a = assessmentsById.get(sub.assessmentId);
+        ws5.getRow(r5).values = [
+          a ? a.title : '(deleted)',
+          sub.submittedAt ? new Date(sub.submittedAt) : '',
+          translated[i] || sub.teacherComment,
+        ];
+        ws5.getCell(`B${r5}`).numFmt = 'yyyy-mm-dd';
+        ws5.getCell(`C${r5}`).alignment = { wrapText: true, vertical: 'top' };
+        r5++;
+      }
+    }
+  }
+
   return wb;
 }
 
@@ -261,8 +491,10 @@ function tableCell(text) {
 }
 
 async function generateStudentWordReport({
-  student, submissions, assessmentsById, classAverages, teacherName, term, academicYear, schoolName,
+  student, submissions, assessmentsById, classAverages, teacherName, term, academicYear, schoolName, secondLang,
 }) {
+  // Build the English version first (as before), then if a regional language
+  // is requested, append a translated copy below the English version.
   const children = [];
 
   // ---- Title ----
@@ -465,6 +697,202 @@ async function generateStudentWordReport({
   children.push(new Paragraph({
     children: [new TextRun({ text: `${teacherName || 'Class Teacher'}`, bold: true })],
   }));
+
+  // ---- Bilingual section: same content in the chosen regional language ----
+  if (secondLang && LABELS[secondLang]) {
+    children.push(new Paragraph({ text: '', pageBreakBefore: true }));
+    children.push(new Paragraph({
+      text: L(secondLang, 'title'),
+      heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 300 },
+    }));
+
+    // Student info block (translated labels, untranslated values).
+    const infoLinesT = [
+      [L(secondLang, 'student'), student.name],
+      [L(secondLang, 'email'), student.email],
+      [L(secondLang, 'term'), term ? `${L(secondLang, 'term')} ${term}` : '—'],
+      [L(secondLang, 'year'), academicYear || '—'],
+      [L(secondLang, 'teacher'), teacherName || '—'],
+      [L(secondLang, 'date'), new Date().toLocaleDateString()],
+    ];
+    for (const [k, v] of infoLinesT) {
+      children.push(new Paragraph({
+        children: [
+          new TextRun({ text: `${k}: `, bold: true }),
+          new TextRun(String(v)),
+        ],
+        spacing: { after: 80 },
+      }));
+    }
+
+    // Summary table in the regional language.
+    children.push(new Paragraph({
+      text: L(secondLang, 'summary'),
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 300, after: 200 },
+    }));
+
+    const summaryRowsT = [
+      new TableRow({
+        children: [
+          L(secondLang, 'assessment'),
+          L(secondLang, 'dateCol'),
+          L(secondLang, 'score'),
+          L(secondLang, 'percent'),
+          L(secondLang, 'classAvg'),
+        ].map(tableHeaderCell),
+      }),
+    ];
+
+    let totalScore2 = 0, totalMax2 = 0;
+    for (const sub of submissions) {
+      const a = assessmentsById.get(sub.assessmentId);
+      const p = Math.round(pct(sub.totalScore, sub.totalMax) * 100);
+      const avg = classAverages[sub.assessmentId];
+      const classP = avg ? Math.round(pct(avg.mean, avg.maxPossible) * 100) : null;
+      summaryRowsT.push(new TableRow({
+        children: [
+          tableCell(a ? a.title : '(deleted)'),
+          tableCell(dateStr(sub.submittedAt)),
+          tableCell(`${sub.totalScore} / ${sub.totalMax}`),
+          tableCell(`${p}%`),
+          tableCell(classP != null ? `${classP}%` : '—'),
+        ],
+      }));
+      totalScore2 += sub.totalScore;
+      totalMax2 += sub.totalMax;
+    }
+    if (submissions.length) {
+      summaryRowsT.push(new TableRow({
+        children: [
+          tableCell(L(secondLang, 'overall')),
+          tableCell(''),
+          tableCell(`${totalScore2} / ${totalMax2}`),
+          tableCell(`${Math.round(pct(totalScore2, totalMax2) * 100)}%`),
+          tableCell(''),
+        ],
+      }));
+    }
+    children.push(new Table({
+      rows: summaryRowsT,
+      width: { size: 100, type: WidthType.PERCENTAGE },
+    }));
+
+    // Translated narrative commentary (use Claude API).
+    const stringsToTranslate = [];
+    if (submissions.length) {
+      const overallPct = Math.round(pct(totalScore2, totalMax2) * 100);
+      let band;
+      if (overallPct >= 80) band = 'consistently strong';
+      else if (overallPct >= 65) band = 'solid and at grade level';
+      else if (overallPct >= 50) band = 'developing — meeting some expectations';
+      else band = 'needing focused support to reach grade-level expectations';
+      stringsToTranslate.push(
+        `${student.name} has completed ${submissions.length} assessment${submissions.length === 1 ? '' : 's'} this term, achieving an overall score of ${totalScore2} / ${totalMax2} (${overallPct}%). Performance this term has been ${band}.`
+      );
+    }
+    // Translate teacher comments
+    const withCommentsT = submissions.filter((s) => (s.teacherComment || '').trim());
+    for (const sub of withCommentsT) {
+      stringsToTranslate.push(sub.teacherComment);
+    }
+
+    const translated = await translateStrings(stringsToTranslate, secondLang);
+
+    if (submissions.length) {
+      children.push(new Paragraph({
+        text: L(secondLang, 'commentary'),
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 300, after: 200 },
+      }));
+      children.push(new Paragraph({
+        text: translated[0],
+        spacing: { after: 200 },
+      }));
+    }
+
+    // Rubric averages translated
+    const writingSubsT = submissions.filter((s) => rubricAverages(s));
+    if (writingSubsT.length) {
+      children.push(new Paragraph({
+        text: L(secondLang, 'rubric'),
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 300, after: 200 },
+      }));
+
+      const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+      for (const sub of writingSubsT) {
+        const av = rubricAverages(sub);
+        sums.content += av.content;
+        sums.organisation += av.organisation;
+        sums.grammar += av.grammar;
+        sums.lexis += av.lexis;
+      }
+      const avgs = {
+        content: sums.content / writingSubsT.length,
+        organisation: sums.organisation / writingSubsT.length,
+        grammar: sums.grammar / writingSubsT.length,
+        lexis: sums.lexis / writingSubsT.length,
+      };
+
+      const rubricRowsT = [
+        new TableRow({
+          children: [L(secondLang, 'criterion'), L(secondLang, 'average'), L(secondLang, 'level')].map(tableHeaderCell),
+        }),
+      ];
+      const niceNamesT = {
+        content: L(secondLang, 'content'),
+        organisation: L(secondLang, 'organisation'),
+        grammar: L(secondLang, 'grammar'),
+        lexis: L(secondLang, 'lexis'),
+      };
+      for (const k of ['content', 'organisation', 'grammar', 'lexis']) {
+        const v = avgs[k];
+        let level;
+        if (v >= 2.5) level = L(secondLang, 'beyond');
+        else if (v >= 1.5) level = L(secondLang, 'at');
+        else level = L(secondLang, 'towards');
+        rubricRowsT.push(new TableRow({
+          children: [
+            tableCell(niceNamesT[k]),
+            tableCell(`${v.toFixed(1)} / 3`),
+            tableCell(level),
+          ],
+        }));
+      }
+      children.push(new Table({
+        rows: rubricRowsT,
+        width: { size: 100, type: WidthType.PERCENTAGE },
+      }));
+    }
+
+    // Translated teacher comments
+    if (withCommentsT.length) {
+      children.push(new Paragraph({
+        text: L(secondLang, 'teacherComments'),
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 300, after: 200 },
+      }));
+      // First narrative was at translated[0], then comments start
+      for (let i = 0; i < withCommentsT.length; i++) {
+        const sub = withCommentsT[i];
+        const a = assessmentsById.get(sub.assessmentId);
+        children.push(new Paragraph({
+          children: [new TextRun({
+            text: `${a ? a.title : 'Assessment'} (${dateStr(sub.submittedAt)})`,
+            bold: true,
+          })],
+          spacing: { after: 80 },
+        }));
+        children.push(new Paragraph({
+          text: translated[1 + i] || sub.teacherComment,
+          spacing: { after: 200 },
+        }));
+      }
+    }
+  }
 
   return new Document({
     creator: 'ClassCurio',

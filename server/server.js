@@ -129,11 +129,15 @@ app.get('/api/assessments', requireAuth, (req, res) => {
 function normalizeTerm(t) {
   return t === '1' || t === '2' || t === '3' ? t : null;
 }
+function normalizeGrade(g) {
+  const n = parseInt(g, 10);
+  return n >= 1 && n <= 12 ? String(n) : null;
+}
 
 app.post('/api/assessments', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
-    passage, rubricStage, term, academicYear, scheduledDate,
+    passage, rubricStage, term, academicYear, scheduledDate, grade,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -147,6 +151,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     passage: String(passage || ''),
     rubricStage: rubricStage === '8' ? '8' : (rubricStage === '7' ? '7' : null),
     term: normalizeTerm(term),
+    grade: normalizeGrade(grade),
     academicYear: academicYear ? String(academicYear).slice(0, 20) : null,
     scheduledDate: scheduledDate ? String(scheduledDate).slice(0, 10) : null,
     durationMinutes: Number(durationMinutes) || 30,
@@ -210,7 +215,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
   const {
     title, description, durationMinutes, questions, published,
-    passage, rubricStage, term, academicYear, scheduledDate,
+    passage, rubricStage, term, academicYear, scheduledDate, grade,
   } = req.body || {};
   const updated = {
     ...all[idx],
@@ -223,6 +228,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       rubricStage === null || rubricStage === '' ? null :
       (all[idx].rubricStage ?? null),
     term: term === undefined ? (all[idx].term ?? null) : normalizeTerm(term),
+    grade: grade === undefined ? (all[idx].grade ?? null) : normalizeGrade(grade),
     academicYear: academicYear === undefined
       ? (all[idx].academicYear ?? null)
       : (academicYear ? String(academicYear).slice(0, 20) : null),
@@ -1047,13 +1053,14 @@ app.get('/api/students/:studentId/progress', requireTeacher, (req, res) => {
   });
 });
 
-// Excel download per student.
+// Excel download per student. ?lang=ar|hi|th|en for bilingual mode.
 app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res) => {
   const teacherId = req.session.user.id;
   const term = req.query.term || null;
   const academicYear = req.query.year || null;
+  const secondLang = (req.query.lang || '').toLowerCase();
 
-  const { submissions, byId, assessments } = buildStudentSubmissions({
+  const { submissions, byId } = buildStudentSubmissions({
     teacherId, studentId: req.params.studentId, term, academicYear,
   });
 
@@ -1073,21 +1080,24 @@ app.get('/api/students/:studentId/excel-report', requireTeacher, async (req, res
     term,
     academicYear,
     teacherName: req.session.user.name,
+    secondLang: ['ar', 'hi', 'th'].includes(secondLang) ? secondLang : null,
   });
 
   const safeName = (sample.studentName || 'student').replace(/[^a-z0-9]/gi, '_');
   const safeTerm = term ? `_term${term}` : '';
+  const safeLang = secondLang ? `_${secondLang}` : '';
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}_report.xlsx"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}${safeLang}_report.xlsx"`);
   await wb.xlsx.write(res);
   res.end();
 });
 
-// Word download per student.
+// Word download per student. ?lang=ar|hi|th|en for bilingual mode.
 app.get('/api/students/:studentId/word-report', requireTeacher, async (req, res) => {
   const teacherId = req.session.user.id;
   const term = req.query.term || null;
   const academicYear = req.query.year || null;
+  const secondLang = (req.query.lang || '').toLowerCase();
 
   const { submissions, byId } = buildStudentSubmissions({
     teacherId, studentId: req.params.studentId, term, academicYear,
@@ -1109,16 +1119,18 @@ app.get('/api/students/:studentId/word-report', requireTeacher, async (req, res)
     teacherName: req.session.user.name,
     term,
     academicYear,
+    secondLang: ['ar', 'hi', 'th'].includes(secondLang) ? secondLang : null,
   });
 
   const buffer = await Packer.toBuffer(doc);
   const safeName = (sample.studentName || 'student').replace(/[^a-z0-9]/gi, '_');
   const safeTerm = term ? `_term${term}` : '';
+  const safeLang = secondLang ? `_${secondLang}` : '';
   res.setHeader(
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   );
-  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}_term_report.docx"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeName}${safeTerm}${safeLang}_term_report.docx"`);
   res.send(buffer);
 });
 

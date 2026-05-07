@@ -15,11 +15,13 @@ const els = {
   passage: document.getElementById('passage'),
   rubricStage: document.getElementById('rubric-stage'),
   term: document.getElementById('term'),
+  grade: document.getElementById('grade'),
   academicYear: document.getElementById('academic-year'),
   scheduledDate: document.getElementById('scheduled-date'),
   duration: document.getElementById('duration'),
   published: document.getElementById('published'),
   filterTerm: document.getElementById('filter-term'),
+  filterGrade: document.getElementById('filter-grade'),
   filterYear: document.getElementById('filter-year'),
   viewListBtn: document.getElementById('view-list-btn'),
   viewCalendarBtn: document.getElementById('view-calendar-btn'),
@@ -40,6 +42,7 @@ const els = {
   progressWord: document.getElementById('progress-word'),
   progressTerm: document.getElementById('progress-term'),
   progressYear: document.getElementById('progress-year'),
+  progressLang: document.getElementById('progress-lang'),
   progressBody: document.getElementById('progress-body'),
   questions: document.getElementById('questions'),
   builderTitle: document.getElementById('builder-title'),
@@ -187,9 +190,11 @@ function refreshYearFilterOptions() {
 
 function filteredAssessments() {
   const term = els.filterTerm ? els.filterTerm.value : '';
+  const grade = els.filterGrade ? els.filterGrade.value : '';
   const year = els.filterYear ? els.filterYear.value : '';
   return allAssessments.filter((a) => {
     if (term && a.term !== term) return false;
+    if (grade && a.grade !== grade) return false;
     if (year && a.academicYear !== year) return false;
     return true;
   });
@@ -222,6 +227,7 @@ function renderList() {
       const meta = [
         `${a.questions.length} questions`,
         `${a.durationMinutes} min`,
+        a.grade ? `Grade ${a.grade}` : null,
         a.term ? `Term ${a.term}` : null,
         a.academicYear ? a.academicYear : null,
         a.scheduledDate ? `📅 ${a.scheduledDate}` : null,
@@ -413,6 +419,7 @@ function openBuilder(a) {
   if (els.passage) els.passage.value = a && a.passage ? a.passage : '';
   if (els.rubricStage) els.rubricStage.value = a && a.rubricStage ? a.rubricStage : '';
   if (els.term) els.term.value = a && a.term ? a.term : '';
+  if (els.grade) els.grade.value = a && a.grade ? a.grade : '';
   if (els.academicYear) els.academicYear.value = a && a.academicYear ? a.academicYear : defaultAcademicYear();
   if (els.scheduledDate) els.scheduledDate.value = a && a.scheduledDate ? a.scheduledDate : '';
   els.duration.value = a ? a.durationMinutes : 30;
@@ -557,6 +564,7 @@ els.saveBtn.onclick = async () => {
       passage: els.passage ? els.passage.value : '',
       rubricStage: els.rubricStage ? els.rubricStage.value || null : null,
       term: els.term ? els.term.value || null : null,
+      grade: els.grade ? els.grade.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
@@ -997,7 +1005,8 @@ if (els.progressExcel) {
     if (!currentProgressStudentId) return;
     const term = els.progressTerm.value || '';
     const year = (els.progressYear.value || '').trim();
-    window.location.href = `/api/students/${currentProgressStudentId}/excel-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`;
+    const lang = els.progressLang ? els.progressLang.value || '' : '';
+    window.location.href = `/api/students/${currentProgressStudentId}/excel-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}&lang=${encodeURIComponent(lang)}`;
   };
 }
 if (els.progressWord) {
@@ -1005,7 +1014,8 @@ if (els.progressWord) {
     if (!currentProgressStudentId) return;
     const term = els.progressTerm.value || '';
     const year = (els.progressYear.value || '').trim();
-    window.location.href = `/api/students/${currentProgressStudentId}/word-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}`;
+    const lang = els.progressLang ? els.progressLang.value || '' : '';
+    window.location.href = `/api/students/${currentProgressStudentId}/word-report?term=${encodeURIComponent(term)}&year=${encodeURIComponent(year)}&lang=${encodeURIComponent(lang)}`;
   };
 }
 
@@ -1400,6 +1410,7 @@ function defaultAcademicYear() {
 
 // ---------- Filter + view toggle wiring ----------
 if (els.filterTerm) els.filterTerm.onchange = () => render();
+if (els.filterGrade) els.filterGrade.onchange = () => render();
 if (els.filterYear) els.filterYear.onchange = () => render();
 if (els.viewListBtn) {
   els.viewListBtn.onclick = () => {

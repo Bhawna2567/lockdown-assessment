@@ -28,7 +28,7 @@
       </div>
 
       <div class="row" style="margin-bottom: 12px; gap: 8px;">
-        <div class="field" style="flex: 0 0 160px; margin: 0;">
+        <div class="field" style="flex: 0 0 140px; margin: 0;">
           <label>Term</label>
           <select id="filter-term">
             <option value="">All terms</option>
@@ -37,7 +37,25 @@
             <option value="3">Term 3</option>
           </select>
         </div>
-        <div class="field" style="flex: 0 0 180px; margin: 0;">
+        <div class="field" style="flex: 0 0 140px; margin: 0;">
+          <label>Grade</label>
+          <select id="filter-grade">
+            <option value="">All grades</option>
+            <option value="1">Grade 1</option>
+            <option value="2">Grade 2</option>
+            <option value="3">Grade 3</option>
+            <option value="4">Grade 4</option>
+            <option value="5">Grade 5</option>
+            <option value="6">Grade 6</option>
+            <option value="7">Grade 7</option>
+            <option value="8">Grade 8</option>
+            <option value="9">Grade 9</option>
+            <option value="10">Grade 10</option>
+            <option value="11">Grade 11</option>
+            <option value="12">Grade 12</option>
+          </select>
+        </div>
+        <div class="field" style="flex: 0 0 160px; margin: 0;">
           <label>Academic year</label>
           <select id="filter-year">
             <option value="">All years</option>
@@ -118,6 +136,24 @@
               <option value="1">Term 1</option>
               <option value="2">Term 2</option>
               <option value="3">Term 3</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Grade</label>
+            <select id="grade">
+              <option value="">No grade</option>
+              <option value="1">Grade 1</option>
+              <option value="2">Grade 2</option>
+              <option value="3">Grade 3</option>
+              <option value="4">Grade 4</option>
+              <option value="5">Grade 5</option>
+              <option value="6">Grade 6</option>
+              <option value="7">Grade 7</option>
+              <option value="8">Grade 8</option>
+              <option value="9">Grade 9</option>
+              <option value="10">Grade 10</option>
+              <option value="11">Grade 11</option>
+              <option value="12">Grade 12</option>
             </select>
           </div>
           <div class="field" style="flex:1;">
@@ -212,6 +248,15 @@
         <div class="field" style="margin: 0; flex: 0 0 200px;">
           <label>Academic year</label>
           <input type="text" id="progress-year" placeholder="e.g. 2025-2026" />
+        </div>
+        <div class="field" style="margin: 0; flex: 0 0 220px;">
+          <label>Bilingual report (parent-friendly)</label>
+          <select id="progress-lang">
+            <option value="">English only</option>
+            <option value="ar">English + Arabic (UAE, KSA, etc.)</option>
+            <option value="hi">English + Hindi (India)</option>
+            <option value="th">English + Thai (Thailand)</option>
+          </select>
         </div>
       </div>
       <div id="progress-body"></div>
