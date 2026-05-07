@@ -296,6 +296,171 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   cursor: zoom-in;
 }
 
+/* ===== Class analytics panel (teacher Results page) ===== */
+.analytics-panel { padding: 20px 24px; }
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.stat {
+  background: #fafbff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-num { font-size: 22px; font-weight: 700; color: var(--text); }
+.stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+.histogram {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 120px;
+  padding: 8px 0;
+}
+.hist-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+}
+.hist-bar {
+  width: 100%;
+  background: var(--primary);
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+}
+.hist-col:hover .hist-bar { background: var(--primary-hover); }
+.hist-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+.question-difficulty { padding: 4px 0; }
+.qd-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 160px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.qd-row:first-of-type { border-top: none; }
+.qd-num { font-weight: 600; color: var(--muted); }
+.qd-prompt { font-size: 14px; }
+.qd-rate {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.qd-rate.green { background: #e6f7e9; color: var(--success); }
+.qd-rate.amber { background: #fff5e6; color: #8a4b00; }
+.qd-rate.red { background: #fee; color: var(--danger); }
+.qd-rate.muted { background: #f1f1f1; color: var(--muted); }
+
+/* ===== Report card (printable per-student feedback) ===== */
+.report-card {
+  background: white;
+  color: #1a1c2b;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-bottom: 18px;
+}
+.report-header { border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+.report-school { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.report-meta { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.report-meta strong { color: var(--text); }
+
+.report-score-block {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 16px 0;
+}
+.report-score-big {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+.report-score-big .score-num { color: var(--primary); }
+.report-score-big .score-sep { color: var(--muted); }
+.report-score-big .score-max { color: var(--muted); }
+.report-score-bar {
+  flex: 1;
+  height: 14px;
+  background: #f1f1f1;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.report-score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #6c7ff2);
+  border-radius: 999px;
+}
+.report-score-pct {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 60px;
+  text-align: right;
+}
+
+.report-breakdown {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+.report-breakdown th, .report-breakdown td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.report-breakdown th {
+  background: #fafbff;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.report-breakdown .report-total td {
+  background: #f1f5ff;
+  border-bottom: none;
+}
+
+.report-comment-block { margin: 16px 0; }
+.report-comment-block h2 { font-size: 16px; margin-bottom: 8px; }
+.report-comment-text {
+  background: #fafbff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  min-height: 60px;
+}
+.report-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ===== Print mode (Cmd+P or Print button → save as PDF) ===== */
+@media print {
+  body { background: white !important; color: #1a1c2b !important; }
+  .topbar, .no-print, button { display: none !important; }
+  .print-only { display: block !important; }
+  .panel, .report-card { box-shadow: none !important; border: 1px solid #ddd !important; page-break-inside: avoid; }
+  textarea#teacher-narrative { display: none !important; }
+  .container { max-width: none !important; padding: 0 !important; }
+}
+
 /* Calendar view of assessments */
 .calendar-wrapper {
   background: var(--panel);

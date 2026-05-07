@@ -470,18 +470,97 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
   }
 
   res.json({
+    assessmentId: a.id,
     assessmentTitle: a.title,
+    term: a.term || null,
+    academicYear: a.academicYear || null,
+    teacherName: a.teacherName,
+    studentName: result.studentName,
+    studentEmail: result.studentEmail,
     submittedAt: result.submittedAt,
+    startedAt: result.startedAt || null,
     autoScore: result.autoScore,
     autoMax: result.autoMax,
     manualScore,
     manualMax,
     totalScore: result.autoScore + manualScore,
     totalMax: result.autoMax + manualMax,
+    teacherComment: result.teacherComment || '',
     review,
     awaitingReview: review.some((r) =>
       (r.type === 'essay' || r.type === 'writing' || (r.type === 'short' && r.correctAnswer == null)) && !r.manualGrade
     ),
+  });
+});
+
+// Teacher version of the same report — accessed by the assessment owner.
+app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
+  const results = readAll('results.json');
+  const result = results.find((r) => r.id === req.params.resultId);
+  if (!result) return res.status(404).json({ error: 'Not found' });
+
+  const assessments = readAll('assessments.json');
+  const a = assessments.find((x) => x.id === result.assessmentId);
+  if (!a) return res.status(404).json({ error: 'Assessment missing' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  // Same review structure as the student endpoint, just authorized for the
+  // teacher rather than the submitter.
+  const review = a.questions.map((q) => {
+    const ans = (result.answers || []).find((x) => x.questionId === q.id) || {};
+    const manual = (result.manualGrades || {})[q.id] || null;
+    return {
+      questionId: q.id,
+      type: q.type,
+      prompt: q.prompt,
+      options: q.options || [],
+      points: q.points,
+      given: ans.given ?? null,
+      correct: ans.correct ?? null,
+      correctAnswer:
+        (q.type === 'mc' || q.type === 'tf' || (q.type === 'short' && q.correctAnswer))
+          ? q.correctAnswer
+          : null,
+      explanation: q.explanation || null,
+      manualGrade: manual,
+    };
+  });
+
+  let manualScore = 0;
+  let manualMax = 0;
+  for (const q of a.questions) {
+    if (q.type === 'essay' || q.type === 'writing' || (q.type === 'short' && !q.correctAnswer)) {
+      const m = (result.manualGrades || {})[q.id];
+      if (m) {
+        manualScore += Number(m.score) || 0;
+        manualMax += Number(m.maxScore) || q.points;
+      } else {
+        manualMax += q.points;
+      }
+    }
+  }
+
+  res.json({
+    assessmentId: a.id,
+    assessmentTitle: a.title,
+    term: a.term || null,
+    academicYear: a.academicYear || null,
+    teacherName: a.teacherName,
+    studentName: result.studentName,
+    studentEmail: result.studentEmail,
+    submittedAt: result.submittedAt,
+    startedAt: result.startedAt || null,
+    autoScore: result.autoScore,
+    autoMax: result.autoMax,
+    manualScore,
+    manualMax,
+    totalScore: result.autoScore + manualScore,
+    totalMax: result.autoMax + manualMax,
+    teacherComment: result.teacherComment || '',
+    teacherCommentBy: result.teacherCommentBy || '',
+    teacherCommentAt: result.teacherCommentAt || '',
+    review,
+    violations: result.violations || [],
   });
 });
 
@@ -539,6 +618,162 @@ app.post('/api/results/:resultId/grade-question', requireTeacher, (req, res) => 
   };
   writeAll('results.json', results);
   res.json({ ok: true, manualGrades: results[rIdx].manualGrades });
+});
+
+// Teacher's overall narrative comment for a student's submission. Shows up
+// on the report card alongside per-question feedback. Saved per result.
+app.post('/api/results/:resultId/comment', requireTeacher, (req, res) => {
+  const { comment } = req.body || {};
+  const results = readAll('results.json');
+  const idx = results.findIndex((r) => r.id === req.params.resultId);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+
+  const assessments = readAll('assessments.json');
+  const a = assessments.find((x) => x.id === results[idx].assessmentId);
+  if (!a) return res.status(404).json({ error: 'Assessment missing' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  results[idx].teacherComment = String(comment || '').slice(0, 3000);
+  results[idx].teacherCommentBy = req.session.user.name;
+  results[idx].teacherCommentAt = new Date().toISOString();
+  writeAll('results.json', results);
+  res.json({ ok: true });
+});
+
+// Class-level analytics for one assessment. Returns stats, score
+// distribution histogram, per-question difficulty, time on task.
+app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
+  const assessments = readAll('assessments.json');
+  const a = assessments.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const results = readAll('results.json').filter((r) => r.assessmentId === a.id);
+
+  function totalFor(r) {
+    const manual = Object.values(r.manualGrades || {})
+      .reduce((s, g) => s + (Number(g.score) || 0), 0);
+    return (r.autoScore || 0) + manual;
+  }
+  function maxFor(r) {
+    const manualMax = Object.values(r.manualGrades || {})
+      .reduce((s, g) => s + (Number(g.maxScore) || 0), 0);
+    return (r.autoMax || 0) + manualMax;
+  }
+
+  if (!results.length) {
+    return res.json({
+      assessmentTitle: a.title,
+      submissionCount: 0,
+      mean: null, median: null, min: null, max: null, avgTimeMinutes: null,
+      histogram: [],
+      questions: a.questions.map((q) => ({
+        id: q.id, type: q.type, prompt: q.prompt, points: q.points,
+        attempted: 0, correctRate: null, mostCommonWrong: null,
+      })),
+    });
+  }
+
+  // Per-submission totals (and totals possible) for percentage calculations.
+  const totals = results.map(totalFor);
+  const possibles = results.map(maxFor);
+  const percents = totals.map((t, i) => possibles[i] ? (t / possibles[i]) * 100 : 0);
+
+  const sortedTotals = [...totals].sort((a, b) => a - b);
+  const mean = totals.reduce((s, x) => s + x, 0) / totals.length;
+  const median = sortedTotals.length % 2 === 1
+    ? sortedTotals[Math.floor(sortedTotals.length / 2)]
+    : (sortedTotals[sortedTotals.length / 2 - 1] + sortedTotals[sortedTotals.length / 2]) / 2;
+  const min = sortedTotals[0];
+  const max = sortedTotals[sortedTotals.length - 1];
+
+  // Score distribution histogram in 10-percent buckets.
+  const buckets = Array.from({ length: 10 }, (_, i) => ({
+    label: `${i * 10}–${i * 10 + 9}%`,
+    rangeStart: i * 10,
+    count: 0,
+  }));
+  // Edge case: 100% goes in the top bucket.
+  percents.forEach((p) => {
+    let idx = Math.min(9, Math.floor(p / 10));
+    if (idx < 0) idx = 0;
+    buckets[idx].count++;
+  });
+
+  // Per-question difficulty.
+  const questionStats = a.questions.map((q) => {
+    const answers = results.map((r) => (r.answers || []).find((x) => x.questionId === q.id));
+    const attempted = answers.filter(
+      (x) => x && x.given !== null && x.given !== undefined && x.given !== ''
+    ).length;
+    let correctRate = null;
+    let mostCommonWrong = null;
+
+    if (q.type === 'mc' || q.type === 'tf' || (q.type === 'short' && q.correctAnswer)) {
+      const countable = answers.filter((x) => x).length;
+      const correctCount = answers.filter((x) => x && x.correct === true).length;
+      correctRate = countable > 0 ? correctCount / countable : null;
+
+      if (q.type === 'mc') {
+        const wrongCounts = {};
+        answers.forEach((x) => {
+          if (x && x.correct === false && x.given !== null && x.given !== undefined) {
+            wrongCounts[x.given] = (wrongCounts[x.given] || 0) + 1;
+          }
+        });
+        const top = Object.entries(wrongCounts).sort((a, b) => b[1] - a[1])[0];
+        if (top) {
+          const idx = Number(top[0]);
+          mostCommonWrong = {
+            optionIndex: idx,
+            optionText: q.options[idx] || `Option ${idx + 1}`,
+            count: top[1],
+          };
+        }
+      }
+    } else {
+      // Manual-graded: % who scored at least half the available marks.
+      const graded = results.filter((r) => (r.manualGrades || {})[q.id]);
+      if (graded.length) {
+        const passed = graded.filter((r) => {
+          const g = r.manualGrades[q.id];
+          return Number(g.score) >= Number(g.maxScore || q.points) / 2;
+        }).length;
+        correctRate = passed / graded.length;
+      }
+    }
+
+    return {
+      id: q.id,
+      type: q.type,
+      prompt: q.prompt,
+      points: q.points,
+      attempted,
+      correctRate,
+      mostCommonWrong,
+    };
+  });
+
+  // Average time on task in minutes (uses startedAt → submittedAt).
+  const times = results
+    .filter((r) => r.startedAt)
+    .map((r) => (new Date(r.submittedAt).getTime() - new Date(r.startedAt).getTime()) / 60000)
+    .filter((m) => m > 0 && m < 24 * 60); // sanity: 0 < t < 24h
+  const avgTimeMinutes = times.length
+    ? Math.round((times.reduce((s, x) => s + x, 0) / times.length) * 10) / 10
+    : null;
+
+  res.json({
+    assessmentTitle: a.title,
+    submissionCount: results.length,
+    mean: Math.round(mean * 10) / 10,
+    median: Math.round(median * 10) / 10,
+    min,
+    max,
+    avgTimeMinutes,
+    histogram: buckets,
+    questions: questionStats,
+  });
 });
 
 // List all submissions across this teacher's assessments that have

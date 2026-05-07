@@ -24,6 +24,11 @@ const els = {
   viewListBtn: document.getElementById('view-list-btn'),
   viewCalendarBtn: document.getElementById('view-calendar-btn'),
   calendarView: document.getElementById('calendar-view'),
+  reportCardView: document.getElementById('report-card-view'),
+  reportCardSummary: document.getElementById('report-card-summary'),
+  reportCardBody: document.getElementById('report-card-body'),
+  reportCardBack: document.getElementById('report-card-back'),
+  reportCardPrint: document.getElementById('report-card-print'),
   questions: document.getElementById('questions'),
   builderTitle: document.getElementById('builder-title'),
   resultsBack: document.getElementById('results-back'),
@@ -574,12 +579,16 @@ async function openResults(id) {
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'block';
+  els.reportCardView.style.display = 'none';
   currentResultsAssessmentId = id;
   const { assessment, results } = await api(`/api/results/${id}`);
   els.resultsTitle.textContent = `Results — ${assessment.title}`;
 
+  // Class analytics panel above the per-student table.
+  const analyticsHtml = await renderAnalytics(id);
+
   if (!results.length) {
-    els.resultsBody.innerHTML = `<div class="muted">No submissions yet.</div>`;
+    els.resultsBody.innerHTML = analyticsHtml + `<div class="muted">No submissions yet.</div>`;
     return;
   }
 
@@ -639,15 +648,16 @@ async function openResults(id) {
           <td>${vcount ? `<span class="badge red">${vcount}</span>` : '<span class="muted">—</span>'}</td>
           <td>${envBadge}</td>
           <td class="muted">${new Date(r.submittedAt).toLocaleString()}</td>
+          <td><button class="btn primary" data-report="${r.id}">📋 Report</button></td>
         </tr>
         ${details}
       `;
     })
     .join('');
 
-  els.resultsBody.innerHTML = `
+  els.resultsBody.innerHTML = analyticsHtml + `
     <table>
-      <thead><tr><th></th><th>Student</th><th>Auto score</th><th>Violations</th><th>Env</th><th>Submitted</th></tr></thead>
+      <thead><tr><th></th><th>Student</th><th>Auto score</th><th>Violations</th><th>Env</th><th>Submitted</th><th></th></tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
   `;
@@ -661,6 +671,252 @@ async function openResults(id) {
   els.resultsBody.querySelectorAll('button[data-proctor]').forEach((btn) => {
     btn.onclick = () => loadProctor(btn.dataset.proctor, btn.dataset.student, btn.dataset.target, btn);
   });
+  els.resultsBody.querySelectorAll('button[data-report]').forEach((btn) => {
+    btn.onclick = () => openReportCard(btn.dataset.report);
+  });
+}
+
+// ---------- Class analytics ----------
+async function renderAnalytics(assessmentId) {
+  let a;
+  try {
+    a = await api(`/api/assessments/${assessmentId}/analytics`);
+  } catch {
+    return '';
+  }
+  if (!a.submissionCount) {
+    return `<div class="panel" style="margin-bottom: 14px;"><strong>Class analytics:</strong> no submissions yet.</div>`;
+  }
+
+  const histMax = Math.max(...a.histogram.map((b) => b.count), 1);
+  const histHtml = a.histogram.map((b) => `
+    <div class="hist-col" title="${escapeHtml(b.label)}: ${b.count} student${b.count === 1 ? '' : 's'}">
+      <div class="hist-bar" style="height: ${(b.count / histMax) * 100}%"></div>
+      <div class="hist-label">${b.rangeStart}</div>
+    </div>
+  `).join('');
+
+  const qHtml = a.questions.map((q, i) => {
+    const rate = q.correctRate == null ? null : Math.round(q.correctRate * 100);
+    const rateClass = rate == null ? 'muted' : rate >= 70 ? 'green' : rate >= 40 ? 'amber' : 'red';
+    const rateText = rate == null ? 'manual / not gradable' : `${rate}% correct`;
+    const wrong = q.mostCommonWrong
+      ? `<div class="muted" style="font-size: 12px; margin-top: 2px;">Most common wrong answer: "${escapeHtml(q.mostCommonWrong.optionText)}" (${q.mostCommonWrong.count} student${q.mostCommonWrong.count === 1 ? '' : 's'})</div>`
+      : '';
+    return `
+      <div class="qd-row">
+        <div class="qd-num">Q${i + 1}</div>
+        <div class="qd-prompt">${escapeHtml(q.prompt.slice(0, 90))}${q.prompt.length > 90 ? '…' : ''}</div>
+        <div class="qd-rate ${rateClass}">${rateText}</div>
+      </div>
+      ${wrong}
+    `;
+  }).join('');
+
+  return `
+    <div class="panel analytics-panel" style="margin-bottom: 14px;">
+      <h2 style="margin-top: 0;">Class performance</h2>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-num">${a.submissionCount}</div><div class="stat-label">Submissions</div></div>
+        <div class="stat"><div class="stat-num">${a.mean}</div><div class="stat-label">Mean</div></div>
+        <div class="stat"><div class="stat-num">${a.median}</div><div class="stat-label">Median</div></div>
+        <div class="stat"><div class="stat-num">${a.min}–${a.max}</div><div class="stat-label">Range</div></div>
+        ${a.avgTimeMinutes != null
+          ? `<div class="stat"><div class="stat-num">${a.avgTimeMinutes}m</div><div class="stat-label">Avg time</div></div>`
+          : ''}
+      </div>
+      <h3 style="margin-top: 16px;">Score distribution</h3>
+      <div class="histogram">${histHtml}</div>
+      <div class="muted" style="margin-top: 4px; font-size: 12px;">Buckets are 10-percent ranges. Hover for counts.</div>
+      <h3 style="margin-top: 16px;">Per-question difficulty</h3>
+      <div class="question-difficulty">${qHtml}</div>
+    </div>
+  `;
+}
+
+// ---------- Report card view (per student) ----------
+async function openReportCard(resultId) {
+  hideAllViews();
+  els.reportCardView.style.display = 'block';
+  els.reportCardSummary.innerHTML = '<div class="muted">Loading…</div>';
+  els.reportCardBody.innerHTML = '';
+  try {
+    const data = await api(`/api/results/teacher/${resultId}`);
+    data.__resultId = resultId;
+    renderReportCard({
+      mountSummary: els.reportCardSummary,
+      mountBody: els.reportCardBody,
+      data,
+      isTeacher: true,
+    });
+  } catch (e) {
+    els.reportCardSummary.innerHTML = `<div class="error">Could not load report: ${escapeHtml(e.message)}</div>`;
+  }
+}
+
+// Render the polished report card. Same layout as the one on the student
+// page, with editable teacher narrative + full feedback always visible.
+function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
+  const pct = data.totalMax > 0 ? Math.round((data.totalScore / data.totalMax) * 100) : 0;
+  const durationMins = data.startedAt && data.submittedAt
+    ? Math.max(0, Math.round((new Date(data.submittedAt) - new Date(data.startedAt)) / 60000))
+    : null;
+
+  const meta = [
+    data.term ? `Term ${data.term}` : null,
+    data.academicYear || null,
+    data.teacherName ? `Teacher: ${data.teacherName}` : null,
+  ].filter(Boolean).join(' · ');
+
+  const studentLine = isTeacher
+    ? `<div><strong>Student:</strong> ${escapeHtml(data.studentName)} (${escapeHtml(data.studentEmail)})</div>`
+    : '';
+
+  mountSummary.innerHTML = `
+    <div class="report-card">
+      <div class="report-header">
+        <div class="report-school">ClassCurio · Assessment Report</div>
+        <h1 style="margin: 4px 0 8px;">${escapeHtml(data.assessmentTitle)}</h1>
+        <div class="report-meta">
+          ${studentLine}
+          <div><strong>Submitted:</strong> ${new Date(data.submittedAt).toLocaleString()}${durationMins != null ? ` · took ${durationMins} min` : ''}</div>
+          ${meta ? `<div>${escapeHtml(meta)}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="report-score-block">
+        <div class="report-score-big">
+          <span class="score-num">${data.totalScore}</span><span class="score-sep"> / </span><span class="score-max">${data.totalMax}</span>
+        </div>
+        <div class="report-score-bar"><div class="report-score-bar-fill" style="width: ${pct}%"></div></div>
+        <div class="report-score-pct">${pct}%</div>
+      </div>
+
+      <table class="report-breakdown">
+        <tr><th>Section</th><th>Score</th></tr>
+        <tr><td>Auto-graded (multiple choice / true-false / short answer)</td>
+            <td>${data.autoScore} / ${data.autoMax}</td></tr>
+        <tr><td>Teacher-graded (essay / writing)</td>
+            <td>${data.manualScore} / ${data.manualMax}</td></tr>
+        <tr class="report-total"><td><strong>Total</strong></td>
+            <td><strong>${data.totalScore} / ${data.totalMax}</strong></td></tr>
+      </table>
+
+      <div class="report-comment-block">
+        <h2>Teacher's Comments</h2>
+        ${isTeacher ? `
+          <textarea id="teacher-narrative" rows="4" placeholder="Write a personalised comment for this student. This shows on their report card and on any printed/PDF version.">${escapeHtml(data.teacherComment || '')}</textarea>
+          <div class="row no-print" style="margin-top: 8px;">
+            <div class="spacer"></div>
+            <button id="save-narrative" class="btn primary">Save comment</button>
+            <span id="narrative-status" class="muted"></span>
+          </div>
+          <div class="report-comment-text print-only" style="display:none;">${data.teacherComment ? escapeHtml(data.teacherComment) : '<em>No comment.</em>'}</div>
+        ` : `
+          <div class="report-comment-text">${data.teacherComment ? escapeHtml(data.teacherComment) : '<em>No comment yet.</em>'}</div>
+        `}
+      </div>
+    </div>
+  `;
+
+  mountBody.innerHTML = `
+    <div class="report-card">
+      <h2>Question by Question</h2>
+      ${data.review.map((q, i) => renderReviewQuestion(q, i)).join('')}
+    </div>
+  `;
+
+  if (isTeacher) {
+    const ta = document.getElementById('teacher-narrative');
+    const btn = document.getElementById('save-narrative');
+    const status = document.getElementById('narrative-status');
+    if (btn) {
+      btn.onclick = async () => {
+        status.textContent = 'Saving…';
+        try {
+          await api(`/api/results/${data.__resultId}/comment`, {
+            method: 'POST',
+            body: { comment: ta.value },
+          });
+          status.textContent = 'Saved.';
+          // Mirror to the print-only div so a print right after saving
+          // includes the new comment.
+          const printOnly = mountSummary.querySelector('.print-only');
+          if (printOnly) printOnly.innerHTML = ta.value
+            ? escapeHtml(ta.value)
+            : '<em>No comment.</em>';
+          setTimeout(() => { status.textContent = ''; }, 2000);
+        } catch (e) {
+          status.textContent = 'Error: ' + e.message;
+        }
+      };
+    }
+  }
+}
+
+// Render a single question's report row. Mirrors the student-side helper.
+function renderReviewQuestion(q, i) {
+  const statusBadge =
+    q.correct === true ? '<span class="badge green">Correct</span>' :
+    q.correct === false ? '<span class="badge red">Incorrect</span>' :
+    q.manualGrade ? `<span class="badge green">Graded: ${q.manualGrade.score}/${q.manualGrade.maxScore}</span>` :
+    '<span class="badge">Awaiting review</span>';
+
+  let givenDisplay = '<em>(no answer)</em>';
+  if (q.given !== null && q.given !== undefined) {
+    if (q.type === 'mc') givenDisplay = escapeHtml(String(q.options[q.given] ?? q.given));
+    else if (q.type === 'tf') givenDisplay = q.given ? 'True' : 'False';
+    else givenDisplay = escapeHtml(String(q.given));
+  }
+
+  let correctDisplay = '';
+  if (q.correct === false && q.correctAnswer !== null) {
+    let text = '';
+    if (q.type === 'mc') text = String(q.options[q.correctAnswer] ?? q.correctAnswer);
+    else if (q.type === 'tf') text = q.correctAnswer ? 'True' : 'False';
+    else text = String(q.correctAnswer);
+    correctDisplay = `<div class="success" style="margin-top: 6px;"><strong>Correct answer:</strong> ${escapeHtml(text)}</div>`;
+  }
+
+  const feedback = q.manualGrade && q.manualGrade.feedback
+    ? `<div style="margin-top: 6px; padding: 8px; background: #f1f5ff; border-radius: 6px; white-space: pre-wrap;">
+         <strong>Feedback:</strong>
+${escapeHtml(q.manualGrade.feedback)}
+       </div>`
+    : '';
+
+  return `
+    <div class="panel">
+      <div class="muted" style="margin-bottom: 4px;">Question ${i + 1} · ${q.points} point${q.points === 1 ? '' : 's'} ${statusBadge}</div>
+      <div style="font-size: 16px; margin-bottom: 10px;">${escapeHtml(q.prompt)}</div>
+      <div><strong>Answer:</strong> ${givenDisplay}</div>
+      ${correctDisplay}
+      ${feedback}
+    </div>
+  `;
+}
+
+function hideAllViews() {
+  els.listView.style.display = 'none';
+  els.builderView.style.display = 'none';
+  els.resultsView.style.display = 'none';
+  els.essayQueueView.style.display = 'none';
+  if (els.reportCardView) els.reportCardView.style.display = 'none';
+}
+
+if (els.reportCardBack) {
+  els.reportCardBack.onclick = () => {
+    els.reportCardView.style.display = 'none';
+    if (currentResultsAssessmentId) {
+      openResults(currentResultsAssessmentId);
+    } else {
+      els.listView.style.display = 'block';
+      loadAssessments();
+    }
+  };
+}
+if (els.reportCardPrint) {
+  els.reportCardPrint.onclick = () => window.print();
 }
 
 async function loadProctor(assessmentId, studentId, targetId, btn) {
