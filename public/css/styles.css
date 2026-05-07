@@ -1,4 +1,4 @@
-/* Global styles for ClassCurio */
+/* Global styles for Lockdown Assessment */
 * { box-sizing: border-box; }
 
 :root {
@@ -213,74 +213,10 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
 /* But allow typing in answer inputs */
 .no-select input, .no-select textarea { user-select: text; -webkit-user-select: text; }
 
-/* Aggressive obfuscation when window loses focus during an exam.
-   Goes much heavier than before — content is unreadable AND a black
-   "PAUSED" overlay covers the screen, so a phone photo of the screen
-   captures only the warning. */
+/* Screenshot obfuscation — hide content when window loses focus */
 .lockdown-blur .assessment-content {
-  filter: blur(40px) brightness(0.3);
+  filter: blur(18px);
   pointer-events: none;
-}
-
-/* PAUSED overlay shown when window loses focus. Only visible when
-   .lockdown-blur is on body. */
-.lockdown-pause-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
-  color: #fff;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  font-size: 18px;
-  z-index: 99999;
-  text-align: center;
-  padding: 40px;
-}
-.lockdown-blur .lockdown-pause-overlay { display: flex; }
-.lockdown-pause-overlay h2 {
-  font-size: 32px;
-  margin: 0 0 16px;
-  color: #fff;
-}
-.lockdown-pause-overlay p {
-  max-width: 540px;
-  line-height: 1.5;
-  color: #d6dcff;
-}
-
-/* Identity watermark — tiled diagonally during exam.
-   Can't be hidden via DevTools (devTools disabled in Electron, and the
-   watermark is in the DOM tree directly). Shows up in any screenshot the
-   student takes. */
-#anti-cheat-watermark {
-  position: fixed;
-  inset: -200px;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-  display: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-#anti-cheat-watermark.active {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 280px);
-  grid-auto-rows: 80px;
-  transform: rotate(-25deg);
-  transform-origin: 50% 50%;
-}
-#anti-cheat-watermark > span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: -apple-system, BlinkMacSystemFont, monospace;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.09);
-  white-space: nowrap;
-  letter-spacing: 0.5px;
-  font-weight: 600;
 }
 
 /* Webcam proctor preview */
@@ -295,7 +231,7 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   background: #000;
   border: 2px solid #ff6b6b;
   box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-  z-index: 9998;
+  z-index: 9999;
 }
 #webcam-wrap video {
   width: 100%;
@@ -358,6 +294,78 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   border-radius: 6px;
   border: 1px solid var(--border);
   cursor: zoom-in;
+}
+
+/* Calendar view of assessments */
+.calendar-wrapper {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.calendar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: #fafbff;
+}
+.calendar-header strong {
+  font-size: 16px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--border);
+  gap: 1px;
+}
+.calendar-day-name {
+  background: #fafbff;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding: 8px;
+  letter-spacing: 0.5px;
+}
+.calendar-day {
+  background: white;
+  min-height: 88px;
+  padding: 6px 8px;
+  font-size: 12px;
+  position: relative;
+}
+.calendar-day.outside {
+  background: #f6f7fb;
+}
+.calendar-day.today {
+  background: #fff5cc;
+}
+.calendar-day-num {
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.calendar-day.today .calendar-day-num {
+  color: #8a4b00;
+}
+.calendar-event {
+  background: var(--primary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-top: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.calendar-event:hover {
+  background: var(--primary-hover);
 }
 
 /* Quick Import modal */

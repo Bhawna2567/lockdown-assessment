@@ -124,8 +124,15 @@ app.get('/api/assessments', requireAuth, (req, res) => {
   res.json(visible);
 });
 
+function normalizeTerm(t) {
+  return t === '1' || t === '2' || t === '3' ? t : null;
+}
+
 app.post('/api/assessments', requireTeacher, (req, res) => {
-  const { title, description, durationMinutes, questions, published, passage, rubricStage } = req.body || {};
+  const {
+    title, description, durationMinutes, questions, published,
+    passage, rubricStage, term, academicYear, scheduledDate,
+  } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
   }
@@ -137,6 +144,9 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     description: String(description || ''),
     passage: String(passage || ''),
     rubricStage: rubricStage === '8' ? '8' : (rubricStage === '7' ? '7' : null),
+    term: normalizeTerm(term),
+    academicYear: academicYear ? String(academicYear).slice(0, 20) : null,
+    scheduledDate: scheduledDate ? String(scheduledDate).slice(0, 10) : null,
     durationMinutes: Number(durationMinutes) || 30,
     published: Boolean(published),
     questions: questions.map((q, i) => ({
@@ -156,12 +166,50 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   res.json({ assessment });
 });
 
+// Duplicate an assessment for a new batch of students. Copies all the
+// content (title, description, questions, passage, rubric) but resets:
+// - assessment ID (new UUID, so submissions go to the new copy)
+// - question IDs (so grades don't bleed across copies)
+// - published flag (starts as draft)
+// - term / academicYear / scheduledDate (teacher fills these in)
+app.post('/api/assessments/:id/duplicate', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const orig = all.find((a) => a.id === req.params.id);
+  if (!orig) return res.status(404).json({ error: 'Not found' });
+  if (orig.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const copy = {
+    ...orig,
+    id: uuidv4(),
+    title: `Copy of ${orig.title}`,
+    published: false,
+    term: null,
+    academicYear: null,
+    scheduledDate: null,
+    questions: (orig.questions || []).map((q, i) => ({
+      ...q,
+      id: uuidv4(),
+      order: i,
+    })),
+    createdAt: new Date().toISOString(),
+    updatedAt: undefined,
+  };
+  delete copy.updatedAt;
+
+  all.push(copy);
+  writeAll('assessments.json', all);
+  res.json({ assessment: copy });
+});
+
 app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   const idx = all.findIndex((a) => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
-  const { title, description, durationMinutes, questions, published, passage, rubricStage } = req.body || {};
+  const {
+    title, description, durationMinutes, questions, published,
+    passage, rubricStage, term, academicYear, scheduledDate,
+  } = req.body || {};
   const updated = {
     ...all[idx],
     title: title ?? all[idx].title,
@@ -172,6 +220,13 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       rubricStage === '7' ? '7' :
       rubricStage === null || rubricStage === '' ? null :
       (all[idx].rubricStage ?? null),
+    term: term === undefined ? (all[idx].term ?? null) : normalizeTerm(term),
+    academicYear: academicYear === undefined
+      ? (all[idx].academicYear ?? null)
+      : (academicYear ? String(academicYear).slice(0, 20) : null),
+    scheduledDate: scheduledDate === undefined
+      ? (all[idx].scheduledDate ?? null)
+      : (scheduledDate ? String(scheduledDate).slice(0, 10) : null),
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     questions: Array.isArray(questions)

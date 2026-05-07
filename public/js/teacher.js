@@ -14,8 +14,16 @@ const els = {
   description: document.getElementById('description'),
   passage: document.getElementById('passage'),
   rubricStage: document.getElementById('rubric-stage'),
+  term: document.getElementById('term'),
+  academicYear: document.getElementById('academic-year'),
+  scheduledDate: document.getElementById('scheduled-date'),
   duration: document.getElementById('duration'),
   published: document.getElementById('published'),
+  filterTerm: document.getElementById('filter-term'),
+  filterYear: document.getElementById('filter-year'),
+  viewListBtn: document.getElementById('view-list-btn'),
+  viewCalendarBtn: document.getElementById('view-calendar-btn'),
+  calendarView: document.getElementById('calendar-view'),
   questions: document.getElementById('questions'),
   builderTitle: document.getElementById('builder-title'),
   resultsBack: document.getElementById('results-back'),
@@ -50,6 +58,12 @@ let currentResultsAssessmentId = null;
 
 let editingId = null;
 let questions = [];
+
+// All assessments (unfiltered) cached after each load. The filter dropdowns
+// narrow this list down for display in either the list or calendar view.
+let allAssessments = [];
+let activeView = 'list'; // 'list' or 'calendar'
+let calendarMonth = new Date(); // first of currently-visible month
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
@@ -134,34 +148,158 @@ async function runImport(file) {
 
 // ---------- List view ----------
 async function loadAssessments() {
-  const list = await api('/api/assessments');
+  allAssessments = await api('/api/assessments');
+  refreshYearFilterOptions();
+  render();
+}
+
+// Build the academic-year dropdown from the years that actually appear in
+// the loaded assessments. Adds a stable "All years" option at the top.
+function refreshYearFilterOptions() {
+  if (!els.filterYear) return;
+  const years = Array.from(new Set(
+    allAssessments.map((a) => a.academicYear).filter(Boolean)
+  )).sort();
+  const current = els.filterYear.value;
+  els.filterYear.innerHTML =
+    `<option value="">All years</option>` +
+    years.map((y) => `<option value="${escapeAttr(y)}">${escapeHtml(y)}</option>`).join('');
+  // Restore the previously-selected year if it still exists.
+  if (years.includes(current)) els.filterYear.value = current;
+}
+
+function filteredAssessments() {
+  const term = els.filterTerm ? els.filterTerm.value : '';
+  const year = els.filterYear ? els.filterYear.value : '';
+  return allAssessments.filter((a) => {
+    if (term && a.term !== term) return false;
+    if (year && a.academicYear !== year) return false;
+    return true;
+  });
+}
+
+function render() {
+  if (activeView === 'calendar') {
+    els.assessments.style.display = 'none';
+    els.calendarView.style.display = 'block';
+    renderCalendar();
+  } else {
+    els.assessments.style.display = 'block';
+    els.calendarView.style.display = 'none';
+    renderList();
+  }
+}
+
+function renderList() {
+  const list = filteredAssessments();
   if (!list.length) {
-    els.assessments.innerHTML = `<div class="panel muted">No assessments yet. Click "+ New assessment" to create one.</div>`;
+    if (!allAssessments.length) {
+      els.assessments.innerHTML = `<div class="panel muted">No assessments yet. Click "+ New assessment" to create one.</div>`;
+    } else {
+      els.assessments.innerHTML = `<div class="panel muted">No assessments match the current filter. Choose "All terms" / "All years" to see everything.</div>`;
+    }
     return;
   }
   els.assessments.innerHTML = list
-    .map(
-      (a) => `
+    .map((a) => {
+      const meta = [
+        `${a.questions.length} questions`,
+        `${a.durationMinutes} min`,
+        a.term ? `Term ${a.term}` : null,
+        a.academicYear ? a.academicYear : null,
+        a.scheduledDate ? `📅 ${a.scheduledDate}` : null,
+      ].filter(Boolean).join(' · ');
+      return `
       <div class="card">
         <div class="row">
           <div>
             <div class="card-title">${escapeHtml(a.title)}
               <span class="badge ${a.published ? 'green' : ''}">${a.published ? 'Published' : 'Draft'}</span>
             </div>
-            <div class="muted">${a.questions.length} questions · ${a.durationMinutes} min</div>
+            <div class="muted">${meta}</div>
           </div>
           <div class="spacer"></div>
-          ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}">🔗 Share with students</button>` : ''}
+          ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}">🔗 Share</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
           <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
+          <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
         </div>
         <div id="share-${a.id}" class="share-panel" style="display:none;"></div>
-      </div>`
-    )
+      </div>`;
+    })
     .join('');
   els.assessments.querySelectorAll('button[data-act]').forEach((btn) => {
     btn.onclick = () => handleAction(btn.dataset.act, btn.dataset.id);
+  });
+}
+
+// ---------- Calendar view ----------
+function renderCalendar() {
+  const list = filteredAssessments().filter((a) => a.scheduledDate);
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startWeekday = firstDay.getDay();
+
+  const monthName = firstDay.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  let cells = '';
+  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((n) => {
+    cells += `<div class="calendar-day-name">${n}</div>`;
+  });
+  // Leading blanks
+  for (let i = 0; i < startWeekday; i++) {
+    cells += `<div class="calendar-day outside"></div>`;
+  }
+  // Real days
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const events = list.filter((a) => a.scheduledDate === dateStr);
+    const isToday = dateStr === todayKey;
+    cells += `
+      <div class="calendar-day ${isToday ? 'today' : ''}">
+        <div class="calendar-day-num">${day}</div>
+        ${events.map((e) => `<div class="calendar-event" data-act="edit" data-id="${e.id}" title="${escapeAttr(e.title)}">${escapeHtml(e.title)}</div>`).join('')}
+      </div>
+    `;
+  }
+  // Trailing blanks
+  const totalCells = startWeekday + lastDay.getDate();
+  const trailing = (7 - (totalCells % 7)) % 7;
+  for (let i = 0; i < trailing; i++) {
+    cells += `<div class="calendar-day outside"></div>`;
+  }
+
+  els.calendarView.innerHTML = `
+    <div class="calendar-wrapper">
+      <div class="calendar-header">
+        <button id="cal-prev" class="btn">‹ Prev</button>
+        <strong>${escapeHtml(monthName)}</strong>
+        <button id="cal-next" class="btn">Next ›</button>
+        <div class="spacer"></div>
+        <button id="cal-today" class="btn">Today</button>
+      </div>
+      <div class="calendar-grid">${cells}</div>
+    </div>
+  `;
+  document.getElementById('cal-prev').onclick = () => {
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+    renderCalendar();
+  };
+  document.getElementById('cal-next').onclick = () => {
+    calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+    renderCalendar();
+  };
+  document.getElementById('cal-today').onclick = () => {
+    calendarMonth = new Date();
+    renderCalendar();
+  };
+  els.calendarView.querySelectorAll('.calendar-event').forEach((el) => {
+    el.onclick = () => handleAction(el.dataset.act, el.dataset.id);
   });
 }
 
@@ -185,6 +323,18 @@ async function handleAction(act, id) {
   }
   if (act === 'share') {
     toggleShare(id);
+    return;
+  }
+  if (act === 'duplicate') {
+    if (!confirm('Make a duplicate of this assessment? The copy starts as a draft so you can update the term/year/date for the new batch before publishing.')) return;
+    try {
+      const { assessment } = await api(`/api/assessments/${id}/duplicate`, { method: 'POST' });
+      await loadAssessments();
+      // Open the new copy in the builder so the teacher can update term/year/date.
+      openBuilder(assessment);
+    } catch (e) {
+      alert('Could not duplicate: ' + e.message);
+    }
     return;
   }
 }
@@ -245,6 +395,9 @@ function openBuilder(a) {
   els.description.value = a ? a.description : '';
   if (els.passage) els.passage.value = a && a.passage ? a.passage : '';
   if (els.rubricStage) els.rubricStage.value = a && a.rubricStage ? a.rubricStage : '';
+  if (els.term) els.term.value = a && a.term ? a.term : '';
+  if (els.academicYear) els.academicYear.value = a && a.academicYear ? a.academicYear : defaultAcademicYear();
+  if (els.scheduledDate) els.scheduledDate.value = a && a.scheduledDate ? a.scheduledDate : '';
   els.duration.value = a ? a.durationMinutes : 30;
   els.published.value = a ? String(a.published) : 'false';
   questions = a ? JSON.parse(JSON.stringify(a.questions)) : [];
@@ -386,6 +539,9 @@ els.saveBtn.onclick = async () => {
       description: els.description.value.trim(),
       passage: els.passage ? els.passage.value : '',
       rubricStage: els.rubricStage ? els.rubricStage.value || null : null,
+      term: els.term ? els.term.value || null : null,
+      academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
+      scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
       published: els.published.value === 'true',
       questions,
@@ -749,6 +905,38 @@ async function refreshApiKeyState() {
   } catch {
     els.apiKeyState.textContent = '';
   }
+}
+
+// Compute a sensible default academic year string for new assessments.
+// School year is treated as Aug → Jul, so if it's January through July
+// you get e.g. "2025-2026" using last year + this year; Aug onward uses
+// this year + next year.
+function defaultAcademicYear() {
+  const now = new Date();
+  const m = now.getMonth(); // 0 = Jan
+  const y = now.getFullYear();
+  if (m >= 7) return `${y}-${y + 1}`; // Aug onward
+  return `${y - 1}-${y}`; // Jan-Jul
+}
+
+// ---------- Filter + view toggle wiring ----------
+if (els.filterTerm) els.filterTerm.onchange = () => render();
+if (els.filterYear) els.filterYear.onchange = () => render();
+if (els.viewListBtn) {
+  els.viewListBtn.onclick = () => {
+    activeView = 'list';
+    els.viewListBtn.classList.add('primary');
+    els.viewCalendarBtn.classList.remove('primary');
+    render();
+  };
+}
+if (els.viewCalendarBtn) {
+  els.viewCalendarBtn.onclick = () => {
+    activeView = 'calendar';
+    els.viewCalendarBtn.classList.add('primary');
+    els.viewListBtn.classList.remove('primary');
+    render();
+  };
 }
 
 // ---------- Init ----------

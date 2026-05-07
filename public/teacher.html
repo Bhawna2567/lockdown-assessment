@@ -26,6 +26,32 @@
         <button id="new-btn" class="btn primary">+ New assessment</button>
       </div>
 
+      <div class="row" style="margin-bottom: 12px; gap: 8px;">
+        <div class="field" style="flex: 0 0 160px; margin: 0;">
+          <label>Term</label>
+          <select id="filter-term">
+            <option value="">All terms</option>
+            <option value="1">Term 1</option>
+            <option value="2">Term 2</option>
+            <option value="3">Term 3</option>
+          </select>
+        </div>
+        <div class="field" style="flex: 0 0 180px; margin: 0;">
+          <label>Academic year</label>
+          <select id="filter-year">
+            <option value="">All years</option>
+          </select>
+        </div>
+        <div class="spacer"></div>
+        <div class="field" style="flex: 0 0 220px; margin: 0;">
+          <label>View</label>
+          <div class="row" style="gap: 0;">
+            <button id="view-list-btn" class="btn primary" style="border-radius: 8px 0 0 8px;">List</button>
+            <button id="view-calendar-btn" class="btn" style="border-radius: 0 8px 8px 0; border-left: none;">Calendar</button>
+          </div>
+        </div>
+      </div>
+
       <div id="settings-panel" class="panel" style="display:none;">
         <h2>Settings</h2>
         <div class="field">
@@ -61,6 +87,7 @@
       </div>
 
       <div id="assessments"></div>
+      <div id="calendar-view" style="display:none;"></div>
     </div>
 
     <div id="builder-view" style="display:none;">
@@ -81,6 +108,25 @@
         <div class="field">
           <label>Reading passage / source text (optional)</label>
           <textarea id="passage" rows="8" placeholder="Paste a reading passage here. Students will see this above the questions when they take the assessment. Imported PDFs/DOCX files will pre-fill this automatically."></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label>Term</label>
+            <select id="term">
+              <option value="">No term</option>
+              <option value="1">Term 1</option>
+              <option value="2">Term 2</option>
+              <option value="3">Term 3</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Academic year</label>
+            <input type="text" id="academic-year" placeholder="e.g. 2025-2026" />
+          </div>
+          <div class="field" style="flex:1;">
+            <label>Scheduled date</label>
+            <input type="date" id="scheduled-date" />
+          </div>
         </div>
         <div class="row">
           <div class="field" style="flex:1;">
