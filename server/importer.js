@@ -39,6 +39,63 @@ async function extractText(filePath, mimeType, originalName = '') {
 const Q_NUM = /^\s*(?:Q\s*)?[\(\[]?(\d{1,3})[\)\].:\s]\s*(.+?)\s*$/i;
 const OPT_LINE = /^\s*[\(\[]?([A-Ha-h])[\)\].:\s]\s*(.+?)\s*$/;
 
+// Inline option detector. Finds option markers anywhere in a string.
+// Matches "A.", "A)", "(A)", "a.", " A " — but only when preceded by
+// whitespace, a punctuation mark, or the start of the string. The
+// sequential-letters check below filters out false positives (e.g. "A."
+// appearing in the middle of a sentence won't cause a misread because
+// we only accept matches that appear in alphabetical order: A, B, C…).
+const OPT_INLINE = /(^|[\s\.\?\!\,\;\:\)\]])(?:\(([A-Ha-h])\)|([A-Ha-h])\s*[\)\.])\s+/g;
+
+function extractInlineOptions(text) {
+  const matches = [];
+  let m;
+  // Reset regex state between calls.
+  OPT_INLINE.lastIndex = 0;
+  while ((m = OPT_INLINE.exec(text)) !== null) {
+    const letter = (m[2] || m[3] || '').toUpperCase();
+    if (!letter) continue;
+    // Where the option text starts (after the marker).
+    const optTextStart = m.index + m[0].length;
+    matches.push({
+      index: m.index + (m[1] ? m[1].length : 0), // start of the marker itself
+      contentStart: optTextStart,
+      letter,
+    });
+  }
+  if (matches.length < 2) return null;
+
+  // Only keep matches that form a valid alphabetical sequence A, B, C…
+  // starting from the first one. As soon as the sequence breaks, stop.
+  const expected = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+  // Find the first letter — must be 'A' for it to count as a real option list.
+  if (matches[0].letter !== 'A') return null;
+  let validCount = 1;
+  for (let i = 1; i < matches.length; i++) {
+    if (matches[i].letter === expected[validCount]) {
+      validCount++;
+    } else {
+      break;
+    }
+  }
+  if (validCount < 2) return null; // need at least A and B
+
+  const valid = matches.slice(0, validCount);
+
+  // Prompt = everything before the first option marker.
+  const prompt = text.slice(0, valid[0].index).trim();
+  if (!prompt) return null;
+
+  // Each option's text spans from contentStart to the next marker (or EOF).
+  const options = [];
+  for (let i = 0; i < valid.length; i++) {
+    const start = valid[i].contentStart;
+    const end = i + 1 < valid.length ? valid[i + 1].index : text.length;
+    options.push(text.slice(start, end).trim().replace(/\s+/g, ' '));
+  }
+  return { prompt, options };
+}
+
 function isEssayCue(text) {
   const t = text.toLowerCase();
   return /\b(essay|explain in detail|discuss|describe in detail|in your own words|write a paragraph|elaborate)\b/.test(t);
@@ -148,7 +205,8 @@ function parse(text) {
   // Convert each block into a question object.
   const questions = [];
   for (const b of blocks) {
-    const options = [];
+    // Strategy 1: line-by-line option detection (each option on its own line).
+    let options = [];
     const promptLines = [];
     for (const l of b.lines) {
       const om = l.match(OPT_LINE);
@@ -162,7 +220,24 @@ function parse(text) {
         options[options.length - 1] += ' ' + l.trim();
       }
     }
-    const prompt = promptLines.join(' ').replace(/\s+/g, ' ').trim();
+    let prompt = promptLines.join(' ').replace(/\s+/g, ' ').trim();
+
+    // Strategy 2: if we didn't find enough options on separate lines, try
+    // detecting them inline within the joined block text. This handles
+    // PDFs where line breaks were lost during extraction so a question
+    // and its options collapsed onto one or two lines.
+    if (options.length < 2) {
+      const joined = b.lines.join(' ').replace(/\s+/g, ' ').trim();
+      const inline = extractInlineOptions(joined);
+      if (inline) {
+        prompt = inline.prompt;
+        options = inline.options;
+      } else {
+        prompt = joined;
+        options = [];
+      }
+    }
+
     if (!prompt) continue;
 
     let type, q;
