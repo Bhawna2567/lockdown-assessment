@@ -74,33 +74,113 @@ html, body {
      The SVG pattern uses graduation caps, books, pencils, chart bars and
      stars at very low opacity so it adds personality without harming text. */
   background:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g fill='%234f46e5' opacity='0.04'><path d='M48 36 L72 24 L96 36 L72 48 Z'/><path d='M88 38 L88 62 Q88 68 80 68 L64 68 Q56 68 56 62 L56 38' fill='none' stroke='%234f46e5' stroke-width='2.5'/><line x1='96' y1='36' x2='100' y2='52' stroke='%23ec4899' stroke-width='2.5'/><circle cx='100' cy='52' r='3' fill='%23ec4899'/><rect x='160' y='80' width='28' height='20' rx='1.5'/><line x1='174' y1='80' x2='174' y2='100' stroke='%234f46e5' stroke-width='1.5'/><rect x='90' y='150' width='4' height='30' rx='1' transform='rotate(-30 90 150)'/><polygon points='91,178 95,180 93,184'/><rect x='30' y='190' width='6' height='18'/><rect x='40' y='184' width='6' height='24'/><rect x='50' y='176' width='6' height='32'/><rect x='60' y='170' width='6' height='38'/><polygon points='195,150 198,156 204,156 199,160 201,166 195,162 189,166 191,160 186,156 192,156' fill='%23ec4899' opacity='0.6'/><circle cx='200' cy='40' r='6'/><rect x='197' y='46' width='6' height='4'/></g></svg>") repeat,
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g fill='%234f46e5' opacity='0.08'><path d='M48 36 L72 24 L96 36 L72 48 Z'/><path d='M88 38 L88 62 Q88 68 80 68 L64 68 Q56 68 56 62 L56 38' fill='none' stroke='%234f46e5' stroke-width='2.5'/><line x1='96' y1='36' x2='100' y2='52' stroke='%23ec4899' stroke-width='2.5'/><circle cx='100' cy='52' r='3' fill='%23ec4899'/><rect x='160' y='80' width='28' height='20' rx='1.5'/><line x1='174' y1='80' x2='174' y2='100' stroke='%234f46e5' stroke-width='1.5'/><rect x='90' y='150' width='4' height='30' rx='1' transform='rotate(-30 90 150)'/><polygon points='91,178 95,180 93,184'/><rect x='30' y='190' width='6' height='18'/><rect x='40' y='184' width='6' height='24'/><rect x='50' y='176' width='6' height='32'/><rect x='60' y='170' width='6' height='38'/><polygon points='195,150 198,156 204,156 199,160 201,166 195,162 189,166 191,160 186,156 192,156' fill='%23ec4899' opacity='0.7'/><circle cx='200' cy='40' r='6'/><rect x='197' y='46' width='6' height='4'/></g></svg>") repeat,
     radial-gradient(1200px 600px at 90% -10%, rgba(99, 102, 241, 0.10), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, rgba(236, 72, 153, 0.08), transparent 60%),
     linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 100%);
   background-attachment: fixed, fixed, fixed, fixed;
 }
 
+/* When the body contains the sign-in / register form (.narrow), use a real
+   photographic background to give it a more professional, hero-page feel.
+   Layered: photo at the bottom, dark gradient overlay for readability,
+   on top the soft brand glows. If the photo URL ever 404s, the gradients
+   below still render so the page never looks broken. */
+body:has(.narrow) {
+  background:
+    linear-gradient(135deg, rgba(30, 27, 75, 0.78) 0%, rgba(67, 56, 202, 0.72) 50%, rgba(236, 72, 153, 0.62) 100%),
+    url("https://images.unsplash.com/photo-1497486751825-1233686d5d80?w=1920&q=80") center / cover no-repeat,
+    linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #ec4899 100%) !important;
+  background-attachment: fixed !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 .container { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
-.narrow    { max-width: 480px;  margin: 40px auto; padding: 24px; position: relative; }
 
-/* Sign-in / register page: hero illustration above the form.
-   A stylized scene — laptop with chart, graduation cap, book stack —
-   to set the tone before the user starts typing. Pure inline SVG, scales
-   nicely, uses the brand palette. */
+/* Sign-in / register page is centered on top of the photographic background.
+   The .narrow card itself becomes a frosted-glass panel for readability. */
+.narrow {
+  max-width: 460px;
+  width: 100%;
+  margin: 0;
+  padding: 36px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 25px 60px rgba(17, 24, 39, 0.30), 0 10px 30px rgba(17, 24, 39, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* Inside the .narrow panel, replace the .panel default background so the
+   form doesn't sit on a duplicate white box. */
+.narrow .panel {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+}
+.narrow h1 {
+  text-align: center;
+  font-size: 30px;
+  background: var(--grad-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 4px;
+}
+.narrow > .panel > p.muted {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Mini illustration above the sign-in heading (small graduation cap + books). */
 .narrow::before {
   content: "";
   display: block;
-  width: 100%;
-  height: 200px;
-  margin-bottom: 12px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 200' width='480' height='200'><defs><linearGradient id='lap' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234f46e5'/><stop offset='1' stop-color='%238b5cf6'/></linearGradient></defs><circle cx='400' cy='40' r='32' fill='%23fce7f3'/><circle cx='80' cy='160' r='44' fill='%23eef2ff'/><g transform='translate(70 30)'><path d='M0 30 L30 16 L60 30 L30 44 Z' fill='%231e1b4b'/><path d='M50 32 L50 60 Q50 68 38 68 L22 68 Q10 68 10 60 L10 32' fill='none' stroke='%231e1b4b' stroke-width='4'/><line x1='60' y1='30' x2='66' y2='52' stroke='%23ec4899' stroke-width='3'/><circle cx='66' cy='52' r='4' fill='%23ec4899'/></g><g transform='translate(170 50)'><rect x='0' y='0' width='160' height='100' rx='8' fill='url(%23lap)'/><rect x='8' y='8' width='144' height='84' rx='4' fill='%23ffffff'/><line x1='20' y1='80' x2='140' y2='80' stroke='%23e5e7eb' stroke-width='1.5'/><rect x='28' y='50' width='12' height='30' rx='1.5' fill='%234f46e5' opacity='0.65'/><rect x='46' y='40' width='12' height='40' rx='1.5' fill='%234f46e5' opacity='0.80'/><rect x='64' y='55' width='12' height='25' rx='1.5' fill='%23ec4899' opacity='0.70'/><rect x='82' y='30' width='12' height='50' rx='1.5' fill='%234f46e5'/><rect x='100' y='45' width='12' height='35' rx='1.5' fill='%23ec4899' opacity='0.75'/><rect x='118' y='38' width='12' height='42' rx='1.5' fill='%2310b981' opacity='0.75'/><circle cx='140' cy='20' r='5' fill='%23ec4899'/><text x='133' y='24' font-family='Inter, Arial' font-size='8' font-weight='700' fill='%23ffffff' text-anchor='middle'>A</text><rect x='-6' y='100' width='172' height='6' rx='2' fill='%231e1b4b' opacity='0.85'/></g><g transform='translate(360 110)'><rect x='0' y='44' width='80' height='14' rx='2' fill='%230ea5e9'/><rect x='6' y='30' width='68' height='14' rx='2' fill='%2310b981'/><rect x='3' y='16' width='74' height='14' rx='2' fill='%23f59e0b'/><rect x='8' y='2' width='64' height='14' rx='2' fill='%23ec4899'/><line x1='0' y1='44' x2='80' y2='44' stroke='%23ffffff' stroke-width='1' opacity='0.4'/><line x1='6' y1='30' x2='74' y2='30' stroke='%23ffffff' stroke-width='1' opacity='0.4'/></g><polygon points='30,30 32,36 38,36 33,40 35,46 30,42 25,46 27,40 22,36 28,36' fill='%23f59e0b'/><polygon points='430,150 432,156 438,156 433,160 435,166 430,162 425,166 427,160 422,156 428,156' fill='%234f46e5' opacity='0.6'/><circle cx='250' cy='25' r='3' fill='%23ec4899'/><circle cx='150' cy='180' r='3' fill='%234f46e5'/></svg>");
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 12px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><defs><linearGradient id='g1' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234f46e5'/><stop offset='1' stop-color='%238b5cf6'/></linearGradient></defs><circle cx='40' cy='40' r='38' fill='url(%23g1)' opacity='0.10'/><path d='M14 32 L40 18 L66 32 L40 46 Z' fill='url(%23g1)'/><path d='M58 34 L58 56 Q58 62 50 62 L30 62 Q22 62 22 56 L22 34' fill='none' stroke='url(%23g1)' stroke-width='3'/><line x1='66' y1='32' x2='70' y2='48' stroke='%23ec4899' stroke-width='3'/><circle cx='70' cy='48' r='4' fill='%23ec4899'/></svg>");
   background-repeat: no-repeat;
-  background-position: center;
   background-size: contain;
+}
+
+/* Hero banner at the top of the teacher dashboard's list view.
+   Big visible academic illustration so the page feels personalised. */
+body:not(.lockdown-body) #list-view::before {
+  content: "";
+  display: block;
+  height: 160px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 160' preserveAspectRatio='xMidYMid slice'><defs><linearGradient id='b1' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%234f46e5'/><stop offset='1' stop-color='%238b5cf6'/></linearGradient><linearGradient id='b2' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23ec4899'/><stop offset='1' stop-color='%23f472b6'/></linearGradient></defs><circle cx='1080' cy='30' r='50' fill='%23ffffff' opacity='0.10'/><circle cx='100' cy='130' r='60' fill='%23ffffff' opacity='0.08'/><g transform='translate(80 30)' opacity='0.95'><path d='M0 28 L26 16 L52 28 L26 40 Z' fill='%23ffffff'/><path d='M44 30 L44 56 Q44 62 36 62 L18 62 Q10 62 10 56 L10 30' fill='none' stroke='%23ffffff' stroke-width='3'/><line x1='52' y1='28' x2='56' y2='44' stroke='%23fbbf24' stroke-width='3'/><circle cx='56' cy='44' r='4' fill='%23fbbf24'/></g><g transform='translate(220 24)' opacity='0.95'><rect x='0' y='0' width='180' height='112' rx='8' fill='%231e1b4b'/><rect x='8' y='8' width='164' height='96' rx='4' fill='%23ffffff'/><line x1='20' y1='86' x2='160' y2='86' stroke='%23e5e7eb' stroke-width='1.5'/><rect x='28' y='52' width='14' height='34' rx='2' fill='%234f46e5' opacity='0.7'/><rect x='48' y='40' width='14' height='46' rx='2' fill='%234f46e5' opacity='0.85'/><rect x='68' y='58' width='14' height='28' rx='2' fill='%23ec4899' opacity='0.75'/><rect x='88' y='28' width='14' height='58' rx='2' fill='%234f46e5'/><rect x='108' y='46' width='14' height='40' rx='2' fill='%23ec4899' opacity='0.80'/><rect x='128' y='38' width='14' height='48' rx='2' fill='%2310b981' opacity='0.80'/><circle cx='150' cy='22' r='6' fill='%23ec4899'/><text x='150' y='26' font-family='Inter, Arial, sans-serif' font-size='9' font-weight='800' fill='%23ffffff' text-anchor='middle'>A+</text><rect x='-8' y='112' width='196' height='6' rx='2' fill='%231e1b4b'/></g><g transform='translate(450 36)' opacity='0.95'><rect x='0' y='52' width='110' height='18' rx='2' fill='%230ea5e9'/><rect x='8' y='34' width='94' height='18' rx='2' fill='%2310b981'/><rect x='4' y='16' width='102' height='18' rx='2' fill='%23f59e0b'/><rect x='12' y='-2' width='86' height='18' rx='2' fill='%23ec4899'/></g><g transform='translate(640 30)' opacity='0.92'><rect x='0' y='10' width='120' height='95' rx='3' fill='%23ffffff'/><rect x='0' y='10' width='120' height='14' rx='3' fill='%234f46e5'/><line x1='10' y1='40' x2='110' y2='40' stroke='%23e5e7eb' stroke-width='1.2'/><line x1='10' y1='52' x2='80' y2='52' stroke='%23e5e7eb' stroke-width='1.2'/><line x1='10' y1='64' x2='110' y2='64' stroke='%23e5e7eb' stroke-width='1.2'/><line x1='10' y1='76' x2='90' y2='76' stroke='%23e5e7eb' stroke-width='1.2'/><line x1='10' y1='88' x2='100' y2='88' stroke='%23e5e7eb' stroke-width='1.2'/><circle cx='100' cy='30' r='6' fill='%23fbbf24'/><polygon points='100,26 102,30 106,30 103,32 104,36 100,34 96,36 97,32 94,30 98,30' fill='%23ffffff'/></g><g transform='translate(820 70)' opacity='0.95'><circle cx='0' cy='0' r='32' fill='none' stroke='%23ffffff' stroke-width='4'/><polyline points='-12,2 -3,12 14,-10' stroke='%23fbbf24' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></g><g transform='translate(910 30)' opacity='0.95'><circle cx='25' cy='25' r='25' fill='%23ffffff' opacity='0.18'/><circle cx='25' cy='25' r='18' fill='none' stroke='%23ffffff' stroke-width='3'/><line x1='25' y1='12' x2='25' y2='25' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/><line x1='25' y1='25' x2='35' y2='30' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/></g><polygon points='1000,80 1004,90 1014,90 1006,96 1010,106 1000,100 990,106 994,96 986,90 996,90' fill='%23fbbf24' opacity='0.95'/><polygon points='40,90 42,96 48,96 43,100 45,106 40,102 35,106 37,100 32,96 38,96' fill='%23ffffff' opacity='0.7'/><circle cx='1140' cy='80' r='4' fill='%23ec4899'/><circle cx='1130' cy='100' r='3' fill='%23ffffff' opacity='0.7'/><text x='600' y='148' font-family='Inter, Arial, sans-serif' font-size='13' font-weight='600' fill='%23ffffff' opacity='0.85' text-anchor='middle'>Welcome to your ClassCurio dashboard — assess, analyse, report.</text></svg>") center / cover no-repeat,
+    var(--grad-primary);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.25);
+}
+
+/* Hero banner on the student dashboard (dark-theme version with the same
+   academic vibe but adjusted colors for readability against #0b1020). */
+.lockdown-body #list-view::before {
+  content: "";
+  display: block;
+  height: 140px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 140' preserveAspectRatio='xMidYMid slice'><circle cx='1080' cy='30' r='50' fill='%23ffffff' opacity='0.06'/><circle cx='100' cy='110' r='60' fill='%23ffffff' opacity='0.04'/><g transform='translate(80 28)' opacity='0.85'><path d='M0 24 L24 14 L48 24 L24 34 Z' fill='%23c7d2fe'/><path d='M40 26 L40 50 Q40 56 32 56 L16 56 Q8 56 8 50 L8 26' fill='none' stroke='%23c7d2fe' stroke-width='3'/><line x1='48' y1='24' x2='52' y2='40' stroke='%23fbbf24' stroke-width='3'/><circle cx='52' cy='40' r='3' fill='%23fbbf24'/></g><g transform='translate(220 18)'><rect x='0' y='0' width='160' height='100' rx='8' fill='%231e1b4b'/><rect x='8' y='8' width='144' height='84' rx='4' fill='%23eef2ff'/><line x1='20' y1='76' x2='140' y2='76' stroke='%23c7d2fe' stroke-width='1.5'/><rect x='30' y='44' width='12' height='32' rx='2' fill='%234f46e5'/><rect x='48' y='34' width='12' height='42' rx='2' fill='%236366f1'/><rect x='66' y='50' width='12' height='26' rx='2' fill='%23ec4899'/><rect x='84' y='22' width='12' height='54' rx='2' fill='%234f46e5'/><rect x='102' y='40' width='12' height='36' rx='2' fill='%23ec4899'/><rect x='120' y='32' width='12' height='44' rx='2' fill='%2310b981'/><rect x='-8' y='100' width='176' height='6' rx='2' fill='%23000000'/></g><g transform='translate(420 26)'><rect x='0' y='52' width='110' height='18' rx='2' fill='%230ea5e9'/><rect x='8' y='34' width='94' height='18' rx='2' fill='%2310b981'/><rect x='4' y='16' width='102' height='18' rx='2' fill='%23f59e0b'/><rect x='12' y='-2' width='86' height='18' rx='2' fill='%23ec4899'/></g><g transform='translate(620 24)' opacity='0.92'><rect x='0' y='4' width='110' height='90' rx='3' fill='%23eef2ff'/><rect x='0' y='4' width='110' height='14' rx='3' fill='%234f46e5'/><line x1='10' y1='34' x2='100' y2='34' stroke='%23c7d2fe' stroke-width='1.2'/><line x1='10' y1='46' x2='80' y2='46' stroke='%23c7d2fe' stroke-width='1.2'/><line x1='10' y1='58' x2='100' y2='58' stroke='%23c7d2fe' stroke-width='1.2'/><line x1='10' y1='70' x2='90' y2='70' stroke='%23c7d2fe' stroke-width='1.2'/><line x1='10' y1='82' x2='100' y2='82' stroke='%23c7d2fe' stroke-width='1.2'/></g><g transform='translate(780 60)'><circle cx='0' cy='0' r='28' fill='none' stroke='%23ffffff' stroke-width='3.5' opacity='0.85'/><polyline points='-10,2 -2,10 12,-8' stroke='%23fbbf24' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></g><polygon points='950,80 953,90 962,90 955,96 958,105 950,99 942,105 945,96 938,90 947,90' fill='%23fbbf24'/><circle cx='1050' cy='40' r='5' fill='%23ec4899'/><circle cx='1100' cy='80' r='3' fill='%23ffffff' opacity='0.5'/><text x='600' y='130' font-family='Inter, Arial, sans-serif' font-size='13' font-weight='600' fill='%23eef2ff' opacity='0.85' text-anchor='middle'>Your assessments — focus, do your best, get instant feedback.</text></svg>") center / cover no-repeat,
+    linear-gradient(135deg, #1e1b4b, #4338ca);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.40);
 }
 
 /* Decorative themed icons in the corner of major analytics / list panels.
