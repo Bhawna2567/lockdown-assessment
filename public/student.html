@@ -52,12 +52,28 @@
         <!-- Warning banner with violation rules. Bilingual (English + regional). -->
         <div id="consent-rules"></div>
 
+        <!-- Mandatory pre-flight checklist. Students must confirm they've closed
+             other apps and aren't being observed before they can enable the
+             camera. Checkboxes get rendered by JS so we can include bilingual
+             versions. -->
+        <div id="preflight-gate" class="panel" style="margin: 14px 0; padding: 14px 18px; background: #fff7ed; border: 2px solid #ea580c; color: #7c2d12;">
+          <div style="font-weight: 600; margin-bottom: 6px; font-size: 16px;">📋 Before you can begin</div>
+          <div style="font-size: 14px; margin-bottom: 10px;">Tick every box below to confirm you've closed all other apps and that nobody else can see your screen. The "Enable camera" button stays locked until every box is ticked.</div>
+          <div id="preflight-list"></div>
+        </div>
+
+        <!-- Recommendation banner for high-stakes exams. -->
+        <div class="panel" style="margin: 14px 0; padding: 12px 16px; background: #eef2ff; border: 1px solid #c7d2fe; color: #312e81; font-size: 13px;">
+          <strong>💻 For high-stakes exams:</strong> install the ClassCurio desktop app on your Mac or Windows laptop. The desktop app physically blocks screen sharing and screenshot tools. The web version detects but cannot prevent them.
+        </div>
+
         <!-- Mandatory camera permission gate. Students must grant camera access
-             before they can click "I understand — start". -->
+             before they can click "I understand — start". The "Enable camera"
+             button is disabled until every preflight checkbox is ticked. -->
         <div id="camera-gate" class="panel" style="margin: 14px 0; padding: 14px 18px; background: #fef3c7; border: 2px solid #f59e0b; color: #92400e;">
           <div style="font-weight: 600; margin-bottom: 6px;">📷 Camera permission required</div>
           <div style="font-size: 14px; margin-bottom: 10px;">This assessment is proctored. You must allow camera access to enter. Your camera must remain on for the entire test.</div>
-          <button id="camera-grant-btn" class="btn primary">Enable camera</button>
+          <button id="camera-grant-btn" class="btn primary" disabled style="opacity: 0.5; cursor: not-allowed;">Enable camera</button>
           <span id="camera-gate-status" style="margin-left: 10px; font-size: 13px;"></span>
         </div>
 

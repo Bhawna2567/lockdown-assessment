@@ -61,7 +61,136 @@ const els = {
   cameraGate: document.getElementById('camera-gate'),
   cameraGrantBtn: document.getElementById('camera-grant-btn'),
   cameraGateStatus: document.getElementById('camera-gate-status'),
+
+  preflightGate: document.getElementById('preflight-gate'),
+  preflightList: document.getElementById('preflight-list'),
 };
+
+// ----- Pre-flight checklist -----
+// Bilingual checklist of things students must confirm before entering an
+// assessment. Each line is shown in English plus the same regional language
+// used for the consent rules popup.
+const PREFLIGHT_EN = [
+  'I have closed Google Meet, Zoom, Microsoft Teams, and all video-call apps.',
+  'I have closed all screen-recording or screen-capture software (OBS, QuickTime Recording, Snagit, etc.).',
+  'I am not sharing my screen with anyone — no app or browser tab is mirroring this device.',
+  'I am alone in the room. No other person can see this screen or hear the questions.',
+  'I have closed messaging apps and notifications that could distract me or share content (WhatsApp, iMessage, etc.).',
+];
+const PREFLIGHT_I18N = {
+  ar: [
+    'لقد أغلقت Google Meet و Zoom و Microsoft Teams وجميع تطبيقات مكالمات الفيديو.',
+    'لقد أغلقت جميع برامج تسجيل الشاشة أو التقاط الشاشة (OBS، QuickTime Recording، Snagit، إلخ).',
+    'أنا لا أشارك شاشتي مع أي شخص — لا يوجد تطبيق أو علامة تبويب متصفح يقوم بعكس هذا الجهاز.',
+    'أنا وحدي في الغرفة. لا يمكن لأي شخص آخر رؤية هذه الشاشة أو سماع الأسئلة.',
+    'لقد أغلقت تطبيقات المراسلة والإشعارات التي يمكن أن تشتت انتباهي أو تشارك المحتوى (WhatsApp، iMessage، إلخ).',
+  ],
+  hi: [
+    'मैंने Google Meet, Zoom, Microsoft Teams और सभी वीडियो-कॉल ऐप बंद कर दिए हैं।',
+    'मैंने सभी स्क्रीन-रिकॉर्डिंग या स्क्रीन-कैप्चर सॉफ़्टवेयर (OBS, QuickTime Recording, Snagit, आदि) बंद कर दिए हैं।',
+    'मैं किसी के साथ अपनी स्क्रीन साझा नहीं कर रहा/रही हूँ — कोई ऐप या ब्राउज़र टैब इस डिवाइस को मिरर नहीं कर रहा है।',
+    'मैं कमरे में अकेला/अकेली हूँ। कोई अन्य व्यक्ति इस स्क्रीन को नहीं देख सकता या प्रश्नों को सुन नहीं सकता।',
+    'मैंने मैसेजिंग ऐप और नोटिफिकेशन बंद कर दिए हैं जो मुझे विचलित कर सकते हैं या सामग्री साझा कर सकते हैं (WhatsApp, iMessage, आदि)।',
+  ],
+  zh: [
+    '我已关闭 Google Meet、Zoom、Microsoft Teams 和所有视频通话应用程序。',
+    '我已关闭所有屏幕录制或屏幕捕获软件（OBS、QuickTime 录制、Snagit 等）。',
+    '我没有与任何人共享我的屏幕——没有应用程序或浏览器标签页正在镜像此设备。',
+    '我独自一人在房间里。没有其他人可以看到这个屏幕或听到问题。',
+    '我已关闭可能分散我注意力或共享内容的消息应用程序和通知（WhatsApp、iMessage 等）。',
+  ],
+  es: [
+    'He cerrado Google Meet, Zoom, Microsoft Teams y todas las aplicaciones de videollamadas.',
+    'He cerrado todo el software de grabación o captura de pantalla (OBS, QuickTime Recording, Snagit, etc.).',
+    'No estoy compartiendo mi pantalla con nadie — ninguna aplicación o pestaña del navegador está duplicando este dispositivo.',
+    'Estoy solo/a en la habitación. Ninguna otra persona puede ver esta pantalla ni escuchar las preguntas.',
+    'He cerrado las aplicaciones de mensajería y notificaciones que podrían distraerme o compartir contenido (WhatsApp, iMessage, etc.).',
+  ],
+  fr: [
+    'J’ai fermé Google Meet, Zoom, Microsoft Teams et toutes les applications de visioconférence.',
+    'J’ai fermé tous les logiciels d’enregistrement ou de capture d’écran (OBS, QuickTime Recording, Snagit, etc.).',
+    'Je ne partage mon écran avec personne — aucune application ni onglet de navigateur ne reproduit cet appareil.',
+    'Je suis seul·e dans la pièce. Aucune autre personne ne peut voir cet écran ni entendre les questions.',
+    'J’ai fermé les applications de messagerie et les notifications qui pourraient me distraire ou partager du contenu (WhatsApp, iMessage, etc.).',
+  ],
+  th: [
+    'ฉันได้ปิด Google Meet, Zoom, Microsoft Teams และแอปวิดีโอคอลทั้งหมดแล้ว',
+    'ฉันได้ปิดซอฟต์แวร์บันทึกหน้าจอหรือจับภาพหน้าจอทั้งหมด (OBS, QuickTime Recording, Snagit ฯลฯ) แล้ว',
+    'ฉันไม่ได้แชร์หน้าจอกับใคร — ไม่มีแอปหรือแท็บเบราว์เซอร์ใดที่กำลังสะท้อนอุปกรณ์นี้',
+    'ฉันอยู่คนเดียวในห้อง ไม่มีบุคคลอื่นสามารถเห็นหน้าจอนี้หรือได้ยินคำถาม',
+    'ฉันได้ปิดแอปข้อความและการแจ้งเตือนที่อาจรบกวนหรือแชร์เนื้อหา (WhatsApp, iMessage ฯลฯ) แล้ว',
+  ],
+  de: [
+    'Ich habe Google Meet, Zoom, Microsoft Teams und alle Videoanruf-Apps geschlossen.',
+    'Ich habe alle Bildschirmaufzeichnungs- oder Bildschirmaufnahme-Software (OBS, QuickTime-Aufnahme, Snagit usw.) geschlossen.',
+    'Ich teile meinen Bildschirm mit niemandem — keine App oder Browser-Tab spiegelt dieses Gerät.',
+    'Ich bin allein im Raum. Keine andere Person kann diesen Bildschirm sehen oder die Fragen hören.',
+    'Ich habe Messaging-Apps und Benachrichtigungen geschlossen, die mich ablenken oder Inhalte teilen könnten (WhatsApp, iMessage usw.).',
+  ],
+  ja: [
+    'Google Meet、Zoom、Microsoft Teams、およびすべてのビデオ通話アプリを閉じました。',
+    'すべての画面録画または画面キャプチャソフトウェア（OBS、QuickTime 録画、Snagit など）を閉じました。',
+    '画面を誰とも共有していません。このデバイスをミラーリングしているアプリやブラウザタブはありません。',
+    '部屋に一人でいます。他の人はこの画面を見たり、質問を聞いたりすることはできません。',
+    '気を散らしたりコンテンツを共有したりする可能性のあるメッセージアプリや通知を閉じました（WhatsApp、iMessage など）。',
+  ],
+};
+
+function renderPreflight(assessment) {
+  if (!els.preflightList) return;
+  const langKey = detectConsentLang(assessment);
+  const tr = langKey ? PREFLIGHT_I18N[langKey] : null;
+  const trLabel = (langKey && CONSENT_RULES_I18N[langKey]) ? CONSENT_RULES_I18N[langKey].label : '';
+  const isRtl = langKey && CONSENT_RULES_I18N[langKey] && CONSENT_RULES_I18N[langKey].rtl;
+
+  els.preflightList.innerHTML = PREFLIGHT_EN.map((en, i) => `
+    <label style="display: flex; align-items: flex-start; gap: 10px; padding: 8px 4px; cursor: pointer; border-bottom: 1px dashed rgba(124, 45, 18, 0.2);">
+      <input type="checkbox" data-pf="${i}" style="margin-top: 4px; flex-shrink: 0; width: 18px; height: 18px;" />
+      <div style="flex: 1;">
+        <div>${escapeHtml(en)}</div>
+        ${tr ? `<div style="margin-top: 4px; font-size: 13px; opacity: 0.85; ${isRtl ? 'direction: rtl; text-align: right;' : ''}">${escapeHtml(tr[i] || '')}</div>` : ''}
+      </div>
+    </label>
+  `).join('');
+
+  els.preflightList.querySelectorAll('input[data-pf]').forEach((cb) => {
+    cb.addEventListener('change', updatePreflightState);
+  });
+  updatePreflightState();
+}
+function preflightAllChecked() {
+  if (!els.preflightList) return false;
+  const boxes = els.preflightList.querySelectorAll('input[data-pf]');
+  if (!boxes.length) return false;
+  return Array.from(boxes).every((b) => b.checked);
+}
+function updatePreflightState() {
+  const ready = preflightAllChecked();
+  if (els.cameraGrantBtn) {
+    // Don't override the "✓ Enabled" disabled state once camera is granted.
+    if (els.cameraGrantBtn.textContent.indexOf('Enabled') === -1) {
+      els.cameraGrantBtn.disabled = !ready;
+      els.cameraGrantBtn.style.opacity = ready ? '1' : '0.5';
+      els.cameraGrantBtn.style.cursor = ready ? 'pointer' : 'not-allowed';
+    }
+  }
+  if (els.preflightGate) {
+    if (ready) {
+      els.preflightGate.style.background = '#dcfce7';
+      els.preflightGate.style.borderColor = '#16a34a';
+      els.preflightGate.style.color = '#166534';
+    } else {
+      els.preflightGate.style.background = '#fff7ed';
+      els.preflightGate.style.borderColor = '#ea580c';
+      els.preflightGate.style.color = '#7c2d12';
+    }
+  }
+}
+function resetPreflight() {
+  if (!els.preflightList) return;
+  els.preflightList.querySelectorAll('input[data-pf]').forEach((b) => { b.checked = false; });
+  updatePreflightState();
+}
 
 // ----- Bilingual consent translations -----
 // The pre-assessment "Before you start" warning. Shown in English plus the
@@ -77,6 +206,7 @@ const CONSENT_RULES_EN = {
     '📷 Your camera must be ON for the entire assessment. You cannot start until you grant camera access.',
     '📷 If you turn off your camera, cover it, or unplug it during the assessment, your test will be auto-submitted immediately.',
     '📷 You must stay clearly visible in the camera. Moving out of view or letting another person take your place is recorded as a violation.',
+    '🖥 Screen sharing is forbidden. Do not share your screen on Google Meet, Zoom, Microsoft Teams, or any other app while taking this assessment. For the strongest protection on a Mac or Windows laptop, install the ClassCurio desktop app.',
     'You must remain in fullscreen mode for the entire assessment.',
     'Leaving this window, switching tabs, or opening another app is recorded as a violation.',
     'After 3 violations, your assessment is auto-submitted with the answers recorded so far.',
@@ -97,6 +227,7 @@ const CONSENT_RULES_I18N = {
       '📷 يجب أن تكون الكاميرا قيد التشغيل طوال فترة التقييم. لا يمكنك البدء حتى تمنح الإذن للكاميرا.',
       '📷 إذا قمت بإيقاف تشغيل الكاميرا أو تغطيتها أو فصلها أثناء التقييم، فسيتم إرسال اختبارك تلقائيًا على الفور.',
       '📷 يجب أن تظل مرئيًا بوضوح أمام الكاميرا. الخروج من نطاق الرؤية أو السماح لشخص آخر بأخذ مكانك يُعد مخالفة.',
+      '🖥 مشاركة الشاشة ممنوعة. لا تشارك شاشتك على Google Meet أو Zoom أو Microsoft Teams أو أي تطبيق آخر أثناء أداء هذا التقييم. للحصول على أقوى حماية على جهاز Mac أو Windows، قم بتثبيت تطبيق ClassCurio لسطح المكتب.',
       'يجب أن تبقى في وضع ملء الشاشة طوال فترة التقييم.',
       'مغادرة هذه النافذة أو تبديل علامات التبويب أو فتح تطبيق آخر سيتم تسجيله كمخالفة.',
       'بعد 3 مخالفات، يتم إرسال تقييمك تلقائيًا بالإجابات المسجلة حتى الآن.',
@@ -114,6 +245,7 @@ const CONSENT_RULES_I18N = {
       '📷 पूरी परीक्षा के दौरान आपका कैमरा चालू रहना अनिवार्य है। कैमरे की अनुमति दिए बिना आप शुरू नहीं कर सकते।',
       '📷 यदि आप परीक्षा के दौरान कैमरा बंद कर देते हैं, उसे ढक देते हैं या उसका कनेक्शन हटा देते हैं, तो आपकी परीक्षा तुरंत स्वचालित रूप से जमा कर दी जाएगी।',
       '📷 आपको कैमरे में स्पष्ट रूप से दिखाई देना चाहिए। दृश्य से बाहर जाना या किसी अन्य व्यक्ति को अपनी जगह लेने देना उल्लंघन के रूप में दर्ज किया जाएगा।',
+      '🖥 स्क्रीन साझा करना वर्जित है। इस मूल्यांकन को देते समय Google Meet, Zoom, Microsoft Teams या किसी अन्य ऐप पर अपनी स्क्रीन साझा न करें। Mac या Windows लैपटॉप पर सबसे मजबूत सुरक्षा के लिए, ClassCurio डेस्कटॉप ऐप इंस्टॉल करें।',
       'आपको पूरी मूल्यांकन अवधि के लिए फुलस्क्रीन मोड में रहना होगा।',
       'इस विंडो से बाहर जाना, टैब बदलना या कोई दूसरा ऐप खोलना उल्लंघन के रूप में दर्ज किया जाएगा।',
       '3 उल्लंघनों के बाद, आपका मूल्यांकन अब तक दर्ज उत्तरों के साथ स्वचालित रूप से जमा हो जाएगा।',
@@ -433,6 +565,11 @@ async function openConsent(id) {
   // Render the bilingual violation rules popup.
   renderConsentRules(currentAssessment);
 
+  // Render the bilingual pre-flight checklist. Students must tick every box
+  // before the "Enable camera" button becomes clickable.
+  renderPreflight(currentAssessment);
+  resetPreflight();
+
   // Reset the camera gate every time the consent screen opens — students
   // must grant camera permission for each assessment they enter.
   resetCameraGate();
@@ -524,8 +661,13 @@ function resetCameraGate() {
   }
   if (els.cameraGateStatus) els.cameraGateStatus.textContent = '';
   if (els.cameraGrantBtn) {
-    els.cameraGrantBtn.disabled = false;
     els.cameraGrantBtn.textContent = 'Enable camera';
+    // The preflight checklist controls disabled state — only enable if all
+    // boxes are ticked.
+    const ready = preflightAllChecked();
+    els.cameraGrantBtn.disabled = !ready;
+    els.cameraGrantBtn.style.opacity = ready ? '1' : '0.5';
+    els.cameraGrantBtn.style.cursor = ready ? 'pointer' : 'not-allowed';
   }
 }
 function unlockStartButton() {
