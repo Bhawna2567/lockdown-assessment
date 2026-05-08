@@ -176,16 +176,25 @@ app.post('/api/classes/:id/roster', requireTeacher, (req, res) => {
   if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
 
   const incoming = Array.isArray(req.body?.roster) ? req.body.roster : [];
-  // Normalize + dedupe by email.
-  const seen = new Set();
+  // Normalize + dedupe. Accept entries with email-only, name-only, or both.
+  // Email-keyed dedup if email present, otherwise name-keyed.
+  const seenEmails = new Set();
+  const seenNames = new Set();
   const roster = [];
   for (const item of incoming) {
     const email = String(item?.email || '').trim().toLowerCase();
     const name = String(item?.name || '').trim().slice(0, 120);
-    if (!email || !email.includes('@')) continue;
-    if (seen.has(email)) continue;
-    seen.add(email);
-    roster.push({ email, name });
+    const validEmail = email && email.includes('@');
+    if (!validEmail && !name) continue; // need at least one
+    if (validEmail) {
+      if (seenEmails.has(email)) continue;
+      seenEmails.add(email);
+    } else {
+      const k = name.toLowerCase();
+      if (seenNames.has(k)) continue;
+      seenNames.add(k);
+    }
+    roster.push({ email: validEmail ? email : '', name });
     if (roster.length >= 1000) break; // safety cap
   }
 
@@ -211,7 +220,7 @@ app.post('/api/classes/parse-roster', requireTeacher, upload.single('file'), asy
     const roster = extractRosterFromText(text);
     if (!roster.length) {
       return res.status(422).json({
-        error: 'Could not detect any emails in this file. Make sure each student row has an email address.',
+        error: 'Could not detect any students in this file. Make sure each student is on its own line — emails are optional, just names is fine.',
       });
     }
     res.json({ roster });
@@ -223,9 +232,9 @@ app.post('/api/classes/parse-roster', requireTeacher, upload.single('file'), asy
 
 // Extract {email, name} pairs from arbitrary text. Robust against:
 //   - CSV (email,name or name,email, with or without header)
-//   - PDF/DOCX class lists with one row per student (name then email, or email
-//     then name, separated by spaces, tabs, or commas)
+//   - PDF/DOCX class lists with one row per student (name + email, or just names)
 //   - Plain lists of just emails (one per line)
+//   - Plain lists of just names (one per line) — emails are optional
 function extractRosterFromText(rawText) {
   const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
   const lines = String(rawText || '')
@@ -233,44 +242,85 @@ function extractRosterFromText(rawText) {
     .map((l) => l.trim())
     .filter(Boolean);
 
-  const seen = new Set();
+  const seenEmails = new Set();
+  const seenNames = new Set();
   const roster = [];
 
+  // First pass: lines with emails. Capture the email + the nearest name on
+  // the same line.
+  let foundAnyEmail = false;
   for (const line of lines) {
     const emails = line.match(EMAIL_RE) || [];
     if (!emails.length) continue;
+    foundAnyEmail = true;
 
-    // Strip the email(s) from the line to get candidate name fragments.
     let nameCandidate = line;
     for (const e of emails) nameCandidate = nameCandidate.replace(e, ' ');
-    // Strip common separators and column headers.
-    nameCandidate = nameCandidate
-      .replace(/[,;|\t]+/g, ' ')
-      .replace(/\s{2,}/g, ' ')
-      .replace(/^(name|student name|full name|student|email|email address)\b[:\-]?\s*/i, '')
-      .trim();
-    // Avoid using a fragment that's just digits or a header word.
-    if (/^(name|student|email|full name|student name|email address)$/i.test(nameCandidate)) {
-      nameCandidate = '';
-    }
+    nameCandidate = cleanNameFragment(nameCandidate);
 
     for (const e of emails) {
       const email = e.toLowerCase();
-      if (seen.has(email)) continue;
-      seen.add(email);
-      // Reasonable name length cap; if it's > 120 chars, the line is probably
-      // garbage and we'd rather store no name than a junk one.
+      if (seenEmails.has(email)) continue;
+      seenEmails.add(email);
       const name = nameCandidate && nameCandidate.length <= 120 ? nameCandidate : '';
+      if (name) seenNames.add(name.toLowerCase());
       roster.push({ email, name });
-      // Only the first email on a line gets the name; subsequent emails on the
-      // same line get blank names (rare in practice).
       nameCandidate = '';
       if (roster.length >= 1000) break;
     }
     if (roster.length >= 1000) break;
   }
 
+  // Second pass: if NO emails were found at all in the document, treat each
+  // non-empty line as a candidate student name. This is the common case for
+  // teacher-uploaded class lists from school systems that only export names.
+  if (!foundAnyEmail) {
+    for (const rawLine of lines) {
+      const cleaned = cleanNameFragment(rawLine);
+      if (!isPlausibleName(cleaned)) continue;
+      const k = cleaned.toLowerCase();
+      if (seenNames.has(k)) continue;
+      seenNames.add(k);
+      roster.push({ email: '', name: cleaned });
+      if (roster.length >= 1000) break;
+    }
+  }
+
   return roster;
+}
+
+// Strip leading numbering, common separators, and column-header words. Also
+// trim to a reasonable length cap.
+function cleanNameFragment(s) {
+  let out = String(s || '');
+  // Leading list markers: "1.", "1)", "•", "-", "*", roman numerals.
+  out = out.replace(/^\s*(?:\d{1,3}[\.\)]|[•\-\*]|[ivxlcdm]{1,5}[\.\)])\s+/i, '');
+  // Tabs / pipes / semicolons / commas → spaces.
+  out = out.replace(/[,;|\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  // Remove trailing column noise like "  F  Grade 7" / "  M  12-A".
+  out = out.replace(/\s+(?:[FM]|Male|Female|Grade\s*\d+|Year\s*\d+|Class\s*\d+|\d{1,2}[A-Z]?)$/i, '').trim();
+  // Drop pure header rows.
+  if (/^(name|student name|full name|student|first name|last name|class roster|roster|grade\s*\d+|year\s*\d+|class\s*\d+)$/i.test(out)) {
+    return '';
+  }
+  return out.slice(0, 120);
+}
+
+// Is this a plausible person name? Reject obvious junk: empty, all-digits,
+// dates, single character, very long lines, page numbers, etc.
+function isPlausibleName(s) {
+  if (!s || s.length < 2 || s.length > 80) return false;
+  if (!/[A-Za-zÀ-ɏЀ-ӿ֐-׿؀-ۿऀ-ॿ一-鿿぀-ヿ]/.test(s)) {
+    // No letter characters at all (digits, punctuation, etc.)
+    return false;
+  }
+  // Reject lines that are mostly digits.
+  const digits = (s.match(/\d/g) || []).length;
+  if (digits > s.length / 2) return false;
+  // Reject phrases that look like dates / page numbers.
+  if (/^(page|p\.?)\s*\d/i.test(s)) return false;
+  if (/^\d{4}[\-\/]\d{1,2}[\-\/]\d{1,2}/.test(s)) return false;
+  return true;
 }
 
 app.put('/api/classes/:id', requireTeacher, (req, res) => {

@@ -142,9 +142,41 @@ if (els.classSwitcher) {
 }
 
 // ----- Manage classes panel -----
-function openClassesPanel() {
+// Cache of teacher's known students (those who've submitted). Loaded when the
+// Manage Classes panel opens so we can cross-reference roster names against
+// real student accounts and link to their progress page.
+let knownStudents = [];
+async function loadKnownStudents() {
+  try {
+    const { students } = await api('/api/teachers/students');
+    knownStudents = Array.isArray(students) ? students : [];
+  } catch {
+    knownStudents = [];
+  }
+}
+function findStudentForRoster(entry) {
+  if (!knownStudents.length) return null;
+  // Exact email match (case-insensitive)
+  if (entry.email) {
+    const e = entry.email.toLowerCase();
+    const byEmail = knownStudents.find((s) => (s.email || '').toLowerCase() === e);
+    if (byEmail) return byEmail;
+  }
+  // Name match (case-insensitive, normalized whitespace)
+  if (entry.name) {
+    const n = entry.name.toLowerCase().replace(/\s+/g, ' ').trim();
+    const byName = knownStudents.find((s) =>
+      (s.name || '').toLowerCase().replace(/\s+/g, ' ').trim() === n
+    );
+    if (byName) return byName;
+  }
+  return null;
+}
+
+async function openClassesPanel() {
   if (!els.classesPanel) return;
   els.classesPanel.style.display = 'block';
+  await loadKnownStudents();
   renderClassesList();
 }
 function closeClassesPanel() {
@@ -191,10 +223,20 @@ function parseRosterCSV(text) {
     const cols = splitLine(lines[i]);
     let email = (cols[emailIdx] || '').replace(/"/g, '').trim().toLowerCase();
     let name = (cols[nameIdx] || '').replace(/"/g, '').trim();
-    // If the file is just one column of emails, name will equal email — clear it.
-    if (cols.length === 1) { email = (cols[0] || '').toLowerCase(); name = ''; }
-    if (!email || !email.includes('@')) continue;
-    out.push({ email, name });
+
+    // If the file is a single column, decide if it's emails or names.
+    if (cols.length === 1) {
+      const only = (cols[0] || '').replace(/"/g, '').trim();
+      if (only.includes('@')) { email = only.toLowerCase(); name = ''; }
+      else { email = ''; name = only; }
+    }
+
+    // Strip leading list numbering ("1. Alice Khan" -> "Alice Khan").
+    name = name.replace(/^\s*(?:\d{1,3}[\.\)]|[•\-\*])\s+/, '').trim();
+
+    const validEmail = email && email.includes('@');
+    if (!validEmail && !name) continue; // need at least one
+    out.push({ email: validEmail ? email : '', name });
   }
   return out;
 }
@@ -366,20 +408,39 @@ function renderClassesList() {
         <table style="width:100%; font-size: 13px; border-collapse: collapse;">
           <thead>
             <tr style="background: #eef2ff;">
-              <th style="text-align:left; padding: 6px 8px;">Name</th>
-              <th style="text-align:left; padding: 6px 8px;">Email</th>
+              <th style="text-align:left; padding: 8px;">Name</th>
+              <th style="text-align:left; padding: 8px;">Email</th>
+              <th style="text-align:left; padding: 8px;">Status</th>
+              <th style="text-align:right; padding: 8px;"></th>
             </tr>
           </thead>
           <tbody>
-            ${(cls.roster || []).map((s) => `
-              <tr style="border-top: 1px solid #e5e7eb;">
-                <td style="padding: 6px 8px;">${escapeHtml(s.name || '')}</td>
-                <td style="padding: 6px 8px;">${escapeHtml(s.email)}</td>
-              </tr>
-            `).join('')}
+            ${(cls.roster || []).map((s) => {
+              const matched = findStudentForRoster(s);
+              const statusBadge = matched
+                ? `<span class="badge green">${matched.submissions} submission${matched.submissions === 1 ? '' : 's'}</span>`
+                : `<span class="badge" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+              const actions = matched
+                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>`
+                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>`;
+              return `
+                <tr style="border-top: 1px solid #e5e7eb;">
+                  <td style="padding: 8px;"><strong>${escapeHtml(s.name || '(no name)')}</strong></td>
+                  <td style="padding: 8px;">${s.email ? escapeHtml(s.email) : `<span class="muted" style="font-size: 12px;">—</span>`}</td>
+                  <td style="padding: 8px;">${statusBadge}</td>
+                  <td style="padding: 8px; text-align: right;">${actions}</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       `;
+      view.querySelectorAll('[data-roster-progress]').forEach((b) => {
+        b.onclick = () => {
+          closeClassesPanel();
+          openStudentProgress(b.dataset.rosterProgress);
+        };
+      });
     };
   });
 }
