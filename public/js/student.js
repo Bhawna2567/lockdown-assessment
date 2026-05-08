@@ -478,6 +478,9 @@ function escapeHtml(s) {
     .replaceAll("'", '&#039;');
 }
 
+// Cached current user so the watermark can stamp identity onto every page.
+let currentUser = null;
+
 // ---------- Init ----------
 (async () => {
   const { user } = await api('/api/me');
@@ -485,6 +488,7 @@ function escapeHtml(s) {
     location.href = '/';
     return;
   }
+  currentUser = user;
   els.who.textContent = `${user.name} (${user.email})`;
   await loadAssessments();
   await loadPastResults();
@@ -1168,8 +1172,18 @@ const handlers = {
       (ctrl && ['t', 'n', 'w'].includes(key)) ||
       // Reload
       (ctrl && ['r'].includes(key)) || e.key === 'F5' ||
-      // Screenshots on some platforms
+      // Screenshot shortcuts.
+      // Note: many of these CANNOT be physically blocked in a browser — they
+      // are intercepted by the OS before reaching the page. We catch the
+      // ones that do reach us, record a violation, and rely on the OS-level
+      // setContentProtection in the Electron desktop app for true blocking.
       e.key === 'PrintScreen' ||
+      // Mac: Cmd+Shift+3 (full), Cmd+Shift+4 (selection), Cmd+Shift+5 (UI)
+      (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) ||
+      // Windows snipping tool: Win+Shift+S
+      (e.metaKey && e.shiftKey && key === 's') ||
+      // Alt+PrintScreen (Windows window screenshot)
+      (e.altKey && e.key === 'PrintScreen') ||
       // Alt+Tab (Windows/Linux) — many browsers can't actually block this
       (e.altKey && e.key === 'Tab');
     if (block) {
@@ -1217,6 +1231,126 @@ function describeShortcut(e) {
   return parts.join('+');
 }
 
+// ----- Identity watermark -----
+// Browsers cannot prevent OS-level screenshots in a web/PWA context. The next
+// best deterrent is to stamp every screenshot with the student's identity so
+// any leak is traceable. This overlays a fixed, low-opacity diagonal pattern
+// of "name · email · timestamp" repeating across the entire viewport. It's
+// hard to remove via DOM manipulation because it's a fixed-position div with
+// pointer-events:none and an inline style that cannot be easily targeted.
+
+let watermarkEl = null;
+let watermarkClockId = null;
+
+function installWatermark() {
+  if (watermarkEl) return;
+  if (!currentUser) return;
+
+  watermarkEl = document.createElement('div');
+  watermarkEl.id = '_cc_watermark';
+  watermarkEl.setAttribute('aria-hidden', 'true');
+  // Inline style — high z-index, fixed, pointer-events:none, transparent bg.
+  watermarkEl.style.cssText = [
+    'position: fixed',
+    'inset: 0',
+    'z-index: 2147483646', // nearly the maximum int — sits above everything
+    'pointer-events: none',
+    'overflow: hidden',
+    'user-select: none',
+    'mix-blend-mode: difference', // visible on both dark and light backgrounds
+  ].join(';');
+
+  // Inner container that holds the repeating text. Rotated -25 degrees so
+  // the watermark runs diagonally across the screen.
+  const inner = document.createElement('div');
+  inner.style.cssText = [
+    'position: absolute',
+    'top: -25%',
+    'left: -25%',
+    'right: -25%',
+    'bottom: -25%',
+    'display: grid',
+    'grid-template-columns: repeat(auto-fill, minmax(360px, 1fr))',
+    'gap: 12px 36px',
+    'transform: rotate(-25deg)',
+    'opacity: 0.18',
+    'color: #fff',
+    'font: 600 13px/1.2 -apple-system, system-ui, sans-serif',
+    'white-space: nowrap',
+  ].join(';');
+
+  // Build a grid of text labels — many copies stamp the screen densely.
+  // We refresh the timestamp every minute (replaceChildren) so the watermark
+  // captures *when* the screenshot was taken, not just who took it.
+  const refresh = () => {
+    if (!watermarkEl || !currentUser) return;
+    const stamp = `${currentUser.name} · ${currentUser.email} · ${new Date().toLocaleString()}`;
+    const cells = [];
+    for (let i = 0; i < 80; i++) {
+      const span = document.createElement('span');
+      span.textContent = stamp;
+      cells.push(span);
+    }
+    inner.replaceChildren(...cells);
+  };
+  refresh();
+  // Update timestamp once a minute.
+  watermarkClockId = setInterval(refresh, 60000);
+
+  watermarkEl.appendChild(inner);
+  document.body.appendChild(watermarkEl);
+}
+
+function uninstallWatermark() {
+  try {
+    if (watermarkClockId) { clearInterval(watermarkClockId); watermarkClockId = null; }
+    if (watermarkEl && watermarkEl.parentNode) {
+      watermarkEl.parentNode.removeChild(watermarkEl);
+    }
+  } catch {}
+  watermarkEl = null;
+}
+
+// ----- Aggressive blur on focus loss -----
+// The moment focus leaves the window/tab, blur the entire page heavily so any
+// screen-share viewer sees a useless blurred capture instead of the questions.
+let lockdownBlurEl = null;
+
+function installFocusBlur() {
+  // Inject a CSS rule that blurs everything when our root container loses focus.
+  // We use a style tag so the rule itself can be removed cleanly when the
+  // assessment ends.
+  if (lockdownBlurEl) return;
+  lockdownBlurEl = document.createElement('style');
+  lockdownBlurEl.id = '_cc_focus_blur';
+  lockdownBlurEl.textContent = `
+    body[data-cc-blurred="1"] #assessment-view,
+    body[data-cc-blurred="1"] #passage-panel {
+      filter: blur(30px) saturate(0) !important;
+      transition: filter 80ms ease-out !important;
+    }
+    body[data-cc-blurred="1"] #assessment-view::after {
+      content: "Window not focused — return to ClassCurio to continue";
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 22px; font-weight: 700;
+      background: rgba(20, 20, 35, 0.85);
+      z-index: 2147483645;
+    }
+  `;
+  document.head.appendChild(lockdownBlurEl);
+}
+
+function uninstallFocusBlur() {
+  try {
+    if (lockdownBlurEl && lockdownBlurEl.parentNode) {
+      lockdownBlurEl.parentNode.removeChild(lockdownBlurEl);
+    }
+  } catch {}
+  lockdownBlurEl = null;
+  document.body.removeAttribute('data-cc-blurred');
+}
+
 function installLockdown() {
   lockdownActive = true;
   document.addEventListener('visibilitychange', handlers.visibilitychange);
@@ -1233,11 +1367,28 @@ function installLockdown() {
   document.addEventListener('selectstart', handlers.selectstart);
   window.addEventListener('beforeunload', handlers.beforeunload);
 
-  // Blur-on-blur: obscure content whenever window is not focused.
+  // Heavy blur the moment focus / visibility leaves the page. Set a body
+  // attribute that the injected stylesheet rule keys on. This makes any live
+  // screen-share or screenshot capture show a heavily-blurred image instead
+  // of the questions.
+  installFocusBlur();
+  const setBlurred = (on) => {
+    if (on) document.body.setAttribute('data-cc-blurred', '1');
+    else document.body.removeAttribute('data-cc-blurred');
+  };
+  window.addEventListener('blur', () => setBlurred(true));
+  window.addEventListener('focus', () => setBlurred(false));
+  document.addEventListener('visibilitychange', () => setBlurred(document.hidden));
+  // Legacy class kept for compatibility with existing CSS that uses it.
   window.addEventListener('blur', () => document.body.classList.add('lockdown-blur'));
   window.addEventListener('focus', () => document.body.classList.remove('lockdown-blur'));
 
-  // If running in Electron, lock the OS-level window down for the duration of the exam.
+  // Identity watermark across the whole page — makes any screenshot
+  // traceable back to the student who took it.
+  installWatermark();
+
+  // If running in Electron, lock the OS-level window down for the duration
+  // of the exam (this is what *physically* blocks screenshots/screen-share).
   if (window.lockdown && typeof window.lockdown.enterKiosk === 'function') {
     try { window.lockdown.enterKiosk(); } catch {}
   }
@@ -1438,6 +1589,9 @@ function uninstallLockdown() {
   document.removeEventListener('selectstart', handlers.selectstart);
   window.removeEventListener('beforeunload', handlers.beforeunload);
   document.body.classList.remove('lockdown-blur');
+  // Tear down the watermark and focus-blur stylesheet.
+  uninstallWatermark();
+  uninstallFocusBlur();
   // Restore the OS-level window so the student can close the app normally.
   if (window.lockdown && typeof window.lockdown.exitKiosk === 'function') {
     try { window.lockdown.exitKiosk(); } catch {}
