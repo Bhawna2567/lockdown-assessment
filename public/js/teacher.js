@@ -73,7 +73,8 @@ const els = {
   apiKeyInput: document.getElementById('api-key-input'),
   apiKeyState: document.getElementById('api-key-state'),
 
-  topbarLang: document.getElementById('topbar-lang'),
+  topbarLang: document.getElementById('topbar-lang'),  // legacy — null after html change
+  uiLang: document.getElementById('ui-lang'),
 
   subject: document.getElementById('subject'),
   assessmentLanguage: document.getElementById('assessment-language'),
@@ -506,6 +507,213 @@ function setReportLang(v) {
 if (els.topbarLang) {
   els.topbarLang.value = getReportLang();
   els.topbarLang.onchange = () => setReportLang(els.topbarLang.value);
+}
+
+// =============================================================================
+//  UI translation — full dashboard translator (like Google Translate)
+// =============================================================================
+// User picks a language from the small ui-lang dropdown in the topbar; we walk
+// the visible DOM, extract every text label, send it to /api/translate-ui (which
+// uses Claude + a server-side cache), then write the translations back into the
+// DOM. Re-runs whenever new content is rendered (via MutationObserver).
+
+const UI_LANG_KEY = 'classcurio.uiLang';
+function getUiLang() { return localStorage.getItem(UI_LANG_KEY) || ''; }
+function setUiLang(v) {
+  if (v) localStorage.setItem(UI_LANG_KEY, v);
+  else localStorage.removeItem(UI_LANG_KEY);
+}
+
+// Per-session cache of original-text → translated-text, keyed by language.
+// Bigger than the server cache because we may serve the same string many times
+// across re-renders.
+const uiTranslateClient = new Map();
+function uiCacheGet(lang, s) {
+  return uiTranslateClient.get(`${lang}::${s}`);
+}
+function uiCacheSet(lang, s, t) {
+  uiTranslateClient.set(`${lang}::${s}`, t);
+}
+
+// Tags whose text content we DO want to translate.
+const TRANSLATE_TAGS = new Set([
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'button', 'label', 'option', 'optgroup', 'a', 'p', 'li', 'th', 'td',
+  'strong', 'em', 'span', 'div', 'small', 'figcaption', 'summary',
+]);
+// Skip these completely (too dynamic, user data, or technical).
+const SKIP_SELECTORS = [
+  '[data-no-translate]',
+  '[data-no-translate="1"]',
+  '#ui-lang',
+  '#who',
+  '#queue-count',
+  '#class-count',
+  '#save-status',
+  '#settings-status',
+  '#classes-status',
+  '#import-status',
+  '#camera-gate-status',
+  '#essay-queue-view',
+  '#review-body',
+  '#progress-body',
+  '#progress-title',
+  '#assessments',          // assessment titles are user data
+  '#students-list',        // student names are user data
+  '.card-title',           // assessment titles
+  'input', 'textarea', 'code', 'pre', 'script', 'style', 'select',
+  '[contenteditable="true"]',
+];
+function shouldSkip(el) {
+  if (!el) return true;
+  if (el.nodeType !== Node.ELEMENT_NODE && el.nodeType !== Node.TEXT_NODE) return true;
+  const target = el.nodeType === Node.TEXT_NODE ? el.parentElement : el;
+  if (!target) return true;
+  for (const sel of SKIP_SELECTORS) {
+    if (target.closest(sel)) return true;
+  }
+  return false;
+}
+// Reasonable check — is this string worth translating?
+function looksTranslatable(s) {
+  const t = (s || '').trim();
+  if (!t || t.length < 2) return false;
+  // Pure number / percent / date / time / email / url
+  if (/^\d+([.,]\d+)?(%|px|s)?$/.test(t)) return false;
+  if (/^\d{4}-\d{2}-\d{2}/.test(t)) return false;
+  if (/^[\d:]+$/.test(t)) return false;
+  if (/^[\w.+-]+@[\w-]+\.[\w.-]+$/.test(t)) return false;
+  if (/^https?:\/\//.test(t)) return false;
+  // Pure punctuation
+  if (/^[\W_]+$/.test(t)) return false;
+  return true;
+}
+
+// Tag a text node so we don't re-translate it on the next pass.
+function markTranslated(node, original, translation) {
+  try {
+    node._ccOrig = original;
+    node._ccLang = currentUiLang;
+    node.nodeValue = translation;
+  } catch {}
+}
+
+let currentUiLang = '';
+let translateBusy = false;
+let pendingRetranslate = false;
+
+async function translateAllVisible() {
+  if (!currentUiLang) {
+    // Reset to English: restore any already-translated text node to its original.
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n;
+    while ((n = walker.nextNode())) {
+      if (n._ccOrig && n.nodeValue !== n._ccOrig) {
+        n.nodeValue = n._ccOrig;
+        n._ccLang = '';
+      }
+    }
+    return;
+  }
+  if (translateBusy) { pendingRetranslate = true; return; }
+  translateBusy = true;
+  try {
+    // Walk all text nodes. Collect those that need translating (different lang
+    // than current target, parent not skipped, text is non-trivial).
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    const strings = [];
+    let n;
+    while ((n = walker.nextNode())) {
+      if (shouldSkip(n)) continue;
+      const orig = n._ccOrig || n.nodeValue;
+      if (!looksTranslatable(orig)) continue;
+      // Already translated to current lang? Skip.
+      if (n._ccLang === currentUiLang && n._ccOrig) continue;
+      // Cache hit?
+      const cached = uiCacheGet(currentUiLang, orig);
+      if (cached) {
+        markTranslated(n, orig, cached);
+        continue;
+      }
+      nodes.push(n);
+      strings.push(orig);
+    }
+    if (!strings.length) return;
+
+    // Batch in chunks of 60 strings to keep request bodies reasonable.
+    const CHUNK = 60;
+    for (let i = 0; i < strings.length; i += CHUNK) {
+      const slice = strings.slice(i, i + CHUNK);
+      const sliceNodes = nodes.slice(i, i + CHUNK);
+      try {
+        const res = await fetch('/api/translate-ui', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetLang: currentUiLang, strings: slice }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!data.ok || !Array.isArray(data.translations)) continue;
+        for (let j = 0; j < sliceNodes.length; j++) {
+          const orig = slice[j];
+          const translated = data.translations[j];
+          if (typeof translated === 'string' && translated && translated !== orig) {
+            uiCacheSet(currentUiLang, orig, translated);
+            markTranslated(sliceNodes[j], orig, translated);
+          }
+        }
+      } catch (e) {
+        console.warn('translate-ui chunk failed', e);
+      }
+    }
+  } finally {
+    translateBusy = false;
+    if (pendingRetranslate) {
+      pendingRetranslate = false;
+      setTimeout(() => translateAllVisible(), 50);
+    }
+  }
+}
+
+// Throttled watcher for new content rendered into the DOM (e.g. when
+// loadAssessments() re-renders the cards).
+let translateThrottleId = null;
+function scheduleTranslate() {
+  if (!currentUiLang) return;
+  if (translateThrottleId) return;
+  translateThrottleId = setTimeout(() => {
+    translateThrottleId = null;
+    translateAllVisible();
+  }, 250);
+}
+const uiObserver = new MutationObserver((muts) => {
+  if (!currentUiLang) return;
+  // Only schedule if a mutation actually adds new visible content.
+  for (const m of muts) {
+    if (m.addedNodes && m.addedNodes.length) { scheduleTranslate(); return; }
+    if (m.type === 'characterData') { scheduleTranslate(); return; }
+  }
+});
+function startUiObserver() {
+  try {
+    uiObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+  } catch {}
+}
+
+if (els.uiLang) {
+  els.uiLang.value = getUiLang();
+  currentUiLang = els.uiLang.value;
+  els.uiLang.onchange = async () => {
+    currentUiLang = els.uiLang.value;
+    setUiLang(currentUiLang);
+    await translateAllVisible();
+  };
+  // Apply on first load if a language was previously chosen.
+  if (currentUiLang) {
+    document.addEventListener('DOMContentLoaded', () => translateAllVisible());
+    setTimeout(() => translateAllVisible(), 600);
+  }
+  startUiObserver();
 }
 
 let currentResultsAssessmentId = null;

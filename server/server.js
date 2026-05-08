@@ -1801,6 +1801,99 @@ app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
   }
 });
 
+// ---------- UI translation (Claude) ----------
+// Translates dashboard UI strings on demand. Backed by an in-memory cache
+// keyed by [lang|sourceText] so each unique string is translated exactly
+// once per language across the whole server lifetime. Cheap after warm-up.
+const uiTranslateCache = new Map(); // key = `${lang}::${str}` → translated
+app.post('/api/translate-ui', requireAuth, async (req, res) => {
+  const apiKey = readApiKey();
+  if (!apiKey) return res.json({ ok: false, reason: 'no_api_key', translations: req.body?.strings || [] });
+
+  const targetLang = String(req.body?.targetLang || '').toLowerCase().trim();
+  const incoming = Array.isArray(req.body?.strings) ? req.body.strings : [];
+  if (!targetLang || !incoming.length) {
+    return res.json({ ok: true, translations: incoming });
+  }
+  // Normalize inputs and look each one up in the cache. Anything missing goes
+  // into a "to translate" batch.
+  const seen = new Map(); // index in incoming → cache key
+  const toTranslate = [];
+  const indexOfMissing = [];
+  for (let i = 0; i < incoming.length; i++) {
+    const s = String(incoming[i] || '');
+    const key = `${targetLang}::${s}`;
+    seen.set(i, key);
+    if (!uiTranslateCache.has(key) && s.trim()) {
+      indexOfMissing.push(i);
+      toTranslate.push(s);
+    } else if (!s.trim()) {
+      uiTranslateCache.set(key, s);
+    }
+  }
+  if (toTranslate.length) {
+    try {
+      const langName = ({
+        ar: 'Arabic', hi: 'Hindi', th: 'Thai', zh: 'Mandarin Chinese (Simplified)',
+        es: 'Spanish', fr: 'French', bn: 'Bengali', ur: 'Urdu', ta: 'Tamil',
+        pa: 'Punjabi (Gurmukhi)', te: 'Telugu', ml: 'Malayalam', id: 'Indonesian',
+        ms: 'Malay', vi: 'Vietnamese', tl: 'Filipino (Tagalog)', km: 'Khmer',
+        ja: 'Japanese', ko: 'Korean', fa: 'Persian (Farsi)', tr: 'Turkish',
+        he: 'Hebrew', sw: 'Swahili', de: 'German', it: 'Italian',
+        pt: 'Portuguese', ru: 'Russian', pl: 'Polish', nl: 'Dutch',
+      })[targetLang] || targetLang;
+
+      const prompt = [
+        `You are translating short UI labels for a classroom assessment app from English to ${langName}.`,
+        `Return ONLY a JSON array of translated strings, same length and order as the input.`,
+        `Rules:`,
+        `- Preserve exact case for emails, URLs, file paths, file extensions (.docx, .pdf), product names, and short codes.`,
+        `- Preserve any leading emoji or icon character at the start of a string unchanged.`,
+        `- Numbers, dates, and times stay in Latin numerals — do not transliterate.`,
+        `- If the input is just a number, an empty string, or a single punctuation mark, return it unchanged.`,
+        `- Use a polite, professional register suitable for teachers.`,
+        ``,
+        `Input array:`,
+        JSON.stringify(toTranslate),
+      ].join('\n');
+
+      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 4096,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        const text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+        const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed) && parsed.length === toTranslate.length) {
+          for (let i = 0; i < toTranslate.length; i++) {
+            const orig = toTranslate[i];
+            uiTranslateCache.set(`${targetLang}::${orig}`, String(parsed[i] || orig));
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[translate-ui] failed', e.message);
+      // Fall back: cache originals so we don't keep retrying.
+      for (const s of toTranslate) {
+        uiTranslateCache.set(`${targetLang}::${s}`, s);
+      }
+    }
+  }
+  // Build the output array using the cache.
+  const out = incoming.map((s, i) => {
+    const key = seen.get(i);
+    return uiTranslateCache.has(key) ? uiTranslateCache.get(key) : s;
+  });
+  res.json({ ok: true, translations: out });
+});
+
 // ---------- VM / environment flag ----------
 // Student's Electron preload calls this at the start of an assessment.
 // We store it on the assessment result on submission, but also record
