@@ -49,7 +49,233 @@ const els = {
 
   passagePanel: document.getElementById('passage-panel'),
   passageText: document.getElementById('passage-text'),
+
+  consentRules: document.getElementById('consent-rules'),
 };
+
+// ----- Bilingual consent translations -----
+// The pre-assessment "Before you start" warning. Shown in English plus the
+// student's regional language. Detection priority:
+//   1) The teacher's chosen assessmentLanguage on the assessment (if we have
+//      a translation for it).
+//   2) The browser locale country code (e.g. ar-AE -> Arabic, en-IN -> Hindi).
+//   3) English-only fallback.
+const CONSENT_RULES_EN = {
+  heading: 'Before you start',
+  warning: 'Please read these rules carefully. Breaking them has real consequences.',
+  rules: [
+    'You must remain in fullscreen mode for the entire assessment.',
+    'Leaving this window, switching tabs, or opening another app will be recorded as a violation.',
+    'After 3 violations, your assessment is auto-submitted with the answers recorded so far.',
+    'Copy, paste, right-click, and common keyboard shortcuts are disabled.',
+    'The screen will blur when it loses focus.',
+    'Once started, you cannot leave and come back — the assessment is one attempt only.',
+  ],
+};
+
+// Translations of the rules. Each language has the same shape as CONSENT_RULES_EN.
+const CONSENT_RULES_I18N = {
+  ar: {
+    label: 'العربية',
+    rtl: true,
+    heading: 'قبل أن تبدأ',
+    warning: 'يرجى قراءة هذه القواعد بعناية. مخالفتها لها عواقب حقيقية.',
+    rules: [
+      'يجب أن تبقى في وضع ملء الشاشة طوال فترة التقييم.',
+      'مغادرة هذه النافذة أو تبديل علامات التبويب أو فتح تطبيق آخر سيتم تسجيله كمخالفة.',
+      'بعد 3 مخالفات، يتم إرسال تقييمك تلقائيًا بالإجابات المسجلة حتى الآن.',
+      'يتم تعطيل النسخ واللصق والنقر بزر الماوس الأيمن واختصارات لوحة المفاتيح الشائعة.',
+      'سوف تصبح الشاشة ضبابية عند فقدان التركيز.',
+      'بمجرد البدء، لا يمكنك المغادرة والعودة — التقييم محاولة واحدة فقط.',
+    ],
+  },
+  hi: {
+    label: 'हिन्दी',
+    rtl: false,
+    heading: 'शुरू करने से पहले',
+    warning: 'कृपया इन नियमों को ध्यान से पढ़ें। इन्हें तोड़ने के वास्तविक परिणाम होते हैं।',
+    rules: [
+      'आपको पूरी मूल्यांकन अवधि के लिए फुलस्क्रीन मोड में रहना होगा।',
+      'इस विंडो से बाहर जाना, टैब बदलना या कोई दूसरा ऐप खोलना उल्लंघन के रूप में दर्ज किया जाएगा।',
+      '3 उल्लंघनों के बाद, आपका मूल्यांकन अब तक दर्ज उत्तरों के साथ स्वचालित रूप से जमा हो जाएगा।',
+      'कॉपी, पेस्ट, राइट-क्लिक और सामान्य कीबोर्ड शॉर्टकट अक्षम हैं।',
+      'जब फ़ोकस छूटेगा तो स्क्रीन धुंधली हो जाएगी।',
+      'एक बार शुरू करने के बाद, आप बाहर जाकर वापस नहीं आ सकते — मूल्यांकन का केवल एक प्रयास है।',
+    ],
+  },
+  zh: {
+    label: '中文',
+    rtl: false,
+    heading: '开始之前',
+    warning: '请仔细阅读这些规则。违反规则将产生实际后果。',
+    rules: [
+      '在整个评估过程中，您必须保持全屏模式。',
+      '离开此窗口、切换标签页或打开其他应用程序将被记录为违规。',
+      '违规3次后，您的评估将自动提交，仅包含到目前为止记录的答案。',
+      '复制、粘贴、右键单击以及常见的键盘快捷键已被禁用。',
+      '当焦点丢失时，屏幕将变模糊。',
+      '一旦开始，您无法离开后再回来——评估仅有一次机会。',
+    ],
+  },
+  es: {
+    label: 'Español',
+    rtl: false,
+    heading: 'Antes de empezar',
+    warning: 'Por favor, lee estas reglas con atención. Romperlas tiene consecuencias reales.',
+    rules: [
+      'Debes permanecer en modo de pantalla completa durante toda la evaluación.',
+      'Salir de esta ventana, cambiar de pestaña o abrir otra aplicación se registrará como una infracción.',
+      'Después de 3 infracciones, tu evaluación se enviará automáticamente con las respuestas registradas hasta ese momento.',
+      'Copiar, pegar, hacer clic derecho y los atajos de teclado comunes están deshabilitados.',
+      'La pantalla se volverá borrosa cuando pierda el foco.',
+      'Una vez que empieces, no podrás salir y volver — la evaluación es de un solo intento.',
+    ],
+  },
+  fr: {
+    label: 'Français',
+    rtl: false,
+    heading: 'Avant de commencer',
+    warning: 'Veuillez lire attentivement ces règles. Les enfreindre a de réelles conséquences.',
+    rules: [
+      'Vous devez rester en mode plein écran pendant toute la durée de l’évaluation.',
+      'Quitter cette fenêtre, changer d’onglet ou ouvrir une autre application sera enregistré comme une infraction.',
+      'Après 3 infractions, votre évaluation est soumise automatiquement avec les réponses enregistrées jusque-là.',
+      'Copier, coller, clic droit et les raccourcis clavier courants sont désactivés.',
+      'L’écran deviendra flou lorsqu’il perdra le focus.',
+      'Une fois commencée, vous ne pouvez pas quitter et revenir — l’évaluation est en une seule tentative.',
+    ],
+  },
+  th: {
+    label: 'ไทย',
+    rtl: false,
+    heading: 'ก่อนเริ่มทำ',
+    warning: 'โปรดอ่านกฎเหล่านี้อย่างละเอียด การฝ่าฝืนมีผลที่ตามมาจริง',
+    rules: [
+      'คุณต้องอยู่ในโหมดเต็มหน้าจอตลอดระยะเวลาการสอบ',
+      'การออกจากหน้าต่างนี้ การเปลี่ยนแท็บ หรือการเปิดแอปอื่นจะถูกบันทึกเป็นการฝ่าฝืน',
+      'หลังจากฝ่าฝืน 3 ครั้ง การสอบของคุณจะถูกส่งอัตโนมัติพร้อมคำตอบที่บันทึกไว้',
+      'การคัดลอก วาง คลิกขวา และทางลัดแป้นพิมพ์ทั่วไปถูกปิดใช้งาน',
+      'หน้าจอจะเบลอเมื่อสูญเสียโฟกัส',
+      'เมื่อเริ่มแล้ว คุณไม่สามารถออกและกลับมาได้ — การสอบมีเพียงครั้งเดียว',
+    ],
+  },
+  de: {
+    label: 'Deutsch',
+    rtl: false,
+    heading: 'Bevor du beginnst',
+    warning: 'Bitte lies diese Regeln sorgfältig. Verstöße haben echte Konsequenzen.',
+    rules: [
+      'Du musst während der gesamten Prüfung im Vollbildmodus bleiben.',
+      'Das Verlassen dieses Fensters, das Wechseln von Tabs oder das Öffnen einer anderen App wird als Verstoß gewertet.',
+      'Nach 3 Verstößen wird deine Prüfung automatisch mit den bis dahin gespeicherten Antworten abgeschickt.',
+      'Kopieren, Einfügen, Rechtsklick und gängige Tastenkürzel sind deaktiviert.',
+      'Der Bildschirm wird unscharf, wenn er den Fokus verliert.',
+      'Nach dem Start kannst du die Prüfung nicht verlassen und wiederkommen — nur ein Versuch ist möglich.',
+    ],
+  },
+  ja: {
+    label: '日本語',
+    rtl: false,
+    heading: '開始する前に',
+    warning: 'これらのルールをよく読んでください。違反には実際の結果があります。',
+    rules: [
+      'テストの全期間中、フルスクリーンモードのままでなければなりません。',
+      'このウィンドウを離れる、タブを切り替える、または別のアプリを開くと違反として記録されます。',
+      '3回違反すると、それまでに記録された回答とともにテストが自動的に提出されます。',
+      'コピー、貼り付け、右クリック、および一般的なキーボードショートカットは無効になっています。',
+      'フォーカスを失うと画面がぼやけます。',
+      '一度開始すると、離れて戻ることはできません — テストは一度きりです。',
+    ],
+  },
+};
+
+// Map browser locale country codes (and a few language codes) to a translation key.
+// Used as a fallback when assessmentLanguage isn't a translated language.
+const COUNTRY_TO_LANG = {
+  // UAE, Saudi, Egypt, Jordan, etc. — Arabic
+  AE: 'ar', SA: 'ar', EG: 'ar', JO: 'ar', KW: 'ar', QA: 'ar', BH: 'ar',
+  OM: 'ar', LB: 'ar', SY: 'ar', YE: 'ar', IQ: 'ar', LY: 'ar', MA: 'ar',
+  TN: 'ar', DZ: 'ar', SD: 'ar',
+  // South Asia — Hindi (default for India). NOTE: India has many languages but
+  // Hindi is the most widely-recognized fallback.
+  IN: 'hi', NP: 'hi',
+  // Greater China — Mandarin
+  CN: 'zh', TW: 'zh', HK: 'zh', SG: 'zh',
+  // Japanese, Korean, Thai
+  JP: 'ja', KR: 'ja' /* fallback for KR is japanese here, override below */,
+  TH: 'th',
+  // German-speaking
+  DE: 'de', AT: 'de', CH: 'de',
+  // French-speaking
+  FR: 'fr', BE: 'fr', CA: 'fr', CI: 'fr', SN: 'fr', CM: 'fr',
+  // Spanish-speaking
+  ES: 'es', MX: 'es', AR: 'es', CO: 'es', CL: 'es', PE: 'es', VE: 'es',
+};
+
+// Map the teacher's assessmentLanguage value (free-text) to a translation key.
+const LANG_NAME_TO_KEY = {
+  Arabic: 'ar',
+  Hindi: 'hi',
+  Thai: 'th',
+  'Mandarin Chinese': 'zh',
+  Spanish: 'es',
+  French: 'fr',
+  German: 'de',
+  Japanese: 'ja',
+};
+
+function detectConsentLang(assessment) {
+  // 1) Use the teacher's chosen assessment language if we have a translation.
+  if (assessment && assessment.assessmentLanguage) {
+    const k = LANG_NAME_TO_KEY[assessment.assessmentLanguage];
+    if (k && CONSENT_RULES_I18N[k]) return k;
+  }
+  // 2) Fall back to browser locale country code (e.g. 'ar-AE', 'en-IN').
+  const loc = (navigator.language || navigator.userLanguage || '').trim();
+  const parts = loc.split(/[-_]/);
+  // First, try language code itself if we have a translation for it.
+  const langCode = (parts[0] || '').toLowerCase();
+  if (CONSENT_RULES_I18N[langCode]) return langCode;
+  // Then try country code.
+  const country = (parts[1] || '').toUpperCase();
+  if (country && COUNTRY_TO_LANG[country]) return COUNTRY_TO_LANG[country];
+  // 3) None — English-only.
+  return null;
+}
+
+function renderConsentRules(assessment) {
+  if (!els.consentRules) return;
+  const langKey = detectConsentLang(assessment);
+  const en = CONSENT_RULES_EN;
+  const tr = langKey ? CONSENT_RULES_I18N[langKey] : null;
+
+  const enBlock = `
+    <div style="padding: 16px 18px;">
+      <h2 style="margin: 0 0 6px; color:#fff;">⚠️ ${en.heading}</h2>
+      <p style="color:#ffd9d9; margin: 0 0 10px;">${en.warning}</p>
+      <ul style="margin: 0; padding-left: 22px; color:#fff;">
+        ${en.rules.map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
+      </ul>
+    </div>
+  `;
+
+  const trBlock = tr ? `
+    <div style="padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.2); ${tr.rtl ? 'direction: rtl; text-align: right;' : ''}">
+      <h2 style="margin: 0 0 6px; color:#fff;">⚠️ ${tr.heading} <span style="font-size: 13px; opacity: 0.7;">(${tr.label})</span></h2>
+      <p style="color:#ffd9d9; margin: 0 0 10px;">${tr.warning}</p>
+      <ul style="margin: 0; padding-${tr.rtl ? 'right' : 'left'}: 22px; color:#fff;">
+        ${tr.rules.map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  els.consentRules.innerHTML = `
+    <div style="margin: 16px 0; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #991b1b, #7c2d12); border: 2px solid #f87171; box-shadow: 0 4px 14px rgba(220,38,38,0.25);">
+      ${enBlock}
+      ${trBlock}
+    </div>
+  `;
+}
 
 let lastResultId = null;
 
@@ -166,6 +392,9 @@ async function openConsent(id) {
   els.consentTitle.textContent = currentAssessment.title;
   els.consentDesc.textContent = currentAssessment.description || '';
   els.consentDuration.textContent = `${currentAssessment.durationMinutes} minutes · ${currentAssessment.questions.length} questions`;
+
+  // Render the bilingual violation rules popup.
+  renderConsentRules(currentAssessment);
 
   await runEnvironmentCheck();
 }

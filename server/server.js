@@ -123,6 +123,7 @@ function ensureDefaultClass(teacherId) {
     id: uuidv4(),
     teacherId,
     name: 'Default Class',
+    roster: [],
     createdAt: new Date().toISOString(),
   };
   classes.push(defaultClass);
@@ -155,11 +156,42 @@ app.post('/api/classes', requireTeacher, (req, res) => {
     id: uuidv4(),
     teacherId: req.session.user.id,
     name,
+    roster: [],
     createdAt: new Date().toISOString(),
   };
   all.push(newClass);
   writeAll('classes.json', all);
   res.json({ class: newClass });
+});
+
+// Replace the roster for a class. Body: { roster: [{email, name}] }.
+// Roster is informational — it's a list of expected students. The share link
+// is still the actual access control for assessments. When a registered
+// student's email matches a roster entry, the teacher can see that student
+// associated with this class on the dashboard.
+app.post('/api/classes/:id/roster', requireTeacher, (req, res) => {
+  const all = readAll('classes.json');
+  const idx = all.findIndex((c) => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const incoming = Array.isArray(req.body?.roster) ? req.body.roster : [];
+  // Normalize + dedupe by email.
+  const seen = new Set();
+  const roster = [];
+  for (const item of incoming) {
+    const email = String(item?.email || '').trim().toLowerCase();
+    const name = String(item?.name || '').trim().slice(0, 120);
+    if (!email || !email.includes('@')) continue;
+    if (seen.has(email)) continue;
+    seen.add(email);
+    roster.push({ email, name });
+    if (roster.length >= 1000) break; // safety cap
+  }
+
+  all[idx] = { ...all[idx], roster };
+  writeAll('classes.json', all);
+  res.json({ class: all[idx], count: roster.length });
 });
 
 app.put('/api/classes/:id', requireTeacher, (req, res) => {

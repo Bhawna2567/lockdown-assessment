@@ -150,19 +150,83 @@ function openClassesPanel() {
 function closeClassesPanel() {
   if (els.classesPanel) els.classesPanel.style.display = 'none';
 }
+// ----- CSV parsing for roster upload -----
+// Parses a CSV with optional 'email' and 'name' columns. Tolerant of:
+//   - Just emails (one per line, no header)
+//   - email,name with header
+//   - name,email with header
+//   - Quoted values with embedded commas
+function parseRosterCSV(text) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (!lines.length) return [];
+  const splitLine = (line) => {
+    const out = [];
+    let cur = '';
+    let inQ = false;
+    for (const ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { out.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    out.push(cur.trim());
+    return out;
+  };
+
+  // Detect header
+  const first = splitLine(lines[0]).map((s) => s.toLowerCase());
+  const hasHeader = first.some((c) => c === 'email' || c === 'name' || c === 'student' || c === 'student email');
+  let emailIdx = 0;
+  let nameIdx = 1;
+  let dataStart = 0;
+  if (hasHeader) {
+    dataStart = 1;
+    emailIdx = first.findIndex((c) => c.includes('email'));
+    nameIdx = first.findIndex((c) => c === 'name' || c.includes('student name') || c === 'student');
+    if (emailIdx === -1) emailIdx = 0;
+    if (nameIdx === -1) nameIdx = emailIdx === 0 ? 1 : 0;
+  }
+
+  const out = [];
+  for (let i = dataStart; i < lines.length; i++) {
+    const cols = splitLine(lines[i]);
+    let email = (cols[emailIdx] || '').replace(/"/g, '').trim().toLowerCase();
+    let name = (cols[nameIdx] || '').replace(/"/g, '').trim();
+    // If the file is just one column of emails, name will equal email — clear it.
+    if (cols.length === 1) { email = (cols[0] || '').toLowerCase(); name = ''; }
+    if (!email || !email.includes('@')) continue;
+    out.push({ email, name });
+  }
+  return out;
+}
+
 function renderClassesList() {
   if (!els.classesList) return;
   if (!classes.length) {
     els.classesList.innerHTML = `<div class="muted">No classes yet. Add one above.</div>`;
     return;
   }
-  els.classesList.innerHTML = classes.map((c) => `
-    <div class="row" data-class-row="${c.id}" style="padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 6px;">
-      <input type="text" data-class-name="${c.id}" value="${escapeAttr(c.name)}" style="flex: 1;" />
-      <button class="btn" data-class-rename="${c.id}">Rename</button>
-      <button class="btn danger" data-class-delete="${c.id}">Delete</button>
-    </div>
-  `).join('');
+  els.classesList.innerHTML = classes.map((c) => {
+    const rosterCount = (c.roster || []).length;
+    return `
+      <div data-class-row="${c.id}" style="padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px;">
+        <div class="row" style="margin-bottom: 8px;">
+          <input type="text" data-class-name="${c.id}" value="${escapeAttr(c.name)}" style="flex: 1;" />
+          <button class="btn" data-class-rename="${c.id}">Rename</button>
+          <button class="btn danger" data-class-delete="${c.id}">Delete</button>
+        </div>
+        <div class="row" style="font-size: 13px;">
+          <span class="muted">📋 Roster: <strong>${rosterCount}</strong> student${rosterCount === 1 ? '' : 's'}</span>
+          <div class="spacer"></div>
+          ${rosterCount ? `<button class="btn" data-class-view-roster="${c.id}">View students</button>` : ''}
+          <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV)</button>
+          <input type="file" accept=".csv,.txt" data-class-roster-file="${c.id}" style="display:none;" />
+        </div>
+        <div data-class-roster-status="${c.id}" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
+        <div data-class-roster-view="${c.id}" style="display:none; margin-top: 10px; max-height: 240px; overflow-y: auto; background: #f9fafb; border-radius: 6px; padding: 8px;"></div>
+      </div>
+    `;
+  }).join('');
+
   els.classesList.querySelectorAll('[data-class-rename]').forEach((btn) => {
     btn.onclick = async () => {
       const id = btn.dataset.classRename;
@@ -181,6 +245,7 @@ function renderClassesList() {
       }
     };
   });
+
   els.classesList.querySelectorAll('[data-class-delete]').forEach((btn) => {
     btn.onclick = async () => {
       const id = btn.dataset.classDelete;
@@ -198,6 +263,79 @@ function renderClassesList() {
       } catch (e) {
         els.classesStatus.textContent = 'Error: ' + e.message;
       }
+    };
+  });
+
+  // Roster upload — bridge button click to hidden file input
+  els.classesList.querySelectorAll('[data-class-upload-roster]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.classUploadRoster;
+      const fileInput = els.classesList.querySelector(`[data-class-roster-file="${id}"]`);
+      if (fileInput) fileInput.click();
+    };
+  });
+  els.classesList.querySelectorAll('[data-class-roster-file]').forEach((input) => {
+    input.onchange = async (e) => {
+      const id = input.dataset.classRosterFile;
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const status = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
+      if (status) status.textContent = 'Reading file…';
+      try {
+        const text = await file.text();
+        const roster = parseRosterCSV(text);
+        if (!roster.length) {
+          if (status) status.textContent = '⚠ No valid email rows found. Make sure the file has an "email" column or one email per line.';
+          input.value = '';
+          return;
+        }
+        if (!confirm(`Import ${roster.length} student${roster.length === 1 ? '' : 's'} into "${classes.find((c) => c.id === id).name}"?\n\nThis will replace any existing roster for this class.`)) {
+          input.value = '';
+          if (status) status.textContent = '';
+          return;
+        }
+        if (status) status.textContent = 'Uploading…';
+        const result = await api(`/api/classes/${id}/roster`, { method: 'POST', body: { roster } });
+        await loadClasses();
+        renderClassesList();
+        // Reopen this class's row status (re-rendered, so re-find)
+        const newStatus = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
+        if (newStatus) {
+          newStatus.textContent = `✓ Saved ${result.count} student${result.count === 1 ? '' : 's'}.`;
+          setTimeout(() => { newStatus.textContent = ''; }, 3000);
+        }
+      } catch (err) {
+        if (status) status.textContent = 'Error: ' + err.message;
+      }
+    };
+  });
+
+  els.classesList.querySelectorAll('[data-class-view-roster]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.classViewRoster;
+      const cls = classes.find((c) => c.id === id);
+      const view = els.classesList.querySelector(`[data-class-roster-view="${id}"]`);
+      if (!cls || !view) return;
+      if (view.style.display === 'block') { view.style.display = 'none'; return; }
+      view.style.display = 'block';
+      view.innerHTML = `
+        <table style="width:100%; font-size: 13px; border-collapse: collapse;">
+          <thead>
+            <tr style="background: #eef2ff;">
+              <th style="text-align:left; padding: 6px 8px;">Name</th>
+              <th style="text-align:left; padding: 6px 8px;">Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(cls.roster || []).map((s) => `
+              <tr style="border-top: 1px solid #e5e7eb;">
+                <td style="padding: 6px 8px;">${escapeHtml(s.name || '')}</td>
+                <td style="padding: 6px 8px;">${escapeHtml(s.email)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
     };
   });
 }
