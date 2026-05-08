@@ -214,12 +214,13 @@ function renderClassesList() {
           <button class="btn" data-class-rename="${c.id}">Rename</button>
           <button class="btn danger" data-class-delete="${c.id}">Delete</button>
         </div>
-        <div class="row" style="font-size: 13px;">
+        <div class="row" style="font-size: 13px; flex-wrap: wrap; gap: 6px;">
           <span class="muted">📋 Roster: <strong>${rosterCount}</strong> student${rosterCount === 1 ? '' : 's'}</span>
           <div class="spacer"></div>
           ${rosterCount ? `<button class="btn" data-class-view-roster="${c.id}">View students</button>` : ''}
-          <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV)</button>
-          <input type="file" accept=".csv,.txt" data-class-roster-file="${c.id}" style="display:none;" />
+          <button class="btn" data-class-download-template="${c.id}" title="Download a CSV template you can fill in">📥 Template</button>
+          <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV / PDF / Word)</button>
+          <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-roster-file="${c.id}" style="display:none;" />
         </div>
         <div data-class-roster-status="${c.id}" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
         <div data-class-roster-view="${c.id}" style="display:none; margin-top: 10px; max-height: 240px; overflow-y: auto; background: #f9fafb; border-radius: 6px; padding: 8px;"></div>
@@ -266,6 +267,27 @@ function renderClassesList() {
     };
   });
 
+  // Template download — generates a sample CSV the teacher can fill in.
+  els.classesList.querySelectorAll('[data-class-download-template]').forEach((btn) => {
+    btn.onclick = () => {
+      const csv = [
+        'email,name',
+        'alice@school.com,Alice Khan',
+        'bob@school.com,Bob Singh',
+        'charlie@school.com,Charlie Lee',
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'classcurio-roster-template.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+  });
+
   // Roster upload — bridge button click to hidden file input
   els.classesList.querySelectorAll('[data-class-upload-roster]').forEach((btn) => {
     btn.onclick = () => {
@@ -280,25 +302,47 @@ function renderClassesList() {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       const status = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
+      const lower = (file.name || '').toLowerCase();
+      const isCsvLike = lower.endsWith('.csv') || lower.endsWith('.txt') || (file.type || '').startsWith('text/');
+
       if (status) status.textContent = 'Reading file…';
       try {
-        const text = await file.text();
-        const roster = parseRosterCSV(text);
+        let roster = [];
+        if (isCsvLike) {
+          // CSV/TXT: parse client-side
+          const text = await file.text();
+          roster = parseRosterCSV(text);
+        } else {
+          // PDF / DOCX: upload to server for parsing
+          if (status) status.textContent = 'Uploading and parsing…';
+          const fd = new FormData();
+          fd.append('file', file);
+          const res = await fetch('/api/classes/parse-roster', { method: 'POST', body: fd });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Parse failed');
+          roster = Array.isArray(data.roster) ? data.roster : [];
+        }
+
         if (!roster.length) {
-          if (status) status.textContent = '⚠ No valid email rows found. Make sure the file has an "email" column or one email per line.';
+          if (status) status.textContent = '⚠ No valid email rows found in this file. Make sure each student row contains an email address.';
           input.value = '';
           return;
         }
-        if (!confirm(`Import ${roster.length} student${roster.length === 1 ? '' : 's'} into "${classes.find((c) => c.id === id).name}"?\n\nThis will replace any existing roster for this class.`)) {
+        // Preview: show first 3 names so the teacher can sanity-check what was extracted.
+        const preview = roster.slice(0, 3).map((s) => s.name ? `${s.name} <${s.email}>` : s.email).join('\n');
+        const more = roster.length > 3 ? `\n…and ${roster.length - 3} more` : '';
+        if (!confirm(
+          `Import ${roster.length} student${roster.length === 1 ? '' : 's'} into "${classes.find((c) => c.id === id).name}"?\n\n` +
+          `Preview:\n${preview}${more}\n\nThis will replace any existing roster for this class.`
+        )) {
           input.value = '';
           if (status) status.textContent = '';
           return;
         }
-        if (status) status.textContent = 'Uploading…';
+        if (status) status.textContent = 'Saving…';
         const result = await api(`/api/classes/${id}/roster`, { method: 'POST', body: { roster } });
         await loadClasses();
         renderClassesList();
-        // Reopen this class's row status (re-rendered, so re-find)
         const newStatus = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
         if (newStatus) {
           newStatus.textContent = `✓ Saved ${result.count} student${result.count === 1 ? '' : 's'}.`;

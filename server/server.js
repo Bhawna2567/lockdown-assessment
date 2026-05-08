@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 const ExcelJS = require('exceljs');
 
 const { readAll, writeAll } = require('./store');
-const { importFile } = require('./importer');
+const { importFile, extractText } = require('./importer');
 const { gradeWriting, readApiKey } = require('./grader');
 const reports = require('./reports');
 const { Packer } = require('docx');
@@ -193,6 +193,85 @@ app.post('/api/classes/:id/roster', requireTeacher, (req, res) => {
   writeAll('classes.json', all);
   res.json({ class: all[idx], count: roster.length });
 });
+
+// Parse a class roster file (CSV / TXT / PDF / DOCX) and return the extracted
+// {email, name} pairs WITHOUT saving. The frontend then shows the preview and
+// asks the teacher to confirm before calling POST /api/classes/:id/roster.
+//
+// Heuristic: extract every email-looking token, then try to associate each
+// with the nearest preceding non-email word(s) on the same line (or just
+// before) as the student's name. Works for: CSVs (with or without header),
+// PDFs of class lists, Word docs of student rosters.
+app.post('/api/classes/parse-roster', requireTeacher, upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const text = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
+    try { fs.unlinkSync(req.file.path); } catch {}
+
+    const roster = extractRosterFromText(text);
+    if (!roster.length) {
+      return res.status(422).json({
+        error: 'Could not detect any emails in this file. Make sure each student row has an email address.',
+      });
+    }
+    res.json({ roster });
+  } catch (e) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Extract {email, name} pairs from arbitrary text. Robust against:
+//   - CSV (email,name or name,email, with or without header)
+//   - PDF/DOCX class lists with one row per student (name then email, or email
+//     then name, separated by spaces, tabs, or commas)
+//   - Plain lists of just emails (one per line)
+function extractRosterFromText(rawText) {
+  const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+  const lines = String(rawText || '')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const roster = [];
+
+  for (const line of lines) {
+    const emails = line.match(EMAIL_RE) || [];
+    if (!emails.length) continue;
+
+    // Strip the email(s) from the line to get candidate name fragments.
+    let nameCandidate = line;
+    for (const e of emails) nameCandidate = nameCandidate.replace(e, ' ');
+    // Strip common separators and column headers.
+    nameCandidate = nameCandidate
+      .replace(/[,;|\t]+/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/^(name|student name|full name|student|email|email address)\b[:\-]?\s*/i, '')
+      .trim();
+    // Avoid using a fragment that's just digits or a header word.
+    if (/^(name|student|email|full name|student name|email address)$/i.test(nameCandidate)) {
+      nameCandidate = '';
+    }
+
+    for (const e of emails) {
+      const email = e.toLowerCase();
+      if (seen.has(email)) continue;
+      seen.add(email);
+      // Reasonable name length cap; if it's > 120 chars, the line is probably
+      // garbage and we'd rather store no name than a junk one.
+      const name = nameCandidate && nameCandidate.length <= 120 ? nameCandidate : '';
+      roster.push({ email, name });
+      // Only the first email on a line gets the name; subsequent emails on the
+      // same line get blank names (rare in practice).
+      nameCandidate = '';
+      if (roster.length >= 1000) break;
+    }
+    if (roster.length >= 1000) break;
+  }
+
+  return roster;
+}
 
 app.put('/api/classes/:id', requireTeacher, (req, res) => {
   const all = readAll('classes.json');
