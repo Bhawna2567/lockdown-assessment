@@ -105,24 +105,129 @@ app.get('/api/me', (req, res) => {
   res.json({ user: req.session.user || null });
 });
 
+// ---------- Classes ----------
+// Classes are lightweight teacher-side organizational units. Each assessment
+// belongs to one class. Students don't see classes directly — they only see
+// the assessments they've already submitted, accessed via teacher-shared
+// share links.
+//
+// Migration: on first /api/classes call for a teacher with zero classes, we
+// create a 'Default Class' and assign all of their existing assessments
+// (those without a classId) to it.
+function ensureDefaultClass(teacherId) {
+  const classes = readAll('classes.json');
+  const mine = classes.filter((c) => c.teacherId === teacherId);
+  if (mine.length > 0) return mine;
+
+  const defaultClass = {
+    id: uuidv4(),
+    teacherId,
+    name: 'Default Class',
+    createdAt: new Date().toISOString(),
+  };
+  classes.push(defaultClass);
+  writeAll('classes.json', classes);
+
+  // Assign all existing classless assessments to this default class.
+  const assessments = readAll('assessments.json');
+  let touched = false;
+  for (const a of assessments) {
+    if (a.teacherId === teacherId && !a.classId) {
+      a.classId = defaultClass.id;
+      touched = true;
+    }
+  }
+  if (touched) writeAll('assessments.json', assessments);
+
+  return [defaultClass];
+}
+
+app.get('/api/classes', requireTeacher, (req, res) => {
+  const list = ensureDefaultClass(req.session.user.id);
+  res.json(list.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || '')));
+});
+
+app.post('/api/classes', requireTeacher, (req, res) => {
+  const name = String(req.body?.name || '').trim().slice(0, 60);
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  const all = readAll('classes.json');
+  const newClass = {
+    id: uuidv4(),
+    teacherId: req.session.user.id,
+    name,
+    createdAt: new Date().toISOString(),
+  };
+  all.push(newClass);
+  writeAll('classes.json', all);
+  res.json({ class: newClass });
+});
+
+app.put('/api/classes/:id', requireTeacher, (req, res) => {
+  const all = readAll('classes.json');
+  const idx = all.findIndex((c) => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  const name = String(req.body?.name || '').trim().slice(0, 60);
+  if (!name) return res.status(400).json({ error: 'Name required' });
+  all[idx] = { ...all[idx], name };
+  writeAll('classes.json', all);
+  res.json({ class: all[idx] });
+});
+
+app.delete('/api/classes/:id', requireTeacher, (req, res) => {
+  const all = readAll('classes.json');
+  const idx = all.findIndex((c) => c.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  // Refuse deletion if any assessments still reference this class.
+  const assessments = readAll('assessments.json');
+  const inUse = assessments.some((a) => a.classId === req.params.id);
+  if (inUse) {
+    return res.status(409).json({
+      error: 'This class still contains assessments. Move or delete them first, then delete the class.',
+    });
+  }
+
+  all.splice(idx, 1);
+  writeAll('classes.json', all);
+  res.json({ ok: true });
+});
+
 // ---------- Assessments (teacher) ----------
 app.get('/api/assessments', requireAuth, (req, res) => {
   const all = readAll('assessments.json');
   if (req.session.user.role === 'teacher') {
-    // Teachers see only their own
+    // Make sure they have at least one class (migrates legacy data on first
+    // load post-deploy).
+    ensureDefaultClass(req.session.user.id);
+    // Teachers see only their own.
     return res.json(all.filter((a) => a.teacherId === req.session.user.id));
   }
-  // Students see published assessments (sanitized — no correct answers)
+  // Students see ONLY assessments they have already submitted. Everything
+  // else (discovery, browsing, lists of available assessments) is intentionally
+  // removed — students start new assessments only via teacher-shared links.
+  const results = readAll('results.json');
+  const studentResults = results.filter((r) => r.studentId === req.session.user.id);
+  const submittedIds = new Set(studentResults.map((r) => r.assessmentId));
   const visible = all
-    .filter((a) => a.published)
-    .map((a) => ({
-      id: a.id,
-      title: a.title,
-      description: a.description,
-      durationMinutes: a.durationMinutes,
-      questionCount: a.questions.length,
-      teacherName: a.teacherName,
-    }));
+    .filter((a) => submittedIds.has(a.id))
+    .map((a) => {
+      const result = studentResults.find((r) => r.assessmentId === a.id);
+      return {
+        id: a.id,
+        title: a.title,
+        description: a.description,
+        subject: a.subject || null,
+        assessmentLanguage: a.assessmentLanguage || null,
+        durationMinutes: a.durationMinutes,
+        questionCount: a.questions.length,
+        teacherName: a.teacherName,
+        submittedAt: result ? result.submittedAt : null,
+        resultId: result ? result.id : null,
+      };
+    })
+    .sort((a, b) => (b.submittedAt || '').localeCompare(a.submittedAt || ''));
   res.json(visible);
 });
 
@@ -172,15 +277,23 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage,
+    subject, assessmentLanguage, classId,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
   }
+  // Resolve class: must be a class belonging to this teacher; if not provided
+  // or invalid, fall back to the teacher's first class (creating it if needed).
+  const teacherClasses = ensureDefaultClass(req.session.user.id);
+  const resolvedClassId = teacherClasses.find((c) => c.id === classId)
+    ? classId
+    : teacherClasses[0].id;
+
   const assessment = {
     id: uuidv4(),
     teacherId: req.session.user.id,
     teacherName: req.session.user.name,
+    classId: resolvedClassId,
     subject: normalizeSubject(subject),
     assessmentLanguage: normalizeAssessmentLanguage(assessmentLanguage),
     title: String(title),
@@ -262,10 +375,19 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage,
+    subject, assessmentLanguage, classId,
   } = req.body || {};
+  // Validate classId if provided: must belong to this teacher.
+  let nextClassId = all[idx].classId;
+  if (classId !== undefined && classId !== null) {
+    const teacherClasses = readAll('classes.json').filter((c) => c.teacherId === req.session.user.id);
+    if (teacherClasses.some((c) => c.id === classId)) {
+      nextClassId = classId;
+    }
+  }
   const updated = {
     ...all[idx],
+    classId: nextClassId,
     subject: subject === undefined ? (all[idx].subject ?? null) : normalizeSubject(subject),
     assessmentLanguage: assessmentLanguage === undefined
       ? (all[idx].assessmentLanguage ?? null)

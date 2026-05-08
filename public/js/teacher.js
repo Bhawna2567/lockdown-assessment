@@ -82,7 +82,150 @@ const els = {
   templateBack: document.getElementById('template-back'),
   templateBlank: document.getElementById('template-blank'),
   templateGrid: document.getElementById('template-grid'),
+
+  classSwitcher: document.getElementById('class-switcher'),
+  classCount: document.getElementById('class-count'),
+  manageClassesBtn: document.getElementById('manage-classes-btn'),
+  classesPanel: document.getElementById('classes-panel'),
+  classesClose: document.getElementById('classes-close'),
+  classesList: document.getElementById('classes-list'),
+  classesStatus: document.getElementById('classes-status'),
+  newClassName: document.getElementById('new-class-name'),
+  addClassBtn: document.getElementById('add-class-btn'),
+  builderClass: document.getElementById('builder-class'),
 };
+
+// ----- Class state (loaded from server) -----
+let classes = [];
+const ACTIVE_CLASS_KEY = 'classcurio.activeClassId';
+function getActiveClassId() {
+  return localStorage.getItem(ACTIVE_CLASS_KEY) || (classes[0] && classes[0].id) || null;
+}
+function setActiveClassId(id) {
+  if (id) localStorage.setItem(ACTIVE_CLASS_KEY, id);
+  else localStorage.removeItem(ACTIVE_CLASS_KEY);
+}
+async function loadClasses() {
+  try {
+    classes = await api('/api/classes');
+  } catch (e) {
+    console.error('loadClasses failed', e);
+    classes = [];
+  }
+  renderClassSwitcher();
+  renderBuilderClassDropdown();
+}
+function renderClassSwitcher() {
+  if (!els.classSwitcher) return;
+  const active = getActiveClassId();
+  els.classSwitcher.innerHTML = classes
+    .map((c) => `<option value="${c.id}" ${c.id === active ? 'selected' : ''}>${escapeHtml(c.name)}</option>`)
+    .join('');
+  // Default to first class if no active
+  if (!classes.find((c) => c.id === active) && classes[0]) {
+    setActiveClassId(classes[0].id);
+    els.classSwitcher.value = classes[0].id;
+  }
+}
+function renderBuilderClassDropdown() {
+  if (!els.builderClass) return;
+  els.builderClass.innerHTML = classes
+    .map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`)
+    .join('');
+}
+
+if (els.classSwitcher) {
+  els.classSwitcher.onchange = () => {
+    setActiveClassId(els.classSwitcher.value);
+    loadAssessments();
+  };
+}
+
+// ----- Manage classes panel -----
+function openClassesPanel() {
+  if (!els.classesPanel) return;
+  els.classesPanel.style.display = 'block';
+  renderClassesList();
+}
+function closeClassesPanel() {
+  if (els.classesPanel) els.classesPanel.style.display = 'none';
+}
+function renderClassesList() {
+  if (!els.classesList) return;
+  if (!classes.length) {
+    els.classesList.innerHTML = `<div class="muted">No classes yet. Add one above.</div>`;
+    return;
+  }
+  els.classesList.innerHTML = classes.map((c) => `
+    <div class="row" data-class-row="${c.id}" style="padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 6px;">
+      <input type="text" data-class-name="${c.id}" value="${escapeAttr(c.name)}" style="flex: 1;" />
+      <button class="btn" data-class-rename="${c.id}">Rename</button>
+      <button class="btn danger" data-class-delete="${c.id}">Delete</button>
+    </div>
+  `).join('');
+  els.classesList.querySelectorAll('[data-class-rename]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.classRename;
+      const input = els.classesList.querySelector(`[data-class-name="${id}"]`);
+      const name = (input.value || '').trim();
+      if (!name) return;
+      try {
+        els.classesStatus.textContent = 'Saving…';
+        await api(`/api/classes/${id}`, { method: 'PUT', body: { name } });
+        await loadClasses();
+        renderClassesList();
+        els.classesStatus.textContent = 'Saved.';
+        setTimeout(() => { els.classesStatus.textContent = ''; }, 1500);
+      } catch (e) {
+        els.classesStatus.textContent = 'Error: ' + e.message;
+      }
+    };
+  });
+  els.classesList.querySelectorAll('[data-class-delete]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.classDelete;
+      const cls = classes.find((c) => c.id === id);
+      if (!cls) return;
+      if (!confirm(`Delete the class "${cls.name}"?\n\nThis only works if the class has no assessments. If it does, move or delete those first.`)) return;
+      try {
+        els.classesStatus.textContent = 'Deleting…';
+        await api(`/api/classes/${id}`, { method: 'DELETE' });
+        await loadClasses();
+        renderClassesList();
+        loadAssessments();
+        els.classesStatus.textContent = 'Deleted.';
+        setTimeout(() => { els.classesStatus.textContent = ''; }, 1500);
+      } catch (e) {
+        els.classesStatus.textContent = 'Error: ' + e.message;
+      }
+    };
+  });
+}
+if (els.manageClassesBtn) els.manageClassesBtn.onclick = openClassesPanel;
+if (els.classesClose) els.classesClose.onclick = closeClassesPanel;
+if (els.addClassBtn) {
+  els.addClassBtn.onclick = async () => {
+    const name = (els.newClassName.value || '').trim();
+    if (!name) return;
+    try {
+      els.classesStatus.textContent = 'Adding…';
+      const { class: added } = await api('/api/classes', { method: 'POST', body: { name } });
+      els.newClassName.value = '';
+      await loadClasses();
+      renderClassesList();
+      // Make the new class active so the dashboard shows it.
+      if (added && added.id) {
+        setActiveClassId(added.id);
+        if (els.classSwitcher) els.classSwitcher.value = added.id;
+        loadAssessments();
+      }
+      els.classesStatus.textContent = 'Added.';
+      setTimeout(() => { els.classesStatus.textContent = ''; }, 1500);
+    } catch (e) {
+      els.classesStatus.textContent = 'Error: ' + e.message;
+    }
+  };
+}
 
 // Subject templates — empty (just pre-set the subject + suggest question
 // types). Teachers add all the actual questions themselves.
@@ -240,12 +383,21 @@ function filteredAssessments() {
   const term = els.filterTerm ? els.filterTerm.value : '';
   const grade = els.filterGrade ? els.filterGrade.value : '';
   const year = els.filterYear ? els.filterYear.value : '';
-  return allAssessments.filter((a) => {
+  const activeClass = getActiveClassId();
+  const filtered = allAssessments.filter((a) => {
+    // Always scope to the active class — assessments without a classId
+    // (legacy data) are still hidden until the next migration assigns them.
+    if (activeClass && a.classId !== activeClass) return false;
     if (term && a.term !== term) return false;
     if (grade && a.grade !== grade) return false;
     if (year && a.academicYear !== year) return false;
     return true;
   });
+  if (els.classCount) {
+    const cls = classes.find((c) => c.id === activeClass);
+    els.classCount.textContent = `${filtered.length} assessment${filtered.length === 1 ? '' : 's'} in ${cls ? cls.name : 'this class'}`;
+  }
+  return filtered;
 }
 
 function render() {
@@ -520,6 +672,14 @@ function openBuilder(a, presets) {
   if (els.assessmentLanguage) {
     els.assessmentLanguage.value = a && a.assessmentLanguage ? a.assessmentLanguage : '';
   }
+  // Builder class dropdown — for new assessments default to the active class;
+  // for edits use the assessment's stored classId.
+  renderBuilderClassDropdown();
+  if (els.builderClass) {
+    els.builderClass.value = a && a.classId
+      ? a.classId
+      : (getActiveClassId() || (classes[0] && classes[0].id) || '');
+  }
   els.duration.value = a ? a.durationMinutes : 30;
   els.published.value = a ? String(a.published) : 'false';
   questions = a ? JSON.parse(JSON.stringify(a.questions)) : [];
@@ -694,6 +854,7 @@ els.saveBtn.onclick = async () => {
       grade: els.grade ? els.grade.value || null : null,
       subject: els.subject ? els.subject.value || null : null,
       assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
+      classId: els.builderClass ? els.builderClass.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
@@ -1571,6 +1732,7 @@ if (els.viewCalendarBtn) {
 // ---------- Init ----------
 (async () => {
   await loadMe();
+  await loadClasses();
   await loadAssessments();
   await refreshQueueCount();
   await refreshApiKeyState();

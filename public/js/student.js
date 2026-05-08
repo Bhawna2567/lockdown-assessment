@@ -117,28 +117,36 @@ els.logout.onclick = async () => {
 };
 
 async function loadAssessments() {
-  const list = await api('/api/assessments');
+  // Students no longer browse a list of available assessments. The "Available
+  // assessments" header is replaced with one of two things:
+  //   - If the student has past submissions: a context banner reminding them
+  //     that new assessments arrive via teacher-shared links.
+  //   - If they have nothing yet: a big friendly placeholder explaining the
+  //     link-only flow.
+  // The actual history list is rendered separately by loadPastResults().
+  const list = await api('/api/assessments'); // server returns only submitted
   if (!list.length) {
-    els.assessments.innerHTML = `<div class="panel muted">No assessments are currently available.</div>`;
+    els.assessments.innerHTML = `
+      <div class="panel" style="background: linear-gradient(135deg, #1a1e33, #312e81); color:#fff; border-color:#2b3152; text-align: center; padding: 40px 24px;">
+        <div style="font-size: 64px; margin-bottom: 12px;">📬</div>
+        <h2 style="margin: 0 0 8px; color:#fff;">You haven't taken any assessments yet</h2>
+        <p style="color:#9ba0bd; max-width: 480px; margin: 0 auto;">
+          Your teacher will send you a link when an assessment is ready.
+          Click the link they share with you to begin.
+        </p>
+      </div>
+    `;
     return;
   }
-  els.assessments.innerHTML = list
-    .map((a) => `
-      <div class="card" style="background:#1a1e33; color:#fff; border-color:#2b3152;">
-        <div class="row">
-          <div>
-            <div class="card-title">${escapeHtml(a.title)}</div>
-            <div class="muted" style="color:#9ba0bd;">${a.questionCount} questions · ${a.durationMinutes} min · by ${escapeHtml(a.teacherName)}</div>
-            ${a.description ? `<div style="margin-top:6px;">${escapeHtml(a.description)}</div>` : ''}
-          </div>
-          <div class="spacer"></div>
-          <button class="btn primary" data-id="${a.id}">Take assessment</button>
-        </div>
+  // Has past submissions — show a small reminder banner. The detailed list is
+  // rendered by loadPastResults() below this section.
+  els.assessments.innerHTML = `
+    <div class="panel" style="background:#1a1e33; color:#9ba0bd; border-color:#2b3152;">
+      <div style="font-size: 13px;">
+        📋 Your completed assessments are below. To take a new assessment, click the link your teacher sent you — it will open here automatically.
       </div>
-    `).join('');
-  els.assessments.querySelectorAll('button[data-id]').forEach((b) => {
-    b.onclick = () => openConsent(b.dataset.id);
-  });
+    </div>
+  `;
 }
 
 // ---------- Consent ----------

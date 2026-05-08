@@ -62,6 +62,17 @@
 
   <div class="container">
     <div id="list-view">
+      <div class="panel" style="background: linear-gradient(135deg, #eef2ff, #ede9fe); margin-bottom: 14px; padding: 14px 18px;">
+        <div class="row" style="align-items: center;">
+          <div style="font-size: 22px;">🏫</div>
+          <div style="font-weight: 600;">Class:</div>
+          <select id="class-switcher" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #c7d2fe; background: white; min-width: 220px; font-size: 14px;"></select>
+          <button id="manage-classes-btn" class="btn">⚙ Manage classes</button>
+          <div class="spacer"></div>
+          <span id="class-count" class="muted" style="font-size: 13px;"></span>
+        </div>
+      </div>
+
       <div class="row" style="margin-bottom: 12px;">
         <h1 style="margin:0;">Your assessments</h1>
         <div class="spacer"></div>
@@ -114,6 +125,28 @@
             <button id="view-calendar-btn" class="btn" style="border-radius: 0 8px 8px 0; border-left: none;">Calendar</button>
           </div>
         </div>
+      </div>
+
+      <div id="classes-panel" class="panel" style="display:none;">
+        <div class="row" style="margin-bottom: 10px;">
+          <h2 style="margin:0;">🏫 Manage classes</h2>
+          <div class="spacer"></div>
+          <button id="classes-close" class="btn ghost">Close</button>
+        </div>
+        <p class="muted">
+          Create one class per group of students. Each assessment belongs to one class.
+          Students never see classes directly — they take assessments only via the share
+          link you generate. Classes just keep your dashboard organized.
+        </p>
+        <div class="field">
+          <label>Add a new class</label>
+          <div class="row">
+            <input type="text" id="new-class-name" placeholder="e.g. Grade 7 Biology — 2025-26" style="flex:1;" />
+            <button id="add-class-btn" class="btn primary">+ Add class</button>
+          </div>
+        </div>
+        <div id="classes-list" style="margin-top: 14px;"></div>
+        <div id="classes-status" class="muted" style="margin-top: 10px;"></div>
       </div>
 
       <div id="settings-panel" class="panel" style="display:none;">
@@ -182,6 +215,11 @@
         <div class="field">
           <label>Title</label>
           <input type="text" id="title" placeholder="e.g., Midterm Chapter 1-3" />
+        </div>
+        <div class="field">
+          <label>🏫 Class</label>
+          <select id="builder-class"></select>
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">Pick which class this assessment belongs to. Manage classes from the dashboard.</div>
         </div>
         <div class="row">
           <div class="field" style="flex:1;">

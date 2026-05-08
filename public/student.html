@@ -15,19 +15,10 @@
     <button id="logout" class="btn">Sign out</button>
   </div>
 
-  <!-- Identity watermark — tiled diagonally during assessments. -->
-  <div id="anti-cheat-watermark" aria-hidden="true"></div>
-
-  <!-- Pause overlay — shown when the window loses focus during an exam. -->
-  <div id="lockdown-pause-overlay" class="lockdown-pause-overlay" aria-hidden="true">
-    <h2>⏸ Paused</h2>
-    <p>The assessment is paused because the window lost focus.<br/>Return to this window to continue. Each time the window loses focus is recorded as a violation.</p>
-  </div>
-
   <div class="container">
     <!-- LIST VIEW -->
     <div id="list-view">
-      <h1>Available assessments</h1>
+      <h1>My dashboard</h1>
       <div id="assessments"></div>
       <div id="past-results" style="margin-top: 24px;"></div>
     </div>
@@ -45,9 +36,7 @@
           <li>Leaving this window, switching tabs, or opening another app will be recorded as a violation.</li>
           <li>After 3 violations, your assessment is auto-submitted with the answers recorded so far.</li>
           <li>Copy, paste, right-click, and common keyboard shortcuts are disabled.</li>
-          <li>The screen blurs and pauses whenever the window loses focus.</li>
-          <li><strong>Webcam access is required.</strong> Your webcam will record periodic snapshots which your teacher reviews along with your answers. The camera being covered or unplugged is recorded as a violation.</li>
-          <li>Your email and the assessment timestamp are watermarked across the screen — any screenshot you take will carry your identity.</li>
+          <li>The screen will blur when it loses focus.</li>
           <li>Once started, you cannot leave and come back — the assessment is one attempt only.</li>
         </ul>
 
