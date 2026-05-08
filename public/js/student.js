@@ -201,17 +201,17 @@ function resetPreflight() {
 //   3) English-only fallback.
 const CONSENT_RULES_EN = {
   heading: 'Before you start',
-  warning: 'Please read these rules carefully. Breaking them has real consequences.',
+  warning: 'Read every rule. The 🚨 rules end your test on the FIRST occurrence — no second chance. The ⚠️ rules give you 3 chances before auto-submission.',
   rules: [
-    '📷 Your camera must be ON for the entire assessment. You cannot start until you grant camera access.',
-    '📷 If you turn off your camera, cover it, or unplug it during the assessment, your test will be auto-submitted immediately.',
-    '📷 You must stay clearly visible in the camera. Moving out of view or letting another person take your place is recorded as a violation.',
-    '🖥 Screen sharing is forbidden. Do not share your screen on Google Meet, Zoom, Microsoft Teams, or any other app while taking this assessment. For the strongest protection on a Mac or Windows laptop, install the ClassCurio desktop app.',
-    'You must remain in fullscreen mode for the entire assessment.',
-    'Leaving this window, switching tabs, or opening another app is recorded as a violation.',
-    'After 3 violations, your assessment is auto-submitted with the answers recorded so far.',
-    'Copy, paste, right-click, and common keyboard shortcuts are disabled.',
-    'The screen will blur when it loses focus.',
+    '🚨 INSTANT auto-submit if you turn off, cover, or unplug your camera during the test.',
+    '🚨 INSTANT auto-submit if you move out of the camera view or look away from the screen.',
+    '🚨 INSTANT auto-submit if a different person is detected in the camera.',
+    '📷 Your camera must be ON for the entire assessment. You cannot start until you grant camera access and remain clearly visible.',
+    '🖥 Screen sharing is forbidden. Do not share your screen on Google Meet, Zoom, Microsoft Teams, or any other app while taking this assessment. For the strongest protection, install the ClassCurio desktop app on a Mac or Windows laptop — it physically blocks screen sharing and screenshots.',
+    '⚠️ 3-strike rule: leaving this window, switching tabs, opening another app, exiting fullscreen, taking screenshots (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S), or pressing blocked shortcuts each count as one violation. After 3, the test auto-submits.',
+    '⚠️ Copy, paste, cut, right-click, and common keyboard shortcuts are disabled. Trying them counts as a violation.',
+    'The screen blurs heavily the moment focus leaves the window — anyone screen-sharing or watching sees a blurred page, not the questions.',
+    'Every screen has your name and email watermarked diagonally across it. Any screenshot you take is traceable back to you.',
     'Once started, you cannot leave and come back — the assessment is one attempt only.',
   ],
 };
@@ -222,17 +222,17 @@ const CONSENT_RULES_I18N = {
     label: 'العربية',
     rtl: true,
     heading: 'قبل أن تبدأ',
-    warning: 'يرجى قراءة هذه القواعد بعناية. مخالفتها لها عواقب حقيقية.',
+    warning: 'اقرأ كل قاعدة. القواعد التي تحمل علامة 🚨 تنهي اختبارك من المرة الأولى — لا فرصة ثانية. القواعد التي تحمل علامة ⚠️ تمنحك 3 فرص قبل الإرسال التلقائي.',
     rules: [
-      '📷 يجب أن تكون الكاميرا قيد التشغيل طوال فترة التقييم. لا يمكنك البدء حتى تمنح الإذن للكاميرا.',
-      '📷 إذا قمت بإيقاف تشغيل الكاميرا أو تغطيتها أو فصلها أثناء التقييم، فسيتم إرسال اختبارك تلقائيًا على الفور.',
-      '📷 يجب أن تظل مرئيًا بوضوح أمام الكاميرا. الخروج من نطاق الرؤية أو السماح لشخص آخر بأخذ مكانك يُعد مخالفة.',
-      '🖥 مشاركة الشاشة ممنوعة. لا تشارك شاشتك على Google Meet أو Zoom أو Microsoft Teams أو أي تطبيق آخر أثناء أداء هذا التقييم. للحصول على أقوى حماية على جهاز Mac أو Windows، قم بتثبيت تطبيق ClassCurio لسطح المكتب.',
-      'يجب أن تبقى في وضع ملء الشاشة طوال فترة التقييم.',
-      'مغادرة هذه النافذة أو تبديل علامات التبويب أو فتح تطبيق آخر سيتم تسجيله كمخالفة.',
-      'بعد 3 مخالفات، يتم إرسال تقييمك تلقائيًا بالإجابات المسجلة حتى الآن.',
-      'يتم تعطيل النسخ واللصق والنقر بزر الماوس الأيمن واختصارات لوحة المفاتيح الشائعة.',
-      'سوف تصبح الشاشة ضبابية عند فقدان التركيز.',
+      '🚨 إرسال تلقائي فوري إذا قمت بإيقاف تشغيل الكاميرا أو تغطيتها أو فصلها أثناء الاختبار.',
+      '🚨 إرسال تلقائي فوري إذا خرجت من نطاق رؤية الكاميرا أو نظرت بعيدًا عن الشاشة.',
+      '🚨 إرسال تلقائي فوري إذا تم اكتشاف شخص آخر في الكاميرا.',
+      '📷 يجب أن تكون الكاميرا قيد التشغيل طوال فترة التقييم. لا يمكنك البدء حتى تمنح الإذن للكاميرا وتظل مرئيًا بوضوح.',
+      '🖥 مشاركة الشاشة ممنوعة. لا تشارك شاشتك على Google Meet أو Zoom أو Microsoft Teams أو أي تطبيق آخر أثناء أداء هذا التقييم. للحصول على أقوى حماية، قم بتثبيت تطبيق ClassCurio لسطح المكتب على جهاز Mac أو Windows — فهو يحظر مشاركة الشاشة ولقطات الشاشة فعليًا.',
+      '⚠️ قاعدة المخالفات الثلاث: مغادرة هذه النافذة، أو تبديل علامات التبويب، أو فتح تطبيق آخر، أو الخروج من وضع ملء الشاشة، أو أخذ لقطات شاشة (Cmd+Shift+3/4/5، PrintScreen، Win+Shift+S)، أو الضغط على اختصارات محظورة، كل منها يُحسب كمخالفة. بعد 3 مخالفات، يتم إرسال الاختبار تلقائيًا.',
+      '⚠️ النسخ واللصق والقص والنقر بزر الماوس الأيمن واختصارات لوحة المفاتيح الشائعة معطّلة. محاولة استخدامها تُعد مخالفة.',
+      'تصبح الشاشة ضبابية بشدة بمجرد فقدان التركيز — أي شخص يشارك الشاشة أو يشاهد سيرى صفحة ضبابية، وليس الأسئلة.',
+      'تحتوي كل شاشة على اسمك وبريدك الإلكتروني كعلامة مائية قطرية. أي لقطة شاشة تأخذها قابلة للتتبع إليك.',
       'بمجرد البدء، لا يمكنك المغادرة والعودة — التقييم محاولة واحدة فقط.',
     ],
   },
@@ -240,17 +240,17 @@ const CONSENT_RULES_I18N = {
     label: 'हिन्दी',
     rtl: false,
     heading: 'शुरू करने से पहले',
-    warning: 'कृपया इन नियमों को ध्यान से पढ़ें। इन्हें तोड़ने के वास्तविक परिणाम होते हैं।',
+    warning: 'हर नियम पढ़ें। 🚨 वाले नियम पहली बार में ही आपकी परीक्षा समाप्त कर देते हैं — दूसरा मौका नहीं। ⚠️ वाले नियम स्वचालित जमा करने से पहले आपको 3 मौके देते हैं।',
     rules: [
-      '📷 पूरी परीक्षा के दौरान आपका कैमरा चालू रहना अनिवार्य है। कैमरे की अनुमति दिए बिना आप शुरू नहीं कर सकते।',
-      '📷 यदि आप परीक्षा के दौरान कैमरा बंद कर देते हैं, उसे ढक देते हैं या उसका कनेक्शन हटा देते हैं, तो आपकी परीक्षा तुरंत स्वचालित रूप से जमा कर दी जाएगी।',
-      '📷 आपको कैमरे में स्पष्ट रूप से दिखाई देना चाहिए। दृश्य से बाहर जाना या किसी अन्य व्यक्ति को अपनी जगह लेने देना उल्लंघन के रूप में दर्ज किया जाएगा।',
-      '🖥 स्क्रीन साझा करना वर्जित है। इस मूल्यांकन को देते समय Google Meet, Zoom, Microsoft Teams या किसी अन्य ऐप पर अपनी स्क्रीन साझा न करें। Mac या Windows लैपटॉप पर सबसे मजबूत सुरक्षा के लिए, ClassCurio डेस्कटॉप ऐप इंस्टॉल करें।',
-      'आपको पूरी मूल्यांकन अवधि के लिए फुलस्क्रीन मोड में रहना होगा।',
-      'इस विंडो से बाहर जाना, टैब बदलना या कोई दूसरा ऐप खोलना उल्लंघन के रूप में दर्ज किया जाएगा।',
-      '3 उल्लंघनों के बाद, आपका मूल्यांकन अब तक दर्ज उत्तरों के साथ स्वचालित रूप से जमा हो जाएगा।',
-      'कॉपी, पेस्ट, राइट-क्लिक और सामान्य कीबोर्ड शॉर्टकट अक्षम हैं।',
-      'जब फ़ोकस छूटेगा तो स्क्रीन धुंधली हो जाएगी।',
+      '🚨 परीक्षा के दौरान कैमरा बंद करने, ढकने या कनेक्शन हटाने पर तुरंत स्वचालित जमा।',
+      '🚨 कैमरे की दृष्टि से बाहर जाने या स्क्रीन से नज़रें हटाने पर तुरंत स्वचालित जमा।',
+      '🚨 कैमरे में कोई दूसरा व्यक्ति दिखाई देने पर तुरंत स्वचालित जमा।',
+      '📷 पूरी परीक्षा के दौरान आपका कैमरा चालू रहना अनिवार्य है। कैमरे की अनुमति दिए बिना और स्पष्ट रूप से दिखाई दिए बिना आप शुरू नहीं कर सकते।',
+      '🖥 स्क्रीन साझा करना वर्जित है। इस मूल्यांकन को देते समय Google Meet, Zoom, Microsoft Teams या किसी अन्य ऐप पर अपनी स्क्रीन साझा न करें। सबसे मजबूत सुरक्षा के लिए, Mac या Windows लैपटॉप पर ClassCurio डेस्कटॉप ऐप इंस्टॉल करें — यह स्क्रीन साझा करने और स्क्रीनशॉट को भौतिक रूप से रोकता है।',
+      '⚠️ 3-स्ट्राइक नियम: इस विंडो से बाहर जाना, टैब बदलना, कोई दूसरा ऐप खोलना, फुलस्क्रीन से बाहर निकलना, स्क्रीनशॉट लेना (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S), या ब्लॉक किए गए शॉर्टकट दबाना — हर एक एक उल्लंघन के रूप में गिना जाता है। 3 के बाद, परीक्षा स्वचालित रूप से जमा हो जाती है।',
+      '⚠️ कॉपी, पेस्ट, कट, राइट-क्लिक और सामान्य कीबोर्ड शॉर्टकट अक्षम हैं। इन्हें आज़माना उल्लंघन माना जाता है।',
+      'जब विंडो से फ़ोकस छूटता है, स्क्रीन तुरंत बहुत धुंधली हो जाती है — स्क्रीन साझा करने वाला या देखने वाला कोई भी व्यक्ति प्रश्नों के बजाय एक धुंधला पृष्ठ देखता है।',
+      'हर स्क्रीन पर आपका नाम और ईमेल तिरछा वॉटरमार्क के रूप में दिखाई देता है। आपके द्वारा लिया गया कोई भी स्क्रीनशॉट आप तक पहुँचाया जा सकता है।',
       'एक बार शुरू करने के बाद, आप बाहर जाकर वापस नहीं आ सकते — मूल्यांकन का केवल एक प्रयास है।',
     ],
   },
@@ -260,14 +260,15 @@ const CONSENT_RULES_I18N = {
     heading: '开始之前',
     warning: '请仔细阅读这些规则。违反规则将产生实际后果。',
     rules: [
-      '📷 整个考试期间您的摄像头必须保持开启。在授权摄像头权限之前，您无法开始考试。',
-      '📷 如果您在考试期间关闭摄像头、遮挡摄像头或拔掉摄像头，您的考试将立即自动提交。',
-      '📷 您必须清晰地出现在摄像头画面中。离开摄像头视野或让他人代替您将被记录为违规。',
-      '在整个评估过程中，您必须保持全屏模式。',
-      '离开此窗口、切换标签页或打开其他应用程序将被记录为违规。',
-      '违规3次后，您的评估将自动提交，仅包含到目前为止记录的答案。',
-      '复制、粘贴、右键单击以及常见的键盘快捷键已被禁用。',
-      '当焦点丢失时，屏幕将变模糊。',
+      '🚨 考试期间关闭、遮挡或拔掉摄像头将立即自动提交考试。',
+      '🚨 如果您离开摄像头视野或将视线从屏幕上移开，将立即自动提交。',
+      '🚨 如果在摄像头中检测到其他人，将立即自动提交。',
+      '📷 整个考试期间您的摄像头必须开启。您必须先授权摄像头并保持清晰可见才能开始。',
+      '🖥 禁止屏幕共享。考试期间不得在 Google Meet、Zoom、Microsoft Teams 或任何其他应用程序上共享您的屏幕。为获得最强保护，请在 Mac 或 Windows 笔记本电脑上安装 ClassCurio 桌面应用程序——它能从物理上阻止屏幕共享和截图。',
+      '⚠️ 三振规则：离开此窗口、切换标签页、打开其他应用程序、退出全屏、截图（Cmd+Shift+3/4/5、PrintScreen、Win+Shift+S）或按下被屏蔽的快捷键——每一项都计为一次违规。三次违规后，考试自动提交。',
+      '⚠️ 复制、粘贴、剪切、右键单击以及常见的键盘快捷键已被禁用。尝试使用它们将被视为违规。',
+      '当窗口失去焦点时，屏幕会立即严重模糊——任何屏幕共享或观看者只会看到模糊页面，看不到题目。',
+      '每个屏幕都有您的姓名和电子邮件斜向水印。您拍摄的任何截图都可以追溯到您。',
       '一旦开始，您无法离开后再回来——评估仅有一次机会。',
     ],
   },
@@ -277,14 +278,15 @@ const CONSENT_RULES_I18N = {
     heading: 'Antes de empezar',
     warning: 'Por favor, lee estas reglas con atención. Romperlas tiene consecuencias reales.',
     rules: [
-      '📷 Tu cámara debe estar ENCENDIDA durante toda la evaluación. No puedes comenzar hasta que otorgues acceso a la cámara.',
-      '📷 Si apagas la cámara, la cubres o la desconectas durante la evaluación, tu examen se enviará automáticamente de inmediato.',
-      '📷 Debes permanecer claramente visible en la cámara. Salir del encuadre o permitir que otra persona ocupe tu lugar se registra como una infracción.',
-      'Debes permanecer en modo de pantalla completa durante toda la evaluación.',
-      'Salir de esta ventana, cambiar de pestaña o abrir otra aplicación se registrará como una infracción.',
-      'Después de 3 infracciones, tu evaluación se enviará automáticamente con las respuestas registradas hasta ese momento.',
-      'Copiar, pegar, hacer clic derecho y los atajos de teclado comunes están deshabilitados.',
-      'La pantalla se volverá borrosa cuando pierda el foco.',
+      '🚨 Envío automático INMEDIATO si apagas, cubres o desconectas tu cámara durante el examen.',
+      '🚨 Envío automático INMEDIATO si sales del encuadre de la cámara o apartas la mirada de la pantalla.',
+      '🚨 Envío automático INMEDIATO si se detecta a otra persona en la cámara.',
+      '📷 Tu cámara debe estar ENCENDIDA durante toda la evaluación. No puedes comenzar hasta que otorgues acceso a la cámara y permanezcas claramente visible.',
+      '🖥 Compartir pantalla está prohibido. No compartas tu pantalla en Google Meet, Zoom, Microsoft Teams ni ninguna otra aplicación durante esta evaluación. Para la máxima protección, instala la aplicación de escritorio ClassCurio en una laptop Mac o Windows — bloquea físicamente la compartición de pantalla y las capturas.',
+      '⚠️ Regla de 3 infracciones: salir de esta ventana, cambiar de pestaña, abrir otra aplicación, salir de pantalla completa, hacer capturas (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S), o pulsar atajos bloqueados — cada uno cuenta como una infracción. Tras 3, el examen se envía automáticamente.',
+      '⚠️ Copiar, pegar, cortar, clic derecho y los atajos de teclado comunes están deshabilitados. Intentarlos cuenta como una infracción.',
+      'La pantalla se vuelve fuertemente borrosa en el momento en que la ventana pierde el foco — cualquier persona compartiendo pantalla o mirando ve una página borrosa, no las preguntas.',
+      'Cada pantalla tiene tu nombre y correo electrónico como marca de agua diagonal. Cualquier captura que tomes es rastreable hasta ti.',
       'Una vez que empieces, no podrás salir y volver — la evaluación es de un solo intento.',
     ],
   },
@@ -294,14 +296,15 @@ const CONSENT_RULES_I18N = {
     heading: 'Avant de commencer',
     warning: 'Veuillez lire attentivement ces règles. Les enfreindre a de réelles conséquences.',
     rules: [
-      '📷 Votre caméra doit être ALLUMÉE pendant toute l’évaluation. Vous ne pouvez pas commencer tant que vous n’avez pas autorisé l’accès à la caméra.',
-      '📷 Si vous éteignez la caméra, la couvrez ou la débranchez pendant l’évaluation, votre test sera automatiquement soumis immédiatement.',
-      '📷 Vous devez rester clairement visible à la caméra. Sortir du champ ou laisser une autre personne prendre votre place est enregistré comme une infraction.',
-      'Vous devez rester en mode plein écran pendant toute la durée de l’évaluation.',
-      'Quitter cette fenêtre, changer d’onglet ou ouvrir une autre application sera enregistré comme une infraction.',
-      'Après 3 infractions, votre évaluation est soumise automatiquement avec les réponses enregistrées jusque-là.',
-      'Copier, coller, clic droit et les raccourcis clavier courants sont désactivés.',
-      'L’écran deviendra flou lorsqu’il perdra le focus.',
+      '🚨 Soumission automatique IMMÉDIATE si vous éteignez, couvrez ou débranchez votre caméra pendant le test.',
+      '🚨 Soumission automatique IMMÉDIATE si vous sortez du champ de la caméra ou détournez le regard de l’écran.',
+      '🚨 Soumission automatique IMMÉDIATE si une autre personne est détectée dans la caméra.',
+      '📷 Votre caméra doit être ALLUMÉE pendant toute l’évaluation. Vous ne pouvez pas commencer tant que vous n’avez pas autorisé l’accès à la caméra et que vous n’êtes pas clairement visible.',
+      '🖥 Le partage d’écran est interdit. Ne partagez pas votre écran sur Google Meet, Zoom, Microsoft Teams ou toute autre application pendant cette évaluation. Pour la protection la plus forte, installez l’application de bureau ClassCurio sur un ordinateur Mac ou Windows — elle bloque physiquement le partage d’écran et les captures.',
+      '⚠️ Règle des 3 infractions : quitter cette fenêtre, changer d’onglet, ouvrir une autre application, sortir du plein écran, faire des captures (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S), ou appuyer sur des raccourcis bloqués — chaque action compte comme une infraction. Après 3, le test est soumis automatiquement.',
+      '⚠️ Copier, coller, couper, clic droit et les raccourcis clavier courants sont désactivés. Tenter de les utiliser compte comme une infraction.',
+      'L’écran devient fortement flou dès que la fenêtre perd le focus — quiconque partage l’écran ou regarde voit une page floue, pas les questions.',
+      'Chaque écran porte votre nom et votre e-mail en filigrane diagonal. Toute capture d’écran que vous prenez est traçable jusqu’à vous.',
       'Une fois commencée, vous ne pouvez pas quitter et revenir — l’évaluation est en une seule tentative.',
     ],
   },
@@ -311,14 +314,15 @@ const CONSENT_RULES_I18N = {
     heading: 'ก่อนเริ่มทำ',
     warning: 'โปรดอ่านกฎเหล่านี้อย่างละเอียด การฝ่าฝืนมีผลที่ตามมาจริง',
     rules: [
-      '📷 กล้องของคุณต้องเปิดอยู่ตลอดระยะเวลาการสอบ คุณไม่สามารถเริ่มสอบได้จนกว่าจะอนุญาตการเข้าถึงกล้อง',
-      '📷 หากคุณปิดกล้อง บังกล้อง หรือถอดกล้องระหว่างการสอบ การสอบของคุณจะถูกส่งอัตโนมัติทันที',
-      '📷 คุณต้องอยู่ในกล้องอย่างชัดเจน การออกจากมุมมองหรือปล่อยให้คนอื่นมาแทนที่คุณจะถูกบันทึกเป็นการฝ่าฝืน',
-      'คุณต้องอยู่ในโหมดเต็มหน้าจอตลอดระยะเวลาการสอบ',
-      'การออกจากหน้าต่างนี้ การเปลี่ยนแท็บ หรือการเปิดแอปอื่นจะถูกบันทึกเป็นการฝ่าฝืน',
-      'หลังจากฝ่าฝืน 3 ครั้ง การสอบของคุณจะถูกส่งอัตโนมัติพร้อมคำตอบที่บันทึกไว้',
-      'การคัดลอก วาง คลิกขวา และทางลัดแป้นพิมพ์ทั่วไปถูกปิดใช้งาน',
-      'หน้าจอจะเบลอเมื่อสูญเสียโฟกัส',
+      '🚨 ส่งอัตโนมัติทันทีหากคุณปิด บัง หรือถอดกล้องระหว่างการสอบ',
+      '🚨 ส่งอัตโนมัติทันทีหากคุณออกจากมุมมองกล้องหรือมองออกไปจากหน้าจอ',
+      '🚨 ส่งอัตโนมัติทันทีหากตรวจพบบุคคลอื่นในกล้อง',
+      '📷 กล้องของคุณต้องเปิดอยู่ตลอดระยะเวลาการสอบ คุณไม่สามารถเริ่มสอบได้จนกว่าจะอนุญาตการเข้าถึงกล้องและอยู่ในมุมมองที่ชัดเจน',
+      '🖥 ห้ามแชร์หน้าจอ อย่าแชร์หน้าจอบน Google Meet, Zoom, Microsoft Teams หรือแอปอื่นใดในระหว่างการสอบนี้ เพื่อการป้องกันที่แข็งแกร่งที่สุด ให้ติดตั้งแอป ClassCurio บนเดสก์ท็อปบนแล็ปท็อป Mac หรือ Windows — มันจะบล็อกการแชร์หน้าจอและการจับภาพหน้าจอทางกายภาพ',
+      '⚠️ กฎ 3 ครั้ง: การออกจากหน้าต่างนี้ การเปลี่ยนแท็บ การเปิดแอปอื่น การออกจากโหมดเต็มหน้าจอ การจับภาพหน้าจอ (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S) หรือการกดทางลัดที่ถูกบล็อก — แต่ละครั้งนับเป็นการฝ่าฝืนหนึ่งครั้ง หลังจาก 3 ครั้ง การสอบจะส่งอัตโนมัติ',
+      '⚠️ การคัดลอก วาง ตัด คลิกขวา และทางลัดแป้นพิมพ์ทั่วไปถูกปิดใช้งาน การพยายามใช้นับเป็นการฝ่าฝืน',
+      'หน้าจอจะเบลออย่างหนักทันทีที่หน้าต่างสูญเสียโฟกัส — ใครก็ตามที่แชร์หน้าจอหรือดูจะเห็นหน้าเว็บที่เบลอ ไม่ใช่คำถาม',
+      'ทุกหน้าจอมีลายน้ำชื่อและอีเมลของคุณในแนวทแยง ภาพหน้าจอใดๆ ที่คุณถ่ายสามารถสืบย้อนกลับไปยังคุณได้',
       'เมื่อเริ่มแล้ว คุณไม่สามารถออกและกลับมาได้ — การสอบมีเพียงครั้งเดียว',
     ],
   },
@@ -328,14 +332,15 @@ const CONSENT_RULES_I18N = {
     heading: 'Bevor du beginnst',
     warning: 'Bitte lies diese Regeln sorgfältig. Verstöße haben echte Konsequenzen.',
     rules: [
-      '📷 Deine Kamera muss während der gesamten Prüfung EINGESCHALTET sein. Du kannst nicht starten, bevor du den Kamerazugriff erlaubst.',
-      '📷 Wenn du die Kamera während der Prüfung ausschaltest, abdeckst oder ausstöpselst, wird deine Prüfung sofort automatisch abgegeben.',
-      '📷 Du musst klar in der Kamera sichtbar bleiben. Den Sichtbereich zu verlassen oder eine andere Person an deinen Platz zu lassen wird als Verstoß gewertet.',
-      'Du musst während der gesamten Prüfung im Vollbildmodus bleiben.',
-      'Das Verlassen dieses Fensters, das Wechseln von Tabs oder das Öffnen einer anderen App wird als Verstoß gewertet.',
-      'Nach 3 Verstößen wird deine Prüfung automatisch mit den bis dahin gespeicherten Antworten abgeschickt.',
-      'Kopieren, Einfügen, Rechtsklick und gängige Tastenkürzel sind deaktiviert.',
-      'Der Bildschirm wird unscharf, wenn er den Fokus verliert.',
+      '🚨 Sofortige automatische Abgabe, wenn du deine Kamera während der Prüfung ausschaltest, abdeckst oder ausstöpselst.',
+      '🚨 Sofortige automatische Abgabe, wenn du den Sichtbereich der Kamera verlässt oder vom Bildschirm wegschaust.',
+      '🚨 Sofortige automatische Abgabe, wenn eine andere Person in der Kamera erkannt wird.',
+      '📷 Deine Kamera muss während der gesamten Prüfung EINGESCHALTET sein. Du kannst nicht starten, bevor du den Kamerazugriff erlaubst und klar sichtbar bleibst.',
+      '🖥 Bildschirmfreigabe ist verboten. Teile deinen Bildschirm während dieser Prüfung nicht über Google Meet, Zoom, Microsoft Teams oder eine andere App. Für den stärksten Schutz installiere die ClassCurio-Desktop-App auf einem Mac- oder Windows-Laptop — sie blockiert Bildschirmfreigabe und Screenshots physisch.',
+      '⚠️ 3-Verstöße-Regel: Verlassen dieses Fensters, Wechseln von Tabs, Öffnen einer anderen App, Verlassen des Vollbilds, Screenshots (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S) oder Drücken blockierter Tastenkürzel — jede Aktion zählt als ein Verstoß. Nach 3 wird die Prüfung automatisch abgegeben.',
+      '⚠️ Kopieren, Einfügen, Ausschneiden, Rechtsklick und gängige Tastenkürzel sind deaktiviert. Der Versuch zählt als Verstoß.',
+      'Der Bildschirm wird stark unscharf, sobald das Fenster den Fokus verliert — wer den Bildschirm teilt oder zuschaut, sieht eine unscharfe Seite, nicht die Fragen.',
+      'Jeder Bildschirm trägt diagonal dein Name und deine E-Mail als Wasserzeichen. Jeder Screenshot, den du machst, ist auf dich rückverfolgbar.',
       'Nach dem Start kannst du die Prüfung nicht verlassen und wiederkommen — nur ein Versuch ist möglich.',
     ],
   },
@@ -345,14 +350,15 @@ const CONSENT_RULES_I18N = {
     heading: '開始する前に',
     warning: 'これらのルールをよく読んでください。違反には実際の結果があります。',
     rules: [
-      '📷 テストの全期間中、カメラはオンのままにしてください。カメラへのアクセスを許可するまで開始できません。',
-      '📷 テスト中にカメラをオフにしたり、覆ったり、取り外したりすると、テストはすぐに自動的に提出されます。',
-      '📷 カメラにはっきりと映っている必要があります。視野外に出たり、他の人があなたの代わりに座ることは違反として記録されます。',
-      'テストの全期間中、フルスクリーンモードのままでなければなりません。',
-      'このウィンドウを離れる、タブを切り替える、または別のアプリを開くと違反として記録されます。',
-      '3回違反すると、それまでに記録された回答とともにテストが自動的に提出されます。',
-      'コピー、貼り付け、右クリック、および一般的なキーボードショートカットは無効になっています。',
-      'フォーカスを失うと画面がぼやけます。',
+      '🚨 テスト中にカメラをオフにしたり、覆ったり、取り外したりすると、即座に自動提出されます。',
+      '🚨 カメラの視野から外れたり、画面から目をそらしたりすると、即座に自動提出されます。',
+      '🚨 カメラに別の人物が検出されると、即座に自動提出されます。',
+      '📷 テストの全期間中、カメラはオンのままにしてください。カメラへのアクセスを許可し、はっきりと映っていなければ開始できません。',
+      '🖥 画面共有は禁止されています。このテスト中に Google Meet、Zoom、Microsoft Teams、またはその他のアプリで画面を共有しないでください。最も強力な保護のために、Mac または Windows ノートパソコンに ClassCurio デスクトップアプリをインストールしてください — 画面共有とスクリーンショットを物理的にブロックします。',
+      '⚠️ 3回違反ルール：このウィンドウを離れる、タブを切り替える、別のアプリを開く、フルスクリーンを終了する、スクリーンショットを撮る (Cmd+Shift+3/4/5、PrintScreen、Win+Shift+S)、またはブロックされたショートカットを押す — それぞれが1回の違反として数えられます。3回違反するとテストは自動的に提出されます。',
+      '⚠️ コピー、貼り付け、切り取り、右クリック、および一般的なキーボードショートカットは無効になっています。試みると違反として数えられます。',
+      'ウィンドウがフォーカスを失った瞬間に画面が大きくぼやけます — 画面を共有している人や見ている人は、質問ではなく、ぼやけたページを見ることになります。',
+      'すべての画面には、あなたの名前とメールアドレスが斜めに透かしとして表示されます。撮影したスクリーンショットはすべてあなたまで追跡可能です。',
       '一度開始すると、離れて戻ることはできません — テストは一度きりです。',
     ],
   },
@@ -399,17 +405,25 @@ function detectConsentLang(assessment) {
     const k = LANG_NAME_TO_KEY[assessment.assessmentLanguage];
     if (k && CONSENT_RULES_I18N[k]) return k;
   }
-  // 2) Fall back to browser locale country code (e.g. 'ar-AE', 'en-IN').
+  // 2) Use the dashboard's UI-language preference (set via the small globe
+  //    dropdown in the topbar). If the teacher set the whole site to Hindi,
+  //    new students inherit that for the consent popup.
+  try {
+    const uiLang = localStorage.getItem('classcurio.uiLang');
+    if (uiLang && CONSENT_RULES_I18N[uiLang]) return uiLang;
+  } catch {}
+  // 3) Fall back to browser locale country code (e.g. 'ar-AE', 'en-IN').
   const loc = (navigator.language || navigator.userLanguage || '').trim();
   const parts = loc.split(/[-_]/);
-  // First, try language code itself if we have a translation for it.
   const langCode = (parts[0] || '').toLowerCase();
   if (CONSENT_RULES_I18N[langCode]) return langCode;
-  // Then try country code.
   const country = (parts[1] || '').toUpperCase();
   if (country && COUNTRY_TO_LANG[country]) return COUNTRY_TO_LANG[country];
-  // 3) None — English-only.
-  return null;
+  // 4) Final fallback — Hindi as a generally-useful international-school
+  //    default. Teachers can override via the assessment-language dropdown
+  //    when creating an assessment, or the UI-language picker on the
+  //    dashboard. The point is: ALWAYS show two languages, never one.
+  return 'hi';
 }
 
 function renderConsentRules(assessment) {
