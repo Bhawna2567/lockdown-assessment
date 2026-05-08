@@ -245,10 +245,24 @@ body:not(.lockdown-body) #list-view::before {
   padding: 14px 28px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;            /* On narrow screens, items wrap to new lines so nothing overflows. */
+  gap: 12px 16px;             /* row-gap when wrapped, column-gap between items */
   box-shadow: 0 6px 20px rgba(30, 27, 75, 0.18);
   position: relative;
-  overflow: hidden;
+  /* No overflow:hidden — would clip wrapped content. The decorative
+     ::after gradient is allowed to extend slightly. */
+}
+.topbar > .spacer { display: none; }  /* spacer was for desktop layout; wrapping handles phones */
+@media (min-width: 720px) {
+  .topbar > .spacer { display: block; flex: 1; }   /* desktop: keep right-aligned items via spacer */
+}
+@media (max-width: 720px) {
+  .topbar { padding: 10px 14px; gap: 8px; }
+  .topbar .brand { font-size: 16px; padding-left: 24px; }
+  .topbar .muted { font-size: 12px; }
+  .topbar #who { display: none; }                  /* hide email/name on phones to save space */
+  .topbar label[for="topbar-lang"] { display: none; }  /* hide "Report language:" label on phones */
+  .topbar #topbar-lang { max-width: 160px; padding: 6px 8px !important; font-size: 12px !important; }
 }
 .topbar::after {
   content: "";
