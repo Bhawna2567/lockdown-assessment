@@ -10,9 +10,9 @@ const FEATURES = {
   vmDetection: false,
 };
 // How often to ping the identity-check endpoint during an exam (ms). Each
-// call uses ~$0.001-0.005 of the teacher's API credit, so 60s feels like a
-// reasonable balance between deterrence and cost.
-const IDENTITY_CHECK_INTERVAL_MS = 60000;
+// call uses ~$0.001-0.005 of the teacher's API credit. 30s gives faster
+// detection of "moved away from camera" without ballooning cost.
+const IDENTITY_CHECK_INTERVAL_MS = 30000;
 let identityIntervalId = null;
 let baselineDataUrl = null; // captured at exam start, used for identity matching
 
@@ -751,9 +751,13 @@ function startAssessment() {
   if (FEATURES.webcam) {
     startProctorInterval();
     captureAndUpload('start');
-    // Capture a baseline snapshot ~1 second after the camera warms up so the
-    // identity-check API has something to compare against later.
+    // Capture a baseline snapshot ~1.5 second after the camera warms up so
+    // the identity-check API has something to compare against later. Then
+    // fire the FIRST identity check ~5 seconds later (well before the regular
+    // 30s interval kicks in) so a student who walks away the moment the exam
+    // starts is caught quickly.
     setTimeout(() => { captureBaseline(); }, 1500);
+    setTimeout(() => { runIdentityCheck().catch(() => {}); }, 6500);
     startIdentityCheckInterval();
   } else if (els.webcamWrap) {
     // Hide the webcam panel entirely since we're not capturing.
@@ -1519,11 +1523,20 @@ async function runIdentityCheck() {
     const data = await res.json().catch(() => ({}));
     // Soft-fail: if the server reports a non-OK or missing key, skip silently.
     if (!data || data.ok === false) return;
+    // POLICY: any face-related fault from the camera is an INSTANT auto-submit
+    // (not a 3-strike violation). Moving away, covering the camera, or having
+    // someone else sit down in your place all skip the 3-strike grace and
+    // submit the assessment immediately. Other violations (tab-switch,
+    // shortcut, paste-outside-field, etc.) keep the 3-strike grace.
     if (data.faceVisible === false) {
-      addViolation('Student face not visible in webcam');
+      addViolation('Face not visible in webcam — auto-submitting');
+      submit('face-not-visible').catch(() => {});
+      return;
     }
     if (data.samePerson === false && data.confidence !== 'low') {
-      addViolation('Different person detected in webcam');
+      addViolation('Different person detected — auto-submitting');
+      submit('different-person').catch(() => {});
+      return;
     }
   } catch (e) {
     // Network blip; don't penalize the student.
@@ -1555,12 +1568,14 @@ async function captureAndUpload(note) {
   }
   const avgLuma = lumaSum / (sample.length / (4 * stride));
   if (avgLuma < 10 && !cameraOffViolationFired) {
+    // POLICY (matches face-not-visible): a covered/obstructed camera is an
+    // instant auto-submit — same severity as moving out of frame.
     cameraOffViolationFired = true;
-    addViolation('Webcam appears covered or obstructed');
     els.webcamStatus.textContent = 'DARK';
-    els.webcamStatus.classList.add('warn');
-    // Reset after 30s so repeated coverage can trigger again.
-    setTimeout(() => { cameraOffViolationFired = false; els.webcamStatus.classList.remove('warn'); els.webcamStatus.textContent = 'REC'; }, 30000);
+    els.webcamStatus.classList.add('off');
+    addViolation('Webcam covered or obstructed — auto-submitting');
+    submit('camera-covered').catch(() => {});
+    return;
   }
 
   try {
