@@ -1706,6 +1706,101 @@ app.get('/api/proctor/file/:assessmentId/:studentId/:filename', requireTeacher, 
   res.sendFile(filePath);
 });
 
+// ---------- Webcam identity check (Claude Vision) ----------
+// Compares a baseline snapshot (taken at exam start) with a current snapshot
+// to detect: (a) is a face visible in the current image, (b) is it the same
+// person as the baseline. Used as the third pillar of webcam proctoring,
+// alongside getUserMedia stream-end detection and dark-frame detection.
+//
+// Cost: ~$0.001-0.005 per call. With polling every 30-60s for a 30-min exam,
+// expected per-exam cost is well under $0.10. Requires the same Anthropic
+// API key the teacher already configured for AI essay grading.
+app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
+  const apiKey = readApiKey();
+  if (!apiKey) {
+    return res.status(503).json({
+      ok: false,
+      reason: 'no_api_key',
+      // Soft-fail: client should treat as "skip this check" not as a violation,
+      // so missing API key doesn't lock students out.
+      faceVisible: true,
+      samePerson: true,
+    });
+  }
+  const { baselineDataUrl, currentDataUrl } = req.body || {};
+  if (!baselineDataUrl || !currentDataUrl) {
+    return res.status(400).json({ ok: false, reason: 'missing_images' });
+  }
+
+  // data:image/jpeg;base64,AAAA...
+  const parse = (url) => {
+    const m = /^data:image\/(jpeg|jpg|png);base64,(.+)$/.exec(url || '');
+    return m ? { mediaType: `image/${m[1] === 'jpg' ? 'jpeg' : m[1]}`, data: m[2] } : null;
+  };
+  const base = parse(baselineDataUrl);
+  const cur = parse(currentDataUrl);
+  if (!base || !cur) return res.status(400).json({ ok: false, reason: 'bad_image' });
+
+  const prompt = [
+    'You are a remote-proctoring assistant for an online exam.',
+    'I will send two images: BASELINE (taken when the student started) and CURRENT (taken just now).',
+    'Compare them and respond with ONLY a JSON object, no other text:',
+    '{',
+    '  "faceVisible": true|false,   // is a clear human face visible in CURRENT?',
+    '  "samePerson": true|false,    // is CURRENT the same person as BASELINE?',
+    '  "confidence": "low"|"medium"|"high"',
+    '}',
+    'Be conservative: only set samePerson=false if you are confident it is a different person. Lighting changes, head turns, and minor angle differences should still be samePerson=true.',
+    'If you cannot tell whether a face is visible, default to faceVisible=true.',
+  ].join('\n');
+
+  try {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 256,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: 'BASELINE:' },
+            { type: 'image', source: { type: 'base64', media_type: base.mediaType, data: base.data } },
+            { type: 'text', text: 'CURRENT:' },
+            { type: 'image', source: { type: 'base64', media_type: cur.mediaType, data: cur.data } },
+            { type: 'text', text: prompt },
+          ],
+        }],
+      }),
+    });
+    if (!apiRes.ok) {
+      console.error('[proctor] API error', apiRes.status);
+      // Soft-fail so a transient API issue doesn't lock students out.
+      return res.json({ ok: false, reason: 'api_error', faceVisible: true, samePerson: true });
+    }
+    const data = await apiRes.json();
+    const text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```\s*$/, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(cleaned); } catch {
+      return res.json({ ok: false, reason: 'bad_response', faceVisible: true, samePerson: true });
+    }
+    res.json({
+      ok: true,
+      faceVisible: parsed.faceVisible !== false,
+      samePerson: parsed.samePerson !== false,
+      confidence: parsed.confidence || 'medium',
+    });
+  } catch (e) {
+    console.error('[proctor] identity-check failed', e.message);
+    res.json({ ok: false, reason: 'exception', faceVisible: true, samePerson: true });
+  }
+});
+
 // ---------- VM / environment flag ----------
 // Student's Electron preload calls this at the start of an assessment.
 // We store it on the assessment result on submission, but also record

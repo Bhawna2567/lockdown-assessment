@@ -2,12 +2,19 @@
 // NOTE: Browser-level enforcement is a best-effort deterrent. True lockdown
 // requires the Electron desktop wrapper (see electron/main.js).
 
-// v1 MVP feature flags — flip these to true to re-enable advanced proctoring
-// (webcam capture, VM detection). Left off for the current scope.
+// Feature flags. Webcam is now MANDATORY for all assessments — students
+// cannot enter without granting camera access. Identity matching uses the
+// teacher's Anthropic API key (the same one used for AI essay grading).
 const FEATURES = {
-  webcam: false,
+  webcam: true,
   vmDetection: false,
 };
+// How often to ping the identity-check endpoint during an exam (ms). Each
+// call uses ~$0.001-0.005 of the teacher's API credit, so 60s feels like a
+// reasonable balance between deterrence and cost.
+const IDENTITY_CHECK_INTERVAL_MS = 60000;
+let identityIntervalId = null;
+let baselineDataUrl = null; // captured at exam start, used for identity matching
 
 const els = {
   listView: document.getElementById('list-view'),
@@ -51,6 +58,9 @@ const els = {
   passageText: document.getElementById('passage-text'),
 
   consentRules: document.getElementById('consent-rules'),
+  cameraGate: document.getElementById('camera-gate'),
+  cameraGrantBtn: document.getElementById('camera-grant-btn'),
+  cameraGateStatus: document.getElementById('camera-gate-status'),
 };
 
 // ----- Bilingual consent translations -----
@@ -64,8 +74,11 @@ const CONSENT_RULES_EN = {
   heading: 'Before you start',
   warning: 'Please read these rules carefully. Breaking them has real consequences.',
   rules: [
+    '📷 Your camera must be ON for the entire assessment. You cannot start until you grant camera access.',
+    '📷 If you turn off your camera, cover it, or unplug it during the assessment, your test will be auto-submitted immediately.',
+    '📷 You must stay clearly visible in the camera. Moving out of view or letting another person take your place is recorded as a violation.',
     'You must remain in fullscreen mode for the entire assessment.',
-    'Leaving this window, switching tabs, or opening another app will be recorded as a violation.',
+    'Leaving this window, switching tabs, or opening another app is recorded as a violation.',
     'After 3 violations, your assessment is auto-submitted with the answers recorded so far.',
     'Copy, paste, right-click, and common keyboard shortcuts are disabled.',
     'The screen will blur when it loses focus.',
@@ -81,6 +94,9 @@ const CONSENT_RULES_I18N = {
     heading: 'قبل أن تبدأ',
     warning: 'يرجى قراءة هذه القواعد بعناية. مخالفتها لها عواقب حقيقية.',
     rules: [
+      '📷 يجب أن تكون الكاميرا قيد التشغيل طوال فترة التقييم. لا يمكنك البدء حتى تمنح الإذن للكاميرا.',
+      '📷 إذا قمت بإيقاف تشغيل الكاميرا أو تغطيتها أو فصلها أثناء التقييم، فسيتم إرسال اختبارك تلقائيًا على الفور.',
+      '📷 يجب أن تظل مرئيًا بوضوح أمام الكاميرا. الخروج من نطاق الرؤية أو السماح لشخص آخر بأخذ مكانك يُعد مخالفة.',
       'يجب أن تبقى في وضع ملء الشاشة طوال فترة التقييم.',
       'مغادرة هذه النافذة أو تبديل علامات التبويب أو فتح تطبيق آخر سيتم تسجيله كمخالفة.',
       'بعد 3 مخالفات، يتم إرسال تقييمك تلقائيًا بالإجابات المسجلة حتى الآن.',
@@ -95,6 +111,9 @@ const CONSENT_RULES_I18N = {
     heading: 'शुरू करने से पहले',
     warning: 'कृपया इन नियमों को ध्यान से पढ़ें। इन्हें तोड़ने के वास्तविक परिणाम होते हैं।',
     rules: [
+      '📷 पूरी परीक्षा के दौरान आपका कैमरा चालू रहना अनिवार्य है। कैमरे की अनुमति दिए बिना आप शुरू नहीं कर सकते।',
+      '📷 यदि आप परीक्षा के दौरान कैमरा बंद कर देते हैं, उसे ढक देते हैं या उसका कनेक्शन हटा देते हैं, तो आपकी परीक्षा तुरंत स्वचालित रूप से जमा कर दी जाएगी।',
+      '📷 आपको कैमरे में स्पष्ट रूप से दिखाई देना चाहिए। दृश्य से बाहर जाना या किसी अन्य व्यक्ति को अपनी जगह लेने देना उल्लंघन के रूप में दर्ज किया जाएगा।',
       'आपको पूरी मूल्यांकन अवधि के लिए फुलस्क्रीन मोड में रहना होगा।',
       'इस विंडो से बाहर जाना, टैब बदलना या कोई दूसरा ऐप खोलना उल्लंघन के रूप में दर्ज किया जाएगा।',
       '3 उल्लंघनों के बाद, आपका मूल्यांकन अब तक दर्ज उत्तरों के साथ स्वचालित रूप से जमा हो जाएगा।',
@@ -109,6 +128,9 @@ const CONSENT_RULES_I18N = {
     heading: '开始之前',
     warning: '请仔细阅读这些规则。违反规则将产生实际后果。',
     rules: [
+      '📷 整个考试期间您的摄像头必须保持开启。在授权摄像头权限之前，您无法开始考试。',
+      '📷 如果您在考试期间关闭摄像头、遮挡摄像头或拔掉摄像头，您的考试将立即自动提交。',
+      '📷 您必须清晰地出现在摄像头画面中。离开摄像头视野或让他人代替您将被记录为违规。',
       '在整个评估过程中，您必须保持全屏模式。',
       '离开此窗口、切换标签页或打开其他应用程序将被记录为违规。',
       '违规3次后，您的评估将自动提交，仅包含到目前为止记录的答案。',
@@ -123,6 +145,9 @@ const CONSENT_RULES_I18N = {
     heading: 'Antes de empezar',
     warning: 'Por favor, lee estas reglas con atención. Romperlas tiene consecuencias reales.',
     rules: [
+      '📷 Tu cámara debe estar ENCENDIDA durante toda la evaluación. No puedes comenzar hasta que otorgues acceso a la cámara.',
+      '📷 Si apagas la cámara, la cubres o la desconectas durante la evaluación, tu examen se enviará automáticamente de inmediato.',
+      '📷 Debes permanecer claramente visible en la cámara. Salir del encuadre o permitir que otra persona ocupe tu lugar se registra como una infracción.',
       'Debes permanecer en modo de pantalla completa durante toda la evaluación.',
       'Salir de esta ventana, cambiar de pestaña o abrir otra aplicación se registrará como una infracción.',
       'Después de 3 infracciones, tu evaluación se enviará automáticamente con las respuestas registradas hasta ese momento.',
@@ -137,6 +162,9 @@ const CONSENT_RULES_I18N = {
     heading: 'Avant de commencer',
     warning: 'Veuillez lire attentivement ces règles. Les enfreindre a de réelles conséquences.',
     rules: [
+      '📷 Votre caméra doit être ALLUMÉE pendant toute l’évaluation. Vous ne pouvez pas commencer tant que vous n’avez pas autorisé l’accès à la caméra.',
+      '📷 Si vous éteignez la caméra, la couvrez ou la débranchez pendant l’évaluation, votre test sera automatiquement soumis immédiatement.',
+      '📷 Vous devez rester clairement visible à la caméra. Sortir du champ ou laisser une autre personne prendre votre place est enregistré comme une infraction.',
       'Vous devez rester en mode plein écran pendant toute la durée de l’évaluation.',
       'Quitter cette fenêtre, changer d’onglet ou ouvrir une autre application sera enregistré comme une infraction.',
       'Après 3 infractions, votre évaluation est soumise automatiquement avec les réponses enregistrées jusque-là.',
@@ -151,6 +179,9 @@ const CONSENT_RULES_I18N = {
     heading: 'ก่อนเริ่มทำ',
     warning: 'โปรดอ่านกฎเหล่านี้อย่างละเอียด การฝ่าฝืนมีผลที่ตามมาจริง',
     rules: [
+      '📷 กล้องของคุณต้องเปิดอยู่ตลอดระยะเวลาการสอบ คุณไม่สามารถเริ่มสอบได้จนกว่าจะอนุญาตการเข้าถึงกล้อง',
+      '📷 หากคุณปิดกล้อง บังกล้อง หรือถอดกล้องระหว่างการสอบ การสอบของคุณจะถูกส่งอัตโนมัติทันที',
+      '📷 คุณต้องอยู่ในกล้องอย่างชัดเจน การออกจากมุมมองหรือปล่อยให้คนอื่นมาแทนที่คุณจะถูกบันทึกเป็นการฝ่าฝืน',
       'คุณต้องอยู่ในโหมดเต็มหน้าจอตลอดระยะเวลาการสอบ',
       'การออกจากหน้าต่างนี้ การเปลี่ยนแท็บ หรือการเปิดแอปอื่นจะถูกบันทึกเป็นการฝ่าฝืน',
       'หลังจากฝ่าฝืน 3 ครั้ง การสอบของคุณจะถูกส่งอัตโนมัติพร้อมคำตอบที่บันทึกไว้',
@@ -165,6 +196,9 @@ const CONSENT_RULES_I18N = {
     heading: 'Bevor du beginnst',
     warning: 'Bitte lies diese Regeln sorgfältig. Verstöße haben echte Konsequenzen.',
     rules: [
+      '📷 Deine Kamera muss während der gesamten Prüfung EINGESCHALTET sein. Du kannst nicht starten, bevor du den Kamerazugriff erlaubst.',
+      '📷 Wenn du die Kamera während der Prüfung ausschaltest, abdeckst oder ausstöpselst, wird deine Prüfung sofort automatisch abgegeben.',
+      '📷 Du musst klar in der Kamera sichtbar bleiben. Den Sichtbereich zu verlassen oder eine andere Person an deinen Platz zu lassen wird als Verstoß gewertet.',
       'Du musst während der gesamten Prüfung im Vollbildmodus bleiben.',
       'Das Verlassen dieses Fensters, das Wechseln von Tabs oder das Öffnen einer anderen App wird als Verstoß gewertet.',
       'Nach 3 Verstößen wird deine Prüfung automatisch mit den bis dahin gespeicherten Antworten abgeschickt.',
@@ -179,6 +213,9 @@ const CONSENT_RULES_I18N = {
     heading: '開始する前に',
     warning: 'これらのルールをよく読んでください。違反には実際の結果があります。',
     rules: [
+      '📷 テストの全期間中、カメラはオンのままにしてください。カメラへのアクセスを許可するまで開始できません。',
+      '📷 テスト中にカメラをオフにしたり、覆ったり、取り外したりすると、テストはすぐに自動的に提出されます。',
+      '📷 カメラにはっきりと映っている必要があります。視野外に出たり、他の人があなたの代わりに座ることは違反として記録されます。',
       'テストの全期間中、フルスクリーンモードのままでなければなりません。',
       'このウィンドウを離れる、タブを切り替える、または別のアプリを開くと違反として記録されます。',
       '3回違反すると、それまでに記録された回答とともにテストが自動的に提出されます。',
@@ -396,6 +433,10 @@ async function openConsent(id) {
   // Render the bilingual violation rules popup.
   renderConsentRules(currentAssessment);
 
+  // Reset the camera gate every time the consent screen opens — students
+  // must grant camera permission for each assessment they enter.
+  resetCameraGate();
+
   await runEnvironmentCheck();
 }
 
@@ -459,25 +500,74 @@ async function runEnvironmentCheck() {
 }
 
 els.consentBack.onclick = () => {
+  // If they granted camera access but bailed on the assessment, free it.
+  stopWebcam();
   els.consentView.style.display = 'none';
   els.listView.style.display = 'block';
   currentAssessment = null;
+  resetCameraGate();
 };
+
+// Camera permission gate. Disable the start button until the camera is
+// actually granted and producing video. If the student denies, show the
+// browser-permission instructions.
+function resetCameraGate() {
+  if (els.consentStart) {
+    els.consentStart.disabled = true;
+    els.consentStart.style.opacity = '0.5';
+    els.consentStart.style.cursor = 'not-allowed';
+  }
+  if (els.cameraGate) {
+    els.cameraGate.style.background = '#fef3c7';
+    els.cameraGate.style.borderColor = '#f59e0b';
+    els.cameraGate.style.color = '#92400e';
+  }
+  if (els.cameraGateStatus) els.cameraGateStatus.textContent = '';
+  if (els.cameraGrantBtn) {
+    els.cameraGrantBtn.disabled = false;
+    els.cameraGrantBtn.textContent = 'Enable camera';
+  }
+}
+function unlockStartButton() {
+  if (els.consentStart) {
+    els.consentStart.disabled = false;
+    els.consentStart.style.opacity = '1';
+    els.consentStart.style.cursor = 'pointer';
+  }
+  if (els.cameraGate) {
+    els.cameraGate.style.background = '#dcfce7';
+    els.cameraGate.style.borderColor = '#16a34a';
+    els.cameraGate.style.color = '#166534';
+  }
+  if (els.cameraGateStatus) els.cameraGateStatus.textContent = '✓ Camera ready';
+  if (els.cameraGrantBtn) {
+    els.cameraGrantBtn.disabled = true;
+    els.cameraGrantBtn.textContent = '✓ Enabled';
+  }
+}
+if (els.cameraGrantBtn) {
+  els.cameraGrantBtn.onclick = async () => {
+    els.cameraGateStatus.textContent = 'Requesting…';
+    try {
+      await startWebcam();
+      unlockStartButton();
+    } catch (e) {
+      els.cameraGateStatus.textContent = '✗ ' + (e.message || 'Camera blocked');
+      alert(
+        'Camera access is required for this assessment.\n\n' +
+        (e.message || '') +
+        '\n\nIf you blocked the camera, click the lock/camera icon in your browser address bar to allow it, then click "Enable camera" again.'
+      );
+    }
+  };
+}
 
 els.consentStart.onclick = async () => {
   if (envBlocked) return;
-  // Webcam only if FEATURES.webcam is on.
-  if (FEATURES.webcam) {
-    try {
-      await startWebcam();
-    } catch (e) {
-      alert(
-        'Webcam access is required for this assessment.\n\n' +
-        e.message +
-        '\n\nPlease allow camera access in your browser/OS settings and try again.'
-      );
-      return;
-    }
+  // Camera must already be granted via the gate above. Defensively check.
+  if (FEATURES.webcam && !webcamStream) {
+    alert('Please click "Enable camera" first to grant camera access.');
+    return;
   }
   try {
     await enterFullscreen();
@@ -515,6 +605,10 @@ function startAssessment() {
   if (FEATURES.webcam) {
     startProctorInterval();
     captureAndUpload('start');
+    // Capture a baseline snapshot ~1 second after the camera warms up so the
+    // identity-check API has something to compare against later.
+    setTimeout(() => { captureBaseline(); }, 1500);
+    startIdentityCheckInterval();
   } else if (els.webcamWrap) {
     // Hide the webcam panel entirely since we're not capturing.
     els.webcamWrap.style.display = 'none';
@@ -623,6 +717,7 @@ async function submit(reason) {
   clearInterval(timerInterval);
   if (FEATURES.webcam) {
     stopProctorInterval();
+    stopIdentityCheckInterval();
     await captureAndUpload(`submit-${reason}`).catch(() => {});
     stopWebcam();
   }
@@ -1022,13 +1117,25 @@ async function startWebcam() {
   });
   els.webcam.srcObject = webcamStream;
   await els.webcam.play().catch(() => {});
-  // Detect if user stops the stream externally (e.g. OS-level permission revoke).
+  // Detect if user stops the stream externally (e.g. OS-level permission revoke,
+  // closing camera tab, unplugging webcam). Camera off mid-exam = immediate
+  // auto-submit, per the proctoring policy shown in the consent popup.
   webcamStream.getVideoTracks().forEach((t) => {
     t.onended = () => {
       if (!submitted) {
-        addViolation('Webcam stream ended');
         els.webcamStatus.textContent = 'OFF';
         els.webcamStatus.classList.add('off');
+        addViolation('Webcam turned off — auto-submitting');
+        // Force immediate submit instead of waiting for 3-strike threshold.
+        submit('camera-off').catch(() => {});
+      }
+    };
+    t.onmute = () => {
+      if (!submitted) {
+        els.webcamStatus.textContent = 'MUTED';
+        els.webcamStatus.classList.add('off');
+        addViolation('Webcam muted — auto-submitting');
+        submit('camera-muted').catch(() => {});
       }
     };
   });
@@ -1053,6 +1160,82 @@ function startProctorInterval() {
 function stopProctorInterval() {
   if (proctorIntervalId) clearInterval(proctorIntervalId);
   proctorIntervalId = null;
+}
+
+// ----- Identity check polling (Claude Vision via /api/proctor/identity-check) -----
+// Captures a small JPEG of the current webcam frame and POSTs it alongside the
+// baseline snapshot taken at exam start. The server uses Claude Vision to
+// answer two questions: (1) is a face visible? (2) is it the same person?
+// Each negative answer adds a violation; 3 violations triggers auto-submit
+// (the existing MAX_VIOLATIONS rule).
+
+function captureBaseline() {
+  // Captures the first usable frame as the identity-baseline. Small JPEG.
+  if (!webcamStream || !currentAssessment) return;
+  try {
+    const video = els.webcam;
+    const canvas = els.webcamCanvas;
+    const vw = video.videoWidth || 320;
+    const vh = video.videoHeight || 240;
+    if (vw === 0 || vh === 0) return; // not ready yet
+    const targetW = 320;
+    const targetH = Math.round((vh / vw) * targetW);
+    canvas.width = targetW;
+    canvas.height = targetH;
+    canvas.getContext('2d').drawImage(video, 0, 0, targetW, targetH);
+    baselineDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+  } catch (e) {
+    console.error('captureBaseline failed', e);
+  }
+}
+
+function startIdentityCheckInterval() {
+  if (identityIntervalId) clearInterval(identityIntervalId);
+  identityIntervalId = setInterval(() => runIdentityCheck().catch(() => {}), IDENTITY_CHECK_INTERVAL_MS);
+}
+function stopIdentityCheckInterval() {
+  if (identityIntervalId) clearInterval(identityIntervalId);
+  identityIntervalId = null;
+}
+
+async function runIdentityCheck() {
+  if (!webcamStream || submitted || !currentAssessment) return;
+  // If we never managed to capture a baseline (e.g. camera was slow), skip.
+  if (!baselineDataUrl) {
+    captureBaseline();
+    return;
+  }
+  // Capture the current frame.
+  const video = els.webcam;
+  const canvas = els.webcamCanvas;
+  const vw = video.videoWidth || 320;
+  const vh = video.videoHeight || 240;
+  const targetW = 320;
+  const targetH = Math.round((vh / vw) * targetW);
+  canvas.width = targetW;
+  canvas.height = targetH;
+  canvas.getContext('2d').drawImage(video, 0, 0, targetW, targetH);
+  const currentDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+  try {
+    const res = await fetch('/api/proctor/identity-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baselineDataUrl, currentDataUrl }),
+    });
+    const data = await res.json().catch(() => ({}));
+    // Soft-fail: if the server reports a non-OK or missing key, skip silently.
+    if (!data || data.ok === false) return;
+    if (data.faceVisible === false) {
+      addViolation('Student face not visible in webcam');
+    }
+    if (data.samePerson === false && data.confidence !== 'low') {
+      addViolation('Different person detected in webcam');
+    }
+  } catch (e) {
+    // Network blip; don't penalize the student.
+    console.error('identity check error', e);
+  }
 }
 
 async function captureAndUpload(note) {
