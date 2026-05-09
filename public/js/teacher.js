@@ -84,9 +84,11 @@ const els = {
   templateBlank: document.getElementById('template-blank'),
   templateGrid: document.getElementById('template-grid'),
 
+  aiSubject: document.getElementById('ai-subject'),
   aiSowFile: document.getElementById('ai-sow-file'),
   aiPrompt: document.getElementById('ai-prompt'),
   aiCount: document.getElementById('ai-count'),
+  aiWantGraphics: document.getElementById('ai-want-graphics'),
   aiGenerateBtn: document.getElementById('ai-generate-btn'),
   aiStatus: document.getElementById('ai-status'),
 
@@ -494,6 +496,8 @@ const SUBJECT_TEMPLATES = [
     blurb: 'Short answers on key terms, long answers on hadith / surah interpretation, essays on ethics.' },
   { id: 'social', subject: 'Social Studies', icon: '🌍',
     blurb: 'MCQs on dates and figures, True/False/Not Given on source extracts, essays on causation.' },
+  { id: 'arabic', subject: 'Arabic', icon: '🇦🇪',
+    blurb: 'Reading comprehension passages, short answers for grammar, essay (auto-graded) for composition.' },
   { id: 'french', subject: 'French', icon: '🇫🇷',
     blurb: 'MCQs for vocabulary, short answers for translation, essay for composition (auto-graded with rubric).' },
 ];
@@ -1117,28 +1121,32 @@ if (els.aiGenerateBtn) {
   els.aiGenerateBtn.onclick = async () => {
     const prompt = (els.aiPrompt.value || '').trim();
     const file = els.aiSowFile && els.aiSowFile.files && els.aiSowFile.files[0];
+    const subject = els.aiSubject ? els.aiSubject.value : '';
+    if (!subject) {
+      els.aiStatus.textContent = '⚠ Choose your subject first — the AI uses it to tailor question style and graphics.';
+      return;
+    }
     if (!prompt && !file) {
       els.aiStatus.textContent = '⚠ Tell the AI what to generate, or upload a scheme of work — at least one is required.';
       return;
     }
     const count = Math.max(1, Math.min(50, parseInt(els.aiCount.value, 10) || 10));
+    const wantGraphics = els.aiWantGraphics ? els.aiWantGraphics.checked : true;
 
     els.aiGenerateBtn.disabled = true;
     els.aiGenerateBtn.style.opacity = '0.6';
     const startMsg = file
-      ? '🧠 Reading scheme of work and generating assessment… this can take 20-40 seconds.'
-      : '🧠 Generating assessment… this can take 15-30 seconds.';
+      ? `🧠 Reading scheme of work and generating ${subject} assessment… this can take 20-40 seconds.`
+      : `🧠 Generating ${subject} assessment… this can take 15-30 seconds.`;
     els.aiStatus.textContent = startMsg;
 
     try {
       const fd = new FormData();
       fd.append('prompt', prompt);
       fd.append('count', String(count));
+      fd.append('subject', subject);
+      fd.append('wantGraphics', wantGraphics ? '1' : '0');
       if (file) fd.append('schemeOfWork', file);
-      // Hint Claude with the active class's name (helps target grade level if
-      // the teacher named their class accordingly).
-      const activeClass = classes.find((c) => c.id === getActiveClassId());
-      if (activeClass) fd.append('subject', activeClass.name);
 
       const res = await fetch('/api/assessments/ai-generate', { method: 'POST', body: fd });
       const data = await res.json().catch(() => ({}));
@@ -1153,6 +1161,7 @@ if (els.aiGenerateBtn) {
         title: data.title || 'AI-generated assessment',
         description: data.description || '',
         passage: data.passage || '',
+        subject,
         questions: (data.questions || []).map((q) => ({
           id: uid(),
           type: q.type,
@@ -1160,6 +1169,8 @@ if (els.aiGenerateBtn) {
           options: q.options || [],
           correctAnswer: q.correctAnswer ?? null,
           points: q.points || 1,
+          imageUrl: '',
+          imageDescription: q.imageDescription || '',
         })),
       };
       els.aiStatus.textContent = `✓ Generated ${fake.questions.length} questions. Opening builder…`;
@@ -1173,11 +1184,12 @@ if (els.aiGenerateBtn) {
         // Open builder with fields pre-filled. We pass null (new assessment)
         // and use the fake object's data after the builder opens.
         closeTemplatePicker();
-        openBuilder(null);
+        openBuilder(null, { subject: fake.subject });
         // Now overwrite the just-cleared builder fields with our AI content.
         if (els.title) els.title.value = fake.title;
         if (els.description) els.description.value = fake.description;
         if (els.passage) els.passage.value = fake.passage;
+        if (els.subject && fake.subject) els.subject.value = fake.subject;
         questions = fake.questions;
         renderQuestions();
       }, 600);
@@ -1293,6 +1305,43 @@ function renderQuestions() {
     if (q.type === 'short') {
       root.querySelector('[data-f=correct]').oninput = (e) => { q.correctAnswer = e.target.value; };
     }
+
+    // ----- Image actions (manual upload / AI suggestion fulfilment) -----
+    const imgFileInput = root.querySelector('[data-img-file]');
+    const triggerUpload = () => imgFileInput && imgFileInput.click();
+    const uploadBtn = root.querySelector('[data-act=img-upload]');
+    const replaceBtn = root.querySelector('[data-act=img-replace]');
+    const removeBtn = root.querySelector('[data-act=img-remove]');
+    const skipBtn = root.querySelector('[data-act=img-skip]');
+    if (uploadBtn) uploadBtn.onclick = triggerUpload;
+    if (replaceBtn) replaceBtn.onclick = triggerUpload;
+    if (removeBtn) removeBtn.onclick = () => {
+      q.imageUrl = '';
+      // Keep imageDescription so AI suggestion remains visible if applicable.
+      renderQuestions();
+    };
+    if (skipBtn) skipBtn.onclick = () => {
+      q.imageDescription = '';
+      renderQuestions();
+    };
+    if (imgFileInput) imgFileInput.onchange = async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (file.size > 8 * 1024 * 1024) {
+        alert('Image is too large (over 8 MB). Please pick a smaller file.');
+        return;
+      }
+      try {
+        const dataUrl = await compressImageToDataUrl(file, 800);
+        q.imageUrl = dataUrl;
+        // Once they upload, the AI suggestion is fulfilled; clear it so the
+        // teacher only sees the actual image preview.
+        q.imageDescription = '';
+        renderQuestions();
+      } catch (err) {
+        alert('Could not read that image: ' + err.message);
+      }
+    };
   });
 }
 
@@ -1357,6 +1406,45 @@ function renderQuestion(q, idx) {
   } else if (q.type === 'writing') {
     body = `<div class="muted">Auto-graded essays use the Stage 7/8 writing rubric you select for the assessment (4 criteria × 3 marks = 12 points). You can review and override the AI grade in the essay queue.</div>`;
   }
+  // Per-question image section. Three states:
+  //  1. Image already uploaded → show preview + remove button
+  //  2. AI suggested an image (imageDescription set, no imageUrl) → show
+  //     suggestion + upload button
+  //  3. Nothing → show plain "Add image" button
+  let imageSection = '';
+  if (q.imageUrl) {
+    imageSection = `
+      <div class="field">
+        <label>🖼 Image attached to this question</label>
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+          <img src="${escapeAttr(q.imageUrl)}" alt="Question image" style="max-width: 240px; max-height: 180px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;" />
+          <div>
+            <button class="btn ghost" data-act="img-replace">Replace</button>
+            <button class="btn danger" data-act="img-remove" style="margin-left: 6px;">Remove</button>
+            <input type="file" accept="image/*" data-img-file style="display: none;" />
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (q.imageDescription) {
+    imageSection = `
+      <div class="field" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 1px dashed #c4b5fd; border-radius: 8px; padding: 12px;">
+        <label>✨ AI suggests a graphic for this question</label>
+        <div style="font-size: 13px; color: #6b21a8; margin-bottom: 8px;">${escapeHtml(q.imageDescription)}</div>
+        <button class="btn primary" data-act="img-upload">📎 Upload image</button>
+        <button class="btn ghost" data-act="img-skip" style="margin-left: 6px;">Skip — text only</button>
+        <input type="file" accept="image/*" data-img-file style="display: none;" />
+      </div>
+    `;
+  } else {
+    imageSection = `
+      <div class="field">
+        <button class="btn ghost" data-act="img-upload">🖼 Add image (optional)</button>
+        <input type="file" accept="image/*" data-img-file style="display: none;" />
+      </div>
+    `;
+  }
+
   return `
     <div class="q-row" id="q-${q.id}">
       <div class="row" style="margin-bottom: 8px;">
@@ -1375,9 +1463,36 @@ function renderQuestion(q, idx) {
         <label>Points</label>
         <input type="number" min="1" data-f="points" value="${q.points || 1}" style="width: 80px;" />
       </div>
+      ${imageSection}
       ${body}
     </div>
   `;
+}
+
+// Compress + base64-encode an uploaded image so it can live inline in the
+// assessment JSON. Caps at 800px wide and ~70% JPEG quality which keeps each
+// image well under 250KB.
+function compressImageToDataUrl(file, maxW = 800) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => { img.src = reader.result; };
+    reader.onerror = () => reject(new Error('Could not read image'));
+    img.onerror = () => reject(new Error('Image is invalid or corrupt'));
+    img.onload = () => {
+      const ratio = Math.min(1, maxW / img.width);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      // Choose JPEG for photos; PNGs (with transparency) get JPEG-ed too —
+      // acceptable trade-off for keeping files small.
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 els.saveBtn.onclick = async () => {

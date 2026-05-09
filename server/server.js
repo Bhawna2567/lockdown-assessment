@@ -404,8 +404,8 @@ function normalizeGrade(g) {
 // this list gets stored as 'Other'.
 const SUBJECTS = new Set([
   'Math', 'Physics', 'Chemistry', 'Biology',
-  'Health Science', 'Islamic Studies', 'Social Studies', 'French',
-  'English', 'Other',
+  'Health Science', 'Islamic Studies', 'Social Studies',
+  'Arabic', 'French', 'English', 'Other',
 ]);
 function normalizeSubject(s) {
   if (!s) return null;
@@ -477,6 +477,11 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         options: q.options || [], // for mc
         correctAnswer: null,
         points: Number(q.points) || 1,
+        // Optional graphics. imageUrl is a data URL of an uploaded image (size-
+        // capped client-side); imageDescription is a text hint suggested by AI
+        // that the teacher can use to find/upload the right image.
+        imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
+        imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
       else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -582,6 +587,8 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             options: q.options || [],
             correctAnswer: null,
             points: Number(q.points) || 1,
+            imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
+            imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
           else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -638,6 +645,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
       prompt: q.prompt,
       options: q.options,
       points: q.points,
+      imageUrl: q.imageUrl || '',
     })),
   };
   res.json({ assessment: safe });
@@ -800,6 +808,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
       prompt: q.prompt,
       options: q.options || [],
       points: q.points,
+      imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
       correct: ans.correct ?? null,
       correctAnswer:
@@ -872,6 +881,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
       prompt: q.prompt,
       options: q.options || [],
       points: q.points,
+      imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
       correct: ans.correct ?? null,
       correctAnswer:
@@ -1693,6 +1703,19 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
     '  Essay (manual):     { "type": "essay", "prompt": "...", "points": 5 }',
     '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 12 }',
     '',
+    'Optional field on ANY question:',
+    '  "imageDescription": A short description (under 80 words) of an image that would help students answer this question.',
+    '  Add this field ONLY when a graphic genuinely helps comprehension. Examples by subject:',
+    '    Math: a graph, geometric figure, or worked-example diagram',
+    '    Physics: a circuit diagram, free-body diagram, ray diagram, or wave illustration',
+    '    Chemistry: a molecular structure, balanced equation diagram, or apparatus setup',
+    '    Biology: an anatomical diagram, cell structure, food web, or microscope image',
+    '    Social Studies: a map, timeline, historical photo, or political cartoon',
+    '    Health Science: a body system diagram, nutrition label, or first-aid sequence',
+    '    Arabic / Islamic Studies: a text excerpt, calligraphy sample, or geographic map',
+    '  The teacher will use the description to source or upload the actual image.',
+    '  Skip the field on text-only questions where a graphic adds nothing.',
+    '',
     'Rules:',
     `- Generate around ${requestedCount} questions unless the user requested a specific count or mix.`,
     '- Mix question types unless the user explicitly asked for only one type.',
@@ -1704,7 +1727,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
     '- Phrase prompts in clear, age-appropriate language.',
     '- If the teacher provided a scheme of work, base the questions tightly on that content.',
     '- All output text should be in: ' + (language || 'English') + '.',
-    subject ? `- The assessment subject is: ${subject}.` : '',
+    subject ? `- The assessment subject is: ${subject}. Tailor question style and graphics to this subject's conventions.` : '',
     '',
     'Teacher\'s request:',
     prompt || '(no prompt — design a balanced assessment based on the scheme of work)',
@@ -1754,6 +1777,8 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
         options: Array.isArray(q.options) ? q.options.map(String) : [],
         correctAnswer: null,
         points: Number(q.points) || (type === 'writing' ? 12 : type === 'essay' || type === 'long' ? 5 : 1),
+        imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
+        imageUrl: '', // populated client-side after teacher uploads
       };
       if (type === 'mc') {
         if (!out.options.length) out.options = ['', '', '', ''];

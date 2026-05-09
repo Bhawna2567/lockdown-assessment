@@ -207,6 +207,25 @@
         <p class="muted">Tell the AI what you want — like ChatGPT. Optionally upload your scheme of work and the AI will base the questions on it. You review and edit before publishing.</p>
 
         <div class="field">
+          <label>📚 Subject (required)</label>
+          <select id="ai-subject" required>
+            <option value="">— Choose your subject —</option>
+            <option value="Math">Math</option>
+            <option value="Physics">Physics</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Biology">Biology</option>
+            <option value="Health Science">Health Science</option>
+            <option value="Social Studies">Social Studies</option>
+            <option value="Islamic Studies">Islamic Studies</option>
+            <option value="Arabic">Arabic</option>
+            <option value="French">French</option>
+            <option value="English">English</option>
+            <option value="Other">Other</option>
+          </select>
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">Tells the AI to use the right style and conventions — diagrams, formulas, sources, vocabulary — for this subject.</div>
+        </div>
+
+        <div class="field">
           <label>📎 Scheme of work (optional)</label>
           <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt" />
           <div class="muted" style="font-size: 12px; margin-top: 4px;">Upload a PDF, Word, or text file containing your unit plan, syllabus, or chapter summary. The AI will use it to ground the questions.</div>
@@ -214,7 +233,15 @@
 
         <div class="field">
           <label>💬 Tell the AI what to generate</label>
-          <textarea id="ai-prompt" rows="4" placeholder="Examples:&#10;• 15 multiple-choice questions on photosynthesis for Grade 9 Biology&#10;• A 25-question mixed assessment on World War 2 — MCQs, true/false, plus 2 essay questions&#10;• 10 short-answer math problems on quadratic equations, with answer keys"></textarea>
+          <textarea id="ai-prompt" rows="4" placeholder="Examples:&#10;• 15 multiple-choice questions on photosynthesis for Grade 9&#10;• A 25-question mixed assessment on World War 2 — MCQs, true/false, plus 2 essay questions&#10;• 10 short-answer math problems on quadratic equations, with answer keys&#10;• A reading-comprehension test from Surah Al-Baqarah verses 1–10"></textarea>
+        </div>
+
+        <div class="field">
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="ai-want-graphics" checked style="width: 16px; height: 16px;" />
+            <span>🖼 Suggest graphics where helpful (recommended)</span>
+          </label>
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">When ticked, the AI flags which questions would benefit from a diagram, chart, or image — and describes what to upload. You can still add your own graphics manually to any question.</div>
         </div>
 
         <div class="row">
@@ -275,6 +302,7 @@
               <option value="Health Science">Health Science</option>
               <option value="Islamic Studies">Islamic Studies</option>
               <option value="Social Studies">Social Studies</option>
+              <option value="Arabic">Arabic</option>
               <option value="French">French</option>
               <option value="English">English</option>
               <option value="Other">Other</option>

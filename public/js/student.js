@@ -824,9 +824,14 @@ function renderQuestions() {
         const rows = q.type === 'writing' ? 14 : 6;
         body = `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>`;
       }
+      // Optional image, rendered above the prompt for context.
+      const imageBlock = q.imageUrl
+        ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #1a1e33;" />`
+        : '';
       return `
         <div class="panel">
           <div class="muted" style="margin-bottom: 4px;">Question ${i + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
+          ${imageBlock}
           <div style="font-size: 16px; margin-bottom: 12px;">${escapeHtml(q.prompt)}</div>
           ${body}
         </div>
