@@ -10,11 +10,23 @@ const FEATURES = {
   vmDetection: false,
 };
 // How often to ping the identity-check endpoint during an exam (ms). Each
-// call uses ~$0.001-0.005 of the teacher's API credit. 30s gives faster
-// detection of "moved away from camera" without ballooning cost.
-const IDENTITY_CHECK_INTERVAL_MS = 30000;
+// call uses ~$0.001-0.005 of the teacher's API credit. 15s gives fast
+// detection of "moved away from camera" while keeping per-exam cost
+// reasonable (~$0.10-0.30 for a 30-min test).
+const IDENTITY_CHECK_INTERVAL_MS = 15000;
 let identityIntervalId = null;
 let baselineDataUrl = null; // captured at exam start, used for identity matching
+
+// Local browser-side face presence check (FaceDetector API). Runs every
+// 4 seconds and counts consecutive "no face" results. Three in a row →
+// student is genuinely away from the camera → instant auto-submit. Free
+// (no API cost) and works without an internet roundtrip on Chrome / Edge.
+// Safari and Firefox don't support FaceDetector — those browsers fall
+// back to the 15s Claude check above.
+const LOCAL_FACE_INTERVAL_MS = 4000;
+const LOCAL_FACE_NOFACE_THRESHOLD = 3; // 3 × 4s = ~12s of absence
+let localFaceIntervalId = null;
+let localFaceConsecutiveAbsences = 0;
 
 const els = {
   listView: document.getElementById('list-view'),
@@ -830,6 +842,10 @@ function startAssessment() {
     setTimeout(() => { captureBaseline(); }, 1500);
     setTimeout(() => { runIdentityCheck().catch(() => {}); }, 6500);
     startIdentityCheckInterval();
+    // Fast browser-side face presence check (Chrome / Edge). Catches "moved
+    // away from camera" within ~12s without using API credits. Safari /
+    // Firefox silently skip and rely on the 15s Claude check.
+    startLocalFaceCheck();
   } else if (els.webcamWrap) {
     // Hide the webcam panel entirely since we're not capturing.
     els.webcamWrap.style.display = 'none';
@@ -944,6 +960,7 @@ async function submit(reason) {
   if (FEATURES.webcam) {
     stopProctorInterval();
     stopIdentityCheckInterval();
+    stopLocalFaceCheck();
     await captureAndUpload(`submit-${reason}`).catch(() => {});
     stopWebcam();
   }
@@ -1235,35 +1252,48 @@ const handlers = {
     }
   },
   keydown: (e) => {
-    // Block common shortcuts / shortcut exfiltration paths.
     const key = (e.key || '').toLowerCase();
     const ctrl = e.ctrlKey || e.metaKey;
+
+    // ----- Screenshot keys → INSTANT auto-submit (no 3-strike grace) -----
+    // Browsers cannot physically block OS-level screenshot shortcuts, but the
+    // ones that DO reach the page are caught here. The student's test ends
+    // immediately on the first attempt. The desktop app provides true
+    // physical blocking via setContentProtection — recommend for high-stakes.
+    const isScreenshot =
+      e.key === 'PrintScreen' ||
+      (e.altKey && e.key === 'PrintScreen') ||
+      // Mac: Cmd+Shift+3 (full), Cmd+Shift+4 (region), Cmd+Shift+5 (UI),
+      // Cmd+Shift+6 (Touch Bar capture)
+      (e.metaKey && e.shiftKey && ['3', '4', '5', '6'].includes(e.key)) ||
+      // Windows: Win+Shift+S (Snipping Tool), Win+PrintScreen
+      (e.metaKey && e.shiftKey && key === 's') ||
+      (e.metaKey && e.key === 'PrintScreen') ||
+      // Cmd/Ctrl+P (Print to file ⇒ effectively a screenshot)
+      (ctrl && key === 'p');
+    if (isScreenshot) {
+      e.preventDefault();
+      e.stopPropagation();
+      addViolation('Screenshot attempted — auto-submitting');
+      submit('screenshot').catch(() => {});
+      return false;
+    }
+
+    // ----- Other blocked shortcuts → 3-strike violation -----
     const block =
       // DevTools
       (e.key === 'F12') ||
       (ctrl && e.shiftKey && ['i', 'j', 'c'].includes(key)) ||
       // View source
       (ctrl && key === 'u') ||
-      // Save, Print, Find
-      (ctrl && ['s', 'p', 'f', 'g'].includes(key)) ||
+      // Save, Find
+      (ctrl && ['s', 'f', 'g'].includes(key)) ||
       // Clipboard
       (ctrl && ['c', 'v', 'x'].includes(key)) ||
       // New tab / window / close
       (ctrl && ['t', 'n', 'w'].includes(key)) ||
       // Reload
       (ctrl && ['r'].includes(key)) || e.key === 'F5' ||
-      // Screenshot shortcuts.
-      // Note: many of these CANNOT be physically blocked in a browser — they
-      // are intercepted by the OS before reaching the page. We catch the
-      // ones that do reach us, record a violation, and rely on the OS-level
-      // setContentProtection in the Electron desktop app for true blocking.
-      e.key === 'PrintScreen' ||
-      // Mac: Cmd+Shift+3 (full), Cmd+Shift+4 (selection), Cmd+Shift+5 (UI)
-      (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) ||
-      // Windows snipping tool: Win+Shift+S
-      (e.metaKey && e.shiftKey && key === 's') ||
-      // Alt+PrintScreen (Windows window screenshot)
-      (e.altKey && e.key === 'PrintScreen') ||
       // Alt+Tab (Windows/Linux) — many browsers can't actually block this
       (e.altKey && e.key === 'Tab');
     if (block) {
@@ -1569,6 +1599,70 @@ function startIdentityCheckInterval() {
 function stopIdentityCheckInterval() {
   if (identityIntervalId) clearInterval(identityIntervalId);
   identityIntervalId = null;
+}
+
+// ----- Local browser-side face detection (FaceDetector API) -----
+// Catches "moved away from camera" within ~12 seconds, free of API cost.
+// Falls through silently if the browser doesn't support FaceDetector
+// (Safari, Firefox) — the 15s Claude check then handles those cases.
+let _faceDetector = null;
+function getFaceDetector() {
+  if (_faceDetector !== null) return _faceDetector;
+  try {
+    if ('FaceDetector' in window) {
+      _faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 3 });
+      return _faceDetector;
+    }
+  } catch {}
+  _faceDetector = false;
+  return false;
+}
+
+async function runLocalFaceCheck() {
+  if (!webcamStream || submitted || !currentAssessment) return;
+  const fd = getFaceDetector();
+  if (!fd) return; // browser doesn't support — Claude polling will catch it
+  const video = els.webcam;
+  if (!video || !video.videoWidth) return;
+  let faces = [];
+  try {
+    faces = await fd.detect(video);
+  } catch {
+    // Detector failed (e.g. video frame not ready). Treat as a non-result.
+    return;
+  }
+  if (Array.isArray(faces) && faces.length > 0) {
+    // Face seen — reset counter.
+    localFaceConsecutiveAbsences = 0;
+    if (els.webcamStatus && els.webcamStatus.textContent === 'NO FACE') {
+      els.webcamStatus.textContent = 'REC';
+      els.webcamStatus.classList.remove('warn');
+    }
+    return;
+  }
+  // No face detected this tick. If this happens 3 times in a row (~12s),
+  // auto-submit immediately.
+  localFaceConsecutiveAbsences++;
+  if (els.webcamStatus) {
+    els.webcamStatus.textContent = 'NO FACE';
+    els.webcamStatus.classList.add('warn');
+  }
+  if (localFaceConsecutiveAbsences >= LOCAL_FACE_NOFACE_THRESHOLD) {
+    addViolation('Face not visible — auto-submitting');
+    submit('face-not-visible-local').catch(() => {});
+  }
+}
+
+function startLocalFaceCheck() {
+  if (localFaceIntervalId) clearInterval(localFaceIntervalId);
+  localFaceConsecutiveAbsences = 0;
+  // Don't start if browser lacks FaceDetector; the Claude check covers it.
+  if (!getFaceDetector()) return;
+  localFaceIntervalId = setInterval(() => runLocalFaceCheck().catch(() => {}), LOCAL_FACE_INTERVAL_MS);
+}
+function stopLocalFaceCheck() {
+  if (localFaceIntervalId) clearInterval(localFaceIntervalId);
+  localFaceIntervalId = null;
 }
 
 async function runIdentityCheck() {
