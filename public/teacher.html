@@ -226,6 +226,55 @@
         </div>
 
         <div class="field">
+          <label>🌐 Generate the assessment in this language</label>
+          <select id="ai-language">
+            <option value="English">English</option>
+            <optgroup label="Most common in international schools">
+              <option value="Arabic">Arabic — العربية</option>
+              <option value="Hindi">Hindi — हिन्दी</option>
+              <option value="Thai">Thai — ไทย</option>
+              <option value="Mandarin Chinese">Mandarin Chinese — 中文</option>
+              <option value="Spanish">Spanish — Español</option>
+              <option value="French">French — Français</option>
+            </optgroup>
+            <optgroup label="South Asia">
+              <option value="Bengali">Bengali — বাংলা</option>
+              <option value="Urdu">Urdu — اردو</option>
+              <option value="Tamil">Tamil — தமிழ்</option>
+              <option value="Punjabi">Punjabi — ਪੰਜਾਬੀ</option>
+              <option value="Telugu">Telugu — తెలుగు</option>
+              <option value="Malayalam">Malayalam — മലയാളം</option>
+            </optgroup>
+            <optgroup label="South-east Asia">
+              <option value="Indonesian">Indonesian — Bahasa Indonesia</option>
+              <option value="Malay">Malay — Bahasa Melayu</option>
+              <option value="Vietnamese">Vietnamese — Tiếng Việt</option>
+              <option value="Filipino">Filipino / Tagalog</option>
+              <option value="Khmer">Khmer — ភាសាខ្មែរ</option>
+            </optgroup>
+            <optgroup label="East Asia">
+              <option value="Japanese">Japanese — 日本語</option>
+              <option value="Korean">Korean — 한국어</option>
+            </optgroup>
+            <optgroup label="Middle East / Africa">
+              <option value="Persian">Persian / Farsi — فارسی</option>
+              <option value="Turkish">Turkish — Türkçe</option>
+              <option value="Hebrew">Hebrew — עברית</option>
+              <option value="Swahili">Swahili — Kiswahili</option>
+            </optgroup>
+            <optgroup label="Europe / Americas">
+              <option value="German">German — Deutsch</option>
+              <option value="Italian">Italian — Italiano</option>
+              <option value="Portuguese">Portuguese — Português</option>
+              <option value="Russian">Russian — Русский</option>
+              <option value="Polish">Polish — Polski</option>
+              <option value="Dutch">Dutch — Nederlands</option>
+            </optgroup>
+          </select>
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">The AI will write the title, descriptions, prompts, options, and answer keys entirely in this language. Right-to-left scripts (Arabic, Hebrew, Urdu, Persian) are handled correctly.</div>
+        </div>
+
+        <div class="field">
           <label>📎 Scheme of work (optional)</label>
           <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt" />
           <div class="muted" style="font-size: 12px; margin-top: 4px;">Upload a PDF, Word, or text file containing your unit plan, syllabus, or chapter summary. The AI will use it to ground the questions.</div>
@@ -355,7 +404,7 @@
                 <option value="Dutch">Dutch</option>
               </optgroup>
             </select>
-            <div class="muted" style="font-size: 12px; margin-top: 4px;">Students will see "Please answer in: [language]" at the top of the assessment.</div>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">Students will see "Please answer in: [language]" at the top of the assessment. You can type your questions in any language — the title, prompts, and options below all accept Arabic, Hindi, Mandarin, Cyrillic, etc.</div>
           </div>
         </div>
         <div class="field">

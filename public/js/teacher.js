@@ -85,6 +85,7 @@ const els = {
   templateGrid: document.getElementById('template-grid'),
 
   aiSubject: document.getElementById('ai-subject'),
+  aiLanguage: document.getElementById('ai-language'),
   aiSowFile: document.getElementById('ai-sow-file'),
   aiPrompt: document.getElementById('ai-prompt'),
   aiCount: document.getElementById('ai-count'),
@@ -1132,12 +1133,14 @@ if (els.aiGenerateBtn) {
     }
     const count = Math.max(1, Math.min(50, parseInt(els.aiCount.value, 10) || 10));
     const wantGraphics = els.aiWantGraphics ? els.aiWantGraphics.checked : true;
+    const language = (els.aiLanguage && els.aiLanguage.value) || 'English';
 
     els.aiGenerateBtn.disabled = true;
     els.aiGenerateBtn.style.opacity = '0.6';
+    const langLabel = language === 'English' ? '' : ` in ${language}`;
     const startMsg = file
-      ? `🧠 Reading scheme of work and generating ${subject} assessment… this can take 20-40 seconds.`
-      : `🧠 Generating ${subject} assessment… this can take 15-30 seconds.`;
+      ? `🧠 Reading scheme of work and generating ${subject} assessment${langLabel}… this can take 20-40 seconds.`
+      : `🧠 Generating ${subject} assessment${langLabel}… this can take 15-30 seconds.`;
     els.aiStatus.textContent = startMsg;
 
     try {
@@ -1145,6 +1148,7 @@ if (els.aiGenerateBtn) {
       fd.append('prompt', prompt);
       fd.append('count', String(count));
       fd.append('subject', subject);
+      fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
       if (file) fd.append('schemeOfWork', file);
 
@@ -1162,6 +1166,7 @@ if (els.aiGenerateBtn) {
         description: data.description || '',
         passage: data.passage || '',
         subject,
+        assessmentLanguage: language,
         questions: (data.questions || []).map((q) => ({
           id: uid(),
           type: q.type,
@@ -1190,6 +1195,12 @@ if (els.aiGenerateBtn) {
         if (els.description) els.description.value = fake.description;
         if (els.passage) els.passage.value = fake.passage;
         if (els.subject && fake.subject) els.subject.value = fake.subject;
+        // Pre-fill the assessment language so students see the correct
+        // "Please answer in: …" banner. The dropdown values match what the
+        // AI panel uses (free-text language names).
+        if (els.assessmentLanguage && fake.assessmentLanguage) {
+          els.assessmentLanguage.value = fake.assessmentLanguage;
+        }
         questions = fake.questions;
         renderQuestions();
       }, 600);
