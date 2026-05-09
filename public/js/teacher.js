@@ -84,6 +84,12 @@ const els = {
   templateBlank: document.getElementById('template-blank'),
   templateGrid: document.getElementById('template-grid'),
 
+  aiSowFile: document.getElementById('ai-sow-file'),
+  aiPrompt: document.getElementById('ai-prompt'),
+  aiCount: document.getElementById('ai-count'),
+  aiGenerateBtn: document.getElementById('ai-generate-btn'),
+  aiStatus: document.getElementById('ai-status'),
+
   classSwitcher: document.getElementById('class-switcher'),
   classCount: document.getElementById('class-count'),
   manageClassesBtn: document.getElementById('manage-classes-btn'),
@@ -1101,6 +1107,87 @@ if (els.templateBlank) els.templateBlank.onclick = () => {
   closeTemplatePicker();
   openBuilder(null);
 };
+
+// ----- AI assessment generator -----
+// Teacher fills in prompt + optional scheme of work. We POST a multipart
+// form to /api/assessments/ai-generate and Claude returns a structured
+// assessment. The builder opens with the questions pre-filled — teacher
+// reviews and edits before saving.
+if (els.aiGenerateBtn) {
+  els.aiGenerateBtn.onclick = async () => {
+    const prompt = (els.aiPrompt.value || '').trim();
+    const file = els.aiSowFile && els.aiSowFile.files && els.aiSowFile.files[0];
+    if (!prompt && !file) {
+      els.aiStatus.textContent = '⚠ Tell the AI what to generate, or upload a scheme of work — at least one is required.';
+      return;
+    }
+    const count = Math.max(1, Math.min(50, parseInt(els.aiCount.value, 10) || 10));
+
+    els.aiGenerateBtn.disabled = true;
+    els.aiGenerateBtn.style.opacity = '0.6';
+    const startMsg = file
+      ? '🧠 Reading scheme of work and generating assessment… this can take 20-40 seconds.'
+      : '🧠 Generating assessment… this can take 15-30 seconds.';
+    els.aiStatus.textContent = startMsg;
+
+    try {
+      const fd = new FormData();
+      fd.append('prompt', prompt);
+      fd.append('count', String(count));
+      if (file) fd.append('schemeOfWork', file);
+      // Hint Claude with the active class's name (helps target grade level if
+      // the teacher named their class accordingly).
+      const activeClass = classes.find((c) => c.id === getActiveClassId());
+      if (activeClass) fd.append('subject', activeClass.name);
+
+      const res = await fetch('/api/assessments/ai-generate', { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Generation failed');
+      }
+
+      // Open the builder with the AI-generated content. We construct a
+      // fake "assessment" object whose questions match what openBuilder
+      // expects, and pass it through. Teacher then edits + saves.
+      const fake = {
+        title: data.title || 'AI-generated assessment',
+        description: data.description || '',
+        passage: data.passage || '',
+        questions: (data.questions || []).map((q) => ({
+          id: uid(),
+          type: q.type,
+          prompt: q.prompt,
+          options: q.options || [],
+          correctAnswer: q.correctAnswer ?? null,
+          points: q.points || 1,
+        })),
+      };
+      els.aiStatus.textContent = `✓ Generated ${fake.questions.length} questions. Opening builder…`;
+      // Reset form for next time
+      setTimeout(() => {
+        els.aiPrompt.value = '';
+        if (els.aiSowFile) els.aiSowFile.value = '';
+        els.aiStatus.textContent = '';
+        els.aiGenerateBtn.disabled = false;
+        els.aiGenerateBtn.style.opacity = '1';
+        // Open builder with fields pre-filled. We pass null (new assessment)
+        // and use the fake object's data after the builder opens.
+        closeTemplatePicker();
+        openBuilder(null);
+        // Now overwrite the just-cleared builder fields with our AI content.
+        if (els.title) els.title.value = fake.title;
+        if (els.description) els.description.value = fake.description;
+        if (els.passage) els.passage.value = fake.passage;
+        questions = fake.questions;
+        renderQuestions();
+      }, 600);
+    } catch (e) {
+      els.aiStatus.textContent = '❌ ' + (e.message || 'Generation failed');
+      els.aiGenerateBtn.disabled = false;
+      els.aiGenerateBtn.style.opacity = '1';
+    }
+  };
+}
 
 function openBuilder(a, presets) {
   els.listView.style.display = 'none';

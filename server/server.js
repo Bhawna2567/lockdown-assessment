@@ -1626,6 +1626,167 @@ app.get('/api/assessments/:id/scoresheet', requireTeacher, async (req, res) => {
   res.end();
 });
 
+// ---------- AI Assessment Generator ----------
+// Teacher uploads a scheme-of-work file (optional) plus a natural-language
+// prompt like "20 MCQs on photosynthesis for Grade 9 Biology". The server
+// extracts text from any uploaded file, sends it together with the prompt to
+// Claude, and asks Claude to return a structured JSON assessment that maps
+// 1:1 to the existing question schema. Frontend opens the builder with the
+// returned questions pre-filled — teacher reviews and saves.
+//
+// Cost: ~$0.01-0.10 per generation. Requires the teacher's Anthropic API key.
+app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOfWork'), async (req, res) => {
+  const apiKey = readApiKey();
+  if (!apiKey) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    return res.status(503).json({
+      ok: false,
+      error: 'AI generation requires an Anthropic API key. Open Settings on the dashboard and paste your key.',
+    });
+  }
+  const prompt = String(req.body?.prompt || '').trim();
+  const requestedCount = Math.max(1, Math.min(50, parseInt(req.body?.count, 10) || 10));
+  const subject = String(req.body?.subject || '').trim();
+  const language = String(req.body?.language || 'English').trim();
+  if (!prompt && !req.file) {
+    return res.status(400).json({
+      ok: false,
+      error: 'Either a prompt or a scheme-of-work file is required.',
+    });
+  }
+
+  // If a file was uploaded, extract its text.
+  let schemeText = '';
+  if (req.file) {
+    try {
+      schemeText = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
+    } catch (e) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({ ok: false, error: 'Could not read the uploaded file: ' + e.message });
+    }
+    try { fs.unlinkSync(req.file.path); } catch {}
+    // Cap scheme text to keep token use reasonable.
+    if (schemeText.length > 30000) schemeText = schemeText.slice(0, 30000) + '\n…[truncated]';
+  }
+
+  // Build the prompt for Claude. We give a strict JSON schema and a tight
+  // example so the model can't drift into prose responses.
+  const systemPrompt = [
+    'You are an expert classroom-assessment designer.',
+    'Generate ONE assessment as a JSON object that matches the schema below exactly.',
+    'Return ONLY the JSON object. Do not wrap it in markdown. Do not add commentary.',
+    '',
+    'Schema:',
+    '{',
+    '  "title": "string — short, descriptive title",',
+    '  "description": "string — 1 sentence describing the assessment",',
+    '  "passage": "string — optional reading passage if the assessment is comprehension-based, otherwise empty string",',
+    '  "questions": [ Question, ... ]',
+    '}',
+    '',
+    'Question shapes (pick the appropriate type for each question):',
+    '  Multiple choice:    { "type": "mc", "prompt": "...", "options": ["A","B","C","D"], "correctAnswer": 0, "points": 1 }',
+    '  True / False:       { "type": "tf", "prompt": "...", "correctAnswer": true, "points": 1 }',
+    '  True/False/NotGiven:{ "type": "tfng", "prompt": "...", "correctAnswer": "true|false|ng", "points": 1 }',
+    '  Short answer:       { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1 }',
+    '  Long answer:        { "type": "long", "prompt": "...", "points": 5 }',
+    '  Essay (manual):     { "type": "essay", "prompt": "...", "points": 5 }',
+    '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 12 }',
+    '',
+    'Rules:',
+    `- Generate around ${requestedCount} questions unless the user requested a specific count or mix.`,
+    '- Mix question types unless the user explicitly asked for only one type.',
+    '- For "mc": correctAnswer is the 0-based INDEX of the right option in the options array.',
+    '- For "tf": correctAnswer is a boolean true or false.',
+    '- For "tfng": correctAnswer is the string "true", "false", or "ng".',
+    '- For "short": include a concise correctAnswer when there is a single canonical right answer.',
+    '- For "long" / "essay" / "writing": no correctAnswer field needed.',
+    '- Phrase prompts in clear, age-appropriate language.',
+    '- If the teacher provided a scheme of work, base the questions tightly on that content.',
+    '- All output text should be in: ' + (language || 'English') + '.',
+    subject ? `- The assessment subject is: ${subject}.` : '',
+    '',
+    'Teacher\'s request:',
+    prompt || '(no prompt — design a balanced assessment based on the scheme of work)',
+  ].filter(Boolean).join('\n');
+
+  const userContent = [
+    { type: 'text', text: systemPrompt },
+  ];
+  if (schemeText && schemeText.trim()) {
+    userContent.push({ type: 'text', text: '---\nScheme of work:\n' + schemeText });
+  }
+
+  try {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 8192,
+        messages: [{ role: 'user', content: userContent }],
+      }),
+    });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text().catch(() => '');
+      console.error('[ai-generate] API error', apiRes.status, errText);
+      return res.status(502).json({ ok: false, error: 'AI service error: ' + apiRes.status });
+    }
+    const data = await apiRes.json();
+    let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    // Strip markdown fences if Claude included them.
+    text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      console.error('[ai-generate] failed to parse JSON', text.slice(0, 400));
+      return res.status(502).json({ ok: false, error: 'AI returned an invalid response. Please try again.' });
+    }
+
+    // Validate + normalize each question to match exactly what the builder expects.
+    const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+    const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q) => {
+      const type = validTypes.has(q.type) ? q.type : 'short';
+      const out = {
+        type,
+        prompt: String(q.prompt || ''),
+        options: Array.isArray(q.options) ? q.options.map(String) : [],
+        correctAnswer: null,
+        points: Number(q.points) || (type === 'writing' ? 12 : type === 'essay' || type === 'long' ? 5 : 1),
+      };
+      if (type === 'mc') {
+        if (!out.options.length) out.options = ['', '', '', ''];
+        const idx = parseInt(q.correctAnswer, 10);
+        out.correctAnswer = (idx >= 0 && idx < out.options.length) ? idx : 0;
+      } else if (type === 'tf') {
+        out.correctAnswer = q.correctAnswer === true || q.correctAnswer === 'true';
+      } else if (type === 'tfng') {
+        const v = String(q.correctAnswer ?? '').toLowerCase();
+        out.correctAnswer = ['true', 'false', 'ng'].includes(v) ? v : 'true';
+      } else if (type === 'short') {
+        out.correctAnswer = q.correctAnswer ? String(q.correctAnswer) : '';
+      }
+      return out;
+    }).filter((q) => q.prompt.trim());
+
+    if (!questions.length) {
+      return res.status(502).json({ ok: false, error: 'AI did not produce any usable questions. Please try a more specific prompt.' });
+    }
+
+    res.json({
+      ok: true,
+      title: String(parsed.title || 'AI-generated assessment').slice(0, 200),
+      description: String(parsed.description || '').slice(0, 500),
+      passage: String(parsed.passage || ''),
+      questions,
+    });
+  } catch (e) {
+    console.error('[ai-generate] failed', e);
+    res.status(500).json({ ok: false, error: 'AI generation failed: ' + e.message });
+  }
+});
+
 // ---------- Quick Import (PDF / DOCX / TXT → questions) ----------
 app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });

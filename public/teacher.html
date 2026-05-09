@@ -202,6 +202,39 @@
         <button id="template-back" class="btn">&larr; Back</button>
         <h1 style="margin:0;">Start a new assessment</h1>
       </div>
+      <div class="panel" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 2px solid #c4b5fd;">
+        <h2 style="margin-top: 0;">✨ AI-generated assessment <span class="badge" style="background: #4f46e5; color: white; font-size: 11px;">NEW</span></h2>
+        <p class="muted">Tell the AI what you want — like ChatGPT. Optionally upload your scheme of work and the AI will base the questions on it. You review and edit before publishing.</p>
+
+        <div class="field">
+          <label>📎 Scheme of work (optional)</label>
+          <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt" />
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">Upload a PDF, Word, or text file containing your unit plan, syllabus, or chapter summary. The AI will use it to ground the questions.</div>
+        </div>
+
+        <div class="field">
+          <label>💬 Tell the AI what to generate</label>
+          <textarea id="ai-prompt" rows="4" placeholder="Examples:&#10;• 15 multiple-choice questions on photosynthesis for Grade 9 Biology&#10;• A 25-question mixed assessment on World War 2 — MCQs, true/false, plus 2 essay questions&#10;• 10 short-answer math problems on quadratic equations, with answer keys"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field" style="flex: 0 0 200px;">
+            <label>Number of questions</label>
+            <input type="number" id="ai-count" value="10" min="1" max="50" />
+          </div>
+          <div class="spacer"></div>
+          <div class="field" style="margin: 0;">
+            <button id="ai-generate-btn" class="btn primary" style="margin-top: 22px;">✨ Generate assessment</button>
+          </div>
+        </div>
+
+        <div id="ai-status" class="muted" style="font-size: 13px; margin-top: 6px;"></div>
+        <div class="muted" style="font-size: 12px; margin-top: 8px;">
+          ⓘ Requires an Anthropic API key in Settings. Cost: ~$0.01–$0.10 per generation.
+          The AI's draft opens in the builder where you can edit any question before publishing.
+        </div>
+      </div>
+
       <div class="panel">
         <h2 style="margin-top: 0;">📝 Blank assessment</h2>
         <p class="muted">Start from scratch — no subject, no questions. Add everything yourself.</p>
