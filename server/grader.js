@@ -25,9 +25,18 @@ function readApiKey() {
 }
 
 function buildPrompt(rubric, prompt, essay) {
+  // Generate the JSON shape dynamically from whatever criteria + score range
+  // the chosen rubric defines. Old rubrics (Stage 7/8): 4 criteria × 1-3.
+  // New rubrics (Stage 3-5, 5-9): 5 criteria × 0-8.
+  const lo = rubric.scoreMin != null ? rubric.scoreMin : 1;
+  const criteriaJsonLines = rubric.criteria.map((c, i) => {
+    const sep = i < rubric.criteria.length - 1 ? ',' : '';
+    return `    "${c.id}": { "score": <integer ${lo}-${c.max}>, "comment": "<one or two sentences>" }${sep}`;
+  });
+
   return [
     `You are an experienced writing teacher grading a student's essay.`,
-    `You must evaluate the essay strictly against the rubric below. Score each criterion on a 1–3 scale (whole numbers only). Be fair and consistent — only award the top band when the descriptors are clearly met.`,
+    `You must evaluate the essay strictly against the rubric below. Score each criterion as a whole number, choosing the band that best fits the response. Be fair and consistent — only award scores in the top band when the descriptors are clearly met.`,
     ``,
     `=== RUBRIC ===`,
     rubricAsText(rubric),
@@ -42,10 +51,7 @@ function buildPrompt(rubric, prompt, essay) {
     `Return ONLY valid JSON in exactly this shape, with no surrounding prose, no markdown fences:`,
     `{`,
     `  "criteria": {`,
-    `    "content": { "score": <1|2|3>, "comment": "<one or two sentences>" },`,
-    `    "organisation": { "score": <1|2|3>, "comment": "<one or two sentences>" },`,
-    `    "grammar": { "score": <1|2|3>, "comment": "<one or two sentences>" },`,
-    `    "lexis": { "score": <1|2|3>, "comment": "<one or two sentences>" }`,
+    ...criteriaJsonLines,
     `  },`,
     `  "overallFeedback": "<two to four sentences combining strengths and one or two improvement targets, written directly to the student>"`,
     `}`,
@@ -124,12 +130,17 @@ async function gradeWriting({ rubricStage, prompt, essay, maxScore = 12 }) {
     return { ok: false, reason: 'parse-error', detail: raw.slice(0, 200) };
   }
 
-  // Normalise — clamp scores to 1..3 and total them.
+  // Normalise — clamp scores to the rubric's allowed range.
+  // Old rubrics: 1..3. New rubrics: scoreMin..scoreMax (0..8).
+  const lo = rubric.scoreMin != null ? rubric.scoreMin : 1;
   const breakdown = {};
   let total = 0;
   for (const c of rubric.criteria) {
     const item = parsed.criteria[c.id] || {};
-    const s = Math.max(1, Math.min(c.max, Math.round(Number(item.score) || 0)));
+    const raw = Number(item.score);
+    const s = Number.isFinite(raw)
+      ? Math.max(lo, Math.min(c.max, Math.round(raw)))
+      : lo;
     breakdown[c.id] = {
       name: c.name,
       score: s,

@@ -98,23 +98,180 @@ const STAGE_8 = {
   ],
 };
 
-const RUBRICS = { 7: STAGE_7, 8: STAGE_8 };
+// =============================================================================
+//  Stage 3-5 Writing Rubric (5 criteria × 0-8 marks = 40 marks total)
+// =============================================================================
+//  Source: ClassCurio teacher upload (Stage 3-5 Writing Rubric 2.pdf).
+//  Bands: 7-8 (top), 5-6, 3-4, 2, 1, 0. Each criterion scored 0-8 within band.
+const STAGE_3_5 = {
+  stage: '3-5',
+  title: 'Stage 3-5 Writing Rubric',
+  totalMax: 40,
+  scoreMin: 0,
+  scoreMax: 8,
+  criteria: [
+    {
+      id: 'task_completion', name: 'Task Completion', max: 8,
+      bands: {
+        '7-8': 'Student writes an extended response, obviously reaching or exceeding the expected length, which covers all aspects of the prompt.',
+        '5-6': 'Student writes an adequately extended response, approximating the word count, with most aspects covered (no more than one area of the prompt missed).',
+        '3-4': 'Student expresses several ideas which cover more than one aspect of the prompt, although more than one area is missed or not covered in sufficient detail.',
+        '2': 'Student expresses an idea that covers at least one aspect of the prompt.',
+        '1': "Student's writing does not cover any aspect of the prompt.",
+        '0': 'No response, or entirety of response plagiarised.',
+      },
+    },
+    {
+      id: 'structure', name: 'Structure', max: 8,
+      bands: {
+        '7-8': 'Response is clearly structured appropriately in paragraphs with evident attempt at an opening and closing.',
+        '5-6': 'Response is structured to resemble a clear paragraph with a logical progression of ideas.',
+        '3-4': 'Response contains clearly connected text, sentences and ideas. Sentences may be disconnected and not structured into paragraphs.',
+        '2': 'Response contains a clear attempt at sentence structure in responding to prompt.',
+        '1': 'Response does not appear to be structured in any conventional sense, even in terms of sentences.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'grammar', name: 'Grammar', max: 8,
+      bands: {
+        '7-8': 'Response uses a range of simple and possibly some complex grammatical structures appropriate to the prompt/questions. Grammatical errors are infrequent and do not affect readability.',
+        '5-6': 'Response uses a range of grammar appropriate to the prompt/questions. Grammatical errors may sometimes affect readability.',
+        '3-4': 'Response uses basic grammar appropriate to the prompt/questions. Grammatical errors may be frequent.',
+        '2': 'Response shows some attempt at the most basic grammatical structures (e.g. subject-verb use) but there are frequent errors.',
+        '1': 'No attempt at grammatical structures is identifiable.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'vocabulary', name: 'Vocabulary', max: 8,
+      bands: {
+        '7-8': 'Response uses a few examples of more uncommon or sophisticated vocabulary for the specific topic of the task.',
+        '5-6': 'Vocabulary is adequate to communicate a response to the topic, but may largely depend on common/simple vocabulary.',
+        '3-4': 'Vocabulary range is clearly limited, but just about sufficient to cover some topics in the prompt.',
+        '2': 'A few examples of basic, high-frequency words are used which relate to the topic and task.',
+        '1': 'Response contains very little that can be identified as appropriate vocabulary for the task.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'spelling_punctuation', name: 'Spelling and Punctuation', max: 8,
+      bands: {
+        '7-8': "There are examples of accuracy in even higher-level spelling and punctuation. There may be multiple errors, but they mostly don't affect readability.",
+        '5-6': 'Common vocabulary is mostly spelt accurately, and sentences contain basic punctuation. There may be frequent spelling errors with more difficult words.',
+        '3-4': 'There are examples of accurate spelling and punctuation throughout, but also frequent errors.',
+        '2': 'There is some attempt at punctuation. Spelling shows some signs of phonemic awareness, but many errors are found.',
+        '1': 'Response contains no punctuation and/or almost every word is spelt so as to be barely decipherable.',
+        '0': 'No response.',
+      },
+    },
+  ],
+};
+
+// =============================================================================
+//  Stage 5-9 Writing Rubric (5 criteria × 0-8 marks = 40 marks total)
+// =============================================================================
+//  Source: ClassCurio teacher upload (Stage 5-9 Writing Rubric [40].pdf).
+//  Same banded structure as Stage 3-5 but more advanced descriptors.
+const STAGE_5_9 = {
+  stage: '5-9',
+  title: 'Stage 5-9 Writing Rubric',
+  totalMax: 40,
+  scoreMin: 0,
+  scoreMax: 8,
+  criteria: [
+    {
+      id: 'task_completion', name: 'Task Completion', max: 8,
+      bands: {
+        '7-8': 'Student writes an extended and sophisticated response, with all aspects of the prompt covered in detail.',
+        '5-6': 'Student writes an extended response, obviously achieving the expected length, which covers all aspects of the prompt.',
+        '3-4': 'Student writes an adequately extended response, approximating the word count, with most aspects covered (no more than one area of the prompt missed).',
+        '2': 'Student expresses several ideas, but more than one area of the prompt is missed or not dealt with in sufficient detail.',
+        '1': "Student's writing does not cover any aspect of the prompt.",
+        '0': 'No response, or entirety of response plagiarised.',
+      },
+    },
+    {
+      id: 'structure', name: 'Structure', max: 8,
+      bands: {
+        '7-8': 'Entire response is appropriately structured with awareness of style and audience.',
+        '5-6': 'Response is clearly structured appropriately in paragraphs with evident attempt at an introduction, main body and conclusion.',
+        '3-4': 'Response is written using a paragraph or more which contain a topic sentence and supporting ideas.',
+        '2': 'Response is clearly structured into sentences but there is little to no attempt to structure into a paragraph.',
+        '1': 'Response does not appear to be structured in any conventional sense, even in terms of sentences.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'grammar', name: 'Grammar', max: 8,
+      bands: {
+        '7-8': 'Response uses both simple and complex language structures. Language chosen is appropriate to the task, with only isolated minor mistakes, if any.',
+        '5-6': 'Response uses a range of simple and complex grammatical structures appropriate to the prompt/questions. Grammatical errors are infrequent and do not affect readability.',
+        '3-4': 'Response uses a range of grammar appropriate to the prompt/questions. Grammatical errors may sometimes affect readability.',
+        '2': 'Response uses only basic grammar to answer the prompt/questions. Grammatical errors may be frequent.',
+        '1': 'No attempt at grammatical structures is identifiable.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'vocabulary', name: 'Vocabulary', max: 8,
+      bands: {
+        '7-8': 'Response uses a range of technical and sophisticated vocabulary for the specific topic of the task.',
+        '5-6': 'Response uses a few examples of more technical or sophisticated vocabulary for the specific topic of the task.',
+        '3-4': 'Vocabulary is adequate to communicate a response to the topic, but may largely depend on common/simple vocabulary.',
+        '2': 'Vocabulary range is clearly limited, and is not sufficient to address some topics in the prompt.',
+        '1': 'Response contains very little that can be identified as appropriate vocabulary for the task.',
+        '0': 'No response.',
+      },
+    },
+    {
+      id: 'spelling_punctuation', name: 'Spelling and Punctuation', max: 8,
+      bands: {
+        '7-8': 'Spelling and punctuation are consistently accurate, even within complex words and sentences.',
+        '5-6': "There are examples of accuracy in more complex spelling and punctuation. There may be multiple errors, but they mostly don't affect readability.",
+        '3-4': 'Common vocabulary is mostly spelt accurately and sentences contain basic punctuation. There may be frequent spelling errors with more complex words.',
+        '2': 'There are examples of accurate spelling and punctuation throughout, but also frequent errors.',
+        '1': 'Response contains little to no punctuation and/or almost every word is spelt so as to be barely decipherable.',
+        '0': 'No response.',
+      },
+    },
+  ],
+};
+
+const RUBRICS = {
+  '7': STAGE_7,
+  '8': STAGE_8,
+  '3-5': STAGE_3_5,
+  '5-9': STAGE_5_9,
+};
 
 function getRubric(stage) {
   return RUBRICS[String(stage)] || null;
 }
 
 // Build a single string the LLM will see, listing every criterion and band.
+// Handles BOTH the old 1/2/3 numeric-band rubrics AND the new banded rubrics
+// (7-8, 5-6, 3-4, 2, 1, 0).
 function rubricAsText(rubric) {
   const lines = [`${rubric.title} — total possible: ${rubric.totalMax} marks`];
   for (const c of rubric.criteria) {
     lines.push('');
     lines.push(`### ${c.name} (out of ${c.max})`);
-    for (const band of [1, 2, 3]) {
-      lines.push(`- ${band} mark${band === 1 ? '' : 's'}: ${c.bands[band]}`);
+    // Sort band keys descending so the highest band is listed first.
+    const bandKeys = Object.keys(c.bands).sort((a, b) => {
+      // For ranges like "7-8", use the LOW end for comparison.
+      const aLow = parseInt(String(a).split('-')[0], 10);
+      const bLow = parseInt(String(b).split('-')[0], 10);
+      return bLow - aLow;
+    });
+    for (const band of bandKeys) {
+      const label = String(band).includes('-')
+        ? `${band} marks`
+        : (band === '1' || band === 1) ? '1 mark' : `${band} marks`;
+      lines.push(`- ${label}: ${c.bands[band]}`);
     }
   }
   return lines.join('\n');
 }
 
-module.exports = { getRubric, rubricAsText, STAGE_7, STAGE_8 };
+module.exports = { getRubric, rubricAsText, STAGE_7, STAGE_8, STAGE_3_5, STAGE_5_9 };

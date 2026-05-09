@@ -1257,7 +1257,12 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
     if (type === 'short') { q.correctAnswer = ''; }
     if (type === 'long') { q.points = 5; }
     if (type === 'essay') { q.points = 5; }
-    if (type === 'writing') { q.points = 12; } // 4 criteria x 3 marks (CEFR rubric)
+    if (type === 'writing') {
+      // Default points to match the currently-selected rubric. Stage 7/8 = 12,
+      // Stage 3-5 / 5-9 = 40. The teacher can still override.
+      const stage = els.rubricStage ? els.rubricStage.value : '';
+      q.points = (stage === '3-5' || stage === '5-9') ? 40 : 12;
+    }
     questions.push(q);
     renderQuestions();
   };
@@ -1415,7 +1420,7 @@ function renderQuestion(q, idx) {
   } else if (q.type === 'essay') {
     body = `<div class="muted">Essay questions are graded manually by the teacher in the Results view.</div>`;
   } else if (q.type === 'writing') {
-    body = `<div class="muted">Auto-graded essays use the Stage 7/8 writing rubric you select for the assessment (4 criteria × 3 marks = 12 points). You can review and override the AI grade in the essay queue.</div>`;
+    body = `<div class="muted">Auto-graded essays use the writing rubric you select at the top of this builder. Stage 7/8 = 4 criteria × 3 marks (12 total). Stage 3-5 / 5-9 = 5 criteria × 0–8 marks (40 total). You can review and override the AI grade in the essay queue.</div>`;
   }
   // Per-question image section. Three states:
   //  1. Image already uploaded → show preview + remove button

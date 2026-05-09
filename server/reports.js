@@ -267,28 +267,68 @@ function dateStr(iso) {
 }
 
 // Aggregate rubric-criteria scores across writing questions in a submission.
+// Generic across rubrics: works with the old 4-criteria / 12-point rubrics
+// (content, organisation, grammar, lexis) AND the new 5-criteria / 40-point
+// rubrics (task_completion, structure, grammar, vocabulary, spelling_punctuation).
+//
+// Returns:
+//   {
+//     count: <int>,                          // number of writing submissions averaged
+//     total: <number>,                       // sum of average per-criterion scores
+//     totalMax: <number>,                    // sum of per-criterion maxima
+//     criteria: [                            // ordered list of criteria
+//       { id, name, avg, max },              // per-criterion average and max
+//       ...
+//     ],
+//     // back-compat keys for legacy 4-criterion code paths:
+//     content, organisation, grammar, lexis  // present iff that criterion was used
+//   }
 function rubricAverages(submission) {
-  const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+  const sums = {};       // id -> running sum
+  const maxes = {};      // id -> max (from the breakdown)
+  const names = {};      // id -> display name
+  const order = [];      // first-seen order of ids
   let count = 0;
+
   for (const q of submission.review || []) {
     const breakdown = q.manualGrade && q.manualGrade.breakdown;
     if (q.type !== 'writing' || !breakdown) continue;
-    for (const k of Object.keys(sums)) {
-      if (breakdown[k] && typeof breakdown[k].score === 'number') {
-        sums[k] += breakdown[k].score;
+    for (const id of Object.keys(breakdown)) {
+      const item = breakdown[id];
+      if (!item || typeof item.score !== 'number') continue;
+      if (!(id in sums)) {
+        sums[id] = 0;
+        maxes[id] = Number(item.max) || 0;
+        names[id] = String(item.name || id);
+        order.push(id);
       }
+      sums[id] += item.score;
     }
     count++;
   }
   if (count === 0) return null;
-  return {
-    content: sums.content / count,
-    organisation: sums.organisation / count,
-    grammar: sums.grammar / count,
-    lexis: sums.lexis / count,
+
+  const criteria = order.map((id) => ({
+    id,
+    name: names[id],
+    avg: sums[id] / count,
+    max: maxes[id],
+  }));
+
+  const out = {
     count,
-    total: (sums.content + sums.organisation + sums.grammar + sums.lexis) / count,
+    total: criteria.reduce((s, c) => s + c.avg, 0),
+    totalMax: criteria.reduce((s, c) => s + c.max, 0),
+    criteria,
   };
+  // Back-compat: expose the old keys when those criteria are present so
+  // older code paths in the Excel/Word renderers keep working.
+  for (const c of criteria) {
+    if (['content', 'organisation', 'grammar', 'lexis'].includes(c.id)) {
+      out[c.id] = c.avg;
+    }
+  }
+  return out;
 }
 
 // -- Excel ------------------------------------------------------------------
@@ -407,49 +447,61 @@ async function generateStudentExcelReport({
   ws2.views = [{ state: 'frozen', ySplit: 1 }];
 
   // ---- Sheet 3: Rubric Progress (only if any writing assessments) ----
+  // Generic across rubrics: pulls criteria + maxes from each submission's
+  // rubricAverages() result. Different submissions may use different rubrics
+  // (Stage 7/8 vs Stage 3-5/5-9); the sheet groups by columns the FIRST
+  // writing submission defined, and other submissions fall back where they
+  // share columns.
   const writingSubs = submissions.filter((s) => rubricAverages(s));
   if (writingSubs.length) {
     const ws3 = wb.addWorksheet('Rubric Progress');
-    ws3.getRow(1).values = ['Assessment', 'Date', 'Content / 3', 'Organisation / 3', 'Grammar / 3', 'Lexis / 3', 'Total / 12'];
+    // Determine the column layout from the first submission's criteria.
+    const firstAv = rubricAverages(writingSubs[0]);
+    const cols = firstAv.criteria; // [{id, name, max}, ...]
+    const totalMax = firstAv.totalMax;
+    const headerRow = ['Assessment', 'Date',
+      ...cols.map((c) => `${c.name} / ${c.max}`),
+      `Total / ${totalMax}`,
+    ];
+    ws3.getRow(1).values = headerRow;
     ws3.getRow(1).font = { bold: true };
     ws3.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
 
     let r3 = 2;
-    let sumContent = 0, sumOrg = 0, sumGram = 0, sumLex = 0, sumTotal = 0;
+    const sums = cols.map(() => 0);
+    let sumTotal = 0;
 
     for (const sub of writingSubs) {
       const a = assessmentsById.get(sub.assessmentId);
       const av = rubricAverages(sub);
-      const total = av.content + av.organisation + av.grammar + av.lexis;
-      ws3.getRow(r3).values = [
+      const valuesById = {};
+      for (const c of av.criteria) valuesById[c.id] = c.avg;
+      const row = [
         a ? a.title : '(deleted)',
         sub.submittedAt ? new Date(sub.submittedAt) : '',
-        Math.round(av.content * 10) / 10,
-        Math.round(av.organisation * 10) / 10,
-        Math.round(av.grammar * 10) / 10,
-        Math.round(av.lexis * 10) / 10,
-        Math.round(total * 10) / 10,
+        ...cols.map((c) => {
+          const v = valuesById[c.id];
+          return typeof v === 'number' ? Math.round(v * 10) / 10 : '';
+        }),
+        Math.round(av.total * 10) / 10,
       ];
+      ws3.getRow(r3).values = row;
       ws3.getCell(`B${r3}`).numFmt = 'yyyy-mm-dd';
-      sumContent += av.content;
-      sumOrg += av.organisation;
-      sumGram += av.grammar;
-      sumLex += av.lexis;
-      sumTotal += total;
+      cols.forEach((c, idx) => {
+        const v = valuesById[c.id];
+        if (typeof v === 'number') sums[idx] += v;
+      });
+      sumTotal += av.total;
       r3++;
     }
 
     // Average row
     if (writingSubs.length > 0) {
-      ws3.getRow(r3).values = [
-        'Average across writing assessments',
-        '',
-        Math.round((sumContent / writingSubs.length) * 10) / 10,
-        Math.round((sumOrg / writingSubs.length) * 10) / 10,
-        Math.round((sumGram / writingSubs.length) * 10) / 10,
-        Math.round((sumLex / writingSubs.length) * 10) / 10,
+      const avgRow = ['Average across writing assessments', '',
+        ...sums.map((s) => Math.round((s / writingSubs.length) * 10) / 10),
         Math.round((sumTotal / writingSubs.length) * 10) / 10,
       ];
+      ws3.getRow(r3).values = avgRow;
       ws3.getRow(r3).font = { bold: true };
       ws3.getRow(r3).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF2FF' } };
     }
@@ -692,6 +744,9 @@ async function generateStudentWordReport({
   }
 
   // ---- Rubric progress (writing assessments) ----
+  // Generic across rubrics — uses whatever criteria the first writing
+  // submission's rubric defines, with the per-criterion max read from the
+  // breakdown. Towards/At/Beyond grade-level bands scale to each criterion.
   const writingSubs = submissions.filter((s) => rubricAverages(s));
   if (writingSubs.length) {
     children.push(new Paragraph({
@@ -700,47 +755,42 @@ async function generateStudentWordReport({
       spacing: { before: 300, after: 200 },
     }));
 
-    const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+    const firstAv = rubricAverages(writingSubs[0]);
+    const cols = firstAv.criteria; // [{id, name, max}, ...]
+    const sums = cols.map(() => 0);
     for (const sub of writingSubs) {
       const av = rubricAverages(sub);
-      sums.content += av.content;
-      sums.organisation += av.organisation;
-      sums.grammar += av.grammar;
-      sums.lexis += av.lexis;
+      const valuesById = {};
+      for (const c of av.criteria) valuesById[c.id] = c.avg;
+      cols.forEach((c, idx) => {
+        const v = valuesById[c.id];
+        if (typeof v === 'number') sums[idx] += v;
+      });
     }
-    const avgs = {
-      content: sums.content / writingSubs.length,
-      organisation: sums.organisation / writingSubs.length,
-      grammar: sums.grammar / writingSubs.length,
-      lexis: sums.lexis / writingSubs.length,
-    };
-
-    const niceNames = {
-      content: 'Content & Task Achievement',
-      organisation: 'Organisation & Cohesion',
-      grammar: 'Grammatical Range & Accuracy',
-      lexis: 'Lexical Range & Accuracy',
-    };
+    const avgs = sums.map((s) => s / writingSubs.length);
 
     const rubricRows = [
       new TableRow({
         children: ['Criterion', 'Average', 'Level'].map(tableHeaderCell),
       }),
     ];
-    for (const k of ['content', 'organisation', 'grammar', 'lexis']) {
-      const v = avgs[k];
+    cols.forEach((c, idx) => {
+      const v = avgs[idx];
+      const ratio = c.max > 0 ? v / c.max : 0;
+      // Beyond/At/Towards bands keyed on the proportion of max, so they
+      // make sense for both 1-3 and 0-8 scales.
       let level;
-      if (v >= 2.5) level = 'Beyond grade level';
-      else if (v >= 1.5) level = 'At grade level';
+      if (ratio >= 0.83) level = 'Beyond grade level';
+      else if (ratio >= 0.5) level = 'At grade level';
       else level = 'Towards grade level';
       rubricRows.push(new TableRow({
         children: [
-          tableCell(niceNames[k]),
-          tableCell(`${v.toFixed(1)} / 3`),
+          tableCell(c.name),
+          tableCell(`${v.toFixed(1)} / ${c.max}`),
           tableCell(level),
         ],
       }));
-    }
+    });
     children.push(new Table({
       rows: rubricRows,
       width: { size: 100, type: WidthType.PERCENTAGE },
@@ -913,20 +963,23 @@ async function generateStudentWordReport({
         spacing: { before: 300, after: 200 },
       }));
 
-      const sums = { content: 0, organisation: 0, grammar: 0, lexis: 0 };
+      // Generic across rubrics, same logic as the English block above.
+      // For criteria with translated names available (content/organisation/
+      // grammar/lexis), use the translation; otherwise the criterion name
+      // is used as-is.
+      const firstAvT = rubricAverages(writingSubsT[0]);
+      const colsT = firstAvT.criteria;
+      const sumsT = colsT.map(() => 0);
       for (const sub of writingSubsT) {
         const av = rubricAverages(sub);
-        sums.content += av.content;
-        sums.organisation += av.organisation;
-        sums.grammar += av.grammar;
-        sums.lexis += av.lexis;
+        const valuesById = {};
+        for (const c of av.criteria) valuesById[c.id] = c.avg;
+        colsT.forEach((c, idx) => {
+          const v = valuesById[c.id];
+          if (typeof v === 'number') sumsT[idx] += v;
+        });
       }
-      const avgs = {
-        content: sums.content / writingSubsT.length,
-        organisation: sums.organisation / writingSubsT.length,
-        grammar: sums.grammar / writingSubsT.length,
-        lexis: sums.lexis / writingSubsT.length,
-      };
+      const avgsT = sumsT.map((s) => s / writingSubsT.length);
 
       const rubricRowsT = [
         new TableRow({
@@ -937,26 +990,25 @@ async function generateStudentWordReport({
           ].map(tableHeaderCell),
         }),
       ];
-      const niceNamesT = {
-        content: L(secondLang, 'content', labels),
-        organisation: L(secondLang, 'organisation', labels),
-        grammar: L(secondLang, 'grammar', labels),
-        lexis: L(secondLang, 'lexis', labels),
-      };
-      for (const k of ['content', 'organisation', 'grammar', 'lexis']) {
-        const v = avgs[k];
+      const TRANSLATABLE_CRITERIA = new Set(['content', 'organisation', 'grammar', 'lexis']);
+      colsT.forEach((c, idx) => {
+        const v = avgsT[idx];
+        const ratio = c.max > 0 ? v / c.max : 0;
         let level;
-        if (v >= 2.5) level = L(secondLang, 'beyond', labels);
-        else if (v >= 1.5) level = L(secondLang, 'at', labels);
+        if (ratio >= 0.83) level = L(secondLang, 'beyond', labels);
+        else if (ratio >= 0.5) level = L(secondLang, 'at', labels);
         else level = L(secondLang, 'towards', labels);
+        const translatedName = TRANSLATABLE_CRITERIA.has(c.id)
+          ? L(secondLang, c.id, labels)
+          : c.name;
         rubricRowsT.push(new TableRow({
           children: [
-            tableCell(niceNamesT[k]),
-            tableCell(`${v.toFixed(1)} / 3`),
+            tableCell(translatedName),
+            tableCell(`${v.toFixed(1)} / ${c.max}`),
             tableCell(level),
           ],
         }));
-      }
+      });
       children.push(new Table({
         rows: rubricRowsT,
         width: { size: 100, type: WidthType.PERCENTAGE },

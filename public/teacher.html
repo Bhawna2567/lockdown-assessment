@@ -461,9 +461,18 @@
             <label>Writing rubric (for &quot;Writing&quot; questions)</label>
             <select id="rubric-stage">
               <option value="">No rubric — manual grading</option>
-              <option value="7">Stage 7 (auto-grade out of 12)</option>
-              <option value="8">Stage 8 (auto-grade out of 12)</option>
+              <optgroup label="4-criteria rubric (out of 12)">
+                <option value="7">Stage 7 — Content / Organisation / Grammar / Lexis</option>
+                <option value="8">Stage 8 — Content / Organisation / Grammar / Lexis</option>
+              </optgroup>
+              <optgroup label="5-criteria rubric (out of 40)">
+                <option value="3-5">Stage 3-5 — Task / Structure / Grammar / Vocabulary / Spelling &amp; Punctuation</option>
+                <option value="5-9">Stage 5-9 — Task / Structure / Grammar / Vocabulary / Spelling &amp; Punctuation</option>
+              </optgroup>
             </select>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">
+              Stage 7/8 use a tight 4-criteria, 12-point scale. Stage 3-5 and 5-9 use a wider 5-criteria, 40-point scale (banded 7-8, 5-6, 3-4, 2, 1, 0). Pick whichever matches your school's writing assessment policy.
+            </div>
           </div>
           <div class="field" style="flex:1;">
             <label>Status</label>
