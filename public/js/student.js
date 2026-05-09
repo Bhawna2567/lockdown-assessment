@@ -399,31 +399,88 @@ const LANG_NAME_TO_KEY = {
   Japanese: 'ja',
 };
 
+// Map IANA timezones to a regional language. This is the most reliable
+// "where is the student physically located" signal we have in a browser
+// without asking for permission. A student in Dubai on a Mac with default
+// 'en-US' locale STILL has Asia/Dubai as their timezone — so we'll
+// correctly show English + Arabic to them.
+const TIMEZONE_TO_LANG = {
+  // ----- Arabic-speaking regions -----
+  'Asia/Dubai': 'ar', 'Asia/Riyadh': 'ar', 'Asia/Qatar': 'ar', 'Asia/Bahrain': 'ar',
+  'Asia/Kuwait': 'ar', 'Asia/Muscat': 'ar', 'Asia/Beirut': 'ar', 'Asia/Damascus': 'ar',
+  'Asia/Baghdad': 'ar', 'Asia/Amman': 'ar', 'Asia/Aden': 'ar',
+  'Africa/Cairo': 'ar', 'Africa/Tripoli': 'ar', 'Africa/Tunis': 'ar', 'Africa/Algiers': 'ar',
+  'Africa/Casablanca': 'ar', 'Africa/Khartoum': 'ar', 'Africa/El_Aaiun': 'ar',
+  // ----- Hindi (India + Nepal) -----
+  'Asia/Kolkata': 'hi', 'Asia/Calcutta': 'hi', 'Asia/Kathmandu': 'hi',
+  // ----- Greater China + Singapore: Mandarin -----
+  'Asia/Shanghai': 'zh', 'Asia/Hong_Kong': 'zh', 'Asia/Taipei': 'zh',
+  'Asia/Singapore': 'zh', 'Asia/Macau': 'zh', 'Asia/Urumqi': 'zh',
+  // ----- Thai -----
+  'Asia/Bangkok': 'th',
+  // ----- Japanese -----
+  'Asia/Tokyo': 'ja',
+  // Korean — using ja as fallback since we don't have a 'ko' translation set.
+  'Asia/Seoul': 'ja',
+  // ----- German -----
+  'Europe/Berlin': 'de', 'Europe/Vienna': 'de', 'Europe/Zurich': 'de',
+  'Europe/Luxembourg': 'de',
+  // ----- French -----
+  'Europe/Paris': 'fr', 'Europe/Brussels': 'fr', 'Europe/Monaco': 'fr',
+  'America/Montreal': 'fr', 'Africa/Abidjan': 'fr', 'Africa/Dakar': 'fr',
+  'Africa/Douala': 'fr', 'Indian/Reunion': 'fr',
+  // ----- Spanish -----
+  'Europe/Madrid': 'es', 'America/Mexico_City': 'es', 'America/Argentina/Buenos_Aires': 'es',
+  'America/Lima': 'es', 'America/Santiago': 'es', 'America/Bogota': 'es',
+  'America/Caracas': 'es', 'America/La_Paz': 'es', 'America/Asuncion': 'es',
+  'America/Montevideo': 'es', 'America/Guatemala': 'es', 'America/Costa_Rica': 'es',
+  'America/Panama': 'es',
+};
+
+function detectByTimezone() {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz && TIMEZONE_TO_LANG[tz] ? TIMEZONE_TO_LANG[tz] : null;
+  } catch {
+    return null;
+  }
+}
+
 function detectConsentLang(assessment) {
-  // 1) Use the teacher's chosen assessment language if we have a translation.
+  // 1) Teacher's explicit choice on this assessment ALWAYS wins. A school
+  //    teaching Arabic curriculum to students physically in India should
+  //    still see English + Arabic.
   if (assessment && assessment.assessmentLanguage) {
     const k = LANG_NAME_TO_KEY[assessment.assessmentLanguage];
     if (k && CONSENT_RULES_I18N[k]) return k;
   }
-  // 2) Use the dashboard's UI-language preference (set via the small globe
-  //    dropdown in the topbar). If the teacher set the whole site to Hindi,
-  //    new students inherit that for the consent popup.
+  // 2) GEOGRAPHIC: timezone is the most accurate "where is this student
+  //    physically located" signal available in a browser without asking
+  //    for permission. Student in UAE → Asia/Dubai → Arabic, regardless
+  //    of what their browser locale says.
+  const tzLang = detectByTimezone();
+  if (tzLang && CONSENT_RULES_I18N[tzLang]) return tzLang;
+  // 3) Browser locale country code (e.g. 'ar-AE', 'en-IN'). This is a
+  //    secondary geographic signal — useful when a student picked a
+  //    locale that includes a country.
+  const loc = (navigator.language || navigator.userLanguage || '').trim();
+  const parts = loc.split(/[-_]/);
+  const country = (parts[1] || '').toUpperCase();
+  if (country && COUNTRY_TO_LANG[country]) return COUNTRY_TO_LANG[country];
+  // 4) Browser language code (e.g. user manually chose 'ar' as language).
+  const langCode = (parts[0] || '').toLowerCase();
+  if (CONSENT_RULES_I18N[langCode]) return langCode;
+  // 5) Dashboard's UI-language preference. Lower priority than geography
+  //    because students don't usually set this — only teachers do, and a
+  //    teacher's UI preference shouldn't dictate the student popup language.
   try {
     const uiLang = localStorage.getItem('classcurio.uiLang');
     if (uiLang && CONSENT_RULES_I18N[uiLang]) return uiLang;
   } catch {}
-  // 3) Fall back to browser locale country code (e.g. 'ar-AE', 'en-IN').
-  const loc = (navigator.language || navigator.userLanguage || '').trim();
-  const parts = loc.split(/[-_]/);
-  const langCode = (parts[0] || '').toLowerCase();
-  if (CONSENT_RULES_I18N[langCode]) return langCode;
-  const country = (parts[1] || '').toUpperCase();
-  if (country && COUNTRY_TO_LANG[country]) return COUNTRY_TO_LANG[country];
-  // 4) Final fallback — Hindi as a generally-useful international-school
-  //    default. Teachers can override via the assessment-language dropdown
-  //    when creating an assessment, or the UI-language picker on the
-  //    dashboard. The point is: ALWAYS show two languages, never one.
-  return 'hi';
+  // 6) Final fallback — Arabic, since unknown-region international-school
+  //    students are statistically more likely to be in Gulf/MENA than
+  //    elsewhere. Either way, ALWAYS show two languages, never just English.
+  return 'ar';
 }
 
 function renderConsentRules(assessment) {
