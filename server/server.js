@@ -1645,10 +1645,21 @@ app.get('/api/assessments/:id/scoresheet', requireTeacher, async (req, res) => {
 // returned questions pre-filled — teacher reviews and saves.
 //
 // Cost: ~$0.01-0.10 per generation. Requires the teacher's Anthropic API key.
-app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOfWork'), async (req, res) => {
+// Accept up to 20 scheme-of-work files. Each file is one of:
+//   - PDF / Word / TXT → server extracts text via extractText() and embeds
+//   - Screenshot (PNG / JPEG / GIF / WebP) → forwarded as a Claude Vision
+//     image block so the model can read text from the screenshot AND see
+//     diagrams, tables, formulas, calligraphy, etc.
+app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfWork', 20), async (req, res) => {
+  const cleanupAll = () => {
+    for (const f of (req.files || [])) {
+      try { fs.unlinkSync(f.path); } catch {}
+    }
+  };
+
   const apiKey = readApiKey();
   if (!apiKey) {
-    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    cleanupAll();
     return res.status(503).json({
       ok: false,
       error: 'AI generation requires an Anthropic API key. Open Settings on the dashboard and paste your key.',
@@ -1658,25 +1669,78 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
   const requestedCount = Math.max(1, Math.min(50, parseInt(req.body?.count, 10) || 10));
   const subject = String(req.body?.subject || '').trim();
   const language = String(req.body?.language || 'English').trim();
-  if (!prompt && !req.file) {
+  const files = Array.isArray(req.files) ? req.files : [];
+  if (!prompt && files.length === 0) {
     return res.status(400).json({
       ok: false,
       error: 'Either a prompt or a scheme-of-work file is required.',
     });
   }
 
-  // If a file was uploaded, extract its text.
-  let schemeText = '';
-  if (req.file) {
+  // Split uploaded files into text documents and screenshots.
+  const imageBlocks = []; // Claude Vision blocks to append after the system prompt
+  const textChunks = [];  // extracted text from PDFs / Word docs
+  const skipped = [];     // for client-side error reporting
+
+  const MAX_IMAGE_BYTES = 4 * 1024 * 1024;   // Claude caps single images at ~5MB
+  const MAX_TOTAL_IMAGE_BYTES = 30 * 1024 * 1024; // overall safety cap
+  let totalImageBytes = 0;
+
+  for (const f of files) {
+    const name = (f.originalname || '').toLowerCase();
+    const mt = (f.mimetype || '').toLowerCase();
+
     try {
-      schemeText = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
+      if (mt.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/i.test(name)) {
+        const stat = fs.statSync(f.path);
+        if (stat.size > MAX_IMAGE_BYTES) {
+          skipped.push(`${f.originalname} (image too large; over 4MB)`);
+          continue;
+        }
+        if (totalImageBytes + stat.size > MAX_TOTAL_IMAGE_BYTES) {
+          skipped.push(`${f.originalname} (total image quota exceeded)`);
+          continue;
+        }
+        totalImageBytes += stat.size;
+        const buf = fs.readFileSync(f.path);
+        // Normalize media type. Anthropic supports png, jpeg, gif, webp.
+        const media =
+          mt.startsWith('image/') && mt !== 'image/svg+xml' ? mt :
+          /\.png$/i.test(name) ? 'image/png' :
+          /\.gif$/i.test(name) ? 'image/gif' :
+          /\.webp$/i.test(name) ? 'image/webp' : 'image/jpeg';
+        imageBlocks.push({
+          type: 'image',
+          source: { type: 'base64', media_type: media, data: buf.toString('base64') },
+        });
+      } else if (/\.(pdf|docx|doc|txt)$/i.test(name) || mt === 'application/pdf' ||
+                 mt === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                 mt === 'text/plain') {
+        const t = await extractText(f.path, f.mimetype, f.originalname);
+        if (t && t.trim()) {
+          textChunks.push({ name: f.originalname || 'document', text: t });
+        } else {
+          skipped.push(`${f.originalname} (no readable text found)`);
+        }
+      } else {
+        skipped.push(`${f.originalname} (unsupported file type)`);
+      }
     } catch (e) {
-      try { fs.unlinkSync(req.file.path); } catch {}
-      return res.status(400).json({ ok: false, error: 'Could not read the uploaded file: ' + e.message });
+      skipped.push(`${f.originalname} (${e.message})`);
     }
-    try { fs.unlinkSync(req.file.path); } catch {}
-    // Cap scheme text to keep token use reasonable.
-    if (schemeText.length > 30000) schemeText = schemeText.slice(0, 30000) + '\n…[truncated]';
+  }
+
+  cleanupAll();
+
+  // Concatenate extracted text with file labels so Claude can keep them
+  // straight. Cap total length to avoid blowing the token budget.
+  let schemeText = '';
+  if (textChunks.length) {
+    let total = '';
+    for (const c of textChunks) {
+      total += `\n=== ${c.name} ===\n${c.text}\n`;
+    }
+    schemeText = total.length > 60000 ? total.slice(0, 60000) + '\n…[truncated]' : total;
   }
 
   // Build the prompt for Claude. We give a strict JSON schema and a tight
@@ -1737,7 +1801,16 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
     { type: 'text', text: systemPrompt },
   ];
   if (schemeText && schemeText.trim()) {
-    userContent.push({ type: 'text', text: '---\nScheme of work:\n' + schemeText });
+    userContent.push({ type: 'text', text: '---\nScheme of work (extracted text):\n' + schemeText });
+  }
+  if (imageBlocks.length) {
+    userContent.push({
+      type: 'text',
+      text: `---\nScheme of work (${imageBlocks.length} screenshot${imageBlocks.length === 1 ? '' : 's'}):\nRead the content of each screenshot below. The screenshots may include text, diagrams, tables, formulas, or handwritten notes — all relevant for generating the assessment.`,
+    });
+    for (const img of imageBlocks) {
+      userContent.push(img);
+    }
   }
 
   try {
@@ -1805,6 +1878,11 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.single('schemeOf
       description: String(parsed.description || '').slice(0, 500),
       passage: String(parsed.passage || ''),
       questions,
+      filesProcessed: {
+        text: textChunks.length,
+        images: imageBlocks.length,
+        skipped,
+      },
     });
   } catch (e) {
     console.error('[ai-generate] failed', e);

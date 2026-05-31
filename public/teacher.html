@@ -275,9 +275,13 @@
         </div>
 
         <div class="field">
-          <label>📎 Scheme of work (optional)</label>
-          <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt" />
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">Upload a PDF, Word, or text file containing your unit plan, syllabus, or chapter summary. The AI will use it to ground the questions.</div>
+          <label>📎 Scheme of work (optional) — up to 20 files</label>
+          <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg,.gif,.webp" multiple />
+          <div class="muted" style="font-size: 12px; margin-top: 4px;">
+            Upload one or more PDFs, Word docs, text files, <strong>or screenshots</strong> of your unit plan, syllabus, textbook pages, or chapter summary.
+            Screenshots are read by the AI directly — diagrams, formulas, handwritten notes, Arabic text, all fine. Max 20 files; each image under 4&nbsp;MB.
+          </div>
+          <div id="ai-sow-files-list" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
         </div>
 
         <div class="field">

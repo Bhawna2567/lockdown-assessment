@@ -87,6 +87,7 @@ const els = {
   aiSubject: document.getElementById('ai-subject'),
   aiLanguage: document.getElementById('ai-language'),
   aiSowFile: document.getElementById('ai-sow-file'),
+  aiSowFilesList: document.getElementById('ai-sow-files-list'),
   aiPrompt: document.getElementById('ai-prompt'),
   aiCount: document.getElementById('ai-count'),
   aiWantGraphics: document.getElementById('ai-want-graphics'),
@@ -1114,21 +1115,48 @@ if (els.templateBlank) els.templateBlank.onclick = () => {
 };
 
 // ----- AI assessment generator -----
-// Teacher fills in prompt + optional scheme of work. We POST a multipart
-// form to /api/assessments/ai-generate and Claude returns a structured
-// assessment. The builder opens with the questions pre-filled — teacher
-// reviews and edits before saving.
+// Teacher fills in prompt + optional scheme of work (up to 20 files,
+// including PDFs, Word docs, and SCREENSHOTS). We POST a multipart form to
+// /api/assessments/ai-generate and Claude returns a structured assessment.
+// The builder opens with the questions pre-filled — teacher reviews and
+// edits before saving.
+
+// Live count + name list under the file input.
+if (els.aiSowFile) {
+  els.aiSowFile.onchange = () => {
+    if (!els.aiSowFilesList) return;
+    const list = Array.from(els.aiSowFile.files || []);
+    if (!list.length) { els.aiSowFilesList.innerHTML = ''; return; }
+    const tooMany = list.length > 20;
+    const tooBig = list.find((f) => f.type.startsWith('image/') && f.size > 4 * 1024 * 1024);
+    const summary = `${list.length} file${list.length === 1 ? '' : 's'} selected${tooMany ? ' — over the 20-file limit!' : ''}`;
+    const names = list.map((f) => `<li style="margin: 0; padding: 0;">${(f.name || '').replace(/[<>&]/g, '')} <span style="opacity:0.7;">(${Math.round(f.size/1024)} KB)</span></li>`).join('');
+    const warn = tooBig
+      ? `<div style="color: #b91c1c; margin-top: 4px;">⚠ "${tooBig.name}" is over 4 MB — image will be skipped. Compress and re-upload.</div>`
+      : '';
+    els.aiSowFilesList.innerHTML = `
+      <div style="margin-top: 4px; font-weight: 600;">${summary}</div>
+      <ul style="margin: 4px 0 0 16px; padding: 0;">${names}</ul>
+      ${warn}
+    `;
+  };
+}
+
 if (els.aiGenerateBtn) {
   els.aiGenerateBtn.onclick = async () => {
     const prompt = (els.aiPrompt.value || '').trim();
-    const file = els.aiSowFile && els.aiSowFile.files && els.aiSowFile.files[0];
+    const fileList = (els.aiSowFile && els.aiSowFile.files) ? Array.from(els.aiSowFile.files) : [];
     const subject = els.aiSubject ? els.aiSubject.value : '';
     if (!subject) {
       els.aiStatus.textContent = '⚠ Choose your subject first — the AI uses it to tailor question style and graphics.';
       return;
     }
-    if (!prompt && !file) {
+    if (!prompt && fileList.length === 0) {
       els.aiStatus.textContent = '⚠ Tell the AI what to generate, or upload a scheme of work — at least one is required.';
+      return;
+    }
+    if (fileList.length > 20) {
+      els.aiStatus.textContent = '⚠ You selected more than 20 files. Keep it to 20 or fewer.';
       return;
     }
     const count = Math.max(1, Math.min(50, parseInt(els.aiCount.value, 10) || 10));
@@ -1138,8 +1166,9 @@ if (els.aiGenerateBtn) {
     els.aiGenerateBtn.disabled = true;
     els.aiGenerateBtn.style.opacity = '0.6';
     const langLabel = language === 'English' ? '' : ` in ${language}`;
-    const startMsg = file
-      ? `🧠 Reading scheme of work and generating ${subject} assessment${langLabel}… this can take 20-40 seconds.`
+    const fcount = fileList.length;
+    const startMsg = fcount > 0
+      ? `🧠 Reading ${fcount} file${fcount === 1 ? '' : 's'} and generating ${subject} assessment${langLabel}… this can take 30-90 seconds.`
       : `🧠 Generating ${subject} assessment${langLabel}… this can take 15-30 seconds.`;
     els.aiStatus.textContent = startMsg;
 
@@ -1150,7 +1179,9 @@ if (els.aiGenerateBtn) {
       fd.append('subject', subject);
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
-      if (file) fd.append('schemeOfWork', file);
+      // Multipart standard: same field name repeated for each file. Multer
+      // collects them as req.files = [...] on the server.
+      for (const f of fileList) fd.append('schemeOfWork', f);
 
       const res = await fetch('/api/assessments/ai-generate', { method: 'POST', body: fd });
       const data = await res.json().catch(() => ({}));
@@ -1178,11 +1209,22 @@ if (els.aiGenerateBtn) {
           imageDescription: q.imageDescription || '',
         })),
       };
-      els.aiStatus.textContent = `✓ Generated ${fake.questions.length} questions. Opening builder…`;
+      // Build a friendly status that mentions how many files Claude actually
+      // used and whether any were skipped (too big, unsupported type, etc.).
+      const fp = data.filesProcessed || { text: 0, images: 0, skipped: [] };
+      const usedParts = [];
+      if (fp.text)   usedParts.push(`${fp.text} document${fp.text === 1 ? '' : 's'}`);
+      if (fp.images) usedParts.push(`${fp.images} screenshot${fp.images === 1 ? '' : 's'}`);
+      const used = usedParts.length ? ` (used ${usedParts.join(' + ')})` : '';
+      const skipped = (fp.skipped && fp.skipped.length)
+        ? ` · ⚠ skipped: ${fp.skipped.join('; ')}`
+        : '';
+      els.aiStatus.textContent = `✓ Generated ${fake.questions.length} questions${used}${skipped}. Opening builder…`;
       // Reset form for next time
       setTimeout(() => {
         els.aiPrompt.value = '';
         if (els.aiSowFile) els.aiSowFile.value = '';
+        if (els.aiSowFilesList) els.aiSowFilesList.innerHTML = '';
         els.aiStatus.textContent = '';
         els.aiGenerateBtn.disabled = false;
         els.aiGenerateBtn.style.opacity = '1';
