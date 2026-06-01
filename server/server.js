@@ -266,6 +266,21 @@ app.post('/api/classes/:id/pre-register', requireTeacher, upload.single('file'),
   const users = readAll('users.json');
   const usersByEmail = new Map(users.map((u) => [String(u.email || '').toLowerCase(), u]));
 
+  // Build a set of every email currently on ANY of this teacher's class
+  // rosters. An existing student whose email is NOT in that set is "orphaned"
+  // — they were probably pre-registered into a class the teacher later
+  // deleted (before the cascade-cleanup was wired up). We self-heal those by
+  // regenerating their temp password, so the teacher can start afresh just by
+  // re-running pre-registration.
+  const teacherClassEmails = new Set();
+  for (const c of classes) {
+    if (c.teacherId !== req.session.user.id) continue;
+    for (const r of (c.roster || [])) {
+      const em = String(r && r.email || '').trim().toLowerCase();
+      if (em) teacherClassEmails.add(em);
+    }
+  }
+
   const results = [];
   const rosterForClass = [];
 
@@ -279,15 +294,56 @@ app.post('/api/classes/:id/pre-register', requireTeacher, upload.single('file'),
     }
 
     if (usersByEmail.has(email)) {
-      // Account already exists — don't overwrite. Just make sure the user is
-      // on this class roster and surface a "exists" status.
       const u = usersByEmail.get(email);
       // Optionally backfill studentNumber if missing.
       if (studentNumber && !u.studentNumber) {
         u.studentNumber = studentNumber;
       }
-      rosterForClass.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber });
-      results.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber, status: 'existed' });
+      // If the existing account is still pending (the student has never
+      // signed in and the previous temp password was lost), generate a
+      // FRESH temp password and rewrite the hash. This is safe because
+      // mustChangePassword=true means the student hasn't chosen their own
+      // password yet. We never reset passwords for students who already
+      // logged in and picked their own password — that would be a security
+      // hole, UNLESS the account is orphaned (not on any of this teacher's
+      // class rosters), in which case the teacher effectively "owns" the
+      // reset because they're the one re-pre-registering the student.
+      //
+      // Force-reset (forceReset=1 in the body) overrides the safety check
+      // and resets EVERY existing account in the upload. Use carefully.
+      const forceReset = req.body && (req.body.forceReset === '1' || req.body.forceReset === true);
+      const isOrphaned = !teacherClassEmails.has(email);
+      if (u.mustChangePassword === true || forceReset || isOrphaned) {
+        try {
+          const tempPassword = generateTempPassword(10);
+          u.passwordHash = await bcrypt.hash(tempPassword, 10);
+          u.mustChangePassword = true;
+          u.passwordResetAt = new Date().toISOString();
+          rosterForClass.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber });
+          results.push({
+            email, name: u.name || name,
+            studentNumber: u.studentNumber || studentNumber,
+            status: 'reset', tempPassword,
+            note: forceReset
+              ? 'force-reset'
+              : isOrphaned
+                ? 'orphaned account re-enrolled'
+                : 'first-login still pending',
+          });
+        } catch (e) {
+          results.push({ email, name, studentNumber, status: 'failed', reason: e.message });
+        }
+      } else {
+        // Student already logged in and chose their own password — leave
+        // it alone. Teacher can still see they're in the class.
+        rosterForClass.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber });
+        results.push({
+          email, name: u.name || name,
+          studentNumber: u.studentNumber || studentNumber,
+          status: 'existed',
+          note: 'student already chose their own password',
+        });
+      }
       continue;
     }
 
@@ -330,9 +386,10 @@ app.post('/api/classes/:id/pre-register', requireTeacher, upload.single('file'),
   writeAll('classes.json', classes);
 
   const created = results.filter((r) => r.status === 'created').length;
+  const reset   = results.filter((r) => r.status === 'reset').length;
   const existed = results.filter((r) => r.status === 'existed').length;
   const skipped = results.filter((r) => r.status === 'skipped' || r.status === 'failed').length;
-  res.json({ ok: true, results, summary: { created, existed, skipped, total: results.length } });
+  res.json({ ok: true, results, summary: { created, reset, existed, skipped, total: results.length } });
 });
 
 // ----- Change password -----
@@ -507,9 +564,62 @@ app.delete('/api/classes/:id', requireTeacher, (req, res) => {
     });
   }
 
+  // Capture the deleted class's roster before mutating the array, so we can
+  // cascade-clean up student accounts that were only members of THIS class.
+  const deletedClass = all[idx];
+  const deletedEmails = new Set(
+    (deletedClass.roster || [])
+      .map((r) => String(r && r.email || '').trim().toLowerCase())
+      .filter(Boolean)
+  );
+
   all.splice(idx, 1);
   writeAll('classes.json', all);
-  res.json({ ok: true });
+
+  // CASCADE CLEANUP — after a class is gone, any pre-registered student whose
+  // email no longer appears on any remaining class roster (anywhere in the
+  // system, across all teachers) is orphaned. Remove their user account so
+  // re-pre-registering them in a new class starts them afresh (status="created"
+  // with a brand-new temp password) instead of falling into the "existed" path.
+  let removedUsers = 0;
+  let removedResults = 0;
+  if (deletedEmails.size > 0) {
+    const stillReferenced = new Set();
+    for (const c of all) {
+      for (const r of (c.roster || [])) {
+        const em = String(r && r.email || '').trim().toLowerCase();
+        if (em) stillReferenced.add(em);
+      }
+    }
+    const orphanedEmails = [...deletedEmails].filter((em) => !stillReferenced.has(em));
+    if (orphanedEmails.length > 0) {
+      const orphanedSet = new Set(orphanedEmails);
+      const users = readAll('users.json');
+      const orphanedUserIds = new Set();
+      const remainingUsers = [];
+      for (const u of users) {
+        const em = String(u.email || '').toLowerCase();
+        // Only remove student accounts that were on the deleted class's roster.
+        // Teacher accounts and self-signup students (not in any roster) are
+        // left alone.
+        if (u.role === 'student' && orphanedSet.has(em)) {
+          orphanedUserIds.add(u.id);
+          removedUsers++;
+        } else {
+          remainingUsers.push(u);
+        }
+      }
+      if (orphanedUserIds.size > 0) {
+        writeAll('users.json', remainingUsers);
+        const results = readAll('results.json');
+        const keptResults = results.filter((r) => !orphanedUserIds.has(r.studentId));
+        removedResults = results.length - keptResults.length;
+        if (removedResults > 0) writeAll('results.json', keptResults);
+      }
+    }
+  }
+
+  res.json({ ok: true, removedUsers, removedResults });
 });
 
 // ---------- Assessments (teacher) ----------
@@ -1993,12 +2103,26 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '   - Use the same point allocations if specified.',
     '   - If the source says "Section A — Reading (10 marks)", reproduce that section title and target ~10 marks.',
     '',
-    'B. EXTRACT READING PASSAGES VERBATIM',
+    'B. READING PASSAGES — EXTRACT OR INVENT',
     '   - When the source contains a reading passage, story, poem, news article, case study, source text, scenario, or extract, COPY IT INTO the "passage" field of the relevant section EXACTLY as written.',
-    '   - DO NOT summarise, paraphrase, shorten, or rewrite the passage. Copy character-for-character.',
+    '   - DO NOT summarise, paraphrase, shorten, or rewrite an extracted passage. Copy character-for-character.',
     '   - Include the passage even if it is long (up to ~10 000 characters per section).',
     '   - The student will see this passage above the questions in that section.',
     '   - If the source has multiple passages (one per section), put each in its own section.',
+    '',
+    '   - INVENT a passage when no source provides one AND any of the following signals are present:',
+    '       • the subject is "English", "Arabic", "French" (or any language)',
+    '       • the teacher\'s prompt mentions "reading", "comprehension", "passage", "text", "story", "extract", "article", "poem", "non-fiction", "fiction", "vocabulary in context"',
+    '       • the section title includes words like "Reading", "Comprehension", "Vocabulary"',
+    '       • a question of type "mc", "tf", "tfng", "short" refers to "the passage", "the text", "the author", "the writer", "the article", "the story", "Line N", "paragraph N"',
+    '   - When inventing a passage:',
+    '       • Make it ORIGINAL — do not reproduce copyrighted text.',
+    '       • Pitch the difficulty to the grade level if the prompt or source mentions one (e.g. "Grade 7 reading comprehension" → roughly 300-500 words; "Grade 11" → 500-800 words).',
+    '       • Use age-appropriate vocabulary and sentence structures.',
+    '       • Genre: match the prompt (fiction, non-fiction, biography, news article, poem, etc.). If unspecified, pick a topic that engages the target age group.',
+    '       • Number paragraphs implicitly via line breaks so questions can refer to "paragraph 2", "Line 14", etc.',
+    '       • Place the passage in the section\'s "passage" field. Tie every reading question in that section back to specific details, inferences, or vocabulary from the passage you wrote.',
+    '   - It is BETTER to invent one solid passage than to write reading questions with no passage to anchor them. Reading questions without a passage are FORBIDDEN.',
     '',
     'C. INSTRUCTIONS ARE NOT QUESTIONS',
     '   - Lines like "Read the following passage", "Answer all questions", "Use a separate sheet", "Spelling counts" are INSTRUCTIONS — put them in the section\'s "instructions" field. NEVER create a question with that text.',
@@ -2006,7 +2130,8 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '   - A question is something a student must answer. Instructions tell them HOW to answer.',
     '',
     'D. SECTIONS DEFAULT (when no upload)',
-    '   - If the teacher provided no scheme of work, create ONE default section with an empty title, sensible default instructions ("Answer all questions"), and no passage. Put all questions in section index 0.',
+    '   - If the teacher provided no scheme of work AND the prompt does not request multiple parts, create ONE default section with an empty title, sensible default instructions ("Answer all questions"), and no passage. Put all questions in section index 0.',
+    '   - HOWEVER, if the prompt requests reading comprehension or names parts/sections (e.g. "Part 1 Vocabulary, Part 2 Grammar, Part 3 Reading"), create those sections faithfully and write/extract a passage for each Reading section per rule B.',
     '',
     'E. QUESTION DETAILS',
     `   - Generate around ${requestedCount} questions unless the source/prompt specifies a different count.`,
@@ -2170,21 +2295,155 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
 // ---------- Quick Import (PDF / DOCX / TXT → questions) ----------
 app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  // Pull the raw text out once. We'll either send it to Claude for full
+  // structured parsing (preferred — captures every passage in a multi-passage
+  // paper and groups questions by section) or fall back to the regex parser
+  // (the old behaviour) when no API key is configured.
+  let rawText = '';
   try {
-    const { title, questions, passage, rawText } = await importFile(
+    rawText = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
+  } catch (e) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    return res.status(500).json({ error: 'Could not read file: ' + e.message });
+  }
+
+  const apiKey = readApiKey();
+  if (apiKey && rawText && rawText.trim().length > 40) {
+    // ---- Claude path ----
+    // Send the file's text to Claude with the SAME sections+passages schema
+    // the AI generator uses. We instruct it to mirror the source exactly —
+    // verbatim passages, original instructions, original question wording.
+    try {
+      const sys = [
+        'You are an expert classroom-assessment digitiser. Convert the exam paper text below into a JSON object that exactly mirrors the source.',
+        'Return ONLY the JSON object. No markdown fences. No commentary.',
+        '',
+        '{',
+        '  "title": "string — exam title from the paper (or a sensible fallback)",',
+        '  "sections": [ { "title": "string — section/part heading verbatim (e.g. \\"Part 1: Vocabulary\\", \\"Part 3A: Reading\\")", "instructions": "string — instruction text verbatim, or sensible default", "passage": "string — reading passage / source text VERBATIM if the section has one, else empty string" } ],',
+        '  "questions": [ Question, ... ]',
+        '}',
+        '',
+        'Question = ONE of:',
+        '  { "type": "mc",    "prompt": "...", "options": ["A","B","C","D"], "correctAnswer": 0, "points": 1, "sectionIndex": 0 }',
+        '  { "type": "tf",    "prompt": "...", "correctAnswer": true,  "points": 1, "sectionIndex": 0 }',
+        '  { "type": "tfng",  "prompt": "...", "correctAnswer": "true|false|ng", "points": 1, "sectionIndex": 0 }',
+        '  { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1, "sectionIndex": 0 }',
+        '  { "type": "long",  "prompt": "...", "points": 5, "sectionIndex": 0 }',
+        '  { "type": "essay", "prompt": "...", "points": 5, "sectionIndex": 0 }',
+        '',
+        'HARD RULES:',
+        '1. Reproduce the paper EXACTLY. Do not invent, paraphrase, or shorten anything.',
+        '2. Every section header / "Part N" / "Section X" in the paper becomes ONE section in the JSON.',
+        '3. Every reading passage / source text / extract / story / poem / case study goes VERBATIM into the passage field of its section. Do not split a passage across sections. Do not put a passage into the questions array.',
+        '4. Lines like "Read the following passage", "Choose the correct option", "Answer all questions" are INSTRUCTIONS — put them in the section\'s instructions field, NEVER as a question.',
+        '5. Number EVERY question with sectionIndex (0-based index into the sections array).',
+        '6. For "mc" questions, correctAnswer is the 0-based INDEX of the correct option (or 0 if not given).',
+        '7. Do NOT prepend "1.", "Q1.", etc. to the prompt — the front-end numbers questions automatically.',
+        '8. If the paper has no sections at all, create ONE section with empty title, sensible default instructions, and (only if the paper has a single reading passage) put it in that section\'s passage field.',
+        '',
+        'EXAM PAPER TEXT:',
+        '"""',
+        rawText.length > 60000 ? rawText.slice(0, 60000) + '\n…[truncated]' : rawText,
+        '"""',
+      ].join('\n');
+
+      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 8192,
+          messages: [{ role: 'user', content: [{ type: 'text', text: sys }] }],
+        }),
+      });
+
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+        text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch { /* fall through to regex */ }
+
+        if (parsed && Array.isArray(parsed.questions) && parsed.questions.length) {
+          // Normalise sections.
+          const aiSections = Array.isArray(parsed.sections) && parsed.sections.length
+            ? parsed.sections
+            : [{ title: '', instructions: '', passage: '' }];
+          const sections = aiSections.map((s, i) => ({
+            id: uuidv4(),
+            title: String((s && s.title) || '').slice(0, 200),
+            instructions: String((s && s.instructions) || '').slice(0, 4000),
+            passage: String((s && s.passage) || '').slice(0, 12000),
+            order: i,
+          }));
+
+          const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+          const questions = parsed.questions.map((q) => {
+            const type = validTypes.has(q.type) ? q.type : 'short';
+            const sidx = Number.isFinite(q.sectionIndex) && q.sectionIndex >= 0 && q.sectionIndex < sections.length
+              ? q.sectionIndex
+              : 0;
+            const out = {
+              type,
+              prompt: String(q.prompt || ''),
+              options: Array.isArray(q.options) ? q.options.map(String) : [],
+              correctAnswer: null,
+              points: Number(q.points) || (type === 'writing' ? 12 : (type === 'essay' || type === 'long' ? 5 : 1)),
+              sectionId: sections[sidx].id,
+            };
+            if (type === 'mc') {
+              if (!out.options.length) out.options = ['', '', '', ''];
+              const idx = parseInt(q.correctAnswer, 10);
+              out.correctAnswer = (idx >= 0 && idx < out.options.length) ? idx : 0;
+            } else if (type === 'tf') {
+              out.correctAnswer = q.correctAnswer === true || q.correctAnswer === 'true';
+            } else if (type === 'tfng') {
+              const v = String(q.correctAnswer ?? '').toLowerCase();
+              out.correctAnswer = ['true', 'false', 'ng'].includes(v) ? v : 'true';
+            } else if (type === 'short') {
+              out.correctAnswer = q.correctAnswer ? String(q.correctAnswer) : '';
+            }
+            return out;
+          }).filter((q) => q.prompt.trim());
+
+          if (questions.length) {
+            try { fs.unlinkSync(req.file.path); } catch {}
+            return res.json({
+              title: String(parsed.title || 'Imported assessment').slice(0, 200),
+              sections,
+              questions,
+              // Legacy fallback — populate `passage` from the first section so
+              // older clients that still read top-level `passage` keep working.
+              passage: sections[0]?.passage || '',
+              parsedBy: 'claude',
+            });
+          }
+        }
+      } else {
+        console.warn('[import] Claude returned', apiRes.status, '— falling back to regex parser');
+      }
+    } catch (e) {
+      console.warn('[import] Claude path failed, falling back to regex:', e.message);
+    }
+  }
+
+  // ---- Regex fallback ----
+  try {
+    const { title, questions, passage } = await importFile(
       req.file.path,
       req.file.mimetype,
       req.file.originalname
     );
-    // Clean up the uploaded file — we only persist the parsed output.
     try { fs.unlinkSync(req.file.path); } catch {}
     if (!questions.length) {
       return res.status(422).json({
         error: 'Could not detect any questions in this file. Make sure questions start with "1.", "Q1.", "1)", etc.',
-        rawTextPreview: rawText.slice(0, 400),
+        rawTextPreview: (rawText || '').slice(0, 400),
       });
     }
-    res.json({ title, questions, passage: passage || '' });
+    res.json({ title, questions, passage: passage || '', parsedBy: 'regex' });
   } catch (e) {
     try { fs.unlinkSync(req.file.path); } catch {}
     res.status(500).json({ error: e.message });

@@ -281,6 +281,7 @@ function renderClassesList() {
           <span class="muted">📋 Roster: <strong>${rosterCount}</strong> student${rosterCount === 1 ? '' : 's'}</span>
           <div class="spacer"></div>
           ${rosterCount ? `<button class="btn" data-class-view-roster="${c.id}">View students</button>` : ''}
+          <button class="btn" data-class-add-one="${c.id}" title="Add a single student by name and email">➕ Add student</button>
           <button class="btn" data-class-download-template="${c.id}" title="Download a CSV template you can fill in">📥 Template</button>
           <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV / PDF / Word)</button>
           <button class="btn primary" data-class-prereg="${c.id}" title="Create accounts with temporary passwords">🔑 Pre-register students</button>
@@ -288,6 +289,29 @@ function renderClassesList() {
           <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-prereg-file="${c.id}" style="display:none;" />
         </div>
         <div data-class-roster-status="${c.id}" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
+        <div data-class-add-one-form="${c.id}" style="display:none; margin-top: 10px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+          <div style="font-weight: 600; color: #1e3a8a; margin-bottom: 8px;">Add one student</div>
+          <div class="row" style="gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+            <div class="field" style="flex: 1; min-width: 180px;">
+              <label style="font-size: 12px;">Full name</label>
+              <input type="text" data-class-add-name="${c.id}" placeholder="e.g. Alice Khan" />
+            </div>
+            <div class="field" style="flex: 1; min-width: 220px;">
+              <label style="font-size: 12px;">Email address</label>
+              <input type="email" data-class-add-email="${c.id}" placeholder="alice@school.com" />
+            </div>
+            <div class="field" style="flex: 0 0 140px;">
+              <label style="font-size: 12px;">Student # (optional)</label>
+              <input type="text" data-class-add-num="${c.id}" placeholder="20001" />
+            </div>
+          </div>
+          <div class="row" style="gap: 8px;">
+            <button class="btn primary" data-class-add-save="${c.id}">Add and generate password</button>
+            <button class="btn" data-class-add-cancel="${c.id}">Cancel</button>
+            <div class="spacer"></div>
+            <span data-class-add-status="${c.id}" class="muted" style="font-size: 12px;"></span>
+          </div>
+        </div>
         <div data-class-roster-view="${c.id}" style="display:none; margin-top: 10px; max-height: 240px; overflow-y: auto; background: #f9fafb; border-radius: 6px; padding: 8px;"></div>
         <div data-class-prereg-view="${c.id}" style="display:none; margin-top: 10px;"></div>
       </div>
@@ -318,15 +342,23 @@ function renderClassesList() {
       const id = btn.dataset.classDelete;
       const cls = classes.find((c) => c.id === id);
       if (!cls) return;
-      if (!confirm(`Delete the class "${cls.name}"?\n\nThis only works if the class has no assessments. If it does, move or delete those first.`)) return;
+      if (!confirm(
+        `Delete the class "${cls.name}"?\n\n` +
+        `This only works if the class has no assessments. If it does, move or delete those first.\n\n` +
+        `Pre-registered students who belong ONLY to this class will be permanently removed, ` +
+        `so you can re-add them in a new class and they'll receive fresh temporary passwords.`
+      )) return;
       try {
         els.classesStatus.textContent = 'Deleting…';
-        await api(`/api/classes/${id}`, { method: 'DELETE' });
+        const resp = await api(`/api/classes/${id}`, { method: 'DELETE' });
         await loadClasses();
         renderClassesList();
         loadAssessments();
-        els.classesStatus.textContent = 'Deleted.';
-        setTimeout(() => { els.classesStatus.textContent = ''; }, 1500);
+        const removed = (resp && resp.removedUsers) || 0;
+        els.classesStatus.textContent = removed > 0
+          ? `Deleted. ${removed} student account${removed === 1 ? '' : 's'} also removed (orphaned).`
+          : 'Deleted.';
+        setTimeout(() => { els.classesStatus.textContent = ''; }, 3500);
       } catch (e) {
         els.classesStatus.textContent = 'Error: ' + e.message;
       }
@@ -420,93 +452,33 @@ function renderClassesList() {
         if (!res.ok || !data.ok) throw new Error(data.error || 'Pre-registration failed');
 
         const { results, summary } = data;
-        const created = results.filter((r) => r.status === 'created');
+        // Rows that carry a temp password: newly-created accounts AND
+        // existing pending accounts that got their password reset.
+        const withTempPw = results.filter((r) => r.tempPassword);
 
         if (status) {
-          if (created.length === 0) {
-            // Nothing got created — most common because every email already
-            // had an account. Be explicit so the teacher isn't confused by
-            // an empty download.
+          if (withTempPw.length === 0) {
+            // Nothing got created OR reset. Be specific about why.
             const reasons = [];
-            if (summary.existed) reasons.push(`${summary.existed} already had accounts (no new password generated)`);
-            if (summary.skipped) reasons.push(`${summary.skipped} skipped (invalid email or no email column)`);
-            status.innerHTML = `⚠ No NEW accounts were created. ${reasons.join('; ') || 'Check your file format.'}`;
+            if (summary.existed) reasons.push(`${summary.existed} students already chose their own passwords (you can't reset those)`);
+            if (summary.skipped) reasons.push(`${summary.skipped} rows skipped (invalid email or no email column)`);
+            status.innerHTML = `⚠ No passwords generated. ${reasons.join('; ') || 'Check your file format.'}`;
             status.style.color = '#92400e';
           } else {
-            status.innerHTML = `✓ Pre-registered: <strong>${summary.created} created</strong>` +
-              (summary.existed ? `, ${summary.existed} already had accounts` : '') +
-              (summary.skipped ? `, ${summary.skipped} skipped` : '') +
+            const parts = [];
+            if (summary.created) parts.push(`<strong>${summary.created} new</strong>`);
+            if (summary.reset)   parts.push(`<strong>${summary.reset} reset</strong> (still on first login)`);
+            const tail = [];
+            if (summary.existed) tail.push(`${summary.existed} already chose own password`);
+            if (summary.skipped) tail.push(`${summary.skipped} skipped`);
+            status.innerHTML = `✓ Pre-registered: ${parts.join(', ')}` +
+              (tail.length ? ` · ${tail.join('; ')}` : '') +
               `.  Save the credentials below — they're shown only this once.`;
             status.style.color = '#166534';
           }
         }
 
-        if (view) {
-          view.style.display = 'block';
-          view.innerHTML = `
-            <div class="panel" style="background: #ecfdf5; border: 2px solid #34d399; padding: 12px 14px;">
-              <div class="row" style="margin-bottom: 8px;">
-                <strong style="color: #065f46;">🔑 Temporary credentials (${created.length})</strong>
-                <div class="spacer"></div>
-                <button class="btn" data-act="download-credentials" data-id="${id}">⬇ Download as CSV</button>
-                <button class="btn ghost" data-act="hide-credentials" data-id="${id}">Hide</button>
-              </div>
-              <div class="muted" style="font-size: 12px; margin-bottom: 8px;">
-                These passwords are <strong>shown one time only</strong>. Download the CSV, share each row with the right student, then they'll be forced to set their own password on first login.
-              </div>
-              <table style="width:100%; font-size: 12px; border-collapse: collapse;">
-                <thead>
-                  <tr style="background:#d1fae5;">
-                    <th style="text-align:left; padding: 6px 8px;">Name</th>
-                    <th style="text-align:left; padding: 6px 8px;">Email</th>
-                    <th style="text-align:left; padding: 6px 8px;">Student #</th>
-                    <th style="text-align:left; padding: 6px 8px;">Temporary password</th>
-                    <th style="text-align:left; padding: 6px 8px;">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${results.map((r) => `
-                    <tr style="border-top: 1px solid #a7f3d0;">
-                      <td style="padding: 6px 8px;">${escapeHtml(r.name || '')}</td>
-                      <td style="padding: 6px 8px;">${escapeHtml(r.email)}</td>
-                      <td style="padding: 6px 8px;">${escapeHtml(r.studentNumber || '')}</td>
-                      <td style="padding: 6px 8px; font-family: ui-monospace, monospace; ${r.tempPassword ? 'background: #fef3c7; font-weight: 600;' : 'color: #6b7280;'}">${r.tempPassword ? escapeHtml(r.tempPassword) : '—'}</td>
-                      <td style="padding: 6px 8px; ${r.status === 'created' ? 'color: #166534; font-weight: 600;' : r.status === 'existed' ? 'color: #92400e;' : 'color: #b91c1c;'}">${r.status}${r.reason ? ' — ' + escapeHtml(r.reason) : ''}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          `;
-          // Wire actions on the credentials panel.
-          view.querySelectorAll('[data-act=download-credentials]').forEach((b) => {
-            b.onclick = () => {
-              const header = 'name,email,studentNumber,tempPassword';
-              const rows = results
-                .filter((r) => r.tempPassword)
-                .map((r) => [r.name, r.email, r.studentNumber, r.tempPassword]
-                  .map((v) => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
-              const csv = [header, ...rows].join('\n');
-              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              const cls = classes.find((c) => c.id === id);
-              const safe = (cls && cls.name ? cls.name : 'class').replace(/[^a-z0-9-]+/gi, '-');
-              a.href = url;
-              a.download = `${safe}-credentials.csv`;
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
-            };
-          });
-          view.querySelectorAll('[data-act=hide-credentials]').forEach((b) => {
-            b.onclick = () => {
-              view.style.display = 'none';
-              view.innerHTML = '';
-            };
-          });
-        }
+        if (view) renderCredentialsPanel(view, id, results);
         // Refresh the roster + class list (counts changed).
         await loadKnownStudents();
         await loadClasses();
@@ -518,6 +490,167 @@ function renderClassesList() {
         }
       } finally {
         input.value = '';
+      }
+    };
+  });
+
+  // ----- "+ Add student" — manual single-student add (name + email) -----
+  // Shared credentials panel renderer. Both the bulk pre-register flow and
+  // the single-student form route their server responses through here so the
+  // teacher always sees the same green credentials table + download button.
+  function renderCredentialsPanel(view, classId, results) {
+    const withTempPw = results.filter((r) => r.tempPassword);
+    view.style.display = 'block';
+    view.innerHTML = `
+      <div class="panel" style="background: #ecfdf5; border: 2px solid #34d399; padding: 12px 14px;">
+        <div class="row" style="margin-bottom: 8px;">
+          <strong style="color: #065f46;">🔑 Temporary credentials (${withTempPw.length})</strong>
+          <div class="spacer"></div>
+          ${withTempPw.length ? `<button class="btn" data-act="download-credentials">⬇ Download as CSV</button>` : ''}
+          <button class="btn ghost" data-act="hide-credentials">Hide</button>
+        </div>
+        <div class="muted" style="font-size: 12px; margin-bottom: 8px;">
+          These passwords are <strong>shown one time only</strong>. Copy or download them, share each row privately with the right student, then they'll be forced to set their own password on first login.
+        </div>
+        <table style="width:100%; font-size: 12px; border-collapse: collapse;">
+          <thead>
+            <tr style="background:#d1fae5;">
+              <th style="text-align:left; padding: 6px 8px;">Name</th>
+              <th style="text-align:left; padding: 6px 8px;">Email</th>
+              <th style="text-align:left; padding: 6px 8px;">Student #</th>
+              <th style="text-align:left; padding: 6px 8px;">Temporary password</th>
+              <th style="text-align:left; padding: 6px 8px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${results.map((r) => `
+              <tr style="border-top: 1px solid #a7f3d0;">
+                <td style="padding: 6px 8px;">${escapeHtml(r.name || '')}</td>
+                <td style="padding: 6px 8px;">${escapeHtml(r.email)}</td>
+                <td style="padding: 6px 8px;">${escapeHtml(r.studentNumber || '')}</td>
+                <td style="padding: 6px 8px; font-family: ui-monospace, monospace; ${r.tempPassword ? 'background: #fef3c7; font-weight: 600;' : 'color: #6b7280;'}">${r.tempPassword ? escapeHtml(r.tempPassword) : '—'}</td>
+                <td style="padding: 6px 8px; ${r.status === 'created' ? 'color: #166534; font-weight: 600;' : r.status === 'reset' ? 'color: #1d4ed8;' : r.status === 'existed' ? 'color: #92400e;' : 'color: #b91c1c;'}">${escapeHtml(r.status)}${r.reason ? ' — ' + escapeHtml(r.reason) : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    view.querySelectorAll('[data-act=download-credentials]').forEach((b) => {
+      b.onclick = () => {
+        const header = 'name,email,studentNumber,tempPassword';
+        const rows = results
+          .filter((r) => r.tempPassword)
+          .map((r) => [r.name, r.email, r.studentNumber, r.tempPassword]
+            .map((v) => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
+        const csv = [header, ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const cls = classes.find((c) => c.id === classId);
+        const safe = (cls && cls.name ? cls.name : 'class').replace(/[^a-z0-9-]+/gi, '-');
+        a.href = url;
+        a.download = `${safe}-credentials.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+    });
+    view.querySelectorAll('[data-act=hide-credentials]').forEach((b) => {
+      b.onclick = () => {
+        view.style.display = 'none';
+        view.innerHTML = '';
+      };
+    });
+  }
+
+  // Toggle the inline form.
+  els.classesList.querySelectorAll('[data-class-add-one]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.classAddOne;
+      const form = els.classesList.querySelector(`[data-class-add-one-form="${id}"]`);
+      if (!form) return;
+      const showing = form.style.display !== 'none';
+      form.style.display = showing ? 'none' : 'block';
+      if (!showing) {
+        // Focus the name field for fast entry.
+        const nameInput = form.querySelector(`[data-class-add-name="${id}"]`);
+        if (nameInput) setTimeout(() => nameInput.focus(), 30);
+      }
+    };
+  });
+  els.classesList.querySelectorAll('[data-class-add-cancel]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.classAddCancel;
+      const form = els.classesList.querySelector(`[data-class-add-one-form="${id}"]`);
+      if (form) form.style.display = 'none';
+    };
+  });
+
+  // Save: hit /pre-register with a one-row JSON roster, show credentials.
+  els.classesList.querySelectorAll('[data-class-add-save]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.classAddSave;
+      const form = els.classesList.querySelector(`[data-class-add-one-form="${id}"]`);
+      const nameEl  = form && form.querySelector(`[data-class-add-name="${id}"]`);
+      const emailEl = form && form.querySelector(`[data-class-add-email="${id}"]`);
+      const numEl   = form && form.querySelector(`[data-class-add-num="${id}"]`);
+      const status  = form && form.querySelector(`[data-class-add-status="${id}"]`);
+      const view    = els.classesList.querySelector(`[data-class-prereg-view="${id}"]`);
+
+      const name = (nameEl?.value || '').trim();
+      const email = (emailEl?.value || '').trim().toLowerCase();
+      const studentNumber = (numEl?.value || '').trim();
+
+      if (!email || !email.includes('@')) {
+        if (status) { status.textContent = '⚠ Enter a valid email address.'; status.style.color = '#b91c1c'; }
+        if (emailEl) emailEl.focus();
+        return;
+      }
+
+      try {
+        if (status) { status.textContent = 'Creating account…'; status.style.color = ''; }
+        btn.disabled = true;
+        const res = await fetch(`/api/classes/${id}/pre-register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roster: [{ name, email, studentNumber }] }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Failed to add student');
+
+        const { results, summary } = data;
+        const row = (results && results[0]) || null;
+        if (status) {
+          if (row && row.tempPassword) {
+            status.innerHTML = row.status === 'reset'
+              ? `✓ Reset — temporary password regenerated.`
+              : `✓ Added — temporary password generated.`;
+            status.style.color = '#166534';
+          } else if (row && row.status === 'existed') {
+            status.innerHTML = '⚠ This email already has an account and the student chose their own password. To force a reset, delete the class first or contact support.';
+            status.style.color = '#92400e';
+          } else {
+            status.innerHTML = '⚠ ' + (row && row.reason ? row.reason : 'No account was created.');
+            status.style.color = '#b91c1c';
+          }
+        }
+
+        // Render the credentials panel below — same UI as bulk pre-register.
+        if (view && results && results.length) renderCredentialsPanel(view, id, results);
+
+        // Clear the form (but leave it open so the teacher can add another).
+        if (nameEl) nameEl.value = '';
+        if (emailEl) emailEl.value = '';
+        if (numEl) numEl.value = '';
+
+        await loadKnownStudents();
+        await loadClasses();
+      } catch (e) {
+        if (status) { status.textContent = '❌ ' + e.message; status.style.color = '#b91c1c'; }
+      } finally {
+        btn.disabled = false;
       }
     };
   });
@@ -662,8 +795,14 @@ if (els.addClassBtn) {
   };
 }
 
-// Subject templates — empty (just pre-set the subject + suggest question
-// types). Teachers add all the actual questions themselves.
+// Subject templates. Most are "blurb-only" and just pre-set the subject +
+// suggest question types — teachers add their own questions.
+//
+// Templates can also carry an optional `seed` block that pre-populates the
+// builder with sections + starter questions + rubric. Used by the English
+// Reading Comprehension and Essay Writing templates so teachers can drop in
+// their text and questions without having to set up the section structure
+// from scratch.
 const SUBJECT_TEMPLATES = [
   { id: 'math', subject: 'Math', icon: '🔢',
     blurb: 'Multiple choice, short answer, and long answer for problem-solving steps.' },
@@ -683,6 +822,71 @@ const SUBJECT_TEMPLATES = [
     blurb: 'Reading comprehension passages, short answers for grammar, essay (auto-graded) for composition.' },
   { id: 'french', subject: 'French', icon: '🇫🇷',
     blurb: 'MCQs for vocabulary, short answers for translation, essay for composition (auto-graded with rubric).' },
+
+  // English Reading Comprehension — pre-seeded with the centralised exam
+  // structure: Part 1 Vocabulary, Part 2 Grammar, Part 3A/3B/3C Reading
+  // (working toward / at / beyond grade level).
+  { id: 'english-reading', subject: 'English',
+    icon: '📖',
+    name: 'English — Reading Comprehension',
+    blurb: 'Centralised 5-part paper: Vocabulary, Grammar, and three Reading sections (toward / at / beyond grade level).',
+    seed: {
+      title: 'English Reading Comprehension',
+      description: 'Centralised reading-comprehension assessment with vocabulary, grammar, and three reading sections.',
+      sections: [
+        { title: 'Part 1: Vocabulary',
+          instructions: 'Choose the correct word to complete each sentence. Working toward Grade Level Goal.',
+          passage: '' },
+        { title: 'Part 2: Grammar',
+          instructions: 'Choose the correct option for each sentence. Working at Grade Level Goal.',
+          passage: '' },
+        { title: 'Part 3A: Reading',
+          instructions: 'Read the passage and answer the questions. Working toward Grade Level Goal.',
+          passage: '' },
+        { title: 'Part 3B: Reading',
+          instructions: 'Read the passage and answer the questions. Working at Grade Level Goal.',
+          passage: '' },
+        { title: 'Part 3C: Reading',
+          instructions: 'Read the passage and answer the questions. Working beyond Grade Level Goal.',
+          passage: '' },
+      ],
+      // Starter questions — teacher overwrites the prompts with their own.
+      questions: [
+        { sectionIdx: 0, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 0, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 1, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 1, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 2, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 2, type: 'short', prompt: '', correctAnswer: '', points: 2 },
+        { sectionIdx: 3, type: 'mc',    prompt: '', options: ['', '', '', ''], correctAnswer: 0, points: 1 },
+        { sectionIdx: 3, type: 'short', prompt: '', correctAnswer: '', points: 2 },
+        { sectionIdx: 4, type: 'tfng',  prompt: '', correctAnswer: 'true', points: 1 },
+        { sectionIdx: 4, type: 'long',  prompt: '', points: 5 },
+      ],
+    },
+  },
+
+  // Essay Writing — single-section template with one auto-graded essay slot.
+  { id: 'essay-writing', subject: 'English',
+    icon: '✍️',
+    name: 'Essay Writing',
+    blurb: 'Single-section writing paper with one auto-graded essay (Stage 7-8 rubric by default).',
+    seed: {
+      title: 'Essay Writing',
+      description: 'A single essay-writing task graded against the chosen rubric.',
+      rubricStage: '7-8',
+      sections: [
+        { title: 'Essay',
+          instructions: 'Write your essay on the topic below. You may plan on a separate sheet. Spelling, grammar, and structure all count.',
+          passage: '' },
+      ],
+      questions: [
+        // points stays at 12 to match the Stage 7-8 default; openBuilder
+        // overrides it from rubricStage when the writing question is created.
+        { sectionIdx: 0, type: 'writing', prompt: '', points: 12 },
+      ],
+    },
+  },
 ];
 
 // ----- Global report-language preference (persisted to localStorage) -----
@@ -989,12 +1193,61 @@ async function runImport(file) {
       return;
     }
     // Pre-populate the builder with the parsed draft.
+    //
+    // The server returns either:
+    //   • { sections: [...], questions: [...], passage } — Claude-parsed,
+    //     preserves multi-passage / multi-part papers verbatim. Each question
+    //     already carries a sectionId pointing to one of the returned sections.
+    //   • { questions: [...], passage } — legacy regex fallback (single
+    //     section). Stamp every question with the default section's id.
     els.importPanel.style.display = 'none';
     openBuilder(null);
     els.title.value = data.title || `Imported — ${file.name}`;
     els.description.value = `Imported from ${file.name} on ${new Date().toLocaleDateString()}. Review each question and mark correct answers before publishing.`;
-    if (els.passage) els.passage.value = data.passage || '';
-    questions = data.questions.map((q) => ({ ...q, id: uid() }));
+    // Top-level legacy passage textarea is cleared — passages now live on
+    // the section objects so the student renderer can show each passage with
+    // its own section without any duplication.
+    if (els.passage) els.passage.value = '';
+
+    if (Array.isArray(data.sections) && data.sections.length) {
+      // Claude path. Quick Import is meant to feel like Microsoft Forms — a
+      // flat list of questions with the reading passage(s) above. We KEEP
+      // each section's passage (because that's how the multi-passage data
+      // model groups passages with their questions) but DROP the section
+      // title and instructions so the orange "Section N" wrapper UI never
+      // shows up. Teachers can still add real sections later via "+ Section".
+      const idMap = new Map();
+      sections = data.sections.map((s, i) => {
+        const newId = uid();
+        idMap.set(s.id || `__idx${i}`, newId);
+        return {
+          id: newId,
+          title: '',
+          instructions: '',
+          passage: String(s.passage || ''),
+          order: i,
+        };
+      });
+      questions = data.questions.map((q) => {
+        const newSid = idMap.get(q.sectionId) || sections[0].id;
+        return { ...q, id: uid(), sectionId: newSid };
+      });
+    } else {
+      // Regex fallback path — single section.
+      if (!sections.length) {
+        sections = [{ id: uid(), title: '', instructions: '', passage: '', order: 0 }];
+      }
+      if (data.passage) {
+        sections[0].passage = data.passage;
+      }
+      const importSectionId = sections[0].id;
+      questions = data.questions.map((q) => ({
+        ...q,
+        id: uid(),
+        sectionId: importSectionId,
+      }));
+    }
+
     renderQuestions();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (e) {
@@ -1276,15 +1529,19 @@ function renderTemplateGrid() {
   els.templateGrid.innerHTML = SUBJECT_TEMPLATES.map((t) => `
     <button class="btn" data-tmpl-id="${t.id}" style="display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding: 14px; height: auto; line-height: 1.4; gap: 6px;">
       <div style="font-size: 28px;">${t.icon}</div>
-      <div style="font-weight: 600; font-size: 15px;">${t.subject}</div>
-      <div class="muted" style="font-size: 12px;">${t.blurb}</div>
+      <div style="font-weight: 600; font-size: 15px;">${(t.name || t.subject || '').replace(/[<>&]/g, '')}</div>
+      <div class="muted" style="font-size: 12px;">${(t.blurb || '').replace(/[<>&]/g, '')}</div>
     </button>
   `).join('');
   els.templateGrid.querySelectorAll('[data-tmpl-id]').forEach((btn) => {
     btn.onclick = () => {
       const tmpl = SUBJECT_TEMPLATES.find((x) => x.id === btn.dataset.tmplId);
       closeTemplatePicker();
-      openBuilder(null, { subject: tmpl ? tmpl.subject : '' });
+      // Pass the whole template so openBuilder can apply any `seed` block.
+      openBuilder(null, {
+        subject: tmpl ? tmpl.subject : '',
+        seed: tmpl && tmpl.seed ? tmpl.seed : null,
+      });
     };
   });
 }
@@ -1458,11 +1715,14 @@ function openBuilder(a, presets) {
   closeTemplatePicker();
   els.builderView.style.display = 'block';
   editingId = a ? a.id : null;
+  const seed = (!a && presets && presets.seed) ? presets.seed : null;
   els.builderTitle.textContent = a ? 'Edit assessment' : 'New assessment';
-  els.title.value = a ? a.title : '';
-  els.description.value = a ? a.description : '';
+  els.title.value = a ? a.title : (seed && seed.title) || '';
+  els.description.value = a ? a.description : (seed && seed.description) || '';
   if (els.passage) els.passage.value = a && a.passage ? a.passage : '';
-  if (els.rubricStage) els.rubricStage.value = a && a.rubricStage ? a.rubricStage : '';
+  if (els.rubricStage) els.rubricStage.value = a && a.rubricStage
+    ? a.rubricStage
+    : (seed && seed.rubricStage) || '';
   if (els.term) els.term.value = a && a.term ? a.term : '';
   if (els.grade) els.grade.value = a && a.grade ? a.grade : '';
   if (els.academicYear) els.academicYear.value = a && a.academicYear ? a.academicYear : defaultAcademicYear();
@@ -1488,13 +1748,57 @@ function openBuilder(a, presets) {
   }
   els.duration.value = a ? a.durationMinutes : 30;
   els.published.value = a ? String(a.published) : 'false';
-  questions = a ? JSON.parse(JSON.stringify(a.questions)) : [];
-  // Load sections for the assessment. If an existing assessment has no
-  // sections (legacy), synthesise a single default section and assign all
-  // questions to it — this keeps the new UI consistent.
-  sections = a && Array.isArray(a.sections) && a.sections.length
-    ? JSON.parse(JSON.stringify(a.sections))
-    : [{ id: uid(), title: '', instructions: '', passage: a && a.passage ? a.passage : '', order: 0 }];
+
+  // Load questions + sections. Priority:
+  //   1. Editing an existing assessment → use saved data.
+  //   2. New from template with seed → expand the seed into real sections/questions.
+  //   3. Otherwise → empty assessment with one default section.
+  if (a) {
+    questions = JSON.parse(JSON.stringify(a.questions));
+    sections = Array.isArray(a.sections) && a.sections.length
+      ? JSON.parse(JSON.stringify(a.sections))
+      : [{ id: uid(), title: '', instructions: '', passage: a.passage ? a.passage : '', order: 0 }];
+  } else if (seed) {
+    // Expand seed.sections (no ids yet) into real sections with ids, then
+    // map seed.questions[].sectionIdx → the new section id.
+    const seedSections = Array.isArray(seed.sections) && seed.sections.length
+      ? seed.sections
+      : [{ title: '', instructions: '', passage: '' }];
+    sections = seedSections.map((s, i) => ({
+      id: uid(),
+      title: String(s.title || ''),
+      instructions: String(s.instructions || ''),
+      passage: String(s.passage || ''),
+      order: i,
+    }));
+    const seedQuestions = Array.isArray(seed.questions) ? seed.questions : [];
+    questions = seedQuestions.map((q) => {
+      const sidx = Number.isFinite(q.sectionIdx) && q.sectionIdx >= 0 && q.sectionIdx < sections.length
+        ? q.sectionIdx
+        : 0;
+      const out = {
+        id: uid(),
+        type: q.type || 'short',
+        prompt: String(q.prompt || ''),
+        options: Array.isArray(q.options) ? q.options.slice() : [],
+        correctAnswer: q.correctAnswer,
+        points: Number.isFinite(q.points) ? q.points : 1,
+        sectionId: sections[sidx].id,
+      };
+      // For writing questions, sync points with the seed's rubricStage so the
+      // marks add up correctly (Stage 7-8 = 12, Stage 3-5 / 5-9 = 40).
+      if (out.type === 'writing') {
+        const rs = seed.rubricStage || '';
+        if (rs === '3-5' || rs === '5-9') out.points = 40;
+        else out.points = 12;
+      }
+      return out;
+    });
+  } else {
+    questions = [];
+    sections = [{ id: uid(), title: '', instructions: '', passage: '', order: 0 }];
+  }
+
   // Map any orphaned questions to the first section so they render.
   const sIds = new Set(sections.map((s) => s.id));
   for (const q of questions) {
@@ -1592,9 +1896,36 @@ function renderQuestions() {
   if (!sections.length) {
     sections = [{ id: uid(), title: '', instructions: '', passage: '', order: 0 }];
   }
+  // The orange Section panel is only useful when the teacher is intentionally
+  // building a multi-part paper. For Quick Import, AI generate, and the plain
+  // "blank assessment" flow we hide the panel completely — the assessment
+  // shows up as a flat list of questions (like Microsoft Forms), with each
+  // reading passage rendered as a slim editor above its own block of
+  // questions. The teacher can still create real sections later by clicking
+  // the ➕ Section button (which adds a section with a title like "Section A").
+  //
+  // Collapse rule: EVERY section in the current draft has no title and no
+  // instructions. Holds for any count of sections — multi-passage Quick
+  // Imports stay collapsed too.
+  const isCollapsedMode = sections.every((s) => !s.title && !s.instructions);
+  function maybeSectionPanel(s, sidx) {
+    if (isCollapsedMode) {
+      if (!s.passage) return '';
+      return `
+        <div class="panel" data-section="${s.id}" style="background: #fff7ed; border: 2px solid #fdba74; padding: 14px 16px;">
+          <div class="field" style="margin-bottom: 0;">
+            <label>Reading passage / source text (optional — shown above the questions in this group)</label>
+            <textarea data-sf="passage" data-sid="${s.id}" rows="6" placeholder="Paste a reading passage, source text, story, poem, or case study here.">${escapeHtml(s.passage || '')}</textarea>
+          </div>
+        </div>
+      `;
+    }
+    return renderSectionPanel(s, sidx);
+  }
+
   if (!questions.length && sections.every((s) => !s.title && !s.instructions && !s.passage)) {
-    // First-load empty state — render the single default section header + hint.
-    els.questions.innerHTML = renderSectionPanel(sections[0], 0)
+    // First-load empty state — render hint only (no section header).
+    els.questions.innerHTML = maybeSectionPanel(sections[0], 0)
       + `<div class="muted" style="margin: 10px 0 0;">Add a question using the buttons above, or click ➕ Section to start a new part.</div>`;
     wireSectionHandlers();
     return;
@@ -1605,7 +1936,7 @@ function renderQuestions() {
   let qIdx = 0;
   for (let si = 0; si < sections.length; si++) {
     const s = sections[si];
-    html += renderSectionPanel(s, si);
+    html += maybeSectionPanel(s, si);
     const inSection = questions.map((q, i) => ({ q, i })).filter((p) => p.q.sectionId === s.id);
     for (const { q } of inSection) {
       html += renderQuestion(q, qIdx);
