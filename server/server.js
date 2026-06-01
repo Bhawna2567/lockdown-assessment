@@ -426,6 +426,28 @@ function normalizeDeliveryMode(m) {
   return v === 'onsite' ? 'onsite' : 'online';
 }
 
+// Sections group questions into parts (Section A, B, C…) with their own
+// reading passages, instructions, and titles. Each section gets a stable
+// id so questions can reference it. Returns { sections, byId } so callers
+// can validate that question.sectionId points at a real section.
+function normalizeSections(incoming) {
+  const sections = Array.isArray(incoming) ? incoming : [];
+  const byId = new Map();
+  const out = [];
+  let order = 0;
+  for (const s of sections) {
+    if (!s || typeof s !== 'object') continue;
+    const id = s.id && typeof s.id === 'string' ? s.id : uuidv4();
+    const title = String(s.title || '').slice(0, 200);
+    const instructions = String(s.instructions || '').slice(0, 4000);
+    const passage = String(s.passage || '').slice(0, 12000);
+    const sec = { id, title, instructions, passage, order: order++ };
+    out.push(sec);
+    byId.set(id, sec);
+  }
+  return { sections: out, byId };
+}
+
 // Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
 // 'long' = long-answer text (manually graded). Anything else is rejected.
 const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
@@ -446,7 +468,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage, classId, deliveryMode,
+    subject, assessmentLanguage, classId, deliveryMode, sections,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -458,6 +480,8 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     ? classId
     : teacherClasses[0].id;
 
+  const sectionNorm = normalizeSections(sections);
+
   const assessment = {
     id: uuidv4(),
     teacherId: req.session.user.id,
@@ -466,6 +490,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     deliveryMode: normalizeDeliveryMode(deliveryMode),
     subject: normalizeSubject(subject),
     assessmentLanguage: normalizeAssessmentLanguage(assessmentLanguage),
+    sections: sectionNorm.sections,
     title: String(title),
     description: String(description || ''),
     passage: String(passage || ''),
@@ -478,17 +503,20 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     published: Boolean(published),
     questions: questions.map((q, i) => {
       const type = normalizeQuestionType(q.type);
+      // Validate sectionId: must reference a real section on this assessment.
+      // If not, leave blank — front-end will show the question in the default
+      // "no section" group.
+      const sectionId = q.sectionId && sectionNorm.byId.has(q.sectionId)
+        ? q.sectionId : '';
       const out = {
         id: q.id || uuidv4(),
         order: i,
+        sectionId,
         type, // 'mc' | 'tf' | 'tfng' | 'short' | 'long' | 'essay' | 'writing'
         prompt: q.prompt,
         options: q.options || [], // for mc
         correctAnswer: null,
         points: Number(q.points) || 1,
-        // Optional graphics. imageUrl is a data URL of an uploaded image (size-
-        // capped client-side); imageDescription is a text hint suggested by AI
-        // that the teacher can use to find/upload the right image.
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
       };
@@ -496,7 +524,6 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
       else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
       else if (type === 'tfng') out.correctAnswer = normalizeTfngAnswer(q.correctAnswer);
       else if (type === 'short') out.correctAnswer = q.correctAnswer ?? null;
-      // long / essay / writing: no correctAnswer (manual / rubric)
       return out;
     }),
     createdAt: new Date().toISOString(),
@@ -550,7 +577,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage, classId, deliveryMode,
+    subject, assessmentLanguage, classId, deliveryMode, sections,
   } = req.body || {};
   // Validate classId if provided: must belong to this teacher.
   let nextClassId = all[idx].classId;
@@ -560,12 +587,19 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       nextClassId = classId;
     }
   }
+  // If sections are sent in the PUT body, replace them. Otherwise keep the
+  // existing ones — backwards-compat for clients that pre-date this field.
+  const newSectionNorm = sections === undefined
+    ? normalizeSections(all[idx].sections || [])
+    : normalizeSections(sections);
+
   const updated = {
     ...all[idx],
     classId: nextClassId,
     deliveryMode: deliveryMode === undefined
       ? (all[idx].deliveryMode || 'online')
       : normalizeDeliveryMode(deliveryMode),
+    sections: newSectionNorm.sections,
     subject: subject === undefined ? (all[idx].subject ?? null) : normalizeSubject(subject),
     assessmentLanguage: assessmentLanguage === undefined
       ? (all[idx].assessmentLanguage ?? null)
@@ -591,9 +625,12 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     questions: Array.isArray(questions)
       ? questions.map((q, i) => {
           const type = normalizeQuestionType(q.type);
+          const sectionId = q.sectionId && newSectionNorm.byId.has(q.sectionId)
+            ? q.sectionId : '';
           const out = {
             id: q.id || uuidv4(),
             order: i,
+            sectionId,
             type,
             prompt: q.prompt,
             options: q.options || [],
@@ -651,9 +688,11 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     subject: a.subject || null,
     assessmentLanguage: a.assessmentLanguage || null,
     deliveryMode: a.deliveryMode || 'online',
+    sections: Array.isArray(a.sections) ? a.sections : [],
     questions: a.questions.map((q) => ({
       id: q.id,
       order: q.order,
+      sectionId: q.sectionId || '',
       type: q.type,
       prompt: q.prompt,
       options: q.options,
@@ -1759,52 +1798,89 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   // Build the prompt for Claude. We give a strict JSON schema and a tight
   // example so the model can't drift into prose responses.
   const systemPrompt = [
-    'You are an expert classroom-assessment designer.',
-    'Generate ONE assessment as a JSON object that matches the schema below exactly.',
+    'You are an expert classroom-assessment designer with deep experience reproducing exam papers EXACTLY as the teacher provides them.',
+    'Generate ONE assessment as a JSON object that matches the schema below.',
     'Return ONLY the JSON object. Do not wrap it in markdown. Do not add commentary.',
     '',
-    'Schema:',
+    '=== TOP-LEVEL SCHEMA ===',
     '{',
-    '  "title": "string — short, descriptive title",',
-    '  "description": "string — 1 sentence describing the assessment",',
-    '  "passage": "string — optional reading passage if the assessment is comprehension-based, otherwise empty string",',
-    '  "questions": [ Question, ... ]',
+    '  "title": "string — short, descriptive title (matches the title on the uploaded paper if present)",',
+    '  "description": "string — 1-2 sentences describing the assessment",',
+    '  "sections": [ Section, ... ],   // MUST include at least one section',
+    '  "questions": [ Question, ... ]  // flat list; each question links to a section via sectionIndex',
     '}',
     '',
-    'Question shapes (pick the appropriate type for each question):',
-    '  Multiple choice:    { "type": "mc", "prompt": "...", "options": ["A","B","C","D"], "correctAnswer": 0, "points": 1 }',
-    '  True / False:       { "type": "tf", "prompt": "...", "correctAnswer": true, "points": 1 }',
-    '  True/False/NotGiven:{ "type": "tfng", "prompt": "...", "correctAnswer": "true|false|ng", "points": 1 }',
-    '  Short answer:       { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1 }',
-    '  Long answer:        { "type": "long", "prompt": "...", "points": 5 }',
-    '  Essay (manual):     { "type": "essay", "prompt": "...", "points": 5 }',
-    '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 12 }',
+    '=== SECTION SCHEMA ===',
+    '{',
+    '  "title": "string — section heading verbatim from the source if provided (e.g. \\"Section A: Reading Comprehension\\", \\"Part 1\\", \\"Question 1\\")",',
+    '  "instructions": "string — the EXACT instruction text from the source paper for this section, verbatim. Examples: \\"Read the passage and answer the questions below.\\", \\"Choose the correct option for each question.\\", \\"Answer ALL questions in complete sentences.\\". If no instructions exist, use a sensible default.",',
+    '  "passage": "string — if the section has a reading passage / source text / extract / poem / story / case study / scenario, include it HERE, copied VERBATIM from the source. NEVER paraphrase or shorten. Leave empty string if the section has no passage."',
+    '}',
     '',
-    'Optional field on ANY question:',
-    '  "imageDescription": A short description (under 80 words) of an image that would help students answer this question.',
-    '  Add this field ONLY when a graphic genuinely helps comprehension. Examples by subject:',
-    '    Math: a graph, geometric figure, or worked-example diagram',
-    '    Physics: a circuit diagram, free-body diagram, ray diagram, or wave illustration',
-    '    Chemistry: a molecular structure, balanced equation diagram, or apparatus setup',
-    '    Biology: an anatomical diagram, cell structure, food web, or microscope image',
-    '    Social Studies: a map, timeline, historical photo, or political cartoon',
-    '    Health Science: a body system diagram, nutrition label, or first-aid sequence',
-    '    Arabic / Islamic Studies: a text excerpt, calligraphy sample, or geographic map',
-    '  The teacher will use the description to source or upload the actual image.',
-    '  Skip the field on text-only questions where a graphic adds nothing.',
+    '=== QUESTION SCHEMA ===',
+    '  Multiple choice:    { "type": "mc", "prompt": "...", "options": ["A","B","C","D"], "correctAnswer": 0, "points": 1, "sectionIndex": 0 }',
+    '  True / False:       { "type": "tf", "prompt": "...", "correctAnswer": true, "points": 1, "sectionIndex": 0 }',
+    '  True/False/NotGiven:{ "type": "tfng", "prompt": "...", "correctAnswer": "true|false|ng", "points": 1, "sectionIndex": 0 }',
+    '  Short answer:       { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1, "sectionIndex": 0 }',
+    '  Long answer:        { "type": "long", "prompt": "...", "points": 5, "sectionIndex": 0 }',
+    '  Essay (manual):     { "type": "essay", "prompt": "...", "points": 5, "sectionIndex": 0 }',
+    '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 12, "sectionIndex": 0 }',
+    '  sectionIndex is the 0-based index of the section this question belongs to in the "sections" array.',
     '',
-    'Rules:',
-    `- Generate around ${requestedCount} questions unless the user requested a specific count or mix.`,
-    '- Mix question types unless the user explicitly asked for only one type.',
-    '- For "mc": correctAnswer is the 0-based INDEX of the right option in the options array.',
-    '- For "tf": correctAnswer is a boolean true or false.',
-    '- For "tfng": correctAnswer is the string "true", "false", or "ng".',
-    '- For "short": include a concise correctAnswer when there is a single canonical right answer.',
-    '- For "long" / "essay" / "writing": no correctAnswer field needed.',
-    '- Phrase prompts in clear, age-appropriate language.',
-    '- If the teacher provided a scheme of work, base the questions tightly on that content.',
-    '- All output text should be in: ' + (language || 'English') + '.',
-    subject ? `- The assessment subject is: ${subject}. Tailor question style and graphics to this subject's conventions.` : '',
+    '=== HARD RULES THAT MUST BE FOLLOWED ===',
+    '',
+    'A. PRESERVE STRUCTURE FROM THE UPLOAD',
+    '   - If the teacher uploaded a scheme of work or exam paper, MIRROR ITS STRUCTURE EXACTLY.',
+    '   - Count the sections in the source. Reproduce the same number with the same titles.',
+    '   - Use the same question types in the same order. Same number of questions per section if specified.',
+    '   - Use the same point allocations if specified.',
+    '   - If the source says "Section A — Reading (10 marks)", reproduce that section title and target ~10 marks.',
+    '',
+    'B. EXTRACT READING PASSAGES VERBATIM',
+    '   - When the source contains a reading passage, story, poem, news article, case study, source text, scenario, or extract, COPY IT INTO the "passage" field of the relevant section EXACTLY as written.',
+    '   - DO NOT summarise, paraphrase, shorten, or rewrite the passage. Copy character-for-character.',
+    '   - Include the passage even if it is long (up to ~10 000 characters per section).',
+    '   - The student will see this passage above the questions in that section.',
+    '   - If the source has multiple passages (one per section), put each in its own section.',
+    '',
+    'C. INSTRUCTIONS ARE NOT QUESTIONS',
+    '   - Lines like "Read the following passage", "Answer all questions", "Use a separate sheet", "Spelling counts" are INSTRUCTIONS — put them in the section\'s "instructions" field. NEVER create a question with that text.',
+    '   - Lines like "Section B: Writing", "Part 2", "Question 1" are SECTION TITLES — put them in "title".',
+    '   - A question is something a student must answer. Instructions tell them HOW to answer.',
+    '',
+    'D. SECTIONS DEFAULT (when no upload)',
+    '   - If the teacher provided no scheme of work, create ONE default section with an empty title, sensible default instructions ("Answer all questions"), and no passage. Put all questions in section index 0.',
+    '',
+    'E. QUESTION DETAILS',
+    `   - Generate around ${requestedCount} questions unless the source/prompt specifies a different count.`,
+    '   - For "mc": correctAnswer is the 0-based INDEX of the right option.',
+    '   - For "tf": correctAnswer is true or false.',
+    '   - For "tfng": correctAnswer is the string "true", "false", or "ng".',
+    '   - For "short": include a concise correctAnswer when there is one canonical right answer.',
+    '   - For "long" / "essay" / "writing": no correctAnswer field needed.',
+    '   - Numbering: do NOT prepend "1.", "2.", etc. to the prompt — the front-end numbers questions automatically.',
+    '',
+    'F. OPTIONAL imageDescription FIELD on any question',
+    '   Short (<80 words) description of a graphic that would help that question. Add only when a graphic genuinely helps comprehension.',
+    '   Examples by subject: Math diagrams, Physics circuits, Chemistry molecules, Biology cells, Social Studies maps, Arabic calligraphy.',
+    '',
+    'G. LANGUAGE',
+    `   All text — titles, instructions, passages, prompts, options, correctAnswer for short questions — must be in: ${language || 'English'}.`,
+    subject ? `   Subject conventions: ${subject}. Use the standard format, vocabulary, and graphic types for this subject.` : '',
+    '',
+    '=== EXAMPLE OF GOOD OUTPUT (English Reading Comprehension exam) ===',
+    '{',
+    '  "title": "Grade 9 English — Mid-Term Reading Paper",',
+    '  "description": "A 30-minute reading-comprehension assessment with two passages.",',
+    '  "sections": [',
+    '    { "title": "Section A: Reading Comprehension", "instructions": "Read the passage below carefully. Then answer questions 1-5.", "passage": "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness... [full passage copied verbatim from source]" },',
+    '    { "title": "Section B: Writing", "instructions": "Write a paragraph of at least 200 words on the topic below.", "passage": "" }',
+    '  ],',
+    '  "questions": [',
+    '    { "type": "mc", "prompt": "What does the narrator mean by \\"the best of times\\"?", "options": ["A period of peace", "A period of contradictions", "A period of war", "A period of joy"], "correctAnswer": 1, "points": 1, "sectionIndex": 0 },',
+    '    { "type": "writing", "prompt": "Discuss the theme of duality in the passage. Use evidence from the text.", "points": 12, "sectionIndex": 1 }',
+    '  ]',
+    '}',
     '',
     'Teacher\'s request:',
     prompt || '(no prompt — design a balanced assessment based on the scheme of work)',
@@ -1853,16 +1929,43 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       return res.status(502).json({ ok: false, error: 'AI returned an invalid response. Please try again.' });
     }
 
+    // Normalise the sections array. We pass these to the client with a
+    // generated id so the builder can link questions to sections via id.
+    const aiSections = Array.isArray(parsed.sections) ? parsed.sections : [];
+    const outSections = aiSections.map((s, i) => ({
+      id: uuidv4(),
+      title: String(s && s.title ? s.title : '').slice(0, 200),
+      instructions: String(s && s.instructions ? s.instructions : '').slice(0, 4000),
+      passage: String(s && s.passage ? s.passage : '').slice(0, 12000),
+      order: i,
+    }));
+    // If Claude forgot to provide a sections array, synthesise one default
+    // section so every question still has somewhere to live.
+    if (!outSections.length) {
+      outSections.push({
+        id: uuidv4(),
+        title: '',
+        instructions: 'Answer all questions.',
+        passage: String(parsed.passage || ''),
+        order: 0,
+      });
+    }
+
     // Validate + normalize each question to match exactly what the builder expects.
     const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
     const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q) => {
       const type = validTypes.has(q.type) ? q.type : 'short';
+      // Map AI's sectionIndex (0-based) → our generated sectionId.
+      const sidx = Number.isFinite(q.sectionIndex) && q.sectionIndex >= 0 && q.sectionIndex < outSections.length
+        ? q.sectionIndex
+        : 0;
       const out = {
         type,
         prompt: String(q.prompt || ''),
         options: Array.isArray(q.options) ? q.options.map(String) : [],
         correctAnswer: null,
         points: Number(q.points) || (type === 'writing' ? 12 : type === 'essay' || type === 'long' ? 5 : 1),
+        sectionId: outSections[sidx].id,
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
       };
@@ -1889,7 +1992,11 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       ok: true,
       title: String(parsed.title || 'AI-generated assessment').slice(0, 200),
       description: String(parsed.description || '').slice(0, 500),
-      passage: String(parsed.passage || ''),
+      // Top-level `passage` is kept for backward-compat — front-end now
+      // prefers sections[].passage. We surface the first section's passage
+      // for clients that still read it.
+      passage: outSections[0]?.passage || '',
+      sections: outSections,
       questions,
       filesProcessed: {
         text: textChunks.length,

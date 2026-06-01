@@ -904,50 +904,89 @@ function renderQuestions() {
     `;
   }
 
-  const questionsHtml = currentAssessment.questions
-    .map((q, i) => {
-      let body = '';
-      if (q.type === 'mc') {
-        body = q.options.map((opt, oi) => `
-          <label style="display:block; padding:8px; border:1px solid #2b3152; border-radius:6px; margin-bottom:6px; cursor:pointer;">
-            <input type="radio" name="q-${q.id}" value="${oi}" /> ${escapeHtml(opt)}
-          </label>
-        `).join('');
-      } else if (q.type === 'tf') {
-        body = `
-          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
-          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
-        `;
-      } else if (q.type === 'tfng') {
-        body = `
-          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
-          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
-          <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
-        `;
-      } else if (q.type === 'short') {
-        body = `<input type="text" data-q="${q.id}" placeholder="Your answer" />`;
-      } else if (q.type === 'long') {
-        body = `<textarea data-q="${q.id}" rows="10" placeholder="Write your full answer here. Use complete sentences and explain your reasoning."></textarea>`;
-      } else if (q.type === 'essay' || q.type === 'writing') {
-        const rows = q.type === 'writing' ? 14 : 6;
-        body = `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>`;
-      }
-      // Optional image, rendered above the prompt for context.
-      const imageBlock = q.imageUrl
-        ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #1a1e33;" />`
-        : '';
+  // Build per-question HTML in a helper so we can call it from inside the
+  // section-grouping loop below.
+  function questionBody(q) {
+    if (q.type === 'mc') {
+      return q.options.map((opt, oi) => `
+        <label style="display:block; padding:8px; border:1px solid #2b3152; border-radius:6px; margin-bottom:6px; cursor:pointer;">
+          <input type="radio" name="q-${q.id}" value="${oi}" /> ${escapeHtml(opt)}
+        </label>
+      `).join('');
+    } else if (q.type === 'tf') {
       return `
-        <div class="panel">
-          <div class="muted" style="margin-bottom: 4px;">Question ${i + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
-          ${imageBlock}
-          <div style="font-size: 16px; margin-bottom: 12px;">${escapeHtml(q.prompt)}</div>
-          ${body}
-        </div>
+        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
+        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
       `;
-    })
-    .join('');
+    } else if (q.type === 'tfng') {
+      return `
+        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
+        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
+        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
+      `;
+    } else if (q.type === 'short') {
+      return `<input type="text" data-q="${q.id}" placeholder="Your answer" />`;
+    } else if (q.type === 'long') {
+      return `<textarea data-q="${q.id}" rows="10" placeholder="Write your full answer here. Use complete sentences and explain your reasoning."></textarea>`;
+    } else if (q.type === 'essay' || q.type === 'writing') {
+      const rows = q.type === 'writing' ? 14 : 6;
+      return `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>`;
+    }
+    return '';
+  }
+  function questionCard(q, globalIdx) {
+    const imageBlock = q.imageUrl
+      ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #1a1e33;" />`
+      : '';
+    return `
+      <div class="panel">
+        <div class="muted" style="margin-bottom: 4px;">Question ${globalIdx + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
+        ${imageBlock}
+        <div style="font-size: 16px; margin-bottom: 12px;">${escapeHtml(q.prompt)}</div>
+        ${questionBody(q)}
+      </div>
+    `;
+  }
 
-  els.questions.innerHTML = banner + questionsHtml;
+  // Group questions by section. Sections come from the server in display
+  // order. Any question whose sectionId doesn't match a known section goes
+  // into a synthetic "default" group at the end (shouldn't normally happen).
+  const allSections = Array.isArray(currentAssessment.sections) ? currentAssessment.sections : [];
+  const sectionsById = new Map(allSections.map((s) => [s.id, s]));
+  let globalIdx = 0;
+  let sectionsHtml = '';
+
+  if (allSections.length) {
+    for (const sec of allSections) {
+      const sectionQs = currentAssessment.questions.filter((q) => q.sectionId === sec.id);
+      if (!sectionQs.length && !sec.title && !sec.instructions && !sec.passage) continue;
+
+      // Section header — title + instructions + passage, then questions.
+      const passageBlock = sec.passage && sec.passage.trim()
+        ? `<div style="background:#1a1e33; color:#eef0ff; border:1px solid #2b3152; border-radius: 8px; padding: 14px 16px; max-height: 360px; overflow-y: auto; margin: 0 0 10px; white-space: pre-wrap; line-height: 1.55;">${escapeHtml(sec.passage)}</div>`
+        : '';
+      const instructionsBlock = sec.instructions && sec.instructions.trim()
+        ? `<div style="font-style: italic; color:#9ba0bd; margin: 0 0 12px;">${escapeHtml(sec.instructions)}</div>`
+        : '';
+      const titleBlock = sec.title && sec.title.trim()
+        ? `<h2 style="color:#fff; margin: 18px 0 8px;">${escapeHtml(sec.title)}</h2>`
+        : '';
+
+      sectionsHtml += `<div class="exam-section">${titleBlock}${instructionsBlock}${passageBlock}`;
+      for (const q of sectionQs) {
+        sectionsHtml += questionCard(q, globalIdx++);
+      }
+      sectionsHtml += `</div>`;
+    }
+    // Catch any orphan questions (no matching section).
+    const orphans = currentAssessment.questions.filter((q) => !sectionsById.has(q.sectionId));
+    for (const q of orphans) sectionsHtml += questionCard(q, globalIdx++);
+  } else {
+    // No sections at all — render flat list (back-compat for legacy assessments).
+    for (const q of currentAssessment.questions) sectionsHtml += questionCard(q, globalIdx++);
+  }
+
+  els.questions.innerHTML = banner + sectionsHtml;
 
   // Wire up answer capture
   currentAssessment.questions.forEach((q) => {

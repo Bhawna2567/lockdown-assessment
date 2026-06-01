@@ -733,6 +733,7 @@ let currentResultsAssessmentId = null;
 
 let editingId = null;
 let questions = [];
+let sections = [];   // [{id, title, instructions, passage, order}]
 
 // All assessments (unfiltered) cached after each load. The filter dropdowns
 // narrow this list down for display in either the list or calendar view.
@@ -1194,12 +1195,25 @@ if (els.aiGenerateBtn) {
       // Open the builder with the AI-generated content. We construct a
       // fake "assessment" object whose questions match what openBuilder
       // expects, and pass it through. Teacher then edits + saves.
+      // Carry the section ids the server generated. Questions reference
+      // them by id, so we must use the SAME ids in the builder.
+      const aiSections = Array.isArray(data.sections) && data.sections.length
+        ? data.sections.map((s) => ({
+            id: s.id,
+            title: String(s.title || ''),
+            instructions: String(s.instructions || ''),
+            passage: String(s.passage || ''),
+            order: s.order || 0,
+          }))
+        : [{ id: uid(), title: '', instructions: '', passage: data.passage || '', order: 0 }];
+      const defaultSecId = aiSections[0].id;
       const fake = {
         title: data.title || 'AI-generated assessment',
         description: data.description || '',
         passage: data.passage || '',
         subject,
         assessmentLanguage: language,
+        sections: aiSections,
         questions: (data.questions || []).map((q) => ({
           id: uid(),
           type: q.type,
@@ -1207,6 +1221,7 @@ if (els.aiGenerateBtn) {
           options: q.options || [],
           correctAnswer: q.correctAnswer ?? null,
           points: q.points || 1,
+          sectionId: q.sectionId || defaultSecId,
           imageUrl: '',
           imageDescription: q.imageDescription || '',
         })),
@@ -1245,6 +1260,7 @@ if (els.aiGenerateBtn) {
         if (els.assessmentLanguage && fake.assessmentLanguage) {
           els.assessmentLanguage.value = fake.assessmentLanguage;
         }
+        sections = fake.sections;
         questions = fake.questions;
         renderQuestions();
       }, 600);
@@ -1293,13 +1309,30 @@ function openBuilder(a, presets) {
   els.duration.value = a ? a.durationMinutes : 30;
   els.published.value = a ? String(a.published) : 'false';
   questions = a ? JSON.parse(JSON.stringify(a.questions)) : [];
+  // Load sections for the assessment. If an existing assessment has no
+  // sections (legacy), synthesise a single default section and assign all
+  // questions to it — this keeps the new UI consistent.
+  sections = a && Array.isArray(a.sections) && a.sections.length
+    ? JSON.parse(JSON.stringify(a.sections))
+    : [{ id: uid(), title: '', instructions: '', passage: a && a.passage ? a.passage : '', order: 0 }];
+  // Map any orphaned questions to the first section so they render.
+  const sIds = new Set(sections.map((s) => s.id));
+  for (const q of questions) {
+    if (!sIds.has(q.sectionId)) q.sectionId = sections[0].id;
+  }
   renderQuestions();
 }
 
 document.querySelectorAll('button[data-add]').forEach((b) => {
   b.onclick = () => {
     const type = b.dataset.add;
-    const q = { id: uid(), type, prompt: '', points: 1 };
+    // Ensure at least one section exists.
+    if (!sections.length) {
+      sections.push({ id: uid(), title: '', instructions: '', passage: '', order: 0 });
+    }
+    // New question goes into the LAST section by default (most recent).
+    const lastSection = sections[sections.length - 1];
+    const q = { id: uid(), type, prompt: '', points: 1, sectionId: lastSection.id };
     if (type === 'mc') { q.options = ['', '']; q.correctAnswer = 0; }
     if (type === 'tf') { q.correctAnswer = true; }
     if (type === 'tfng') { q.correctAnswer = 'true'; }
@@ -1307,8 +1340,6 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
     if (type === 'long') { q.points = 5; }
     if (type === 'essay') { q.points = 5; }
     if (type === 'writing') {
-      // Default points to match the currently-selected rubric. Stage 7/8 = 12,
-      // Stage 3-5 / 5-9 = 40. The teacher can still override.
       const stage = els.rubricStage ? els.rubricStage.value : '';
       q.points = (stage === '3-5' || stage === '5-9') ? 40 : 12;
     }
@@ -1317,26 +1348,133 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
   };
 });
 
+// Add a "+ Section" button programmatically — appended next to the existing
+// question-add buttons. Lets teachers create Section A/B/C structure.
+(function attachAddSectionButton() {
+  const addButtonsRow = document.querySelector('button[data-add]');
+  if (!addButtonsRow || !addButtonsRow.parentElement) return;
+  const row = addButtonsRow.parentElement;
+  // Avoid duplicating if hot-reloaded.
+  if (row.querySelector('[data-act="add-section"]')) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn';
+  btn.setAttribute('data-act', 'add-section');
+  btn.textContent = '➕ Section';
+  btn.style.background = '#eef2ff';
+  btn.style.borderColor = '#c7d2fe';
+  btn.style.color = '#312e81';
+  btn.onclick = () => {
+    const order = sections.length;
+    sections.push({
+      id: uid(),
+      title: `Section ${String.fromCharCode(65 + order)}`,
+      instructions: '',
+      passage: '',
+      order,
+    });
+    renderQuestions();
+  };
+  // Insert at the very start of the row.
+  row.insertBefore(btn, row.firstChild);
+})();
+
+// Section panel HTML: editable title/instructions/passage with Move
+// up/down and Remove buttons, plus a section-id->name dropdown on each
+// question so teachers can reassign questions between sections.
+function renderSectionPanel(s, sidx) {
+  return `
+    <div class="panel" data-section="${s.id}" style="background: #fff7ed; border: 2px solid #fdba74; padding: 14px 16px;">
+      <div class="row" style="margin-bottom: 8px;">
+        <strong style="color: #9a3412;">Section ${sidx + 1}</strong>
+        <div class="spacer"></div>
+        <button class="btn ghost" data-act="sec-up" data-sid="${s.id}">↑</button>
+        <button class="btn ghost" data-act="sec-down" data-sid="${s.id}">↓</button>
+        <button class="btn danger" data-act="sec-remove" data-sid="${s.id}">Remove section</button>
+      </div>
+      <div class="field" style="margin-bottom: 8px;">
+        <label>Section title</label>
+        <input type="text" data-sf="title" data-sid="${s.id}" value="${escapeAttr(s.title || '')}" placeholder="e.g. Section A: Reading Comprehension" />
+      </div>
+      <div class="field" style="margin-bottom: 8px;">
+        <label>Instructions (shown to students above the questions)</label>
+        <textarea data-sf="instructions" data-sid="${s.id}" rows="2" placeholder="e.g. Read the passage carefully and answer questions 1-5.">${escapeHtml(s.instructions || '')}</textarea>
+      </div>
+      <div class="field" style="margin-bottom: 0;">
+        <label>Reading passage / source text (optional — shown before this section's questions)</label>
+        <textarea data-sf="passage" data-sid="${s.id}" rows="6" placeholder="Paste a reading passage, source text, story, poem, or case study here.">${escapeHtml(s.passage || '')}</textarea>
+      </div>
+    </div>
+  `;
+}
+
 function renderQuestions() {
-  if (!questions.length) {
-    els.questions.innerHTML = `<div class="muted">Add a question using the buttons above.</div>`;
+  // Ensure at least one section exists.
+  if (!sections.length) {
+    sections = [{ id: uid(), title: '', instructions: '', passage: '', order: 0 }];
+  }
+  if (!questions.length && sections.every((s) => !s.title && !s.instructions && !s.passage)) {
+    // First-load empty state — render the single default section header + hint.
+    els.questions.innerHTML = renderSectionPanel(sections[0], 0)
+      + `<div class="muted" style="margin: 10px 0 0;">Add a question using the buttons above, or click ➕ Section to start a new part.</div>`;
+    wireSectionHandlers();
     return;
   }
-  els.questions.innerHTML = questions.map((q, idx) => renderQuestion(q, idx)).join('');
-  // Wire up inputs
-  questions.forEach((q, idx) => {
+
+  // Build interleaved HTML: section panel → its questions → next section → its questions...
+  let html = '';
+  let qIdx = 0;
+  for (let si = 0; si < sections.length; si++) {
+    const s = sections[si];
+    html += renderSectionPanel(s, si);
+    const inSection = questions.map((q, i) => ({ q, i })).filter((p) => p.q.sectionId === s.id);
+    for (const { q } of inSection) {
+      html += renderQuestion(q, qIdx);
+      qIdx++;
+    }
+  }
+  els.questions.innerHTML = html;
+
+  // Wire section + question handlers.
+  wireSectionHandlers();
+
+  // Wire question handlers (use the global index that matches qIdx ordering).
+  // Build a flat array in render-order so up/down still work correctly.
+  const flat = [];
+  for (const s of sections) {
+    for (const q of questions) if (q.sectionId === s.id) flat.push(q);
+  }
+  flat.forEach((q, idx) => {
     const root = document.getElementById(`q-${q.id}`);
+    if (!root) return;
     root.querySelector('[data-f=prompt]').oninput = (e) => { q.prompt = e.target.value; };
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
     root.querySelector('[data-act=remove]').onclick = () => {
-      questions.splice(idx, 1);
+      const ix = questions.indexOf(q);
+      if (ix >= 0) questions.splice(ix, 1);
       renderQuestions();
     };
     root.querySelector('[data-act=up]').onclick = () => {
-      if (idx > 0) { [questions[idx-1], questions[idx]] = [questions[idx], questions[idx-1]]; renderQuestions(); }
+      // Swap with previous question that's in the same section.
+      const here = questions.indexOf(q);
+      const prevSame = (() => {
+        for (let i = here - 1; i >= 0; i--) if (questions[i].sectionId === q.sectionId) return i;
+        return -1;
+      })();
+      if (prevSame >= 0) {
+        [questions[prevSame], questions[here]] = [questions[here], questions[prevSame]];
+        renderQuestions();
+      }
     };
     root.querySelector('[data-act=down]').onclick = () => {
-      if (idx < questions.length - 1) { [questions[idx+1], questions[idx]] = [questions[idx], questions[idx+1]]; renderQuestions(); }
+      const here = questions.indexOf(q);
+      const nextSame = (() => {
+        for (let i = here + 1; i < questions.length; i++) if (questions[i].sectionId === q.sectionId) return i;
+        return -1;
+      })();
+      if (nextSame >= 0) {
+        [questions[nextSame], questions[here]] = [questions[here], questions[nextSame]];
+        renderQuestions();
+      }
     };
 
     if (q.type === 'mc') {
@@ -1406,6 +1544,57 @@ function renderQuestions() {
       } catch (err) {
         alert('Could not read that image: ' + err.message);
       }
+    };
+  });
+}
+
+// Wire up the section panels: title/instructions/passage edits, move
+// up/down, and remove (which cascades — questions in that section move to
+// the previous section, or get a new default if it was the last one).
+function wireSectionHandlers() {
+  document.querySelectorAll('[data-sf]').forEach((el) => {
+    const sid = el.getAttribute('data-sid');
+    const field = el.getAttribute('data-sf');
+    const sec = sections.find((s) => s.id === sid);
+    if (!sec) return;
+    el.oninput = (e) => { sec[field] = e.target.value; };
+  });
+  document.querySelectorAll('[data-act=sec-up]').forEach((b) => {
+    b.onclick = () => {
+      const sid = b.getAttribute('data-sid');
+      const i = sections.findIndex((s) => s.id === sid);
+      if (i > 0) {
+        [sections[i - 1], sections[i]] = [sections[i], sections[i - 1]];
+        renderQuestions();
+      }
+    };
+  });
+  document.querySelectorAll('[data-act=sec-down]').forEach((b) => {
+    b.onclick = () => {
+      const sid = b.getAttribute('data-sid');
+      const i = sections.findIndex((s) => s.id === sid);
+      if (i >= 0 && i < sections.length - 1) {
+        [sections[i + 1], sections[i]] = [sections[i], sections[i + 1]];
+        renderQuestions();
+      }
+    };
+  });
+  document.querySelectorAll('[data-act=sec-remove]').forEach((b) => {
+    b.onclick = () => {
+      const sid = b.getAttribute('data-sid');
+      const sec = sections.find((s) => s.id === sid);
+      const hasQs = questions.some((q) => q.sectionId === sid);
+      if (!sec) return;
+      if (hasQs && !confirm(`Remove this section? Its questions will be moved to the previous section.`)) return;
+      const i = sections.findIndex((s) => s.id === sid);
+      sections.splice(i, 1);
+      // If no sections remain, create a fresh default and reassign questions.
+      if (!sections.length) {
+        sections.push({ id: uid(), title: '', instructions: '', passage: '', order: 0 });
+      }
+      const targetId = (sections[Math.max(0, i - 1)] || sections[0]).id;
+      for (const q of questions) if (q.sectionId === sid) q.sectionId = targetId;
+      renderQuestions();
     };
   });
 }
@@ -1578,6 +1767,7 @@ els.saveBtn.onclick = async () => {
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
       published: els.published.value === 'true',
+      sections,
       questions,
     };
     if (!payload.title) throw new Error('Title is required');
