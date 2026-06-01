@@ -30,10 +30,14 @@ async function extractText(filePath, mimeType, originalName = '') {
     const result = await mammoth.extractRawText({ buffer: buf });
     return result.value || '';
   }
-  if (mimeType === 'text/plain' || name.endsWith('.txt')) {
+  if (
+    mimeType === 'text/plain' || name.endsWith('.txt') ||
+    mimeType === 'text/csv'   || name.endsWith('.csv') ||
+    (mimeType || '').startsWith('text/')
+  ) {
     return buf.toString('utf8');
   }
-  throw new Error('Unsupported file type. Upload a PDF, DOCX, or TXT file.');
+  throw new Error('Unsupported file type. Upload a PDF, DOCX, CSV, or TXT file.');
 }
 
 const Q_NUM = /^\s*(?:Q\s*)?[\(\[]?(\d{1,3})[\)\].:\s]\s*(.+?)\s*$/i;

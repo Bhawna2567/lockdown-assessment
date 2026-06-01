@@ -218,14 +218,22 @@ function parseRosterCSV(text) {
 
   // Detect header
   const first = splitLine(lines[0]).map((s) => s.toLowerCase());
-  const hasHeader = first.some((c) => c === 'email' || c === 'name' || c === 'student' || c === 'student email');
+  const hasHeader = first.some((c) =>
+    c === 'email' || c === 'name' || c === 'student' || c === 'student email'
+    || c === 'studentnumber' || c === 'student_number' || c === 'student number' || c === 'id'
+  );
   let emailIdx = 0;
   let nameIdx = 1;
+  let numberIdx = -1;
   let dataStart = 0;
   if (hasHeader) {
     dataStart = 1;
     emailIdx = first.findIndex((c) => c.includes('email'));
     nameIdx = first.findIndex((c) => c === 'name' || c.includes('student name') || c === 'student');
+    numberIdx = first.findIndex((c) =>
+      c === 'studentnumber' || c === 'student_number' || c === 'student number'
+      || c === 'student#' || c === 'student #' || c === 'id'
+    );
     if (emailIdx === -1) emailIdx = 0;
     if (nameIdx === -1) nameIdx = emailIdx === 0 ? 1 : 0;
   }
@@ -235,6 +243,7 @@ function parseRosterCSV(text) {
     const cols = splitLine(lines[i]);
     let email = (cols[emailIdx] || '').replace(/"/g, '').trim().toLowerCase();
     let name = (cols[nameIdx] || '').replace(/"/g, '').trim();
+    let studentNumber = numberIdx >= 0 ? (cols[numberIdx] || '').replace(/"/g, '').trim() : '';
 
     // If the file is a single column, decide if it's emails or names.
     if (cols.length === 1) {
@@ -248,7 +257,7 @@ function parseRosterCSV(text) {
 
     const validEmail = email && email.includes('@');
     if (!validEmail && !name) continue; // need at least one
-    out.push({ email: validEmail ? email : '', name });
+    out.push({ email: validEmail ? email : '', name, studentNumber });
   }
   return out;
 }
@@ -363,6 +372,13 @@ function renderClassesList() {
       const status = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
       const view = els.classesList.querySelector(`[data-class-prereg-view="${id}"]`);
 
+      // Quick sanity: same handling as the regular roster upload — CSVs and
+      // plain text are parsed client-side (the server's pdf-parse/mammoth
+      // helpers don't accept CSV), and only PDF/Word docs get uploaded.
+      const lower = (file.name || '').toLowerCase();
+      const isCsvLike = lower.endsWith('.csv') || lower.endsWith('.txt')
+        || (file.type || '').startsWith('text/');
+
       // Confirm with the teacher first — this CREATES accounts.
       if (!confirm(
         'Pre-register the students in this file?\n\n' +
@@ -377,22 +393,52 @@ function renderClassesList() {
       }
 
       try {
-        if (status) status.textContent = 'Reading file and creating accounts…';
-        const fd = new FormData();
-        fd.append('file', file);
-        const res = await fetch(`/api/classes/${id}/pre-register`, { method: 'POST', body: fd });
-        const data = await res.json().catch(() => ({}));
+        if (status) {
+          status.textContent = 'Reading file and creating accounts…';
+          status.style.color = '';
+        }
+        let res, data;
+        if (isCsvLike) {
+          // Parse CSV/TXT in the browser. Send the parsed roster as JSON.
+          const text = await file.text();
+          const parsed = parseRosterCSV(text);
+          if (!parsed.length) {
+            throw new Error('No usable rows found in the file. Make sure the first row has headers like "email,name,studentNumber" or that each line has a valid email.');
+          }
+          res = await fetch(`/api/classes/${id}/pre-register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roster: parsed }),
+          });
+        } else {
+          // PDF / Word / etc — upload the file; server extracts text.
+          const fd = new FormData();
+          fd.append('file', file);
+          res = await fetch(`/api/classes/${id}/pre-register`, { method: 'POST', body: fd });
+        }
+        data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) throw new Error(data.error || 'Pre-registration failed');
 
         const { results, summary } = data;
         const created = results.filter((r) => r.status === 'created');
 
         if (status) {
-          status.innerHTML = `✓ Pre-registered: <strong>${summary.created} created</strong>` +
-            (summary.existed ? `, ${summary.existed} already had accounts` : '') +
-            (summary.skipped ? `, ${summary.skipped} skipped` : '') +
-            `.  Save the credentials below — they're shown only this once.`;
-          status.style.color = '#166534';
+          if (created.length === 0) {
+            // Nothing got created — most common because every email already
+            // had an account. Be explicit so the teacher isn't confused by
+            // an empty download.
+            const reasons = [];
+            if (summary.existed) reasons.push(`${summary.existed} already had accounts (no new password generated)`);
+            if (summary.skipped) reasons.push(`${summary.skipped} skipped (invalid email or no email column)`);
+            status.innerHTML = `⚠ No NEW accounts were created. ${reasons.join('; ') || 'Check your file format.'}`;
+            status.style.color = '#92400e';
+          } else {
+            status.innerHTML = `✓ Pre-registered: <strong>${summary.created} created</strong>` +
+              (summary.existed ? `, ${summary.existed} already had accounts` : '') +
+              (summary.skipped ? `, ${summary.skipped} skipped` : '') +
+              `.  Save the credentials below — they're shown only this once.`;
+            status.style.color = '#166534';
+          }
         }
 
         if (view) {
