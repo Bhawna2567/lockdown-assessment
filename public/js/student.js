@@ -579,6 +579,50 @@ function escapeHtml(s) {
 // Cached current user so the watermark can stamp identity onto every page.
 let currentUser = null;
 
+// ---------- Forced password change (pre-registered students, first login) -----
+function showForcePwView() {
+  // Hide every other view; show only the password-change panel.
+  ['listView','consentView','assessmentView','doneView','reviewView'].forEach((k) => {
+    if (els[k]) els[k].style.display = 'none';
+  });
+  const fp = document.getElementById('force-pw-view');
+  if (fp) fp.style.display = 'block';
+
+  const cur = document.getElementById('fp-current');
+  const nu  = document.getElementById('fp-new');
+  const cf  = document.getElementById('fp-confirm');
+  const status = document.getElementById('fp-status');
+  const btn = document.getElementById('fp-submit');
+  if (!btn) return;
+  btn.onclick = async () => {
+    const currentPassword = (cur.value || '').trim();
+    const newPassword = (nu.value || '').trim();
+    const confirmPassword = (cf.value || '').trim();
+    if (!currentPassword) { status.textContent = '⚠ Enter your temporary password.'; return; }
+    if (newPassword.length < 6) { status.textContent = '⚠ New password must be at least 6 characters.'; return; }
+    if (newPassword !== confirmPassword) { status.textContent = '⚠ The two new passwords don\'t match.'; return; }
+    status.textContent = 'Saving…';
+    btn.disabled = true;
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Could not change password');
+      // Done — hide the panel and reload the dashboard.
+      const fp2 = document.getElementById('force-pw-view');
+      if (fp2) fp2.style.display = 'none';
+      // Reload `me` to refresh mustChangePassword=false in the session view.
+      location.reload();
+    } catch (e) {
+      status.textContent = '❌ ' + e.message;
+      btn.disabled = false;
+    }
+  };
+}
+
 // ---------- Init ----------
 (async () => {
   const { user } = await api('/api/me');
@@ -588,6 +632,15 @@ let currentUser = null;
   }
   currentUser = user;
   els.who.textContent = `${user.name} (${user.email})`;
+
+  // Pre-registered students must change their temporary password before
+  // they can do anything else. Show the force-password-change view and
+  // hide everything else until they complete it.
+  if (user.mustChangePassword) {
+    showForcePwView();
+    return;
+  }
+
   await loadAssessments();
   await loadPastResults();
 

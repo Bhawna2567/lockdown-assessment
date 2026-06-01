@@ -35,6 +35,30 @@
   </div>
 
   <div class="container">
+    <!-- FORCED PASSWORD CHANGE — shown to pre-registered students on first sign-in. -->
+    <div id="force-pw-view" style="display:none;">
+      <div class="panel" style="max-width: 520px; margin: 24px auto; background: linear-gradient(135deg, #fff7ed, #fef3c7); border: 2px solid #f59e0b;">
+        <h1 style="margin-top: 0;">🔑 Set your password</h1>
+        <p>Welcome! Your teacher gave you a <strong>temporary password</strong>. Please choose a permanent password of your own before you start using ClassCurio. You'll log in with this password from now on.</p>
+        <div class="field">
+          <label>Temporary password (the one your teacher gave you)</label>
+          <input type="password" id="fp-current" autocomplete="current-password" />
+        </div>
+        <div class="field">
+          <label>New password (at least 6 characters)</label>
+          <input type="password" id="fp-new" autocomplete="new-password" />
+        </div>
+        <div class="field">
+          <label>Confirm new password</label>
+          <input type="password" id="fp-confirm" autocomplete="new-password" />
+        </div>
+        <div class="row">
+          <button id="fp-submit" class="btn primary">Save new password</button>
+          <span id="fp-status" class="muted" style="margin-left: 10px;"></span>
+        </div>
+      </div>
+    </div>
+
     <!-- LIST VIEW -->
     <div id="list-view">
       <h1>My dashboard</h1>

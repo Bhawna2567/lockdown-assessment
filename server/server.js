@@ -102,7 +102,20 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.get('/api/me', (req, res) => {
-  res.json({ user: req.session.user || null });
+  if (!req.session.user) return res.json({ user: null });
+  // Look up the freshest version of the user — important so the
+  // mustChangePassword flag updates as soon as the student rotates their
+  // password (otherwise the session would still report the stale flag).
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.session.user.id);
+  if (!u) return res.json({ user: null });
+  res.json({
+    user: {
+      id: u.id, name: u.name, email: u.email, role: u.role,
+      studentNumber: u.studentNumber || '',
+      mustChangePassword: !!u.mustChangePassword,
+    },
+  });
 });
 
 // ---------- Classes ----------
@@ -201,6 +214,150 @@ app.post('/api/classes/:id/roster', requireTeacher, (req, res) => {
   all[idx] = { ...all[idx], roster };
   writeAll('classes.json', all);
   res.json({ class: all[idx], count: roster.length });
+});
+
+// ----- Pre-register students with temporary passwords -----
+// Teacher uploads a roster (CSV/PDF/Word OR raw JSON array) of
+// {name, email, studentNumber}. Server creates student accounts (skipping
+// any email that already has one), generates a temporary password for each
+// new account, and updates the class's roster. Returns the list with
+// per-row status + tempPassword for the teacher to share with students.
+//
+// Each new account is flagged mustChangePassword=true. On the student's
+// first sign-in they're forced to set a password of their own choice.
+function generateTempPassword(len = 10) {
+  // Avoid ambiguous chars (0/O, 1/l/I). Mix upper + lower + digits.
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let out = '';
+  for (let i = 0; i < len; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return out;
+}
+
+app.post('/api/classes/:id/pre-register', requireTeacher, upload.single('file'), async (req, res) => {
+  const classes = readAll('classes.json');
+  const idx = classes.findIndex((c) => c.id === req.params.id);
+  if (idx === -1) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    return res.status(404).json({ error: 'Class not found' });
+  }
+  if (classes[idx].teacherId !== req.session.user.id) {
+    if (req.file) { try { fs.unlinkSync(req.file.path); } catch {} }
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  // Get the roster — either from a JSON body or by parsing the uploaded file.
+  let inputRoster = [];
+  if (Array.isArray(req.body?.roster)) {
+    inputRoster = req.body.roster;
+  } else if (req.file) {
+    try {
+      const text = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
+      try { fs.unlinkSync(req.file.path); } catch {}
+      inputRoster = extractRosterFromText(text);
+    } catch (e) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({ error: 'Could not read file: ' + e.message });
+    }
+  } else {
+    return res.status(400).json({ error: 'Provide a file or a JSON roster array.' });
+  }
+
+  // Expect {name, email, studentNumber}. Tolerate missing studentNumber.
+  const users = readAll('users.json');
+  const usersByEmail = new Map(users.map((u) => [String(u.email || '').toLowerCase(), u]));
+
+  const results = [];
+  const rosterForClass = [];
+
+  for (const item of inputRoster) {
+    const email = String(item.email || '').trim().toLowerCase();
+    const name = String(item.name || '').trim().slice(0, 120);
+    const studentNumber = String(item.studentNumber || item.student_number || item['student number'] || '').trim().slice(0, 40);
+    if (!email || !email.includes('@')) {
+      results.push({ email, name, studentNumber, status: 'skipped', reason: 'invalid email' });
+      continue;
+    }
+
+    if (usersByEmail.has(email)) {
+      // Account already exists — don't overwrite. Just make sure the user is
+      // on this class roster and surface a "exists" status.
+      const u = usersByEmail.get(email);
+      // Optionally backfill studentNumber if missing.
+      if (studentNumber && !u.studentNumber) {
+        u.studentNumber = studentNumber;
+      }
+      rosterForClass.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber });
+      results.push({ email, name: u.name || name, studentNumber: u.studentNumber || studentNumber, status: 'existed' });
+      continue;
+    }
+
+    // Generate a temp password and create the account.
+    const tempPassword = generateTempPassword(10);
+    try {
+      const hash = await bcrypt.hash(tempPassword, 10);
+      const u = {
+        id: uuidv4(),
+        name,
+        email,
+        role: 'student',
+        studentNumber: studentNumber || '',
+        passwordHash: hash,
+        mustChangePassword: true,
+        preRegisteredBy: req.session.user.id,
+        createdAt: new Date().toISOString(),
+      };
+      users.push(u);
+      usersByEmail.set(email, u);
+      rosterForClass.push({ email, name, studentNumber });
+      results.push({ email, name, studentNumber, status: 'created', tempPassword });
+    } catch (e) {
+      results.push({ email, name, studentNumber, status: 'failed', reason: e.message });
+    }
+  }
+
+  writeAll('users.json', users);
+
+  // Merge the new entries into the class roster (de-dupe by lowercase email).
+  const seen = new Set((classes[idx].roster || []).map((r) => String(r.email || '').toLowerCase()).filter(Boolean));
+  const mergedRoster = (classes[idx].roster || []).slice();
+  for (const r of rosterForClass) {
+    if (!seen.has(r.email)) {
+      mergedRoster.push(r);
+      seen.add(r.email);
+    }
+  }
+  classes[idx].roster = mergedRoster;
+  writeAll('classes.json', classes);
+
+  const created = results.filter((r) => r.status === 'created').length;
+  const existed = results.filter((r) => r.status === 'existed').length;
+  const skipped = results.filter((r) => r.status === 'skipped' || r.status === 'failed').length;
+  res.json({ ok: true, results, summary: { created, existed, skipped, total: results.length } });
+});
+
+// ----- Change password -----
+// Used by:
+//   (a) any signed-in user who wants to rotate their password
+//   (b) pre-registered students forced to set their own password on first login
+app.post('/api/auth/change-password', async (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: 'Current and new password are required.' });
+  }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters.' });
+  }
+  const users = readAll('users.json');
+  const idx = users.findIndex((u) => u.id === req.session.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'User not found' });
+  const ok = await bcrypt.compare(currentPassword, users[idx].passwordHash);
+  if (!ok) return res.status(401).json({ error: 'Current password is incorrect.' });
+  users[idx].passwordHash = await bcrypt.hash(newPassword, 10);
+  users[idx].mustChangePassword = false;
+  users[idx].passwordChangedAt = new Date().toISOString();
+  writeAll('users.json', users);
+  res.json({ ok: true });
 });
 
 // Parse a class roster file (CSV / TXT / PDF / DOCX) and return the extracted

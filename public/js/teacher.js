@@ -274,10 +274,13 @@ function renderClassesList() {
           ${rosterCount ? `<button class="btn" data-class-view-roster="${c.id}">View students</button>` : ''}
           <button class="btn" data-class-download-template="${c.id}" title="Download a CSV template you can fill in">📥 Template</button>
           <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV / PDF / Word)</button>
+          <button class="btn primary" data-class-prereg="${c.id}" title="Create accounts with temporary passwords">🔑 Pre-register students</button>
           <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-roster-file="${c.id}" style="display:none;" />
+          <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-prereg-file="${c.id}" style="display:none;" />
         </div>
         <div data-class-roster-status="${c.id}" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
         <div data-class-roster-view="${c.id}" style="display:none; margin-top: 10px; max-height: 240px; overflow-y: auto; background: #f9fafb; border-radius: 6px; padding: 8px;"></div>
+        <div data-class-prereg-view="${c.id}" style="display:none; margin-top: 10px;"></div>
       </div>
     `;
   }).join('');
@@ -322,13 +325,14 @@ function renderClassesList() {
   });
 
   // Template download — generates a sample CSV the teacher can fill in.
+  // Includes the `studentNumber` column for use with pre-registration.
   els.classesList.querySelectorAll('[data-class-download-template]').forEach((btn) => {
     btn.onclick = () => {
       const csv = [
-        'email,name',
-        'alice@school.com,Alice Khan',
-        'bob@school.com,Bob Singh',
-        'charlie@school.com,Charlie Lee',
+        'email,name,studentNumber',
+        'alice@school.com,Alice Khan,20001',
+        'bob@school.com,Bob Singh,20002',
+        'charlie@school.com,Charlie Lee,20003',
       ].join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -339,6 +343,136 @@ function renderClassesList() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    };
+  });
+
+  // Pre-register students — opens a file picker and uploads to the server's
+  // /pre-register endpoint, which creates accounts and returns temp passwords.
+  els.classesList.querySelectorAll('[data-class-prereg]').forEach((btn) => {
+    btn.onclick = () => {
+      const id = btn.dataset.classPrereg;
+      const fileInput = els.classesList.querySelector(`[data-class-prereg-file="${id}"]`);
+      if (fileInput) fileInput.click();
+    };
+  });
+  els.classesList.querySelectorAll('[data-class-prereg-file]').forEach((input) => {
+    input.onchange = async (e) => {
+      const id = input.dataset.classPreregFile;
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const status = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
+      const view = els.classesList.querySelector(`[data-class-prereg-view="${id}"]`);
+
+      // Confirm with the teacher first — this CREATES accounts.
+      if (!confirm(
+        'Pre-register the students in this file?\n\n' +
+        'For every email that doesn\'t already have an account, ClassCurio will:\n' +
+        '  • create a student account\n' +
+        '  • generate a temporary password\n' +
+        '  • add them to this class\'s roster\n\n' +
+        'Students will be forced to set their own password on first sign-in.'
+      )) {
+        input.value = '';
+        return;
+      }
+
+      try {
+        if (status) status.textContent = 'Reading file and creating accounts…';
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch(`/api/classes/${id}/pre-register`, { method: 'POST', body: fd });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Pre-registration failed');
+
+        const { results, summary } = data;
+        const created = results.filter((r) => r.status === 'created');
+
+        if (status) {
+          status.innerHTML = `✓ Pre-registered: <strong>${summary.created} created</strong>` +
+            (summary.existed ? `, ${summary.existed} already had accounts` : '') +
+            (summary.skipped ? `, ${summary.skipped} skipped` : '') +
+            `.  Save the credentials below — they're shown only this once.`;
+          status.style.color = '#166534';
+        }
+
+        if (view) {
+          view.style.display = 'block';
+          view.innerHTML = `
+            <div class="panel" style="background: #ecfdf5; border: 2px solid #34d399; padding: 12px 14px;">
+              <div class="row" style="margin-bottom: 8px;">
+                <strong style="color: #065f46;">🔑 Temporary credentials (${created.length})</strong>
+                <div class="spacer"></div>
+                <button class="btn" data-act="download-credentials" data-id="${id}">⬇ Download as CSV</button>
+                <button class="btn ghost" data-act="hide-credentials" data-id="${id}">Hide</button>
+              </div>
+              <div class="muted" style="font-size: 12px; margin-bottom: 8px;">
+                These passwords are <strong>shown one time only</strong>. Download the CSV, share each row with the right student, then they'll be forced to set their own password on first login.
+              </div>
+              <table style="width:100%; font-size: 12px; border-collapse: collapse;">
+                <thead>
+                  <tr style="background:#d1fae5;">
+                    <th style="text-align:left; padding: 6px 8px;">Name</th>
+                    <th style="text-align:left; padding: 6px 8px;">Email</th>
+                    <th style="text-align:left; padding: 6px 8px;">Student #</th>
+                    <th style="text-align:left; padding: 6px 8px;">Temporary password</th>
+                    <th style="text-align:left; padding: 6px 8px;">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${results.map((r) => `
+                    <tr style="border-top: 1px solid #a7f3d0;">
+                      <td style="padding: 6px 8px;">${escapeHtml(r.name || '')}</td>
+                      <td style="padding: 6px 8px;">${escapeHtml(r.email)}</td>
+                      <td style="padding: 6px 8px;">${escapeHtml(r.studentNumber || '')}</td>
+                      <td style="padding: 6px 8px; font-family: ui-monospace, monospace; ${r.tempPassword ? 'background: #fef3c7; font-weight: 600;' : 'color: #6b7280;'}">${r.tempPassword ? escapeHtml(r.tempPassword) : '—'}</td>
+                      <td style="padding: 6px 8px; ${r.status === 'created' ? 'color: #166534; font-weight: 600;' : r.status === 'existed' ? 'color: #92400e;' : 'color: #b91c1c;'}">${r.status}${r.reason ? ' — ' + escapeHtml(r.reason) : ''}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+          // Wire actions on the credentials panel.
+          view.querySelectorAll('[data-act=download-credentials]').forEach((b) => {
+            b.onclick = () => {
+              const header = 'name,email,studentNumber,tempPassword';
+              const rows = results
+                .filter((r) => r.tempPassword)
+                .map((r) => [r.name, r.email, r.studentNumber, r.tempPassword]
+                  .map((v) => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
+              const csv = [header, ...rows].join('\n');
+              const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              const cls = classes.find((c) => c.id === id);
+              const safe = (cls && cls.name ? cls.name : 'class').replace(/[^a-z0-9-]+/gi, '-');
+              a.href = url;
+              a.download = `${safe}-credentials.csv`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            };
+          });
+          view.querySelectorAll('[data-act=hide-credentials]').forEach((b) => {
+            b.onclick = () => {
+              view.style.display = 'none';
+              view.innerHTML = '';
+            };
+          });
+        }
+        // Refresh the roster + class list (counts changed).
+        await loadKnownStudents();
+        await loadClasses();
+        // Don't re-render — that would clobber the credentials panel.
+      } catch (err) {
+        if (status) {
+          status.textContent = '❌ ' + err.message;
+          status.style.color = '#b91c1c';
+        }
+      } finally {
+        input.value = '';
+      }
     };
   });
 
