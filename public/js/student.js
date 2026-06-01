@@ -501,12 +501,27 @@ function renderConsentRules(assessment) {
   const en = CONSENT_RULES_EN;
   const tr = langKey ? CONSENT_RULES_I18N[langKey] : null;
 
+  // On-site mode: drop the camera-related rules and the screen-sharing
+  // rule (lines 1-4 in the rules array). The remaining rules cover
+  // tab-switching, shortcuts, blur, watermarks, one-attempt — all still
+  // relevant in a supervised classroom exam.
+  const isOnsite = assessment && assessment.deliveryMode === 'onsite';
+  const filterRules = (rules) => {
+    if (!isOnsite) return rules;
+    return rules.filter((r) => {
+      const t = String(r);
+      return !t.startsWith('🚨')   // INSTANT camera-related rules
+          && !t.startsWith('📷')   // camera-on requirement
+          && !t.startsWith('🖥');  // screen-sharing rule
+    });
+  };
+
   const enBlock = `
     <div style="padding: 16px 18px;">
       <h2 style="margin: 0 0 6px; color:#fff;">⚠️ ${en.heading}</h2>
-      <p style="color:#ffd9d9; margin: 0 0 10px;">${en.warning}</p>
+      <p style="color:#ffd9d9; margin: 0 0 10px;">${isOnsite ? 'You are taking this assessment in school under teacher supervision. Read every rule.' : en.warning}</p>
       <ul style="margin: 0; padding-left: 22px; color:#fff;">
-        ${en.rules.map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
+        ${filterRules(en.rules).map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
       </ul>
     </div>
   `;
@@ -516,13 +531,13 @@ function renderConsentRules(assessment) {
       <h2 style="margin: 0 0 6px; color:#fff;">⚠️ ${tr.heading} <span style="font-size: 13px; opacity: 0.7;">(${tr.label})</span></h2>
       <p style="color:#ffd9d9; margin: 0 0 10px;">${tr.warning}</p>
       <ul style="margin: 0; padding-${tr.rtl ? 'right' : 'left'}: 22px; color:#fff;">
-        ${tr.rules.map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
+        ${filterRules(tr.rules).map((r) => `<li style="margin-bottom: 4px;">${escapeHtml(r)}</li>`).join('')}
       </ul>
     </div>
   ` : '';
 
   els.consentRules.innerHTML = `
-    <div style="margin: 16px 0; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #991b1b, #7c2d12); border: 2px solid #f87171; box-shadow: 0 4px 14px rgba(220,38,38,0.25);">
+    <div style="margin: 16px 0; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, ${isOnsite ? '#1e3a8a, #1e40af' : '#991b1b, #7c2d12'}); border: 2px solid ${isOnsite ? '#60a5fa' : '#f87171'}; box-shadow: 0 4px 14px ${isOnsite ? 'rgba(37,99,235,0.25)' : 'rgba(220,38,38,0.25)'};">
       ${enBlock}
       ${trBlock}
     </div>
@@ -652,14 +667,24 @@ async function openConsent(id) {
   // Render the bilingual violation rules popup.
   renderConsentRules(currentAssessment);
 
-  // Render the bilingual pre-flight checklist. Students must tick every box
-  // before the "Enable camera" button becomes clickable.
-  renderPreflight(currentAssessment);
-  resetPreflight();
+  // On-site mode: the teacher is physically supervising the room, so we
+  // skip the camera permission gate AND the "close other apps" pre-flight
+  // checklist. The screen-share / app-switch deterrents make less sense
+  // when the teacher is standing next to the student.
+  const isOnsite = currentAssessment.deliveryMode === 'onsite';
+  if (els.preflightGate) els.preflightGate.style.display = isOnsite ? 'none' : '';
+  if (els.cameraGate)    els.cameraGate.style.display    = isOnsite ? 'none' : '';
 
-  // Reset the camera gate every time the consent screen opens — students
-  // must grant camera permission for each assessment they enter.
-  resetCameraGate();
+  if (!isOnsite) {
+    renderPreflight(currentAssessment);
+    resetPreflight();
+    resetCameraGate();
+  } else if (els.consentStart) {
+    // On-site flow: skip both gates and unlock the start button immediately.
+    els.consentStart.disabled = false;
+    els.consentStart.style.opacity = '1';
+    els.consentStart.style.cursor = 'pointer';
+  }
 
   await runEnvironmentCheck();
 }
@@ -793,8 +818,10 @@ if (els.cameraGrantBtn) {
 
 els.consentStart.onclick = async () => {
   if (envBlocked) return;
-  // Camera must already be granted via the gate above. Defensively check.
-  if (FEATURES.webcam && !webcamStream) {
+  // Camera is mandatory for ONLINE assessments only. On-site exams (teacher
+  // supervising in the classroom) skip the webcam requirement entirely.
+  const isOnsite = currentAssessment && currentAssessment.deliveryMode === 'onsite';
+  if (FEATURES.webcam && !isOnsite && !webcamStream) {
     alert('Please click "Enable camera" first to grant camera access.');
     return;
   }
@@ -831,7 +858,15 @@ function startAssessment() {
   renderQuestions();
   installLockdown();
   startTimer();
-  if (FEATURES.webcam) {
+  // On-site mode: skip ALL webcam infrastructure. Lockdown still installs
+  // (fullscreen + tab-switch detection + watermarks + shortcut blocking)
+  // because students may still try to misbehave even with a teacher in the
+  // room — those don't depend on a camera.
+  const isOnsite = currentAssessment && currentAssessment.deliveryMode === 'onsite';
+  if (isOnsite && els.webcamWrap) {
+    els.webcamWrap.style.display = 'none';
+  }
+  if (FEATURES.webcam && !isOnsite) {
     startProctorInterval();
     captureAndUpload('start');
     // Capture a baseline snapshot ~1.5 second after the camera warms up so

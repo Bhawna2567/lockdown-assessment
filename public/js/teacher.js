@@ -78,6 +78,7 @@ const els = {
 
   subject: document.getElementById('subject'),
   assessmentLanguage: document.getElementById('assessment-language'),
+  deliveryMode: document.getElementById('delivery-mode'),
 
   templatePicker: document.getElementById('template-picker'),
   templateBack: document.getElementById('template-back'),
@@ -890,6 +891,7 @@ function renderList() {
       const meta = [
         `${a.questions.length} questions`,
         `${a.durationMinutes} min`,
+        a.deliveryMode === 'onsite' ? '🏫 On-site' : '🌐 Online',
         a.subject ? `📚 ${a.subject}` : null,
         a.assessmentLanguage ? `🌐 ${a.assessmentLanguage}` : null,
         a.grade ? `Grade ${a.grade}` : null,
@@ -1275,6 +1277,11 @@ function openBuilder(a, presets) {
   if (els.assessmentLanguage) {
     els.assessmentLanguage.value = a && a.assessmentLanguage ? a.assessmentLanguage : '';
   }
+  if (els.deliveryMode) {
+    // Default to 'online' for new assessments; keep whatever was saved on
+    // existing ones (treats anything other than 'onsite' as 'online').
+    els.deliveryMode.value = a && a.deliveryMode === 'onsite' ? 'onsite' : 'online';
+  }
   // Builder class dropdown — for new assessments default to the active class;
   // for edits use the assessment's stored classId.
   renderBuilderClassDropdown();
@@ -1565,6 +1572,7 @@ els.saveBtn.onclick = async () => {
       grade: els.grade ? els.grade.value || null : null,
       subject: els.subject ? els.subject.value || null : null,
       assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
+      deliveryMode: els.deliveryMode ? els.deliveryMode.value : 'online',
       classId: els.builderClass ? els.builderClass.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,

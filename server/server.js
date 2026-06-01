@@ -418,6 +418,14 @@ function normalizeAssessmentLanguage(l) {
   return v || null;
 }
 
+// 'onsite' (in school, teacher supervises) → no camera required.
+// 'online' (anywhere else) → mandatory webcam proctoring.
+// Default to 'online' for safety: missing field = treat as remote exam.
+function normalizeDeliveryMode(m) {
+  const v = String(m || '').trim().toLowerCase();
+  return v === 'onsite' ? 'onsite' : 'online';
+}
+
 // Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
 // 'long' = long-answer text (manually graded). Anything else is rejected.
 const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
@@ -438,7 +446,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage, classId,
+    subject, assessmentLanguage, classId, deliveryMode,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -455,6 +463,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     teacherId: req.session.user.id,
     teacherName: req.session.user.name,
     classId: resolvedClassId,
+    deliveryMode: normalizeDeliveryMode(deliveryMode),
     subject: normalizeSubject(subject),
     assessmentLanguage: normalizeAssessmentLanguage(assessmentLanguage),
     title: String(title),
@@ -541,7 +550,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
-    subject, assessmentLanguage, classId,
+    subject, assessmentLanguage, classId, deliveryMode,
   } = req.body || {};
   // Validate classId if provided: must belong to this teacher.
   let nextClassId = all[idx].classId;
@@ -554,6 +563,9 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   const updated = {
     ...all[idx],
     classId: nextClassId,
+    deliveryMode: deliveryMode === undefined
+      ? (all[idx].deliveryMode || 'online')
+      : normalizeDeliveryMode(deliveryMode),
     subject: subject === undefined ? (all[idx].subject ?? null) : normalizeSubject(subject),
     assessmentLanguage: assessmentLanguage === undefined
       ? (all[idx].assessmentLanguage ?? null)
@@ -638,6 +650,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     teacherName: a.teacherName,
     subject: a.subject || null,
     assessmentLanguage: a.assessmentLanguage || null,
+    deliveryMode: a.deliveryMode || 'online',
     questions: a.questions.map((q) => ({
       id: q.id,
       order: q.order,
