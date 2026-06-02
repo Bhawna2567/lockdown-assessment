@@ -1511,12 +1511,16 @@ function installWatermark() {
     'right: -25%',
     'bottom: -25%',
     'display: grid',
-    'grid-template-columns: repeat(auto-fill, minmax(360px, 1fr))',
-    'gap: 12px 36px',
+    // Sparser layout — wide columns + big row gap so the watermark doesn't
+    // crowd the questions. Still tiled enough that any photo of the screen
+    // catches at least one full repeat of the email + timestamp.
+    'grid-template-columns: repeat(auto-fill, minmax(560px, 1fr))',
+    'gap: 140px 80px',
     'transform: rotate(-25deg)',
-    'opacity: 0.18',
-    'color: #fff',
-    'font: 600 13px/1.2 -apple-system, system-ui, sans-serif',
+    // Very low opacity — visible on a photo but barely noticeable while reading.
+    'opacity: 0.07',
+    'color: #ffffff',
+    'font: 400 11px/1.2 -apple-system, system-ui, sans-serif',
     'white-space: nowrap',
   ].join(';');
 
@@ -1527,7 +1531,7 @@ function installWatermark() {
     if (!watermarkEl || !currentUser) return;
     const stamp = `${currentUser.name} · ${currentUser.email} · ${new Date().toLocaleString()}`;
     const cells = [];
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 18; i++) {
       const span = document.createElement('span');
       span.textContent = stamp;
       cells.push(span);
