@@ -745,9 +745,17 @@ function renderClassesList() {
               const statusBadge = matched
                 ? `<span class="badge green">${matched.submissions} submission${matched.submissions === 1 ? '' : 's'}</span>`
                 : `<span class="badge" style="background:#fef3c7; color:#92400e;">Pending</span>`;
+              // matched.studentId is set when this roster row already has an
+              // account in users.json. We can only delete when there is a
+              // backing account.
+              const deleteBtn = matched
+                ? `<button class="btn danger" data-roster-delete="${matched.studentId}" data-roster-name="${escapeAttr(s.name || s.email || '')}" style="margin-left: 6px;">Delete</button>`
+                : '';
               const actions = matched
-                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>`
-                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>`;
+                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + deleteBtn
+                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + (s.email
+                    ? ` <button class="btn danger" data-roster-delete-email="${escapeAttr(s.email)}" data-class-id="${id}" data-roster-name="${escapeAttr(s.name || s.email || '')}">Remove</button>`
+                    : '');
               return `
                 <tr style="border-top: 1px solid #e5e7eb;">
                   <td style="padding: 8px;"><strong>${escapeHtml(s.name || '(no name)')}</strong></td>
@@ -764,6 +772,64 @@ function renderClassesList() {
         b.onclick = () => {
           closeClassesPanel();
           openStudentProgress(b.dataset.rosterProgress);
+        };
+      });
+      // Delete a student account (the student has an account record).
+      view.querySelectorAll('[data-roster-delete]').forEach((b) => {
+        b.onclick = async () => {
+          const studentId = b.dataset.rosterDelete;
+          const name = b.dataset.rosterName || 'this student';
+          if (!confirm(
+            `Delete the student account for "${name}"?\n\n` +
+            `This permanently removes the account, all their submitted results, and removes them from every class roster.\n\n` +
+            `You can re-add them afterwards with the +Add student form — a new temporary password will be generated.`
+          )) return;
+          b.disabled = true;
+          try {
+            const resp = await api(`/api/students/${studentId}`, { method: 'DELETE' });
+            await loadKnownStudents();
+            await loadClasses();
+            // Re-render the View students table so the row disappears.
+            const id = btn.dataset.classViewRoster;
+            const trigger = els.classesList.querySelector(`[data-class-view-roster="${id}"]`);
+            if (trigger) {
+              const view2 = els.classesList.querySelector(`[data-class-roster-view="${id}"]`);
+              if (view2) view2.style.display = 'none';
+              trigger.click(); // re-open with fresh data
+            }
+          } catch (e) {
+            alert('Could not delete: ' + e.message);
+            b.disabled = false;
+          }
+        };
+      });
+      // Remove a roster entry that has no backing account (just clean up).
+      // We do this by replacing the class's roster minus that email.
+      view.querySelectorAll('[data-roster-delete-email]').forEach((b) => {
+        b.onclick = async () => {
+          const email = b.dataset.rosterDeleteEmail;
+          const classId = b.dataset.classId;
+          const name = b.dataset.rosterName || email;
+          if (!confirm(`Remove "${name}" from this class? They never created an account, so this only removes the roster entry.`)) return;
+          const target = classes.find((c) => c.id === classId);
+          if (!target) return;
+          const newRoster = (target.roster || []).filter((r) =>
+            String(r && r.email || '').toLowerCase() !== email.toLowerCase()
+          );
+          b.disabled = true;
+          try {
+            await api(`/api/classes/${classId}/roster`, { method: 'POST', body: { roster: newRoster } });
+            await loadClasses();
+            const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
+            if (trigger) {
+              const view2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
+              if (view2) view2.style.display = 'none';
+              trigger.click();
+            }
+          } catch (e) {
+            alert('Could not remove: ' + e.message);
+            b.disabled = false;
+          }
         };
       });
     };

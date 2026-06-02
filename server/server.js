@@ -622,6 +622,63 @@ app.delete('/api/classes/:id', requireTeacher, (req, res) => {
   res.json({ ok: true, removedUsers, removedResults });
 });
 
+// Delete a single student account. A teacher can only delete a student who
+// is on one of THEIR class rosters — they cannot reach into another
+// teacher's class to wipe accounts. After deletion the email is free, so the
+// teacher can immediately re-add the student via the +Add student form and a
+// fresh temporary password will be generated.
+app.delete('/api/students/:userId', requireTeacher, (req, res) => {
+  const targetId = String(req.params.userId || '');
+  if (!targetId) return res.status(400).json({ error: 'Missing user id' });
+
+  const users = readAll('users.json');
+  const target = users.find((u) => u.id === targetId);
+  if (!target || target.role !== 'student') {
+    return res.status(404).json({ error: 'Student not found' });
+  }
+  const targetEmail = String(target.email || '').toLowerCase();
+
+  // Security gate: the student must be on at least one roster belonging to
+  // THIS teacher. Otherwise refuse, even if the email exists.
+  const classes = readAll('classes.json');
+  const teacherOwnsThem = classes.some((c) =>
+    c.teacherId === req.session.user.id &&
+    (c.roster || []).some((r) => String(r && r.email || '').toLowerCase() === targetEmail)
+  );
+  if (!teacherOwnsThem) {
+    return res.status(403).json({ error: 'You cannot delete a student who is not on one of your classes.' });
+  }
+
+  // Remove the student from every class roster anywhere in the system (once
+  // their account is gone, leaving them on rosters is misleading).
+  let rostersTouched = 0;
+  for (const c of classes) {
+    const before = (c.roster || []).length;
+    c.roster = (c.roster || []).filter((r) =>
+      String(r && r.email || '').toLowerCase() !== targetEmail
+    );
+    if (c.roster.length !== before) rostersTouched++;
+  }
+  if (rostersTouched > 0) writeAll('classes.json', classes);
+
+  // Remove the user record.
+  const keptUsers = users.filter((u) => u.id !== targetId);
+  writeAll('users.json', keptUsers);
+
+  // Remove the student's submitted results so their grades don't linger.
+  const results = readAll('results.json');
+  const keptResults = results.filter((r) => r.studentId !== targetId);
+  const removedResults = results.length - keptResults.length;
+  if (removedResults > 0) writeAll('results.json', keptResults);
+
+  res.json({
+    ok: true,
+    removedEmail: targetEmail,
+    rostersTouched,
+    removedResults,
+  });
+});
+
 // ---------- Assessments (teacher) ----------
 app.get('/api/assessments', requireAuth, (req, res) => {
   const all = readAll('assessments.json');
