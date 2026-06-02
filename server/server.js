@@ -1055,10 +1055,19 @@ function scheduleAiGrading({ resultId }) {
 
       const assessments = readAll('assessments.json');
       const a = assessments.find((x) => x.id === r.assessmentId);
-      if (!a || !a.rubricStage) return;
+      if (!a) return;
 
       const writingQs = a.questions.filter((q) => q.type === 'writing' || q.type === 'essay');
       if (!writingQs.length) return;
+
+      // Pick a rubric stage for AI grading. If the teacher set one on the
+      // assessment, use it. If they forgot, fall back to Stage 8 so the
+      // essay still gets a rubric-based grade instead of sitting in the
+      // manual queue forever. Valid stages: '7', '8', '3-5', '5-9'.
+      const validStages = new Set(['7', '8', '3-5', '5-9']);
+      let effectiveStage = a.rubricStage && validStages.has(String(a.rubricStage))
+        ? String(a.rubricStage)
+        : '8';
 
       let touched = false;
       for (const q of writingQs) {
@@ -1066,7 +1075,7 @@ function scheduleAiGrading({ resultId }) {
         const essay = ans ? String(ans.given || '') : '';
         if (!essay.trim()) continue;
         const graded = await gradeWriting({
-          rubricStage: a.rubricStage,
+          rubricStage: effectiveStage,
           prompt: q.prompt,
           essay,
           maxScore: q.points,
@@ -2546,12 +2555,17 @@ app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
     'I will send two images: BASELINE (taken when the student started) and CURRENT (taken just now).',
     'Compare them and respond with ONLY a JSON object, no other text:',
     '{',
-    '  "faceVisible": true|false,   // is a clear human face visible in CURRENT?',
-    '  "samePerson": true|false,    // is CURRENT the same person as BASELINE?',
+    '  "faceVisible": true|false,        // is a clear human face visible in CURRENT?',
+    '  "samePerson": true|false,         // is CURRENT the same person as BASELINE?',
+    '  "otherPersonVisible": true|false, // is a SECOND person visible in CURRENT (anyone other than the student — leaning in, sitting beside, behind, etc.)?',
+    '  "phoneVisible": true|false,       // is a phone, tablet, or hand-held camera visible in CURRENT, especially one being held up or pointed AT the screen (which suggests the student is photographing the test)?',
     '  "confidence": "low"|"medium"|"high"',
     '}',
-    'Be conservative: only set samePerson=false if you are confident it is a different person. Lighting changes, head turns, and minor angle differences should still be samePerson=true.',
+    'Be conservative on samePerson: only set false if you are confident it is a different person. Lighting changes, head turns, and minor angle differences should still be samePerson=true.',
+    'Be confident on otherPersonVisible: set true if you can clearly see a second human face, head, shoulder, or hand from another person. A reflection of the student in glasses or a wall poster of a face is NOT another person.',
+    'Be confident on phoneVisible: set true if you can clearly see a smartphone, tablet, or camera in the frame — especially one held up toward the screen. A phone visible on a desk in the background that is not being used is NOT a violation; only flag when the device is in-hand or aimed at the screen.',
     'If you cannot tell whether a face is visible, default to faceVisible=true.',
+    'If you are unsure about otherPersonVisible or phoneVisible, default to false (do not flag).',
   ].join('\n');
 
   try {
@@ -2593,6 +2607,8 @@ app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
       ok: true,
       faceVisible: parsed.faceVisible !== false,
       samePerson: parsed.samePerson !== false,
+      otherPersonVisible: parsed.otherPersonVisible === true,
+      phoneVisible: parsed.phoneVisible === true,
       confidence: parsed.confidence || 'medium',
     });
   } catch (e) {

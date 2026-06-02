@@ -953,3 +953,101 @@ tbody tr:hover { background: var(--panel-tint); }
   .report-score-pct,
   .stat-num { color: var(--primary) !important; -webkit-text-fill-color: var(--primary) !important; }
 }
+
+/* ---------- High-readability assessment view (HARDENED) ---------- *
+ * Students reported the dark page was still visible after the first pass.
+ * This version uses higher-specificity selectors (body.lockdown-body and
+ * #assessment-view), liberal !important, and explicit overrides for the
+ * label/radio rows so the inline styles in student.js cannot win.
+ */
+body.lockdown-body #assessment-view,
+body.lockdown-body .assessment-content {
+  background: #ffffff !important;
+  color: #1a1e33 !important;
+  border-radius: 14px;
+  padding: 24px 28px;
+  margin: 20px auto;
+  max-width: 980px;
+  font-size: 18px;
+  line-height: 1.65;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+body.lockdown-body #assessment-view .panel,
+body.lockdown-body .assessment-content .panel {
+  background: #ffffff !important;
+  color: #1a1e33 !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  font-size: 18px !important;
+  line-height: 1.65 !important;
+  padding: 18px 20px !important;
+  margin-bottom: 14px !important;
+}
+body.lockdown-body #assessment-view #assess-title,
+body.lockdown-body .assessment-content #assess-title {
+  color: #1a1e33 !important;
+  font-size: 28px !important;
+}
+body.lockdown-body #assessment-view label,
+body.lockdown-body .assessment-content label {
+  color: #1a1e33 !important;
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 17px !important;
+}
+body.lockdown-body #assessment-view label:hover,
+body.lockdown-body .assessment-content label:hover {
+  background: #eef2ff !important;
+}
+body.lockdown-body #assessment-view input,
+body.lockdown-body #assessment-view textarea,
+body.lockdown-body #assessment-view select,
+body.lockdown-body .assessment-content input,
+body.lockdown-body .assessment-content textarea,
+body.lockdown-body .assessment-content select {
+  background: #ffffff !important;
+  color: #1a1e33 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-size: 17px !important;
+  padding: 10px 12px !important;
+}
+body.lockdown-body #assessment-view textarea,
+body.lockdown-body .assessment-content textarea {
+  min-height: 160px !important;
+  line-height: 1.65 !important;
+}
+body.lockdown-body #assessment-view .muted,
+body.lockdown-body .assessment-content .muted {
+  color: #475569 !important;
+}
+body.lockdown-body #assessment-view h2,
+body.lockdown-body .assessment-content h2 {
+  color: #1a1e33 !important;
+  font-size: 24px !important;
+}
+body.lockdown-body #assessment-view .btn,
+body.lockdown-body .assessment-content .btn {
+  background: #1a1e33 !important;
+  color: #ffffff !important;
+  border-color: #1a1e33 !important;
+  font-size: 17px !important;
+  padding: 12px 22px !important;
+}
+body.lockdown-body #assessment-view .btn.primary,
+body.lockdown-body .assessment-content .btn.primary {
+  background: linear-gradient(135deg, #1a1e33, #2b3152) !important;
+  color: #ffffff !important;
+}
+@media (max-width: 720px) {
+  body.lockdown-body #assessment-view,
+  body.lockdown-body .assessment-content {
+    padding: 18px !important;
+    font-size: 17px !important;
+    border-radius: 10px !important;
+  }
+  body.lockdown-body #assessment-view .panel,
+  body.lockdown-body .assessment-content .panel { font-size: 17px !important; }
+  body.lockdown-body #assessment-view #assess-title,
+  body.lockdown-body .assessment-content #assess-title { font-size: 22px !important; }
+}
+

@@ -870,18 +870,18 @@ const SUBJECT_TEMPLATES = [
   { id: 'essay-writing', subject: 'English',
     icon: '✍️',
     name: 'Essay Writing',
-    blurb: 'Single-section writing paper with one auto-graded essay (Stage 7-8 rubric by default).',
+    blurb: 'Single-section writing paper with one auto-graded essay (Stage 8 rubric by default — switch in the builder if you need 7, 3-5, or 5-9).',
     seed: {
       title: 'Essay Writing',
       description: 'A single essay-writing task graded against the chosen rubric.',
-      rubricStage: '7-8',
+      rubricStage: '8',
       sections: [
         { title: 'Essay',
           instructions: 'Write your essay on the topic below. You may plan on a separate sheet. Spelling, grammar, and structure all count.',
           passage: '' },
       ],
       questions: [
-        // points stays at 12 to match the Stage 7-8 default; openBuilder
+        // points stays at 12 to match the Stage 8 default; openBuilder
         // overrides it from rubricStage when the writing question is created.
         { sectionIdx: 0, type: 'writing', prompt: '', points: 12 },
       ],

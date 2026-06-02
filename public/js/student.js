@@ -218,6 +218,9 @@ const CONSENT_RULES_EN = {
     '🚨 INSTANT auto-submit if you turn off, cover, or unplug your camera during the test.',
     '🚨 INSTANT auto-submit if you move out of the camera view or look away from the screen.',
     '🚨 INSTANT auto-submit if a different person is detected in the camera.',
+    '👥 If another person (a friend, sibling, parent) is sitting beside or behind you and appears in the camera, it is logged as a violation.',
+    '🎤 Your microphone is also recorded. Talking, reading aloud, or letting someone in the room talk to you is logged as a violation.',
+    '📱 Using a phone or second camera to photograph the screen is logged as a violation (the webcam can see it).',
     '📷 Your camera must be ON for the entire assessment. You cannot start until you grant camera access and remain clearly visible.',
     '🖥 Screen sharing is forbidden. Do not share your screen on Google Meet, Zoom, Microsoft Teams, or any other app while taking this assessment. For the strongest protection, install the ClassCurio desktop app on a Mac or Windows laptop — it physically blocks screen sharing and screenshots.',
     '⚠️ 3-strike rule: leaving this window, switching tabs, opening another app, exiting fullscreen, taking screenshots (Cmd+Shift+3/4/5, PrintScreen, Win+Shift+S), or pressing blocked shortcuts each count as one violation. After 3, the test auto-submits.',
@@ -549,6 +552,7 @@ let lastResultId = null;
 let currentAssessment = null;
 let answers = {};           // questionId -> value
 let violations = [];        // array of strings (reasons)
+let multiFaceFlagged = false; // latch so multi-face only fires on rising edge
 const MAX_VIOLATIONS = 3;
 let startedAt = null;
 let endAt = null;           // absolute epoch ms deadline
@@ -962,20 +966,20 @@ function renderQuestions() {
   function questionBody(q) {
     if (q.type === 'mc') {
       return q.options.map((opt, oi) => `
-        <label style="display:block; padding:8px; border:1px solid #2b3152; border-radius:6px; margin-bottom:6px; cursor:pointer;">
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; cursor:pointer; background:#f8fafc; color:#1a1e33; font-size:17px; line-height:1.55;">
           <input type="radio" name="q-${q.id}" value="${oi}" /> ${escapeHtml(opt)}
         </label>
       `).join('');
     } else if (q.type === 'tf') {
       return `
-        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
-        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
       `;
     } else if (q.type === 'tfng') {
       return `
-        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
-        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
-        <label style="display:block; padding:8px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="true" /> True</label>
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="false" /> False</label>
+        <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
       `;
     } else if (q.type === 'short') {
       return `<input type="text" data-q="${q.id}" placeholder="Your answer" />`;
@@ -989,13 +993,13 @@ function renderQuestions() {
   }
   function questionCard(q, globalIdx) {
     const imageBlock = q.imageUrl
-      ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #1a1e33;" />`
+      ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #f1f5f9;" />`
       : '';
     return `
       <div class="panel">
-        <div class="muted" style="margin-bottom: 4px;">Question ${globalIdx + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
+        <div style="margin-bottom: 6px; color: #475569; font-size: 14px;">Question ${globalIdx + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
         ${imageBlock}
-        <div style="font-size: 16px; margin-bottom: 12px;">${escapeHtml(q.prompt)}</div>
+        <div style="font-size: 18px; line-height: 1.6; margin-bottom: 14px; color:#1a1e33;">${escapeHtml(q.prompt)}</div>
         ${questionBody(q)}
       </div>
     `;
@@ -1016,13 +1020,13 @@ function renderQuestions() {
 
       // Section header — title + instructions + passage, then questions.
       const passageBlock = sec.passage && sec.passage.trim()
-        ? `<div style="background:#1a1e33; color:#eef0ff; border:1px solid #2b3152; border-radius: 8px; padding: 14px 16px; max-height: 360px; overflow-y: auto; margin: 0 0 10px; white-space: pre-wrap; line-height: 1.55;">${escapeHtml(sec.passage)}</div>`
+        ? `<div style="background:#fef7e6; color:#1a1e33; border:1px solid #f59e0b; border-radius: 10px; padding: 16px 18px; max-height: 400px; overflow-y: auto; margin: 0 0 14px; white-space: pre-wrap; line-height: 1.7; font-size:17px;">${escapeHtml(sec.passage)}</div>`
         : '';
       const instructionsBlock = sec.instructions && sec.instructions.trim()
-        ? `<div style="font-style: italic; color:#9ba0bd; margin: 0 0 12px;">${escapeHtml(sec.instructions)}</div>`
+        ? `<div style="font-style: italic; color:#475569; margin: 0 0 14px; font-size:16px;">${escapeHtml(sec.instructions)}</div>`
         : '';
       const titleBlock = sec.title && sec.title.trim()
-        ? `<h2 style="color:#fff; margin: 18px 0 8px;">${escapeHtml(sec.title)}</h2>`
+        ? `<h2 style="color:#1a1e33; margin: 20px 0 10px; font-size: 24px;">${escapeHtml(sec.title)}</h2>`
         : '';
 
       sectionsHtml += `<div class="exam-section">${titleBlock}${instructionsBlock}${passageBlock}`;
@@ -1323,7 +1327,7 @@ function renderReviewQuestion(q, i) {
 
   return `
     <div class="panel">
-      <div class="muted" style="margin-bottom: 4px;">Question ${i + 1} · ${q.points} point${q.points === 1 ? '' : 's'} ${statusBadge}</div>
+      <div style="margin-bottom: 6px; color: #475569; font-size: 14px;">Question ${i + 1} · ${q.points} point${q.points === 1 ? '' : 's'} ${statusBadge}</div>
       <div style="font-size: 16px; margin-bottom: 10px;">${escapeHtml(q.prompt)}</div>
       <div><strong>Your answer:</strong> ${givenDisplay}</div>
       ${correctDisplay}
@@ -1643,7 +1647,11 @@ async function startWebcam() {
   }
   webcamStream = await navigator.mediaDevices.getUserMedia({
     video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-    audio: false,
+    audio: {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+    },
   });
   els.webcam.srcObject = webcamStream;
   await els.webcam.play().catch(() => {});
@@ -1669,9 +1677,90 @@ async function startWebcam() {
       }
     };
   });
+  // Mic was permitted with the camera; start ambient-audio monitoring.
+  // (Failures are silent — talking detection is a nice-to-have, not a hard
+  // gate, and we never want a flaky AudioContext to lock out a student.)
+  try { startAudioMonitoring(); } catch (e) { console.warn('audio monitor off:', e.message); }
+}
+
+// ----- Microphone / talking detection -----
+// Web Audio AnalyserNode samples the mic ~10 Hz. We compute the RMS volume
+// of each window; sustained noise above the THRESHOLD for TALK_WINDOW_MS
+// counts as one violation. The latch (audioTalkFlagged) means each
+// continuous burst is logged once, not on every sample.
+let audioCtx = null;
+let audioAnalyser = null;
+let audioRafTimer = null;
+let audioTalkStartedAt = 0;
+let audioTalkFlagged = false;
+let audioCalibrationEndsAt = 0;
+let audioBaselineRms = 0;
+
+const AUDIO_TALK_THRESHOLD = 0.045;   // RMS in 0..1 range; raised above baseline
+const AUDIO_TALK_WINDOW_MS = 3000;    // must stay loud for 3s to trip
+const AUDIO_CALIBRATION_MS = 4000;    // first 4s after exam start = ambient baseline
+
+function startAudioMonitoring() {
+  if (!webcamStream) return;
+  const audioTracks = webcamStream.getAudioTracks();
+  if (!audioTracks.length) return;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+  audioCtx = new Ctx();
+  const src = audioCtx.createMediaStreamSource(webcamStream);
+  audioAnalyser = audioCtx.createAnalyser();
+  audioAnalyser.fftSize = 512;
+  audioAnalyser.smoothingTimeConstant = 0.4;
+  src.connect(audioAnalyser);
+  audioCalibrationEndsAt = Date.now() + AUDIO_CALIBRATION_MS;
+  audioBaselineRms = 0;
+  const buf = new Uint8Array(audioAnalyser.fftSize);
+  function tick() {
+    if (submitted) return;
+    if (audioAnalyser) {
+      audioAnalyser.getByteTimeDomainData(buf);
+      // Convert 0..255 byte stream to centered -1..+1 and compute RMS.
+      let sum = 0;
+      for (let i = 0; i < buf.length; i++) {
+        const v = (buf[i] - 128) / 128;
+        sum += v * v;
+      }
+      const rms = Math.sqrt(sum / buf.length);
+
+      const now = Date.now();
+      if (now < audioCalibrationEndsAt) {
+        // Calibrate: take the loudest ambient sample over the first 4s as
+        // the baseline, so a noisy room raises the threshold automatically.
+        if (rms > audioBaselineRms) audioBaselineRms = rms;
+      } else {
+        const threshold = Math.max(AUDIO_TALK_THRESHOLD, audioBaselineRms * 1.6);
+        if (rms > threshold) {
+          if (!audioTalkStartedAt) audioTalkStartedAt = now;
+          if (!audioTalkFlagged && (now - audioTalkStartedAt) >= AUDIO_TALK_WINDOW_MS) {
+            audioTalkFlagged = true;
+            addViolation('Talking / loud sound detected via microphone');
+          }
+        } else {
+          audioTalkStartedAt = 0;
+          audioTalkFlagged = false; // re-arm once it goes quiet
+        }
+      }
+    }
+    audioRafTimer = setTimeout(tick, 100); // 10 Hz
+  }
+  tick();
+}
+function stopAudioMonitoring() {
+  if (audioRafTimer) { clearTimeout(audioRafTimer); audioRafTimer = null; }
+  try { if (audioCtx) audioCtx.close(); } catch {}
+  audioCtx = null;
+  audioAnalyser = null;
+  audioTalkStartedAt = 0;
+  audioTalkFlagged = false;
 }
 
 function stopWebcam() {
+  try { stopAudioMonitoring(); } catch {}
   try {
     if (webcamStream) {
       webcamStream.getTracks().forEach((t) => t.stop());
@@ -1765,6 +1854,15 @@ async function runLocalFaceCheck() {
       els.webcamStatus.textContent = 'REC';
       els.webcamStatus.classList.remove('warn');
     }
+    // MULTI-FACE: if FaceDetector reports more than one face on the same
+    // frame, log a violation. We don't fire on every tick — only when the
+    // count rises from 1 to 2+, otherwise we'd spam the violation list.
+    if (faces.length >= 2 && !multiFaceFlagged) {
+      multiFaceFlagged = true;
+      addViolation(`${faces.length} faces detected in the webcam frame`);
+    } else if (faces.length === 1) {
+      multiFaceFlagged = false; // re-arm
+    }
     return;
   }
   // No face detected this tick. If this happens 3 times in a row (~12s),
@@ -1834,6 +1932,21 @@ async function runIdentityCheck() {
       addViolation('Different person detected — auto-submitting');
       submit('different-person').catch(() => {});
       return;
+    }
+    // ANOTHER PERSON in the frame (someone sitting beside or behind the student,
+    // leaning in to read the screen, etc.) — instant violation. We rely on the
+    // server's Claude prompt to be conservative here so reflections / posters
+    // do not trip a false positive.
+    if (data.otherPersonVisible === true && data.confidence !== 'low') {
+      addViolation('Another person detected in the webcam frame');
+      // Do NOT instant-submit on first sighting — the camera may catch a
+      // teacher walking past. The 3-strike threshold handles repeated cases.
+    }
+    // PHONE pointed at the screen — strong cheating signal (photographing
+    // the test). Confidence must be at least medium to avoid false positives
+    // on phones lying flat on the desk in the background.
+    if (data.phoneVisible === true && data.confidence !== 'low') {
+      addViolation('Phone / camera pointed at the screen');
     }
   } catch (e) {
     // Network blip; don't penalize the student.
