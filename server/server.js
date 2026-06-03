@@ -1024,6 +1024,63 @@ app.post('/api/assessments/:id/grant-reentry', requireTeacher, (req, res) => {
   });
 });
 
+// Reconcile a class roster against existing submissions. Walks every
+// assessment in this class, looks at who submitted, and adds any student
+// not already on the roster. Returns the list of added students so the
+// teacher sees what changed. Teacher-only and scoped to their own class.
+app.post('/api/classes/:id/reconcile-roster', requireTeacher, (req, res) => {
+  const classes = readAll('classes.json');
+  const cIdx = classes.findIndex((c) => c.id === req.params.id);
+  if (cIdx === -1) return res.status(404).json({ error: 'Class not found' });
+  if (classes[cIdx].teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const assessments = readAll('assessments.json');
+  const classAssessmentIds = new Set(
+    assessments.filter((a) => a.classId === req.params.id).map((a) => a.id)
+  );
+  if (classAssessmentIds.size === 0) {
+    return res.json({ ok: true, added: [], note: 'No assessments in this class yet.' });
+  }
+
+  const results = readAll('results.json');
+  const users = readAll('users.json');
+  const usersById = new Map(users.map((u) => [u.id, u]));
+
+  const roster = Array.isArray(classes[cIdx].roster) ? classes[cIdx].roster : [];
+  const haveEmails = new Set(
+    roster.map((r) => String(r && r.email || '').toLowerCase()).filter(Boolean)
+  );
+
+  const seen = new Set();
+  const added = [];
+  for (const r of results) {
+    if (!classAssessmentIds.has(r.assessmentId)) continue;
+    if (seen.has(r.studentId)) continue;
+    seen.add(r.studentId);
+    const u = usersById.get(r.studentId);
+    if (!u || u.role !== 'student') continue;
+    const em = String(u.email || '').toLowerCase();
+    if (!em || haveEmails.has(em)) continue;
+    roster.push({
+      email: em,
+      name: u.name || em.split('@')[0],
+      studentNumber: u.studentNumber || '',
+      addedFrom: 'reconcile',
+      addedAt: new Date().toISOString(),
+    });
+    haveEmails.add(em);
+    added.push({ email: em, name: u.name || '', studentNumber: u.studentNumber || '' });
+  }
+
+  if (added.length > 0) {
+    classes[cIdx].roster = roster;
+    writeAll('classes.json', classes);
+  }
+  res.json({ ok: true, added, total: roster.length });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
@@ -1184,6 +1241,40 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
 
   results.push(result);
   writeAll('results.json', results);
+
+  // ── Roster auto-stitch ───────────────────────────────────────────────────
+  // Students who self-register via the share link aren't on the class
+  // roster yet. After their first submission we add them so the teacher
+  // can see them under View students immediately. Matching is by lowercase
+  // email; we only stitch when the assessment has a classId AND the user
+  // has a usable email.
+  try {
+    if (a.classId) {
+      const allClasses = readAll('classes.json');
+      const cIdx = allClasses.findIndex((c) => c.id === a.classId);
+      if (cIdx !== -1) {
+        const me = req.session.user;
+        const myEmail = String(me.email || '').toLowerCase();
+        const roster = Array.isArray(allClasses[cIdx].roster) ? allClasses[cIdx].roster : [];
+        const present = roster.some((r) =>
+          String(r && r.email || '').toLowerCase() === myEmail
+        );
+        if (myEmail && !present) {
+          roster.push({
+            email: myEmail,
+            name: me.name || myEmail.split('@')[0],
+            studentNumber: me.studentNumber || '',
+            addedFrom: 'self-register',
+            addedAt: new Date().toISOString(),
+          });
+          allClasses[cIdx].roster = roster;
+          writeAll('classes.json', allClasses);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[submit] roster auto-stitch failed:', e.message);
+  }
 
   // Kick off AI grading for any "writing" questions in the background. We
   // respond to the student immediately; the AI scores land in their review

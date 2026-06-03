@@ -284,6 +284,7 @@ function renderClassesList() {
           <button class="btn" data-class-add-one="${c.id}" title="Add a single student by name and email">➕ Add student</button>
           <button class="btn" data-class-download-template="${c.id}" title="Download a CSV template you can fill in">📥 Template</button>
           <button class="btn" data-class-upload-roster="${c.id}">📋 Upload class list (CSV / PDF / Word)</button>
+          <button class="btn" data-class-reconcile="${c.id}" title="Scan submissions and add any student not already on the roster">♻ Sync from results</button>
           <button class="btn primary" data-class-prereg="${c.id}" title="Create accounts with temporary passwords">🔑 Pre-register students</button>
           <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-roster-file="${c.id}" style="display:none;" />
           <input type="file" accept=".csv,.txt,.pdf,.docx,.doc" data-class-prereg-file="${c.id}" style="display:none;" />
@@ -717,6 +718,38 @@ function renderClassesList() {
         }
       } catch (err) {
         if (status) status.textContent = 'Error: ' + err.message;
+      }
+    };
+  });
+
+  // Manual roster reconciliation — scan results.json and add any student
+  // who has submitted to an assessment in this class but isn't on the roster.
+  els.classesList.querySelectorAll('[data-class-reconcile]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.classReconcile;
+      const status = els.classesList.querySelector(`[data-class-roster-status="${id}"]`);
+      if (status) { status.textContent = 'Scanning results...'; status.style.color = ''; }
+      btn.disabled = true;
+      try {
+        const resp = await api(`/api/classes/${id}/reconcile-roster`, { method: 'POST' });
+        const n = (resp && resp.added && resp.added.length) || 0;
+        if (status) {
+          if (n === 0) {
+            status.innerHTML = '✓ Roster is already complete - nothing to add.';
+            status.style.color = '#166534';
+          } else {
+            const names = resp.added.map((s) => `<strong>${escapeHtml(s.name || s.email)}</strong>`).slice(0, 6).join(', ');
+            const more = n > 6 ? ` + ${n - 6} more` : '';
+            status.innerHTML = `✓ Added ${n} student${n === 1 ? '' : 's'} to the roster: ${names}${more}.`;
+            status.style.color = '#166534';
+          }
+        }
+        await loadClasses();
+        renderClassesList();
+      } catch (e) {
+        if (status) { status.textContent = '\u274c ' + e.message; status.style.color = '#b91c1c'; }
+      } finally {
+        btn.disabled = false;
       }
     };
   });
