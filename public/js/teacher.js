@@ -1193,6 +1193,10 @@ function renderClassesList() {
   });
 }
 if (els.manageClassesBtn) els.manageClassesBtn.onclick = openClassesPanel;
+// Class Analytics — fetch + render the per-class report view.
+const _claBtn = document.getElementById('class-analytics-btn');
+if (_claBtn) _claBtn.onclick = openClassAnalytics;
+
 if (els.classesClose) els.classesClose.onclick = closeClassesPanel;
 if (els.addClassBtn) {
   els.addClassBtn.onclick = async () => {
@@ -1768,7 +1772,9 @@ function renderList() {
           <div class="spacer"></div>
           ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}">🔗 Share</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
-          <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
+          <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
+              <button class="btn" data-act="share" data-id="${a.id}" title="Share with another teacher">🔗 Share</button>
+              <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
         </div>
@@ -1851,6 +1857,9 @@ function renderCalendar() {
 }
 
 async function handleAction(act, id) {
+  if (act === 'print') { return printAssessmentPDF(id); }
+  if (act === 'share') { return shareAssessment(id); }
+
   if (act === 'delete') {
     if (!confirm('Delete this assessment? Student results will remain but become orphaned.')) return;
     await api(`/api/assessments/${id}`, { method: 'DELETE' });
@@ -2974,6 +2983,31 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
         </div>
         <div class="report-score-bar"><div class="report-score-bar-fill" style="width: ${pct}%"></div></div>
         <div class="report-score-pct">${pct}%</div>
+        ${(() => {
+          // CEFR 6-band split + L/M/H band classification.
+          let cefr = 'A1';
+          if (pct >= 90) cefr = 'C2';
+          else if (pct >= 75) cefr = 'C1';
+          else if (pct >= 60) cefr = 'B2';
+          else if (pct >= 45) cefr = 'B1';
+          else if (pct >= 30) cefr = 'A2';
+          const band = (cefr === 'C1' || cefr === 'C2') ? 'High'
+                     : (cefr === 'B1' || cefr === 'B2') ? 'Medium' : 'Low';
+          const bandColor = band === 'High' ? '#166534' : band === 'Medium' ? '#92400e' : '#b91c1c';
+          const bandBg    = band === 'High' ? '#dcfce7' : band === 'Medium' ? '#fef3c7' : '#fee2e2';
+          return `
+            <div class="report-cefr" style="display:flex; gap: 14px; margin-top: 14px; flex-wrap: wrap;">
+              <div style="padding: 10px 16px; background:#eef2ff; border:1px solid #c7d2fe; border-radius: 10px;">
+                <div style="font-size: 12px; color:#4338ca; text-transform: uppercase; letter-spacing: 1px;">CEFR Level</div>
+                <div style="font-size: 28px; font-weight: 700; color:#1e1b4b;">${cefr}</div>
+              </div>
+              <div style="padding: 10px 16px; background:${bandBg}; border:1px solid ${bandColor}; border-radius: 10px;">
+                <div style="font-size: 12px; color:${bandColor}; text-transform: uppercase; letter-spacing: 1px;">Achievement Band</div>
+                <div style="font-size: 28px; font-weight: 700; color:${bandColor};">${band}</div>
+              </div>
+            </div>
+          `;
+        })()}
       </div>
 
       <table class="report-breakdown">
@@ -3611,3 +3645,339 @@ if (els.viewCalendarBtn) {
   await refreshQueueCount();
   await refreshApiKeyState();
 })();
+
+
+// ───────────────────────────────────────────────────────────────────────────
+//  CLASS ANALYTICS (CEFR distribution + per-skill + L/M/H + drill-down)
+// ───────────────────────────────────────────────────────────────────────────
+async function openClassAnalytics() {
+  const classId = getActiveClassId();
+  if (!classId) { alert('Pick a class first using the class switcher.'); return; }
+  hideAllViews();
+  const mount = document.getElementById('class-analytics-view') || (() => {
+    const div = document.createElement('div');
+    div.id = 'class-analytics-view';
+    document.querySelector('.container').appendChild(div);
+    return div;
+  })();
+  mount.style.display = 'block';
+  mount.innerHTML = '<div class="panel"><div class="muted">Loading analytics…</div></div>';
+  let data, cross;
+  try {
+    data = await api(`/api/classes/${classId}/analytics`);
+    cross = await api(`/api/analytics/cross-class`);
+  } catch (e) {
+    mount.innerHTML = `<div class="panel"><div class="error">Could not load analytics: ${escapeHtml(e.message)}</div></div>`;
+    return;
+  }
+
+  const cefrCells = ['A1','A2','B1','B2','C1','C2'].map((lvl) => {
+    const n = data.cefrHistogram[lvl] || 0;
+    const w = data.students.length ? Math.round((n / data.students.length) * 100) : 0;
+    const color = (lvl[0] === 'C') ? '#166534' : (lvl[0] === 'B') ? '#b45309' : '#b91c1c';
+    return `
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:14px;">
+        <div style="font-size:13px; color:#475569; letter-spacing:1px;">${lvl}</div>
+        <div style="font-size:34px; font-weight:700; color:${color};">${n}</div>
+        <div style="font-size:12px; color:#475569;">${w}% of class</div>
+      </div>
+    `;
+  }).join('');
+
+  const bandCard = (label, n, total, color, bg) => `
+    <div style="flex:1; min-width:160px; background:${bg}; border:1px solid ${color}; border-radius:10px; padding:14px;">
+      <div style="font-size:13px; color:${color}; text-transform:uppercase; letter-spacing:1px;">${label}</div>
+      <div style="font-size:34px; font-weight:700; color:${color};">${n}</div>
+      <div style="font-size:12px; color:${color};">${total ? Math.round((n/total)*100) : 0}% of class</div>
+    </div>`;
+
+  const skillsHtml = data.skills.length
+    ? data.skills.map((s) => `
+        <div style="margin-bottom:8px;">
+          <div class="row" style="margin-bottom:4px;">
+            <span style="font-weight:600;">${escapeHtml(s.name)}</span>
+            <div class="spacer"></div>
+            <span class="muted">${s.score} / ${s.max}</span>
+            <strong style="margin-left:8px;">${s.avgPct}%</strong>
+          </div>
+          <div style="height:10px; background:#e5e7eb; border-radius:5px; overflow:hidden;">
+            <div style="height:100%; width:${s.avgPct}%; background: linear-gradient(90deg,#10b981,#34d399);"></div>
+          </div>
+        </div>
+      `).join('')
+    : '<div class="muted">No section data yet — students need to submit assessments first.</div>';
+
+  const studentRows = data.students.map((s) => {
+    const bandColor = s.band === 'High' ? '#166534' : s.band === 'Medium' ? '#92400e' : '#b91c1c';
+    const bandBg    = s.band === 'High' ? '#dcfce7' : s.band === 'Medium' ? '#fef3c7' : '#fee2e2';
+    return `
+      <tr>
+        <td style="padding:8px;"><strong>${escapeHtml(s.name)}</strong><div class="muted" style="font-size:12px;">${escapeHtml(s.email)}</div></td>
+        <td style="padding:8px;"><strong>${s.pct}%</strong></td>
+        <td style="padding:8px;"><span style="background:#eef2ff; color:#3730a3; padding:2px 8px; border-radius:6px; font-weight:600;">${s.cefrLevel}</span></td>
+        <td style="padding:8px;"><span style="background:${bandBg}; color:${bandColor}; padding:2px 8px; border-radius:6px; font-weight:600;">${s.band}</span></td>
+        <td style="padding:8px;" class="muted">${s.submissions} submission${s.submissions === 1 ? '' : 's'}</td>
+        <td style="padding:8px;"><button class="btn" data-student-detail="${escapeAttr(s.studentId)}">View detail</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  const crossHtml = (cross && cross.classes && cross.classes.length > 1)
+    ? `
+      <div class="panel" style="margin-top:14px;">
+        <h2 style="margin-top:0;">Cross-class comparison</h2>
+        <div class="muted" style="margin-bottom:8px;">All your classes side-by-side.</div>
+        ${cross.classes.map((cc) => `
+          <div style="margin-bottom:6px;">
+            <div class="row"><span style="font-weight:600;">${escapeHtml(cc.name)}</span>
+              <div class="spacer"></div>
+              <span class="muted">${cc.submissionCount} submissions · ${cc.rosterCount} on roster</span>
+              <strong style="margin-left:8px;">${cc.avgPct}%</strong>
+            </div>
+            <div style="height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden;">
+              <div style="height:100%; width:${cc.avgPct}%; background: linear-gradient(90deg,#6366f1,#a855f7);"></div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `
+    : '';
+
+  mount.innerHTML = `
+    <div class="row" style="margin-bottom: 12px;">
+      <h1 style="margin:0;">📊 ${escapeHtml(data.class.name)} — Class Analytics</h1>
+      <div class="spacer"></div>
+      <button class="btn" id="analytics-back">← Back to dashboard</button>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-bottom:12px; flex-wrap: wrap; gap: 16px;">
+        <div><div class="muted">Class average</div><div style="font-size:34px; font-weight:700;">${data.classAvgPct}%</div></div>
+        <div><div class="muted">Submissions</div><div style="font-size:34px; font-weight:700;">${data.submissionCount}</div></div>
+        <div><div class="muted">Assessments</div><div style="font-size:34px; font-weight:700;">${data.assessmentCount}</div></div>
+        <div><div class="muted">Roster</div><div style="font-size:34px; font-weight:700;">${data.class.rosterCount}</div></div>
+      </div>
+      <h2>Achievement bands</h2>
+      <div class="row" style="gap:10px; flex-wrap: wrap;">
+        ${bandCard('High (C1-C2)', data.bands.High, data.students.length, '#166534', '#dcfce7')}
+        ${bandCard('Medium (B1-B2)', data.bands.Medium, data.students.length, '#92400e', '#fef3c7')}
+        ${bandCard('Low (A1-A2)', data.bands.Low, data.students.length, '#b91c1c', '#fee2e2')}
+      </div>
+      <h2 style="margin-top:18px;">CEFR distribution</h2>
+      <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:10px;">${cefrCells}</div>
+    </div>
+    <div class="panel">
+      <h2 style="margin-top:0;">Per-skill performance</h2>
+      ${skillsHtml}
+    </div>
+    ${crossHtml}
+    <div class="panel">
+      <h2 style="margin-top:0;">Students (sorted by score)</h2>
+      <table style="width:100%; font-size:14px; border-collapse: collapse;">
+        <thead><tr style="background:#eef2ff;">
+          <th style="text-align:left; padding:8px;">Student</th>
+          <th style="text-align:left; padding:8px;">Average</th>
+          <th style="text-align:left; padding:8px;">CEFR</th>
+          <th style="text-align:left; padding:8px;">Band</th>
+          <th style="text-align:left; padding:8px;">Activity</th>
+          <th style="text-align:left; padding:8px;"></th>
+        </tr></thead>
+        <tbody>${studentRows || '<tr><td colspan="6" class="muted" style="padding:8px;">No student submissions yet.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('analytics-back').onclick = () => {
+    mount.style.display = 'none';
+    els.listView.style.display = 'block';
+  };
+  mount.querySelectorAll('[data-student-detail]').forEach((b) => {
+    b.onclick = () => openStudentProgress(b.dataset.studentDetail);
+  });
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+//  PRINT-TO-PDF — opens a printable view of the assessment + answer key
+// ───────────────────────────────────────────────────────────────────────────
+async function printAssessmentPDF(assessmentId) {
+  let data;
+  try {
+    data = await api(`/api/assessments/${assessmentId}`);
+  } catch (e) {
+    alert('Could not load: ' + e.message);
+    return;
+  }
+  const a = data.assessment || data;
+  const sections = a.sections || [];
+  const questions = a.questions || [];
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('Allow pop-ups so the print window can open.'); return; }
+  const css = `
+    <style>
+      body { font-family: Calibri, Arial, sans-serif; color:#1a1e33; padding: 30px 40px; line-height: 1.55; font-size: 14px; }
+      h1 { color:#1a1e33; margin: 0 0 4px; font-size: 24px; }
+      h2 { color:#1a1e33; margin: 22px 0 6px; font-size: 18px; }
+      h3 { color:#92400e; margin: 18px 0 4px; font-size: 16px; }
+      .meta { color:#475569; font-size: 13px; margin-bottom: 18px; }
+      .passage { background:#fef7e6; border:1px solid #f59e0b; border-radius: 6px; padding: 12px 14px; white-space: pre-wrap; margin: 8px 0 14px; font-size: 14px; }
+      .q { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; page-break-inside: avoid; }
+      .q-prompt { font-weight: 600; margin-bottom: 6px; }
+      .opt { padding: 3px 0 3px 22px; position: relative; }
+      .opt::before { content: '○'; position: absolute; left: 4px; color:#64748b; }
+      .write-lines { border-bottom: 1px solid #94a3b8; height: 22px; margin: 6px 0; }
+      .pagebreak { page-break-before: always; }
+      .key { background:#ecfdf5; border:1px solid #10b981; border-radius:8px; padding: 14px; margin-top: 12px; }
+      .key-row { padding: 4px 0; border-bottom: 1px dashed #6ee7b7; }
+      @media print { .no-print { display:none; } body { padding: 18px; } }
+      .header-actions { position: fixed; top: 10px; right: 10px; }
+    </style>
+  `;
+  function answerLine(q) {
+    if (q.type === 'mc') {
+      return (q.options || []).map((o) => `<div class="opt">${escapeHtml(o)}</div>`).join('');
+    }
+    if (q.type === 'tf') {
+      return `<div class="opt">True</div><div class="opt">False</div>`;
+    }
+    if (q.type === 'tfng') {
+      return `<div class="opt">True</div><div class="opt">False</div><div class="opt">Not Given</div>`;
+    }
+    if (q.type === 'short') return `<div class="write-lines"></div>`;
+    if (q.type === 'long' || q.type === 'essay' || q.type === 'writing') {
+      return Array.from({length: q.type === 'writing' ? 14 : 6}, () => '<div class="write-lines"></div>').join('');
+    }
+    return '';
+  }
+  function correctLine(q, i) {
+    if (q.type === 'mc') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(q.options ? q.options[q.correctAnswer] || '' : '')}</div>`;
+    if (q.type === 'tf') return `<div class="key-row"><strong>Q${i+1}:</strong> ${q.correctAnswer ? 'True' : 'False'}</div>`;
+    if (q.type === 'tfng') return `<div class="key-row"><strong>Q${i+1}:</strong> ${q.correctAnswer}</div>`;
+    if (q.type === 'short') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(q.correctAnswer || '(open-ended)')}</div>`;
+    return `<div class="key-row"><strong>Q${i+1}:</strong> Teacher / AI graded — no fixed key.</div>`;
+  }
+
+  let body = `<h1>${escapeHtml(a.title)}</h1>
+    <div class="meta">${escapeHtml(a.description || '')}</div>
+    <div class="meta">${a.durationMinutes ? a.durationMinutes + ' minutes &middot; ' : ''}${questions.length} question${questions.length === 1 ? '' : 's'}${a.subject ? ' &middot; ' + escapeHtml(a.subject) : ''}${a.grade ? ' &middot; ' + escapeHtml(a.grade) : ''}${a.term ? ' &middot; Term ' + escapeHtml(a.term) : ''}</div>`;
+  let qi = 0;
+  if (sections.length) {
+    for (const sec of sections) {
+      if (sec.title || sec.instructions || sec.passage) {
+        if (sec.title) body += `<h2>${escapeHtml(sec.title)}</h2>`;
+        if (sec.instructions) body += `<div style="font-style: italic; margin: 4px 0 8px;">${escapeHtml(sec.instructions)}</div>`;
+        if (sec.passage) body += `<div class="passage">${escapeHtml(sec.passage)}</div>`;
+      }
+      for (const q of questions.filter((qq) => qq.sectionId === sec.id)) {
+        qi++;
+        body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt${(q.points || 1) === 1 ? '' : 's'}): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
+      }
+    }
+  } else {
+    for (const q of questions) {
+      qi++;
+      body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
+    }
+  }
+  // Answer key on a new page.
+  body += `<div class="pagebreak"></div><h2>Answer Key</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
+
+  win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(a.title)}</title>${css}</head><body>
+    <div class="header-actions no-print">
+      <button onclick="window.print()" style="font-size:14px; padding:8px 14px; border-radius:6px; background:#1a1e33; color:#fff; border:none; cursor:pointer;">Print / Save as PDF</button>
+    </div>
+    ${body}
+  </body></html>`);
+  win.document.close();
+  // Slight delay then auto-trigger print dialog.
+  setTimeout(() => { try { win.print(); } catch {} }, 800);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+//  SHARE WITH ANOTHER TEACHER — generate + copy share link
+// ───────────────────────────────────────────────────────────────────────────
+async function shareAssessment(assessmentId) {
+  try {
+    const resp = await api(`/api/assessments/${assessmentId}/share`, { method: 'POST' });
+    const url = resp.shareUrl;
+    try { await navigator.clipboard.writeText(url); } catch {}
+    alert(
+      `Share link copied to clipboard:\n\n${url}\n\n` +
+      `Send this link to another ClassCurio teacher. When they open it (while signed in to their own account), ` +
+      `they'll be able to preview the assessment, print it as a PDF, or duplicate it into one of their own classes.`
+    );
+  } catch (e) {
+    alert('Could not generate share link: ' + e.message);
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+//  OPEN SHARED ASSESSMENT (when URL has ?share=TOKEN)
+// ───────────────────────────────────────────────────────────────────────────
+async function maybeHandleShareLink() {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('share');
+  if (!token) return;
+  try {
+    const resp = await api(`/api/assessments/share/${encodeURIComponent(token)}`);
+    const a = resp.assessment;
+    if (!a) return;
+    const classOpts = classes.map((c) => `<option value="${escapeAttr(c.id)}">${escapeHtml(c.name)}</option>`).join('');
+    hideAllViews();
+    const mount = document.getElementById('shared-assessment-view') || (() => {
+      const div = document.createElement('div');
+      div.id = 'shared-assessment-view';
+      document.querySelector('.container').appendChild(div);
+      return div;
+    })();
+    mount.style.display = 'block';
+    mount.innerHTML = `
+      <div class="panel" style="background:#eef2ff; border:2px solid #c7d2fe;">
+        <div class="row"><h1 style="margin:0;">🔗 Shared assessment from another teacher</h1>
+          <div class="spacer"></div>
+          <button class="btn" id="share-back">← Back</button>
+        </div>
+        <p><strong>Title:</strong> ${escapeHtml(a.title)}</p>
+        <p><strong>Description:</strong> ${escapeHtml(a.description || '(none)')}</p>
+        <p><strong>Questions:</strong> ${(a.questions || []).length} · <strong>Duration:</strong> ${a.durationMinutes || '?'} min</p>
+        <p><strong>Original teacher:</strong> ${escapeHtml(a.teacherName || '(unknown)')}</p>
+        <div class="row" style="gap:8px; margin-top:14px;">
+          <button class="btn primary" id="share-print">📄 Print as PDF</button>
+          <select id="share-dup-target">${classOpts}</select>
+          <button class="btn primary" id="share-dup">📋 Duplicate into selected class</button>
+        </div>
+        <div id="share-status" class="muted" style="margin-top:10px;"></div>
+      </div>
+    `;
+    document.getElementById('share-back').onclick = () => {
+      history.replaceState({}, '', location.pathname);
+      mount.style.display = 'none';
+      els.listView.style.display = 'block';
+    };
+    document.getElementById('share-print').onclick = () => printAssessmentPDF(a.id);
+    document.getElementById('share-dup').onclick = async () => {
+      const targetClassId = document.getElementById('share-dup-target').value;
+      if (!targetClassId) return;
+      const status = document.getElementById('share-status');
+      status.textContent = 'Duplicating...';
+      try {
+        const r2 = await api(`/api/assessments/share/${encodeURIComponent(token)}/duplicate`, {
+          method: 'POST', body: { classId: targetClassId },
+        });
+        status.textContent = `✓ Created "${r2.title}" in your class. Switching back to dashboard...`;
+        setTimeout(async () => {
+          history.replaceState({}, '', location.pathname);
+          mount.style.display = 'none';
+          els.listView.style.display = 'block';
+          await loadAssessments();
+        }, 1200);
+      } catch (e) {
+        status.textContent = '❌ ' + e.message;
+      }
+    };
+  } catch (e) {
+    // Silent — just stay on the dashboard.
+    console.warn('share link load failed:', e.message);
+  }
+}
+// Run after the initial dashboard load.
+window.addEventListener('load', () => setTimeout(maybeHandleShareLink, 500));
+

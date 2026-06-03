@@ -1380,6 +1380,232 @@ app.post('/api/classes/:fromId/bulk-transfer', requireTeacher, (req, res) => {
   });
 });
 
+// Class analytics — aggregate every submitted result for one class and
+// return a compact summary the dashboard can render directly. Teacher-only,
+// scoped to their own class.
+app.get('/api/classes/:id/analytics', requireTeacher, (req, res) => {
+  const classes = readAll('classes.json');
+  const c = classes.find((x) => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: 'Class not found' });
+  if (c.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const assessments = readAll('assessments.json');
+  const myAssessments = assessments.filter((a) => a.classId === c.id);
+  const myAssessmentIds = new Set(myAssessments.map((a) => a.id));
+
+  const results = readAll('results.json').filter((r) => myAssessmentIds.has(r.assessmentId));
+  const users = readAll('users.json');
+  const usersById = new Map(users.map((u) => [u.id, u]));
+
+  // CEFR 6-band split (Cambridge / IELTS-aligned).
+  function cefr(pct) {
+    if (pct >= 90) return 'C2';
+    if (pct >= 75) return 'C1';
+    if (pct >= 60) return 'B2';
+    if (pct >= 45) return 'B1';
+    if (pct >= 30) return 'A2';
+    return 'A1';
+  }
+  // Achievement band: A1-A2 low, B1-B2 medium, C1-C2 high.
+  function band(level) {
+    if (level === 'C1' || level === 'C2') return 'High';
+    if (level === 'B1' || level === 'B2') return 'Medium';
+    return 'Low';
+  }
+
+  // Roll up per-student averages across all assessments in this class.
+  const perStudent = new Map(); // studentId -> { name, email, total, max, count, perSection: {sid: {score, max}} }
+  for (const r of results) {
+    const total = (r.autoScore || 0) + (r.manualScore || 0);
+    const max = (r.autoMax || 0) + (r.manualMax || 0);
+    const u = usersById.get(r.studentId);
+    let s = perStudent.get(r.studentId);
+    if (!s) {
+      s = {
+        studentId: r.studentId,
+        name: u ? u.name : (r.studentName || 'Unknown'),
+        email: u ? u.email : (r.studentEmail || ''),
+        total: 0, max: 0, count: 0,
+        perSection: {},
+      };
+      perStudent.set(r.studentId, s);
+    }
+    s.total += total;
+    s.max += max;
+    s.count += 1;
+
+    // Per-section roll-up — match each answer back to its question's section.
+    const a = myAssessments.find((x) => x.id === r.assessmentId);
+    if (!a) continue;
+    const sectionsById = new Map((a.sections || []).map((sec) => [sec.id, sec]));
+    for (const ans of (r.answers || [])) {
+      const q = (a.questions || []).find((qq) => qq.id === ans.questionId);
+      if (!q) continue;
+      const sec = sectionsById.get(q.sectionId);
+      const sectionName = (sec && sec.title) ? sec.title : 'General';
+      if (!s.perSection[sectionName]) s.perSection[sectionName] = { score: 0, max: 0 };
+      // Auto-gradable types: rely on ans.correct boolean. Essay/long etc.
+      // count against teacher-graded only — for analytics we add them in
+      // proportionally so sections with manual grading aren't ignored.
+      const points = Number(q.points) || 1;
+      s.perSection[sectionName].max += points;
+      if (ans.correct === true) {
+        s.perSection[sectionName].score += points;
+      } else if (ans.correct == null && r.manualGrades && r.manualGrades[q.id]) {
+        // Manual or AI graded. Use the recorded score.
+        const mg = r.manualGrades[q.id];
+        s.perSection[sectionName].score += Number(mg.score || 0);
+      }
+    }
+  }
+
+  const studentList = [];
+  const sectionTotals = {}; // sectionName -> { score, max }
+  for (const s of perStudent.values()) {
+    const pct = s.max > 0 ? Math.round((s.total / s.max) * 100) : 0;
+    const level = cefr(pct);
+    studentList.push({
+      studentId: s.studentId,
+      name: s.name,
+      email: s.email,
+      pct,
+      total: s.total,
+      max: s.max,
+      submissions: s.count,
+      cefrLevel: level,
+      band: band(level),
+      perSection: s.perSection,
+    });
+    for (const [name, v] of Object.entries(s.perSection)) {
+      if (!sectionTotals[name]) sectionTotals[name] = { score: 0, max: 0 };
+      sectionTotals[name].score += v.score;
+      sectionTotals[name].max += v.max;
+    }
+  }
+  studentList.sort((a, b) => b.pct - a.pct);
+
+  // Class-level CEFR histogram.
+  const cefrHistogram = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0, C2: 0 };
+  for (const s of studentList) cefrHistogram[s.cefrLevel]++;
+  const bands = { Low: 0, Medium: 0, High: 0 };
+  for (const s of studentList) bands[s.band]++;
+
+  // Per-skill averages.
+  const skills = Object.entries(sectionTotals).map(([name, v]) => ({
+    name,
+    avgPct: v.max > 0 ? Math.round((v.score / v.max) * 100) : 0,
+    score: v.score,
+    max: v.max,
+  })).sort((a, b) => b.avgPct - a.avgPct);
+
+  // Overall class average pct.
+  const totalAll = studentList.reduce((a, s) => a + s.total, 0);
+  const maxAll = studentList.reduce((a, s) => a + s.max, 0);
+  const classAvgPct = maxAll > 0 ? Math.round((totalAll / maxAll) * 100) : 0;
+
+  res.json({
+    ok: true,
+    class: { id: c.id, name: c.name, rosterCount: (c.roster || []).length },
+    assessmentCount: myAssessments.length,
+    submissionCount: results.length,
+    classAvgPct,
+    cefrHistogram,
+    bands,
+    skills,
+    students: studentList,
+  });
+});
+
+// Cross-class analytics — averages for every class this teacher owns.
+app.get('/api/analytics/cross-class', requireTeacher, (req, res) => {
+  const classes = readAll('classes.json').filter((c) => c.teacherId === req.session.user.id);
+  const assessments = readAll('assessments.json');
+  const results = readAll('results.json');
+  const items = classes.map((c) => {
+    const ids = new Set(assessments.filter((a) => a.classId === c.id).map((a) => a.id));
+    const cls = results.filter((r) => ids.has(r.assessmentId));
+    const total = cls.reduce((a, r) => a + (r.autoScore || 0) + (r.manualScore || 0), 0);
+    const max = cls.reduce((a, r) => a + (r.autoMax || 0) + (r.manualMax || 0), 0);
+    return {
+      classId: c.id,
+      name: c.name,
+      rosterCount: (c.roster || []).length,
+      submissionCount: cls.length,
+      avgPct: max > 0 ? Math.round((total / max) * 100) : 0,
+    };
+  }).sort((a, b) => b.avgPct - a.avgPct);
+  res.json({ ok: true, classes: items });
+});
+
+// Generate a share token for an assessment so another teacher can open it
+// from a link and either print or duplicate it. Idempotent — same call
+// repeated returns the same token.
+app.post('/api/assessments/:id/share', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  if (!a.shareToken) {
+    a.shareToken = require('crypto').randomBytes(12).toString('hex');
+    writeAll('assessments.json', all);
+  }
+  const origin = req.headers.origin || (req.protocol + '://' + req.get('host'));
+  res.json({ ok: true, shareToken: a.shareToken, shareUrl: `${origin}/?share=${a.shareToken}` });
+});
+
+// View a shared assessment (any logged-in teacher). Returns the same shape
+// as /take but stripped of session-specific stuff; designed for preview /
+// print / duplicate.
+app.get('/api/assessments/share/:token', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.shareToken === req.params.token);
+  if (!a) return res.status(404).json({ error: 'Shared assessment not found' });
+  res.json({ ok: true, assessment: a });
+});
+
+// Duplicate a shared assessment into the receiving teacher's own classes.
+// New assessment gets a fresh id, the receiving teacher's id, and the
+// requested classId. shareToken is NOT carried over.
+app.post('/api/assessments/share/:token/duplicate', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const original = all.find((x) => x.shareToken === req.params.token);
+  if (!original) return res.status(404).json({ error: 'Shared assessment not found' });
+  const targetClassId = String(req.body && req.body.classId || '');
+  if (!targetClassId) return res.status(400).json({ error: 'classId required' });
+  const classes = readAll('classes.json');
+  const cls = classes.find((c) => c.id === targetClassId);
+  if (!cls || cls.teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'You can only duplicate into your own class.' });
+  }
+  const copy = {
+    ...original,
+    id: uuidv4(),
+    teacherId: req.session.user.id,
+    teacherName: req.session.user.name || req.session.user.email,
+    classId: targetClassId,
+    published: false,
+    createdAt: new Date().toISOString(),
+    shareToken: null,
+    duplicatedFrom: original.id,
+  };
+  delete copy.reentryGrants;
+  // Give every question + section a NEW id so the new assessment doesn't
+  // collide with the original's question references.
+  copy.sections = (copy.sections || []).map((s) => ({ ...s, id: uuidv4() }));
+  const sectionIdMap = new Map();
+  (original.sections || []).forEach((s, i) => {
+    if (copy.sections[i]) sectionIdMap.set(s.id, copy.sections[i].id);
+  });
+  copy.questions = (copy.questions || []).map((q) => ({
+    ...q,
+    id: uuidv4(),
+    sectionId: sectionIdMap.get(q.sectionId) || (copy.sections[0] && copy.sections[0].id),
+  }));
+  all.push(copy);
+  writeAll('assessments.json', all);
+  res.json({ ok: true, assessmentId: copy.id, title: copy.title });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
