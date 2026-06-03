@@ -1476,99 +1476,141 @@ function isFullscreen() {
 
 // --- Event handlers (installed/uninstalled as a group) ---
 const handlers = {
+  // HARDENED: any window blur lasting more than 1.5s is treated as an
+  // intentional escape (the student opened another window, minimised, used
+  // Cmd+Tab, etc.). We auto-submit immediately rather than wait for a
+  // 3-strike threshold. The 1.5s grace is just to swallow incidental focus
+  // glitches (notifications, the OS asking for camera permission again).
   visibilitychange: () => {
-    if (document.hidden) addViolation('Switched tab or minimized window');
+    if (document.hidden && !submitted) {
+      lockdownBlurEntered = Date.now();
+      scheduleHardLockdownSubmit('tab-hidden');
+    }
   },
-  blur: () => addViolation('Window lost focus'),
+  blur: () => {
+    if (!submitted) {
+      lockdownBlurEntered = Date.now();
+      scheduleHardLockdownSubmit('window-blurred');
+    }
+  },
   focus: () => {
-    // Allow re-focus but keep banner visible
+    // Returning focus cancels a pending submit IF the user came back fast
+    // enough — the 1.5s grace lives inside scheduleHardLockdownSubmit.
+    if (hardLockdownTimer) {
+      clearTimeout(hardLockdownTimer);
+      hardLockdownTimer = null;
+    }
+    lockdownBlurEntered = 0;
   },
   fullscreenchange: () => {
-    if (!isFullscreen()) {
-      addViolation('Exited fullscreen');
-      // Try to force fullscreen back
-      enterFullscreen().catch(() => {});
+    // Any exit from fullscreen during an exam = instant auto-submit. The
+    // browser only exits fullscreen because the student pressed Esc or
+    // navigated away — there is no legitimate reason mid-exam.
+    if (!submitted) {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!isFs && lockdownActive) {
+        addViolation('Exited fullscreen mode');
+        submit('fullscreen-exited').catch(() => {});
+      }
     }
   },
   keydown: (e) => {
-    const key = (e.key || '').toLowerCase();
-    const ctrl = e.ctrlKey || e.metaKey;
-
-    // ----- Screenshot keys → INSTANT auto-submit (no 3-strike grace) -----
-    // Browsers cannot physically block OS-level screenshot shortcuts, but the
-    // ones that DO reach the page are caught here. The student's test ends
-    // immediately on the first attempt. The desktop app provides true
-    // physical blocking via setContentProtection — recommend for high-stakes.
-    const isScreenshot =
-      e.key === 'PrintScreen' ||
-      (e.altKey && e.key === 'PrintScreen') ||
-      // Mac: Cmd+Shift+3 (full), Cmd+Shift+4 (region), Cmd+Shift+5 (UI),
-      // Cmd+Shift+6 (Touch Bar capture)
-      (e.metaKey && e.shiftKey && ['3', '4', '5', '6'].includes(e.key)) ||
-      // Windows: Win+Shift+S (Snipping Tool), Win+PrintScreen
-      (e.metaKey && e.shiftKey && key === 's') ||
-      (e.metaKey && e.key === 'PrintScreen') ||
-      // Cmd/Ctrl+P (Print to file ⇒ effectively a screenshot)
-      (ctrl && key === 'p');
-    if (isScreenshot) {
+    // Block common shortcuts in-page (browser still controls Cmd+W, Cmd+Q,
+    // Cmd+Tab — those are OS-level and unblockable from a web page).
+    const k = (e.key || '').toLowerCase();
+    if ((e.metaKey || e.ctrlKey) &&
+        ['c', 'v', 'x', 'p', 's', 'f', 'u', 'a', 'r', 'n', 't'].includes(k)) {
       e.preventDefault();
-      e.stopPropagation();
-      addViolation('Screenshot attempted — auto-submitting');
-      submit('screenshot').catch(() => {});
-      return false;
+      addViolation('Blocked keyboard shortcut: ' + k);
     }
-
-    // ----- Other blocked shortcuts → 3-strike violation -----
-    const block =
-      // DevTools
-      (e.key === 'F12') ||
-      (ctrl && e.shiftKey && ['i', 'j', 'c'].includes(key)) ||
-      // View source
-      (ctrl && key === 'u') ||
-      // Save, Find
-      (ctrl && ['s', 'f', 'g'].includes(key)) ||
-      // Clipboard
-      (ctrl && ['c', 'v', 'x'].includes(key)) ||
-      // New tab / window / close
-      (ctrl && ['t', 'n', 'w'].includes(key)) ||
-      // Reload
-      (ctrl && ['r'].includes(key)) || e.key === 'F5' ||
-      // Alt+Tab (Windows/Linux) — many browsers can't actually block this
-      (e.altKey && e.key === 'Tab');
-    if (block) {
+    if (e.key === 'F12' || (e.metaKey && e.altKey && k === 'i')) {
       e.preventDefault();
-      e.stopPropagation();
-      addViolation(`Blocked shortcut: ${describeShortcut(e)}`);
-      return false;
+      addViolation('Blocked developer-tools shortcut');
+    }
+    if (e.key === 'PrintScreen' ||
+        ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3','4','5'].includes(e.key))) {
+      e.preventDefault();
+      addViolation('Screenshot keypress detected — auto-submitting');
+      submit('screenshot-key').catch(() => {});
     }
   },
   copy: (e) => { e.preventDefault(); addViolation('Copy attempted'); },
   cut:  (e) => { e.preventDefault(); addViolation('Cut attempted'); },
-  paste: (e) => {
-    // Allow paste in answer fields (students may legitimately type). Block otherwise.
-    const t = e.target;
-    if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) {
-      e.preventDefault();
-      addViolation('Paste outside answer field');
-    }
-  },
-  contextmenu: (e) => { e.preventDefault(); },
-  dragstart: (e) => { e.preventDefault(); },
-  selectstart: (e) => {
-    // Allow selection in answer fields, block everywhere else
-    const t = e.target;
-    if (!(t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) {
-      e.preventDefault();
-    }
-  },
+  paste:(e) => { e.preventDefault(); addViolation('Paste attempted'); },
+  contextmenu: (e) => { e.preventDefault(); addViolation('Right-click attempted'); },
+  dragstart:  (e) => e.preventDefault(),
+  selectstart:(e) => { /* allow selection inside the answer fields */ },
   beforeunload: (e) => {
-    if (!submitted && lockdownActive) {
+    if (!submitted) {
       e.preventDefault();
-      e.returnValue = 'Leaving will forfeit your assessment.';
-      return e.returnValue;
+      e.returnValue = 'Leaving will auto-submit your assessment.';
+      return 'Leaving will auto-submit your assessment.';
     }
   },
 };
+
+// Hardened-blur scheduler — fires submit only if focus stays away >1.5s.
+let hardLockdownTimer = null;
+let lockdownBlurEntered = 0;
+function scheduleHardLockdownSubmit(reason) {
+  if (hardLockdownTimer || submitted || !lockdownActive) return;
+  // Immediately blanket the screen so any screenshot taken in the next 1.5s
+  // shows the blocking overlay, not the assessment questions.
+  showLockdownBlockOverlay(reason);
+  hardLockdownTimer = setTimeout(() => {
+    hardLockdownTimer = null;
+    if (submitted) return;
+    if (document.hidden || !document.hasFocus()) {
+      addViolation('Focus left window — auto-submitting (' + reason + ')');
+      submit(reason).catch(() => {});
+    }
+  }, 1500);
+}
+
+// Giant red overlay that covers the page when focus leaves. Re-uses the
+// existing focus-blur CSS but adds a hard blocker so the student can't
+// continue interacting until they're back.
+let lockdownBlockEl = null;
+function showLockdownBlockOverlay(reason) {
+  if (lockdownBlockEl) return;
+  lockdownBlockEl = document.createElement('div');
+  lockdownBlockEl.id = '_cc_lockdown_block';
+  lockdownBlockEl.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'z-index: 2147483646',
+    'background: rgba(139, 0, 0, 0.96)',
+    'color: #ffffff',
+    'display: flex', 'flex-direction: column',
+    'align-items: center', 'justify-content: center',
+    'gap: 18px', 'padding: 24px',
+    'font: 700 28px/1.4 -apple-system, system-ui, sans-serif',
+    'text-align: center',
+  ].join(';');
+  lockdownBlockEl.innerHTML = `
+    <div style="font-size:44px;">⚠ Focus lost</div>
+    <div style="font-size:22px; max-width: 640px; font-weight:500;">
+      You left the assessment window. Return to this tab IMMEDIATELY or the
+      assessment will be auto-submitted in 1.5 seconds.
+    </div>
+    <div style="font-size:18px; font-weight:400; opacity:0.85;">
+      Reason: ${reason}
+    </div>
+  `;
+  document.body.appendChild(lockdownBlockEl);
+  // Hide it again once focus returns.
+  const restore = () => {
+    if (lockdownBlockEl && lockdownBlockEl.parentNode) {
+      lockdownBlockEl.parentNode.removeChild(lockdownBlockEl);
+    }
+    lockdownBlockEl = null;
+    window.removeEventListener('focus', restore);
+    document.removeEventListener('visibilitychange', restoreOnVis);
+  };
+  const restoreOnVis = () => { if (!document.hidden) restore(); };
+  window.addEventListener('focus', restore);
+  document.addEventListener('visibilitychange', restoreOnVis);
+}
+;
 
 function describeShortcut(e) {
   const parts = [];
