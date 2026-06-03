@@ -1624,6 +1624,190 @@ app.put('/api/results/:resultId/teacher-grade', requireTeacher, (req, res) => {
   res.json({ ok: true, teacherGradeOverride: results[idx].teacherGradeOverride });
 });
 
+// JSON export of an assessment for the teacher (used by the PDF print
+// flow and any other "preview the whole paper" feature).
+app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Assessment not found' });
+  if (a.teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  res.json({ ok: true, assessment: a });
+});
+
+// Word document export — the teacher downloads the assessment as a .docx
+// they can edit/print at school. We embed the title, sections (with
+// instructions and passage), every question with its options or answer
+// lines, then an answer key on a final page.
+app.get('/api/assessments/:id/export.docx', requireTeacher, async (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).send('Assessment not found');
+  if (a.teacherId !== req.session.user.id) {
+    return res.status(403).send('Forbidden');
+  }
+
+  try {
+    const docx = require('docx');
+    const {
+      Document, Packer, Paragraph, TextRun, AlignmentType,
+      LevelFormat, HeadingLevel, PageBreak,
+    } = docx;
+
+    const NAVY = '1a1e33';
+    const INK  = '232846';
+    const MUTED = '6b7280';
+    const ACCENT = '92400e';
+    const PANEL = 'fef7e6';
+
+    const para = (text, opts = {}) => new Paragraph({
+      spacing: { before: 60, after: 60, line: 320 },
+      ...opts,
+      children: Array.isArray(text)
+        ? text
+        : [new TextRun({ text, font: 'Calibri', size: opts.size || 22, color: opts.color || INK, bold: opts.bold || false })],
+    });
+    const h1 = (text) => new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      spacing: { before: 240, after: 120 },
+      children: [new TextRun({ text, bold: true, color: NAVY, size: 36, font: 'Calibri' })],
+    });
+    const h2 = (text) => new Paragraph({
+      heading: HeadingLevel.HEADING_2,
+      spacing: { before: 220, after: 100 },
+      children: [new TextRun({ text, bold: true, color: NAVY, size: 28, font: 'Calibri' })],
+    });
+    const italic = (text) => para(text, { });
+    const passageBlock = (text) => new Paragraph({
+      spacing: { before: 80, after: 120, line: 320 },
+      shading: { fill: PANEL },
+      children: [new TextRun({ text, font: 'Calibri', size: 22, color: INK })],
+    });
+    const optionRow = (text) => new Paragraph({
+      spacing: { before: 30, after: 30, line: 280 },
+      indent: { left: 480 },
+      children: [
+        new TextRun({ text: '◯  ', font: 'Calibri', size: 22, color: MUTED }),
+        new TextRun({ text, font: 'Calibri', size: 22, color: INK }),
+      ],
+    });
+    const writingLines = (count) => Array.from({length: count}, () =>
+      new Paragraph({
+        spacing: { before: 80, after: 80 },
+        border: { bottom: { style: 'single', size: 6, color: '94a3b8' } },
+        children: [new TextRun({ text: ' ' })],
+      })
+    );
+
+    const children = [
+      h1(a.title || 'Assessment'),
+      para(a.description || '', { color: MUTED, size: 22 }),
+      para([
+        new TextRun({ text: 'Duration: ', bold: true, font: 'Calibri', size: 22, color: INK }),
+        new TextRun({ text: (a.durationMinutes || 30) + ' minutes', font: 'Calibri', size: 22, color: INK }),
+        new TextRun({ text: '  ·  ', font: 'Calibri', size: 22, color: MUTED }),
+        new TextRun({ text: (a.questions || []).length + ' questions', font: 'Calibri', size: 22, color: INK }),
+        ...(a.subject ? [new TextRun({ text: '  ·  ' + a.subject, font: 'Calibri', size: 22, color: INK })] : []),
+        ...(a.grade ? [new TextRun({ text: '  ·  Grade ' + a.grade, font: 'Calibri', size: 22, color: INK })] : []),
+        ...(a.term ? [new TextRun({ text: '  ·  Term ' + a.term, font: 'Calibri', size: 22, color: INK })] : []),
+      ]),
+      new Paragraph({ spacing: { before: 80 }, children: [new TextRun({ text: ' ' })] }),
+    ];
+
+    let qNum = 0;
+    const sections = a.sections || [];
+    const questions = a.questions || [];
+    const renderQuestion = (q) => {
+      qNum++;
+      const blocks = [
+        new Paragraph({
+          spacing: { before: 200, after: 60 },
+          children: [
+            new TextRun({ text: 'Q' + qNum + ' ', bold: true, font: 'Calibri', size: 24, color: NAVY }),
+            new TextRun({ text: '(' + (q.points || 1) + ' pt' + ((q.points || 1) === 1 ? '' : 's') + '):  ', bold: true, font: 'Calibri', size: 22, color: MUTED }),
+            new TextRun({ text: q.prompt || '', font: 'Calibri', size: 22, color: INK }),
+          ],
+        }),
+      ];
+      if (q.type === 'mc') {
+        for (const o of (q.options || [])) blocks.push(optionRow(String(o || '')));
+      } else if (q.type === 'tf') {
+        blocks.push(optionRow('True'));
+        blocks.push(optionRow('False'));
+      } else if (q.type === 'tfng') {
+        blocks.push(optionRow('True'));
+        blocks.push(optionRow('False'));
+        blocks.push(optionRow('Not Given'));
+      } else if (q.type === 'short') {
+        blocks.push(...writingLines(1));
+      } else if (q.type === 'long' || q.type === 'essay') {
+        blocks.push(...writingLines(6));
+      } else if (q.type === 'writing') {
+        blocks.push(...writingLines(14));
+      }
+      return blocks;
+    };
+
+    if (sections.length) {
+      for (const sec of sections) {
+        if (sec.title) children.push(h2(sec.title));
+        if (sec.instructions) children.push(para(sec.instructions, { color: ACCENT }));
+        if (sec.passage) children.push(passageBlock(sec.passage));
+        for (const q of questions.filter((qq) => qq.sectionId === sec.id)) {
+          children.push(...renderQuestion(q));
+        }
+      }
+    } else {
+      for (const q of questions) children.push(...renderQuestion(q));
+    }
+
+    // Answer key on a new page.
+    children.push(new Paragraph({ pageBreakBefore: true, children: [new TextRun({ text: '' })] }));
+    children.push(h1('Answer Key'));
+    let i = 0;
+    for (const q of questions) {
+      i++;
+      let answerText = '';
+      if (q.type === 'mc') answerText = String(((q.options || [])[q.correctAnswer]) || '');
+      else if (q.type === 'tf') answerText = q.correctAnswer ? 'True' : 'False';
+      else if (q.type === 'tfng') answerText = String(q.correctAnswer || '');
+      else if (q.type === 'short') answerText = String(q.correctAnswer || '(open-ended)');
+      else answerText = '(Teacher / AI graded)';
+      children.push(new Paragraph({
+        spacing: { before: 80, after: 80 },
+        children: [
+          new TextRun({ text: 'Q' + i + ': ', bold: true, font: 'Calibri', size: 22, color: NAVY }),
+          new TextRun({ text: answerText, font: 'Calibri', size: 22, color: INK }),
+        ],
+      }));
+    }
+
+    const doc = new Document({
+      creator: 'ClassCurio',
+      title: a.title || 'Assessment',
+      styles: {
+        default: { document: { run: { font: 'Calibri', size: 22 } } },
+      },
+      sections: [{
+        properties: {
+          page: { margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } },
+        },
+        children,
+      }],
+    });
+
+    const buf = await Packer.toBuffer(doc);
+    const safe = (a.title || 'assessment').replace(/[^a-z0-9-]+/gi, '_').slice(0, 80);
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.set('Content-Disposition', `attachment; filename="${safe}.docx"`);
+    res.send(buf);
+  } catch (e) {
+    console.error('[export.docx] failed', e);
+    res.status(500).send('Could not generate Word document: ' + e.message);
+  }
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
