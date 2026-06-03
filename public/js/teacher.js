@@ -3909,25 +3909,25 @@ async function openClassAnalytics() {
 //  PRINT-TO-PDF — opens a printable view of the assessment + answer key
 // ───────────────────────────────────────────────────────────────────────────
 async function printAssessmentPDF(assessmentId) {
+  // Fetch the assessment JSON with the session cookie attached, then render
+  // a fully-styled printable page inside a HIDDEN IFRAME inside this same
+  // window. No popup required — works in browsers and the desktop app.
   let data;
   try {
     data = await api(`/api/assessments/${assessmentId}/export`);
   } catch (e) {
-    alert('Could not load: ' + e.message);
+    alert('Could not load assessment: ' + e.message);
     return;
   }
   const a = data.assessment || data;
   const sections = a.sections || [];
   const questions = a.questions || [];
 
-  const win = window.open('', '_blank');
-  if (!win) { alert('Allow pop-ups so the print window can open.'); return; }
   const css = `
     <style>
-      body { font-family: Calibri, Arial, sans-serif; color:#1a1e33; padding: 30px 40px; line-height: 1.55; font-size: 14px; }
+      body { font-family: Calibri, Arial, sans-serif; color:#1a1e33; padding: 30px 40px; line-height: 1.55; font-size: 14px; margin: 0; }
       h1 { color:#1a1e33; margin: 0 0 4px; font-size: 24px; }
       h2 { color:#1a1e33; margin: 22px 0 6px; font-size: 18px; }
-      h3 { color:#92400e; margin: 18px 0 4px; font-size: 16px; }
       .meta { color:#475569; font-size: 13px; margin-bottom: 18px; }
       .passage { background:#fef7e6; border:1px solid #f59e0b; border-radius: 6px; padding: 12px 14px; white-space: pre-wrap; margin: 8px 0 14px; font-size: 14px; }
       .q { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; page-break-inside: avoid; }
@@ -3938,20 +3938,12 @@ async function printAssessmentPDF(assessmentId) {
       .pagebreak { page-break-before: always; }
       .key { background:#ecfdf5; border:1px solid #10b981; border-radius:8px; padding: 14px; margin-top: 12px; }
       .key-row { padding: 4px 0; border-bottom: 1px dashed #6ee7b7; }
-      @media print { .no-print { display:none; } body { padding: 18px; } }
-      .header-actions { position: fixed; top: 10px; right: 10px; }
     </style>
   `;
   function answerLine(q) {
-    if (q.type === 'mc') {
-      return (q.options || []).map((o) => `<div class="opt">${escapeHtml(o)}</div>`).join('');
-    }
-    if (q.type === 'tf') {
-      return `<div class="opt">True</div><div class="opt">False</div>`;
-    }
-    if (q.type === 'tfng') {
-      return `<div class="opt">True</div><div class="opt">False</div><div class="opt">Not Given</div>`;
-    }
+    if (q.type === 'mc') return (q.options || []).map((o) => `<div class="opt">${escapeHtml(String(o || ''))}</div>`).join('');
+    if (q.type === 'tf') return `<div class="opt">True</div><div class="opt">False</div>`;
+    if (q.type === 'tfng') return `<div class="opt">True</div><div class="opt">False</div><div class="opt">Not Given</div>`;
     if (q.type === 'short') return `<div class="write-lines"></div>`;
     if (q.type === 'long' || q.type === 'essay' || q.type === 'writing') {
       return Array.from({length: q.type === 'writing' ? 14 : 6}, () => '<div class="write-lines"></div>').join('');
@@ -3959,24 +3951,21 @@ async function printAssessmentPDF(assessmentId) {
     return '';
   }
   function correctLine(q, i) {
-    if (q.type === 'mc') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(q.options ? q.options[q.correctAnswer] || '' : '')}</div>`;
+    if (q.type === 'mc') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String((q.options || [])[q.correctAnswer] || ''))}</div>`;
     if (q.type === 'tf') return `<div class="key-row"><strong>Q${i+1}:</strong> ${q.correctAnswer ? 'True' : 'False'}</div>`;
-    if (q.type === 'tfng') return `<div class="key-row"><strong>Q${i+1}:</strong> ${q.correctAnswer}</div>`;
-    if (q.type === 'short') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(q.correctAnswer || '(open-ended)')}</div>`;
+    if (q.type === 'tfng') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String(q.correctAnswer || ''))}</div>`;
+    if (q.type === 'short') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String(q.correctAnswer || '(open-ended)'))}</div>`;
     return `<div class="key-row"><strong>Q${i+1}:</strong> Teacher / AI graded — no fixed key.</div>`;
   }
-
   let body = `<h1>${escapeHtml(a.title)}</h1>
     <div class="meta">${escapeHtml(a.description || '')}</div>
-    <div class="meta">${a.durationMinutes ? a.durationMinutes + ' minutes &middot; ' : ''}${questions.length} question${questions.length === 1 ? '' : 's'}${a.subject ? ' &middot; ' + escapeHtml(a.subject) : ''}${a.grade ? ' &middot; ' + escapeHtml(a.grade) : ''}${a.term ? ' &middot; Term ' + escapeHtml(a.term) : ''}</div>`;
+    <div class="meta">${a.durationMinutes ? a.durationMinutes + ' minutes &middot; ' : ''}${questions.length} question${questions.length === 1 ? '' : 's'}${a.subject ? ' &middot; ' + escapeHtml(a.subject) : ''}${a.grade ? ' &middot; Grade ' + escapeHtml(a.grade) : ''}${a.term ? ' &middot; Term ' + escapeHtml(a.term) : ''}</div>`;
   let qi = 0;
   if (sections.length) {
     for (const sec of sections) {
-      if (sec.title || sec.instructions || sec.passage) {
-        if (sec.title) body += `<h2>${escapeHtml(sec.title)}</h2>`;
-        if (sec.instructions) body += `<div style="font-style: italic; margin: 4px 0 8px;">${escapeHtml(sec.instructions)}</div>`;
-        if (sec.passage) body += `<div class="passage">${escapeHtml(sec.passage)}</div>`;
-      }
+      if (sec.title) body += `<h2>${escapeHtml(sec.title)}</h2>`;
+      if (sec.instructions) body += `<div style="font-style: italic; margin: 4px 0 8px;">${escapeHtml(sec.instructions)}</div>`;
+      if (sec.passage) body += `<div class="passage">${escapeHtml(sec.passage)}</div>`;
       for (const q of questions.filter((qq) => qq.sectionId === sec.id)) {
         qi++;
         body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt${(q.points || 1) === 1 ? '' : 's'}): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
@@ -3988,18 +3977,46 @@ async function printAssessmentPDF(assessmentId) {
       body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
     }
   }
-  // Answer key on a new page.
   body += `<div class="pagebreak"></div><h2>Answer Key</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
 
-  win.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(a.title)}</title>${css}</head><body>
-    <div class="header-actions no-print">
-      <button onclick="window.print()" style="font-size:14px; padding:8px 14px; border-radius:6px; background:#1a1e33; color:#fff; border:none; cursor:pointer;">Print / Save as PDF</button>
+  const fullHtml = `<!DOCTYPE html><html><head><title>${escapeHtml(a.title)}</title>${css}</head><body>${body}</body></html>`;
+
+  // Build a same-origin modal wrapping a print iframe — no popup needed.
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-print-overlay';
+  overlay.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'background: rgba(11, 16, 32, 0.55)',
+    'display: flex', 'flex-direction: column',
+    'align-items: stretch',
+    'z-index: 100000',
+  ].join(';');
+  overlay.innerHTML = `
+    <div style="display:flex; gap:8px; align-items:center; padding: 10px 14px; background: #1a1e33; color:#fff;">
+      <strong>Preview — ${escapeHtml(a.title)}</strong>
+      <div style="flex:1;"></div>
+      <button class="btn primary" id="pdf-print-btn">🖨️ Print / Save as PDF</button>
+      <button class="btn" id="pdf-print-close" style="background:#374151; color:#fff; border-color:#374151;">Close</button>
     </div>
-    ${body}
-  </body></html>`);
-  win.document.close();
-  // Slight delay then auto-trigger print dialog.
-  setTimeout(() => { try { win.print(); } catch {} }, 800);
+    <iframe id="pdf-print-iframe" style="flex: 1; width: 100%; border: 0; background: #fff;"></iframe>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+  document.getElementById('pdf-print-close').onclick = close;
+  // Click outside on the dark backdrop to close (but not on the iframe).
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  const iframe = document.getElementById('pdf-print-iframe');
+  // Write the HTML into the iframe and trigger print after a moment.
+  iframe.onload = () => {
+    setTimeout(() => {
+      try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) {}
+    }, 300);
+  };
+  iframe.srcdoc = fullHtml;
+  document.getElementById('pdf-print-btn').onclick = () => {
+    try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) {}
+  };
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -4183,15 +4200,34 @@ function showExportChooser(assessmentId) {
   });
 }
 
-function downloadAssessmentDocx(assessmentId) {
-  // Server sets Content-Disposition: attachment, so navigating an <a> at
-  // the URL triggers a direct download with the right filename.
+async function downloadAssessmentDocx(assessmentId) {
+  // Fetch the .docx as a Blob with cookies attached, then trigger a save
+  // via a temporary object URL. Works without popups and without relying
+  // on the browser to forward auth cookies on a new-tab navigation.
+  let blob;
+  try {
+    const r = await fetch(`/api/assessments/${assessmentId}/export.docx`, {
+      method: 'GET', credentials: 'same-origin',
+    });
+    if (!r.ok) {
+      const txt = await r.text().catch(() => '');
+      throw new Error('Server returned ' + r.status + (txt ? ' — ' + txt.slice(0, 200) : ''));
+    }
+    blob = await r.blob();
+  } catch (e) {
+    alert('Could not download Word document: ' + e.message);
+    return;
+  }
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = `/api/assessments/${assessmentId}/export.docx`;
-  a.target = '_blank';
-  a.rel = 'noopener';
+  // Try to grab the filename from Content-Disposition; otherwise default.
+  a.href = url;
+  a.download = (assessmentId + '.docx');
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+  setTimeout(() => {
+    if (a.parentNode) a.parentNode.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1000);
 }
 
