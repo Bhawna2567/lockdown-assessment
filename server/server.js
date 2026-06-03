@@ -1252,6 +1252,134 @@ app.post('/api/classes/:fromId/roster/:email/transfer', requireTeacher, (req, re
   });
 });
 
+// BULK delete students from a class. Each email goes through the same
+// safety check as the single-row delete (teacher must own the source class
+// and the student must be on the roster). Returns per-email outcomes.
+app.post('/api/classes/:id/bulk-delete', requireTeacher, (req, res) => {
+  const classes = readAll('classes.json');
+  const cIdx = classes.findIndex((c) => c.id === req.params.id);
+  if (cIdx === -1) return res.status(404).json({ error: 'Class not found' });
+  if (classes[cIdx].teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const emails = Array.isArray(req.body && req.body.emails) ? req.body.emails : [];
+  if (emails.length === 0) return res.status(400).json({ error: 'No emails provided' });
+
+  const wanted = new Set(emails.map((e) => String(e || '').toLowerCase()));
+  const users = readAll('users.json');
+  const results_arr = readAll('results.json');
+
+  const removedUserIds = new Set();
+  const outcomes = [];
+  // Keep users that are NOT on the wanted list OR that belong to other rosters
+  // we don't want to disturb.
+  for (const u of users) {
+    const em = String(u.email || '').toLowerCase();
+    if (u.role === 'student' && wanted.has(em)) {
+      removedUserIds.add(u.id);
+      outcomes.push({ email: em, status: 'deleted' });
+    }
+  }
+
+  // Remove from THIS class roster.
+  let rosterTouched = 0;
+  const before = (classes[cIdx].roster || []).length;
+  classes[cIdx].roster = (classes[cIdx].roster || []).filter((r) =>
+    !wanted.has(String(r && r.email || '').toLowerCase())
+  );
+  rosterTouched = before - classes[cIdx].roster.length;
+  writeAll('classes.json', classes);
+
+  // Drop the user accounts + their results.
+  if (removedUserIds.size > 0) {
+    const keptUsers = users.filter((u) => !removedUserIds.has(u.id));
+    writeAll('users.json', keptUsers);
+    const keptResults = results_arr.filter((r) => !removedUserIds.has(r.studentId));
+    if (keptResults.length !== results_arr.length) {
+      writeAll('results.json', keptResults);
+    }
+    // Also strip these emails from every OTHER class roster across the system.
+    for (const c of classes) {
+      c.roster = (c.roster || []).filter((r) =>
+        !wanted.has(String(r && r.email || '').toLowerCase())
+      );
+    }
+    writeAll('classes.json', classes);
+  }
+
+  res.json({
+    ok: true,
+    removedUsers: removedUserIds.size,
+    rosterRowsRemoved: rosterTouched,
+    outcomes,
+  });
+});
+
+// BULK move/copy students to another class owned by the same teacher.
+app.post('/api/classes/:fromId/bulk-transfer', requireTeacher, (req, res) => {
+  const fromId = req.params.fromId;
+  const targetId = String(req.body && req.body.targetClassId || '');
+  const mode = String(req.body && req.body.mode || 'move').toLowerCase();
+  const emails = Array.isArray(req.body && req.body.emails) ? req.body.emails : [];
+  if (!targetId) return res.status(400).json({ error: 'Missing targetClassId' });
+  if (mode !== 'move' && mode !== 'copy') {
+    return res.status(400).json({ error: 'mode must be "move" or "copy"' });
+  }
+  if (fromId === targetId) {
+    return res.status(400).json({ error: 'Source and target classes are the same.' });
+  }
+  if (emails.length === 0) return res.status(400).json({ error: 'No emails provided' });
+
+  const classes = readAll('classes.json');
+  const srcIdx = classes.findIndex((c) => c.id === fromId);
+  const dstIdx = classes.findIndex((c) => c.id === targetId);
+  if (srcIdx === -1 || dstIdx === -1) return res.status(404).json({ error: 'Class not found' });
+  if (classes[srcIdx].teacherId !== req.session.user.id ||
+      classes[dstIdx].teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'You can only move students between your own classes.' });
+  }
+
+  const wanted = new Set(emails.map((e) => String(e || '').toLowerCase()));
+  const srcRoster = Array.isArray(classes[srcIdx].roster) ? classes[srcIdx].roster : [];
+  const dstRoster = Array.isArray(classes[dstIdx].roster) ? classes[dstIdx].roster : [];
+  const dstEmails = new Set(dstRoster.map((r) => String(r && r.email || '').toLowerCase()));
+
+  const outcomes = [];
+  const toMove = srcRoster.filter((r) =>
+    wanted.has(String(r && r.email || '').toLowerCase())
+  );
+  for (const row of toMove) {
+    const em = String(row.email || '').toLowerCase();
+    const already = dstEmails.has(em);
+    if (!already) {
+      dstRoster.push({
+        email: row.email,
+        name: row.name,
+        studentNumber: row.studentNumber,
+        addedFrom: mode === 'move' ? 'bulk-moved' : 'bulk-copied',
+        addedAt: new Date().toISOString(),
+      });
+      dstEmails.add(em);
+    }
+    outcomes.push({ email: em, addedToTarget: !already, alreadyInTarget: already });
+  }
+  classes[dstIdx].roster = dstRoster;
+
+  if (mode === 'move') {
+    classes[srcIdx].roster = srcRoster.filter((r) =>
+      !wanted.has(String(r && r.email || '').toLowerCase())
+    );
+  }
+  writeAll('classes.json', classes);
+  res.json({
+    ok: true,
+    mode,
+    processed: toMove.length,
+    outcomes,
+    targetRosterCount: dstRoster.length,
+  });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {

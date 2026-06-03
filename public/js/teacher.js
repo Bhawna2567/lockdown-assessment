@@ -766,6 +766,9 @@ function renderClassesList() {
         <table style="width:100%; font-size: 13px; border-collapse: collapse;">
           <thead>
             <tr style="background: #eef2ff;">
+              <th style="text-align:left; padding: 8px; width: 28px;">
+                <input type="checkbox" data-bulk-select-all="${id}" title="Select all" />
+              </th>
               <th style="text-align:left; padding: 8px;">Name</th>
               <th style="text-align:left; padding: 8px;">Email</th>
               <th style="text-align:left; padding: 8px;">Status</th>
@@ -795,8 +798,12 @@ function renderClassesList() {
                 : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + editBtn + moveBtn + (s.email
                     ? ` <button class="btn danger" data-roster-delete-email="${escapeAttr(s.email)}" data-class-id="${id}" data-roster-name="${escapeAttr(s.name || s.email || '')}">Remove</button>`
                     : '');
+              const cb = s.email
+                ? `<input type="checkbox" data-bulk-row="${escapeAttr(s.email)}" data-class-id="${id}" />`
+                : '<span class="muted">—</span>';
               return `
                 <tr style="border-top: 1px solid #e5e7eb;">
+                  <td style="padding: 8px;">${cb}</td>
                   <td style="padding: 8px;"><strong>${escapeHtml(s.name || '(no name)')}</strong></td>
                   <td style="padding: 8px;">${s.email ? escapeHtml(s.email) : `<span class="muted" style="font-size: 12px;">—</span>`}</td>
                   <td style="padding: 8px;">${statusBadge}</td>
@@ -807,6 +814,119 @@ function renderClassesList() {
           </tbody>
         </table>
       `;
+      // Inject the floating bulk-action bar (hidden until any row is checked).
+      const barId = 'bulk-bar-' + id;
+      view.insertAdjacentHTML('beforeend', `
+        <div id="${barId}" data-bulk-bar="${id}" style="display:none; position: sticky; bottom: 8px; margin-top: 12px; background: #1a1e33; color: #fff; border: 2px solid #c69214; border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.25);">
+          <div class="row" style="gap: 8px; flex-wrap: wrap; align-items: center;">
+            <strong data-bulk-count="${id}" style="color: #c69214;">0 selected</strong>
+            <div class="spacer"></div>
+            <select data-bulk-target="${id}" style="background:#0f1322; color:#fff; border:1px solid #2b3152; padding: 6px 10px; border-radius: 6px;"></select>
+            <button class="btn primary" data-bulk-action="${id}" data-mode="move">Move selected</button>
+            <button class="btn" data-bulk-action="${id}" data-mode="copy" style="background:#1f2746; color:#fff; border-color:#2b3152;">Copy selected</button>
+            <button class="btn danger" data-bulk-action="${id}" data-mode="delete">Delete selected</button>
+            <button class="btn ghost" data-bulk-action="${id}" data-mode="clear" style="color:#cbd5e1; background:transparent;">Clear</button>
+          </div>
+          <div data-bulk-status="${id}" class="muted" style="font-size: 12px; margin-top: 6px; color:#cbd5e1;"></div>
+        </div>
+      `);
+
+      const bulkBar = view.querySelector(`[data-bulk-bar="${id}"]`);
+      const bulkCount = view.querySelector(`[data-bulk-count="${id}"]`);
+      const bulkTarget = view.querySelector(`[data-bulk-target="${id}"]`);
+      const bulkStatus = view.querySelector(`[data-bulk-status="${id}"]`);
+      // Populate the target-class dropdown with the teacher's OTHER classes.
+      const otherClasses = classes.filter((c) => c.id !== id);
+      bulkTarget.innerHTML = otherClasses.length
+        ? otherClasses.map((c) => `<option value="${escapeAttr(c.id)}">${escapeHtml(c.name)} (${(c.roster || []).length} students)</option>`).join('')
+        : `<option value="">No other classes — create one first</option>`;
+
+      function selectedEmails() {
+        return Array.from(view.querySelectorAll(`[data-bulk-row][data-class-id="${id}"]:checked`))
+          .map((el) => el.dataset.bulkRow);
+      }
+      function refreshBulkBar() {
+        const n = selectedEmails().length;
+        bulkBar.style.display = n > 0 ? 'block' : 'none';
+        bulkCount.textContent = `${n} selected`;
+      }
+      // Wire each row checkbox.
+      view.querySelectorAll(`[data-bulk-row][data-class-id="${id}"]`).forEach((cb) => {
+        cb.onchange = refreshBulkBar;
+      });
+      // Wire the "select all" header checkbox.
+      const allCb = view.querySelector(`[data-bulk-select-all="${id}"]`);
+      if (allCb) {
+        allCb.onchange = () => {
+          view.querySelectorAll(`[data-bulk-row][data-class-id="${id}"]`).forEach((cb) => {
+            cb.checked = allCb.checked;
+          });
+          refreshBulkBar();
+        };
+      }
+      // Wire the action buttons.
+      view.querySelectorAll(`[data-bulk-action="${id}"]`).forEach((btn) => {
+        btn.onclick = async () => {
+          const mode = btn.dataset.mode;
+          if (mode === 'clear') {
+            view.querySelectorAll(`[data-bulk-row][data-class-id="${id}"]`).forEach((cb) => { cb.checked = false; });
+            if (allCb) allCb.checked = false;
+            refreshBulkBar();
+            return;
+          }
+          const emails = selectedEmails();
+          if (emails.length === 0) return;
+          const n = emails.length;
+          if (mode === 'delete') {
+            if (!confirm(`Delete ${n} student account${n === 1 ? '' : 's'}?\n\nThis permanently removes their accounts, all submitted results, and removes them from every class roster. The emails will be freed for re-use.`)) return;
+            bulkStatus.textContent = `Deleting ${n} students...`;
+            try {
+              const resp = await api(`/api/classes/${id}/bulk-delete`, { method: 'POST', body: { emails } });
+              await loadKnownStudents();
+              await loadClasses();
+              const trigger = els.classesList.querySelector(`[data-class-view-roster="${id}"]`);
+              if (trigger) {
+                view.style.display = 'none';
+                trigger.click();
+              }
+              els.classesStatus.innerHTML = `✓ Deleted ${resp.removedUsers || 0} student account${(resp.removedUsers || 0) === 1 ? '' : 's'}.`;
+              els.classesStatus.style.color = '#166534';
+              setTimeout(() => { els.classesStatus.textContent = ''; els.classesStatus.style.color = ''; }, 4000);
+            } catch (e) {
+              bulkStatus.textContent = '❌ ' + e.message;
+            }
+            return;
+          }
+          // move or copy
+          const targetId = bulkTarget.value;
+          if (!targetId) { bulkStatus.textContent = '⚠ Create another class first.'; return; }
+          const verb = mode === 'move' ? 'Move' : 'Copy';
+          if (!confirm(`${verb} ${n} student${n === 1 ? '' : 's'} to the target class?`)) return;
+          bulkStatus.textContent = `${verb}ing ${n}...`;
+          try {
+            const resp = await api(`/api/classes/${id}/bulk-transfer`, {
+              method: 'POST',
+              body: { targetClassId: targetId, mode, emails },
+            });
+            await loadClasses();
+            const trigger = els.classesList.querySelector(`[data-class-view-roster="${id}"]`);
+            if (trigger) {
+              view.style.display = 'none';
+              trigger.click();
+            }
+            const added = (resp.outcomes || []).filter((o) => o.addedToTarget).length;
+            const skipped = (resp.outcomes || []).filter((o) => o.alreadyInTarget).length;
+            const target = classes.find((c) => c.id === targetId);
+            const targetName = target ? target.name : 'target class';
+            els.classesStatus.innerHTML = `✓ ${verb}d ${added} to ${escapeHtml(targetName)}` + (skipped > 0 ? ` (${skipped} were already there)` : '') + '.';
+            els.classesStatus.style.color = '#166534';
+            setTimeout(() => { els.classesStatus.textContent = ''; els.classesStatus.style.color = ''; }, 4000);
+          } catch (e) {
+            bulkStatus.textContent = '❌ ' + e.message;
+          }
+        };
+      });
+
       view.querySelectorAll('[data-roster-progress]').forEach((b) => {
         b.onclick = () => {
           closeClassesPanel();
