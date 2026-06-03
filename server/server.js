@@ -1081,6 +1081,105 @@ app.post('/api/classes/:id/reconcile-roster', requireTeacher, (req, res) => {
   res.json({ ok: true, added, total: roster.length });
 });
 
+// Edit a roster row in place. The :email URL parameter is the CURRENT
+// email of the roster row (URL-encoded). The body can supply newEmail,
+// name, studentNumber to change any of them. We also update the matching
+// user account so the student can still log in with the corrected email.
+app.put('/api/classes/:id/roster/:email', requireTeacher, async (req, res) => {
+  const classes = readAll('classes.json');
+  const cIdx = classes.findIndex((c) => c.id === req.params.id);
+  if (cIdx === -1) return res.status(404).json({ error: 'Class not found' });
+  if (classes[cIdx].teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const oldEmail = String(req.params.email || '').toLowerCase();
+  const roster = Array.isArray(classes[cIdx].roster) ? classes[cIdx].roster : [];
+  const rIdx = roster.findIndex((r) =>
+    String(r && r.email || '').toLowerCase() === oldEmail
+  );
+  if (rIdx === -1) return res.status(404).json({ error: 'Student not found on roster' });
+
+  const incoming = req.body || {};
+  const newEmail = incoming.newEmail !== undefined
+    ? String(incoming.newEmail || '').trim().toLowerCase()
+    : oldEmail;
+  const newName = incoming.name !== undefined
+    ? String(incoming.name || '').trim().slice(0, 120)
+    : (roster[rIdx].name || '');
+  const newStudentNumber = incoming.studentNumber !== undefined
+    ? String(incoming.studentNumber || '').trim().slice(0, 40)
+    : (roster[rIdx].studentNumber || '');
+
+  if (!newEmail || !newEmail.includes('@')) {
+    return res.status(400).json({ error: 'Email must be a valid address.' });
+  }
+
+  // Email-change conflict checks.
+  if (newEmail !== oldEmail) {
+    // Conflict within this class roster.
+    const dupOnRoster = roster.some((r, i) =>
+      i !== rIdx && String(r && r.email || '').toLowerCase() === newEmail
+    );
+    if (dupOnRoster) {
+      return res.status(409).json({ error: 'Another student in this class is already using that email.' });
+    }
+    // Conflict against other users in the system.
+    const users = readAll('users.json');
+    const dupOnUsers = users.some((u) =>
+      String(u.email || '').toLowerCase() === newEmail
+    );
+    if (dupOnUsers) {
+      return res.status(409).json({ error: 'A different account already uses that email. Pick another address or delete the other account first.' });
+    }
+  }
+
+  // Apply the roster change.
+  roster[rIdx].email = newEmail;
+  roster[rIdx].name = newName;
+  roster[rIdx].studentNumber = newStudentNumber;
+  classes[cIdx].roster = roster;
+  writeAll('classes.json', classes);
+
+  // Mirror the change onto the user account (if one exists at the OLD
+  // email). This keeps their login working.
+  const users = readAll('users.json');
+  const uIdx = users.findIndex((u) =>
+    String(u.email || '').toLowerCase() === oldEmail && u.role === 'student'
+  );
+  let userTouched = false;
+  if (uIdx !== -1) {
+    users[uIdx].email = newEmail;
+    if (newName) users[uIdx].name = newName;
+    if (newStudentNumber !== undefined) users[uIdx].studentNumber = newStudentNumber;
+    writeAll('users.json', users);
+    userTouched = true;
+  }
+
+  // Mirror the email change on any OTHER class rosters that referenced the
+  // old email — students can sit on multiple class rosters (in theory).
+  if (newEmail !== oldEmail) {
+    let touchedAny = false;
+    for (const c of classes) {
+      if (c.id === req.params.id) continue;
+      for (const r of (c.roster || [])) {
+        if (String(r && r.email || '').toLowerCase() === oldEmail) {
+          r.email = newEmail;
+          if (newName) r.name = newName;
+          touchedAny = true;
+        }
+      }
+    }
+    if (touchedAny) writeAll('classes.json', classes);
+  }
+
+  res.json({
+    ok: true,
+    row: roster[rIdx],
+    userAccountUpdated: userTouched,
+  });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {

@@ -784,9 +784,12 @@ function renderClassesList() {
               const deleteBtn = matched
                 ? `<button class="btn danger" data-roster-delete="${matched.studentId}" data-roster-name="${escapeAttr(s.name || s.email || '')}" style="margin-left: 6px;">Delete</button>`
                 : '';
+              const editBtn = s.email
+                ? `<button class="btn" data-roster-edit-email="${escapeAttr(s.email)}" data-class-id="${id}" style="margin-left: 6px;">Edit</button>`
+                : '';
               const actions = matched
-                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + deleteBtn
-                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + (s.email
+                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + editBtn + deleteBtn
+                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + editBtn + (s.email
                     ? ` <button class="btn danger" data-roster-delete-email="${escapeAttr(s.email)}" data-class-id="${id}" data-roster-name="${escapeAttr(s.name || s.email || '')}">Remove</button>`
                     : '');
               return `
@@ -836,6 +839,57 @@ function renderClassesList() {
           }
         };
       });
+      // Edit a roster row in place. Pops a tiny prompt-based dialog with
+      // current values pre-filled so the teacher can fix typos. Calls the
+      // PUT endpoint which also updates the backing user account if one
+      // exists at the old email.
+      view.querySelectorAll('[data-roster-edit-email]').forEach((b) => {
+        b.onclick = async () => {
+          const oldEmail = b.dataset.rosterEditEmail;
+          const classId = b.dataset.classId;
+          const cls = classes.find((c) => c.id === classId);
+          const row = cls && (cls.roster || []).find((r) =>
+            String(r && r.email || '').toLowerCase() === oldEmail.toLowerCase()
+          );
+          if (!row) return;
+
+          // Tiny sequential prompt — keeps UI changes minimal and works on
+          // mobile too. Each blank value means "keep current".
+          const newName = prompt(`Name for this student\n(current: ${row.name || '(none)'})\n\nLeave unchanged to keep the current value.`, row.name || '');
+          if (newName === null) return; // cancelled
+          const newEmail = prompt(`Email for this student\n(current: ${row.email})\n\nThis is the address the student uses to log in. Fixing a typo here also updates their login if they already have an account.`, row.email || '');
+          if (newEmail === null) return;
+          const newStudentNumber = prompt(`Student number (optional)\n(current: ${row.studentNumber || '(none)'})`, row.studentNumber || '');
+          if (newStudentNumber === null) return;
+
+          b.disabled = true;
+          b.textContent = 'Saving...';
+          try {
+            await api(`/api/classes/${classId}/roster/${encodeURIComponent(oldEmail)}`, {
+              method: 'PUT',
+              body: {
+                name: newName,
+                newEmail: newEmail,
+                studentNumber: newStudentNumber,
+              },
+            });
+            await loadKnownStudents();
+            await loadClasses();
+            // Re-open the View students table so the row reflects the change.
+            const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
+            if (trigger) {
+              const v2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
+              if (v2) v2.style.display = 'none';
+              trigger.click();
+            }
+          } catch (e) {
+            alert('Could not update: ' + e.message);
+            b.disabled = false;
+            b.textContent = 'Edit';
+          }
+        };
+      });
+
       // Remove a roster entry that has no backing account (just clean up).
       // We do this by replacing the class's roster minus that email.
       view.querySelectorAll('[data-roster-delete-email]').forEach((b) => {
