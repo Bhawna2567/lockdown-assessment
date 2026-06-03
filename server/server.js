@@ -1606,6 +1606,24 @@ app.post('/api/assessments/share/:token/duplicate', requireTeacher, (req, res) =
   res.json({ ok: true, assessmentId: copy.id, title: copy.title });
 });
 
+// Teacher writes their own free-text grade on a student's submission.
+// Stored alongside the result so it shows on the report card.
+app.put('/api/results/:resultId/teacher-grade', requireTeacher, (req, res) => {
+  const results = readAll('results.json');
+  const idx = results.findIndex((r) => r.id === req.params.resultId);
+  if (idx === -1) return res.status(404).json({ error: 'Result not found' });
+  const assessments = readAll('assessments.json');
+  const a = assessments.find((x) => x.id === results[idx].assessmentId);
+  if (!a || a.teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const grade = String(req.body && req.body.grade != null ? req.body.grade : '').trim().slice(0, 80);
+  results[idx].teacherGradeOverride = grade || null;
+  results[idx].teacherGradeOverrideAt = grade ? new Date().toISOString() : null;
+  writeAll('results.json', results);
+  res.json({ ok: true, teacherGradeOverride: results[idx].teacherGradeOverride });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {

@@ -1222,6 +1222,62 @@ if (els.addClassBtn) {
   };
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+//  Grading-framework helpers (subject-aware).
+//  - Languages -> CEFR A1-C2
+//  - Math / Science -> PISA Level 1-6
+//  - Everything else -> Low/Medium/High only
+// ──────────────────────────────────────────────────────────────────────────
+const LANGUAGE_SUBJECTS = new Set([
+  'english', 'arabic', 'french', 'spanish', 'german', 'italian',
+  'portuguese', 'hindi', 'urdu', 'mandarin', 'japanese', 'korean', 'russian',
+  'turkish', 'language', 'languages',
+]);
+const PISA_SUBJECTS = new Set([
+  'math', 'mathematics', 'maths', 'science', 'physics', 'chemistry',
+  'biology', 'general science', 'integrated science', 'earth science',
+]);
+function frameworkForSubject(subject) {
+  const s = String(subject || '').trim().toLowerCase();
+  if (!s) return 'band';
+  if (LANGUAGE_SUBJECTS.has(s)) return 'cefr';
+  if (PISA_SUBJECTS.has(s)) return 'pisa';
+  // Heuristic catch-all: any subject that mentions a language family or the
+  // word "language" → cefr; any with "math" or "science" → pisa.
+  if (/\b(english|arabic|french|spanish|german|italian|portuguese|hindi|urdu|mandarin|japanese|korean|russian|turkish|language)\b/i.test(s)) return 'cefr';
+  if (/\b(math|science|physics|chemistry|biology)\b/i.test(s)) return 'pisa';
+  return 'band';
+}
+function cefrFor(pct) {
+  if (pct >= 90) return 'C2';
+  if (pct >= 75) return 'C1';
+  if (pct >= 60) return 'B2';
+  if (pct >= 45) return 'B1';
+  if (pct >= 30) return 'A2';
+  return 'A1';
+}
+function pisaFor(pct) {
+  // Mirrors CEFR's 6-band split on a Level 1-6 scale.
+  if (pct >= 90) return '6';
+  if (pct >= 75) return '5';
+  if (pct >= 60) return '4';
+  if (pct >= 45) return '3';
+  if (pct >= 30) return '2';
+  return '1';
+}
+function bandFor(pct) {
+  // Low / Medium / High aligned to the 6-band split:
+  //   bottom two bands -> Low, middle two -> Medium, top two -> High.
+  if (pct >= 75) return 'High';
+  if (pct >= 45) return 'Medium';
+  return 'Low';
+}
+function bandStyle(band) {
+  if (band === 'High')   return { color: '#166534', bg: '#dcfce7' };
+  if (band === 'Medium') return { color: '#92400e', bg: '#fef3c7' };
+  return                       { color: '#b91c1c', bg: '#fee2e2' };
+}
+
 // Subject templates. Most are "blurb-only" and just pre-set the subject +
 // suggest question types — teachers add their own questions.
 //
@@ -2984,27 +3040,46 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
         <div class="report-score-bar"><div class="report-score-bar-fill" style="width: ${pct}%"></div></div>
         <div class="report-score-pct">${pct}%</div>
         ${(() => {
-          // CEFR 6-band split + L/M/H band classification.
-          let cefr = 'A1';
-          if (pct >= 90) cefr = 'C2';
-          else if (pct >= 75) cefr = 'C1';
-          else if (pct >= 60) cefr = 'B2';
-          else if (pct >= 45) cefr = 'B1';
-          else if (pct >= 30) cefr = 'A2';
-          const band = (cefr === 'C1' || cefr === 'C2') ? 'High'
-                     : (cefr === 'B1' || cefr === 'B2') ? 'Medium' : 'Low';
-          const bandColor = band === 'High' ? '#166534' : band === 'Medium' ? '#92400e' : '#b91c1c';
-          const bandBg    = band === 'High' ? '#dcfce7' : band === 'Medium' ? '#fef3c7' : '#fee2e2';
+          const fw = frameworkForSubject(data.subject);
+          const band = bandFor(pct);
+          const bs = bandStyle(band);
+          const frameworkCard = (() => {
+            if (fw === 'cefr') {
+              return `
+                <div style="padding: 10px 16px; background:#eef2ff; border:1px solid #c7d2fe; border-radius: 10px;">
+                  <div style="font-size: 12px; color:#4338ca; text-transform: uppercase; letter-spacing: 1px;">CEFR Level</div>
+                  <div style="font-size: 28px; font-weight: 700; color:#1e1b4b;">${cefrFor(pct)}</div>
+                </div>`;
+            }
+            if (fw === 'pisa') {
+              return `
+                <div style="padding: 10px 16px; background:#ecfdf5; border:1px solid #6ee7b7; border-radius: 10px;">
+                  <div style="font-size: 12px; color:#047857; text-transform: uppercase; letter-spacing: 1px;">PISA Level</div>
+                  <div style="font-size: 28px; font-weight: 700; color:#065f46;">${pisaFor(pct)} of 6</div>
+                </div>`;
+            }
+            // No universal framework for the subject — show the raw percent
+            // as the dominant figure instead.
+            return `
+              <div style="padding: 10px 16px; background:#f3f4f6; border:1px solid #d1d5db; border-radius: 10px;">
+                <div style="font-size: 12px; color:#374151; text-transform: uppercase; letter-spacing: 1px;">Score</div>
+                <div style="font-size: 28px; font-weight: 700; color:#1f2937;">${pct}%</div>
+              </div>`;
+          })();
+          const overrideCard = data.teacherGradeOverride
+            ? `<div style="padding: 10px 16px; background:#fef3c7; border:2px solid #c69214; border-radius: 10px;">
+                 <div style="font-size: 12px; color:#92400e; text-transform: uppercase; letter-spacing: 1px;">Teacher's Grade</div>
+                 <div style="font-size: 28px; font-weight: 700; color:#78350f;">${escapeHtml(data.teacherGradeOverride)}</div>
+               </div>`
+            : '';
           return `
             <div class="report-cefr" style="display:flex; gap: 14px; margin-top: 14px; flex-wrap: wrap;">
-              <div style="padding: 10px 16px; background:#eef2ff; border:1px solid #c7d2fe; border-radius: 10px;">
-                <div style="font-size: 12px; color:#4338ca; text-transform: uppercase; letter-spacing: 1px;">CEFR Level</div>
-                <div style="font-size: 28px; font-weight: 700; color:#1e1b4b;">${cefr}</div>
+              ${frameworkCard}
+              <div style="padding: 10px 16px; background:${bs.bg}; border:1px solid ${bs.color}; border-radius: 10px;">
+                <div style="font-size: 12px; color:${bs.color}; text-transform: uppercase; letter-spacing: 1px;">Achievement Band</div>
+                <div style="font-size: 28px; font-weight: 700; color:${bs.color};">${band}</div>
               </div>
-              <div style="padding: 10px 16px; background:${bandBg}; border:1px solid ${bandColor}; border-radius: 10px;">
-                <div style="font-size: 12px; color:${bandColor}; text-transform: uppercase; letter-spacing: 1px;">Achievement Band</div>
-                <div style="font-size: 28px; font-weight: 700; color:${bandColor};">${band}</div>
-              </div>
+              ${overrideCard}
             </div>
           `;
         })()}
@@ -3023,6 +3098,15 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
       <div class="report-comment-block">
         <h2>Teacher's Comments</h2>
         ${isTeacher ? `
+          <div class="field" style="margin-bottom: 14px;">
+            <label style="font-weight: 600;">Your own grade for this student (optional)</label>
+            <div class="muted" style="font-size: 12px; margin-bottom: 4px;">Free text — any letter, number, or word you prefer. Examples: <em>A+</em>, <em>18/20</em>, <em>Outstanding</em>, <em>Needs support</em>. Shows as a gold badge on the report card.</div>
+            <div class="row" style="gap: 8px;">
+              <input type="text" id="teacher-grade-override" placeholder="e.g. A+" value="${escapeAttr(data.teacherGradeOverride || '')}" style="flex: 1;" />
+              <button id="save-teacher-grade" class="btn primary">Save grade</button>
+              <span id="teacher-grade-status" class="muted" style="align-self: center;"></span>
+            </div>
+          </div>
           <textarea id="teacher-narrative" rows="4" placeholder="Write a personalised comment for this student. This shows on their report card and on any printed/PDF version.">${escapeHtml(data.teacherComment || '')}</textarea>
           <div class="row no-print" style="margin-top: 8px;">
             <div class="spacer"></div>
@@ -3045,6 +3129,33 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
   `;
 
   if (isTeacher) {
+    // Wire the Teacher's own grade input.
+    const tgInput = document.getElementById('teacher-grade-override');
+    const tgBtn = document.getElementById('save-teacher-grade');
+    const tgStatus = document.getElementById('teacher-grade-status');
+    if (tgBtn) {
+      tgBtn.onclick = async () => {
+        const value = (tgInput.value || '').trim();
+        tgStatus.textContent = 'Saving...';
+        tgStatus.style.color = '';
+        try {
+          await api(`/api/results/${data.__resultId}/teacher-grade`, {
+            method: 'PUT', body: { grade: value },
+          });
+          tgStatus.textContent = value ? '✓ Saved.' : '✓ Cleared.';
+          tgStatus.style.color = '#166534';
+          data.teacherGradeOverride = value || null;
+          // Re-render the report so the badge updates.
+          renderReportCard({
+            mountSummary, mountBody, data, isTeacher: true,
+          });
+        } catch (e) {
+          tgStatus.textContent = '❌ ' + e.message;
+          tgStatus.style.color = '#b91c1c';
+        }
+      };
+    }
+
     const ta = document.getElementById('teacher-narrative');
     const btn = document.getElementById('save-narrative');
     const status = document.getElementById('narrative-status');
