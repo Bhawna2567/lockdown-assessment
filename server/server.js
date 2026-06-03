@@ -156,6 +156,45 @@ function ensureDefaultClass(teacherId) {
   return [defaultClass];
 }
 
+// Self-serve password reset. The requester types their email; if it
+// matches a real user we generate a fresh temp password, hash it, and
+// return the plaintext to the caller for them to use (same model as
+// pre-register). Email infrastructure isn't required.
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const email = String(req.body && req.body.email || '').trim().toLowerCase();
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'Enter a valid email address.' });
+  }
+  const users = readAll('users.json');
+  const idx = users.findIndex((u) => String(u.email || '').toLowerCase() === email);
+  if (idx === -1) {
+    // Don't leak whether the email exists — but DO tell the caller the
+    // reset has been "sent" so they don't keep trying.
+    return res.json({
+      ok: true,
+      sent: false,
+      message: 'If an account exists for that email, a reset has been issued. Contact your school admin if you cannot sign in.',
+    });
+  }
+  try {
+    const tempPassword = generateTempPassword(10);
+    users[idx].passwordHash = await bcrypt.hash(tempPassword, 10);
+    users[idx].mustChangePassword = true;
+    users[idx].passwordResetAt = new Date().toISOString();
+    writeAll('users.json', users);
+    return res.json({
+      ok: true,
+      sent: true,
+      tempPassword,
+      email: users[idx].email,
+      name: users[idx].name,
+      role: users[idx].role,
+    });
+  } catch (e) {
+    return res.status(500).json({ error: 'Reset failed: ' + e.message });
+  }
+});
+
 app.get('/api/classes', requireTeacher, (req, res) => {
   const list = ensureDefaultClass(req.session.user.id);
   res.json(list.sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || '')));
