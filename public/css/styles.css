@@ -1147,3 +1147,19 @@ body.lockdown-body .assessment-content #assess-title {
   font-weight: 700 !important;
 }
 
+/* ---------- Assessment card actions row ---------- *
+ * All action buttons sit in their own row beneath the title, wrap
+ * smoothly on narrow screens, and align to the right edge so they
+ * look like a toolbar, not a scattered cluster.
+ */
+.card-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+  margin-top: 10px !important;
+}
+.card-actions .btn { white-space: nowrap; }
+@media (max-width: 720px) {
+  .card-actions { justify-content: flex-start !important; }
+}

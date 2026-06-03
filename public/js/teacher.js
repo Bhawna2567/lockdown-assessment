@@ -1438,10 +1438,12 @@ const SKIP_SELECTORS = [
   '#review-body',
   '#progress-body',
   '#progress-title',
-  '#assessments',          // assessment titles are user data
-  '#students-list',        // student names are user data
-  '.card-title',           // assessment titles
-  'input', 'textarea', 'code', 'pre', 'script', 'style', 'select',
+  // NOTE: we used to skip #assessments and .card-title because those carry
+  // teacher-typed titles. The teacher specifically asked for the WHOLE page
+  // to translate, so those are now in scope. Student names/emails stay
+  // protected via #students-list and the [data-no-translate] hook.
+  '#students-list',
+  'input', 'textarea', 'code', 'pre', 'script', 'style',
   '[contenteditable="true"]',
 ];
 function shouldSkip(el) {
@@ -1819,18 +1821,19 @@ function renderList() {
       return `
       <div class="card">
         <div class="row">
-          <div>
+          <div style="flex:1; min-width: 0;">
             <div class="card-title">${escapeHtml(a.title)}
               <span class="badge ${a.published ? 'green' : ''}">${a.published ? 'Published' : 'Draft'}</span>
             </div>
             <div class="muted">${meta}</div>
           </div>
-          <div class="spacer"></div>
+        </div>
+        <div class="card-actions" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 10px;">
           ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}" title="Copy the link your students will use to take this assessment">🔗 Share with students</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
-              <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
-              <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
+          <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
+          <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
         </div>
