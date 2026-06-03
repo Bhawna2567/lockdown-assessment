@@ -4006,18 +4006,68 @@ async function printAssessmentPDF(assessmentId) {
 //  SHARE WITH ANOTHER TEACHER — generate + copy share link
 // ───────────────────────────────────────────────────────────────────────────
 async function shareAssessment(assessmentId) {
+  let resp;
   try {
-    const resp = await api(`/api/assessments/${assessmentId}/share`, { method: 'POST' });
-    const url = resp.shareUrl;
-    try { await navigator.clipboard.writeText(url); } catch {}
-    alert(
-      `Share link copied to clipboard:\n\n${url}\n\n` +
-      `Send this link to another ClassCurio teacher. When they open it (while signed in to their own account), ` +
-      `they'll be able to preview the assessment, print it as a PDF, or duplicate it into one of their own classes.`
-    );
+    resp = await api(`/api/assessments/${assessmentId}/share`, { method: 'POST' });
   } catch (e) {
     alert('Could not generate share link: ' + e.message);
+    return;
   }
+  const url = resp.shareUrl;
+  // Best-effort auto-copy.
+  try { await navigator.clipboard.writeText(url); } catch {}
+
+  const overlay = document.createElement('div');
+  overlay.id = 'share-teacher-overlay';
+  overlay.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'background: rgba(11, 16, 32, 0.55)',
+    'display: flex', 'align-items: center', 'justify-content: center',
+    'z-index: 100000',
+  ].join(';');
+  const enc = encodeURIComponent;
+  const subject = enc('ClassCurio assessment to duplicate');
+  const bodyText = enc(`I'm sharing a ClassCurio assessment with you. Open this link while logged in to ClassCurio and you can preview, download as PDF/Word, or duplicate it into one of your own classes:\n\n${url}\n\n— Sent from ClassCurio`);
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 580px; width: 92%; box-shadow: 0 16px 48px rgba(0,0,0,0.30);">
+      <h2 style="margin: 0 0 6px; color:#1a1e33;">🤝 Share with another teacher</h2>
+      <p style="margin: 0 0 14px; color:#475569; font-size: 14px;">
+        Copy the link below and send it to any other ClassCurio teacher. When they open it while signed in to their own account, they can preview the assessment, download it as PDF or Word, or duplicate it into one of their own classes.
+      </p>
+      <div style="display:flex; gap:8px; margin-bottom: 12px;">
+        <input id="share-teacher-url" type="text" readonly value="${escapeAttr(url)}" style="flex:1; font-size: 13px; padding: 10px 12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; color:#1a1e33;" />
+        <button class="btn primary" id="share-teacher-copy">Copy link</button>
+      </div>
+      <div class="row" style="gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
+        <a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${enc(`Sharing a ClassCurio assessment: ${url}`)}" style="background:#25d366; color:#fff; border-color:#25d366;">💬 WhatsApp</a>
+        <a class="btn" target="_blank" rel="noopener" href="mailto:?subject=${subject}&body=${bodyText}" style="background:#3b82f6; color:#fff; border-color:#3b82f6;">✉ Email</a>
+        <a class="btn" target="_blank" rel="noopener" href="https://teams.microsoft.com/share?msgText=${enc(`ClassCurio assessment to duplicate: ${url}`)}" style="background:#4b53bc; color:#fff; border-color:#4b53bc;">Teams</a>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="share-teacher-close">Close</button>
+      </div>
+      <div id="share-teacher-status" style="font-size: 12px; color:#166534; margin-top: 4px;">✓ Link already copied to your clipboard.</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.getElementById('share-teacher-close').onclick = close;
+  document.getElementById('share-teacher-copy').onclick = async () => {
+    const input = document.getElementById('share-teacher-url');
+    input.select();
+    try {
+      await navigator.clipboard.writeText(url);
+      document.getElementById('share-teacher-status').textContent = '✓ Copied to clipboard.';
+    } catch {
+      if (document.execCommand) document.execCommand('copy');
+    }
+  };
+  // Auto-select the URL so even on browsers without Clipboard API
+  // the teacher can just press Cmd+C.
+  setTimeout(() => {
+    const input = document.getElementById('share-teacher-url');
+    if (input) input.select();
+  }, 100);
 }
 
 // ───────────────────────────────────────────────────────────────────────────
