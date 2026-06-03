@@ -1770,10 +1770,10 @@ function renderList() {
             <div class="muted">${meta}</div>
           </div>
           <div class="spacer"></div>
-          ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}">🔗 Share</button>` : ''}
+          ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}" title="Copy the link your students will use to take this assessment">🔗 Share with students</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
-              <button class="btn" data-act="share" data-id="${a.id}" title="Share with another teacher">🔗 Share</button>
+              <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
               <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
@@ -1858,7 +1858,7 @@ function renderCalendar() {
 
 async function handleAction(act, id) {
   if (act === 'print') { return printAssessmentPDF(id); }
-  if (act === 'share') { return shareAssessment(id); }
+  if (act === 'share-teacher') { return shareAssessment(id); }
 
   if (act === 'delete') {
     if (!confirm('Delete this assessment? Student results will remain but become orphaned.')) return;
