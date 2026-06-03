@@ -1913,7 +1913,7 @@ function renderCalendar() {
 }
 
 async function handleAction(act, id) {
-  if (act === 'print') { return printAssessmentPDF(id); }
+  if (act === 'print') { return showExportChooser(id); }
   if (act === 'share-teacher') { return shareAssessment(id); }
 
   if (act === 'delete') {
@@ -3911,7 +3911,7 @@ async function openClassAnalytics() {
 async function printAssessmentPDF(assessmentId) {
   let data;
   try {
-    data = await api(`/api/assessments/${assessmentId}`);
+    data = await api(`/api/assessments/${assessmentId}/export`);
   } catch (e) {
     alert('Could not load: ' + e.message);
     return;
@@ -4091,4 +4091,57 @@ async function maybeHandleShareLink() {
 }
 // Run after the initial dashboard load.
 window.addEventListener('load', () => setTimeout(maybeHandleShareLink, 500));
+
+
+// ───────────────────────────────────────────────────────────────────────────
+//  PDF-vs-Word chooser (added after the file restore)
+// ───────────────────────────────────────────────────────────────────────────
+function showExportChooser(assessmentId) {
+  const overlay = document.createElement('div');
+  overlay.id = 'export-chooser-overlay';
+  overlay.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'background: rgba(11, 16, 32, 0.55)',
+    'display: flex', 'align-items: center', 'justify-content: center',
+    'z-index: 100000',
+  ].join(';');
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 460px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.30);">
+      <h2 style="margin: 0 0 8px; color:#1a1e33;">Download assessment</h2>
+      <p style="margin: 0 0 16px; color:#475569; font-size: 14px;">Choose the format. Both include the questions and a separate answer-key page.</p>
+      <div class="row" style="gap: 10px; flex-wrap: wrap;">
+        <button class="btn primary" data-export-fmt="pdf" style="flex:1; min-width: 160px;">📄 Download as PDF</button>
+        <button class="btn" data-export-fmt="docx" style="flex:1; min-width: 160px;">📝 Download as Word</button>
+      </div>
+      <div class="row" style="margin-top: 14px;">
+        <div class="spacer"></div>
+        <button class="btn ghost" data-export-fmt="cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelectorAll('[data-export-fmt]').forEach((b) => {
+    b.onclick = () => {
+      const fmt = b.dataset.exportFmt;
+      if (fmt === 'cancel') return close();
+      close();
+      if (fmt === 'pdf') return printAssessmentPDF(assessmentId);
+      if (fmt === 'docx') return downloadAssessmentDocx(assessmentId);
+    };
+  });
+}
+
+function downloadAssessmentDocx(assessmentId) {
+  // Server sets Content-Disposition: attachment, so navigating an <a> at
+  // the URL triggers a direct download with the right filename.
+  const a = document.createElement('a');
+  a.href = `/api/assessments/${assessmentId}/export.docx`;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { if (a.parentNode) a.parentNode.removeChild(a); }, 1000);
+}
 
