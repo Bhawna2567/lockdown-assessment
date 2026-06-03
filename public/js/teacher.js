@@ -839,12 +839,12 @@ function renderClassesList() {
           }
         };
       });
-      // Edit a roster row in place. Pops a tiny prompt-based dialog with
-      // current values pre-filled so the teacher can fix typos. Calls the
-      // PUT endpoint which also updates the backing user account if one
-      // exists at the old email.
+      // Edit a roster row in place. Replaces the row with an inline blue
+      // editor (Name, Email, Student #) with Save / Cancel buttons. Calls
+      // the PUT endpoint which also updates the backing user account when
+      // one exists at the old email.
       view.querySelectorAll('[data-roster-edit-email]').forEach((b) => {
-        b.onclick = async () => {
+        b.onclick = () => {
           const oldEmail = b.dataset.rosterEditEmail;
           const classId = b.dataset.classId;
           const cls = classes.find((c) => c.id === classId);
@@ -853,40 +853,92 @@ function renderClassesList() {
           );
           if (!row) return;
 
-          // Tiny sequential prompt — keeps UI changes minimal and works on
-          // mobile too. Each blank value means "keep current".
-          const newName = prompt(`Name for this student\n(current: ${row.name || '(none)'})\n\nLeave unchanged to keep the current value.`, row.name || '');
-          if (newName === null) return; // cancelled
-          const newEmail = prompt(`Email for this student\n(current: ${row.email})\n\nThis is the address the student uses to log in. Fixing a typo here also updates their login if they already have an account.`, row.email || '');
-          if (newEmail === null) return;
-          const newStudentNumber = prompt(`Student number (optional)\n(current: ${row.studentNumber || '(none)'})`, row.studentNumber || '');
-          if (newStudentNumber === null) return;
+          // Find the <tr> containing this Edit button and replace its
+          // contents with a single full-width cell holding the editor.
+          const tr = b.closest('tr');
+          if (!tr) return;
+          const colCount = tr.children.length || 4;
+          const editorId = 'edit-form-' + Math.random().toString(36).slice(2, 8);
+          const safeName = escapeAttr(row.name || '');
+          const safeEmail = escapeAttr(row.email || '');
+          const safeNum = escapeAttr(row.studentNumber || '');
+          const original = tr.innerHTML;
+          tr.innerHTML = `
+            <td colspan="${colCount}" style="padding: 0;">
+              <div id="${editorId}" style="background:#eff6ff; border:2px solid #93c5fd; border-radius:8px; padding: 14px 16px; margin: 6px 0;">
+                <div style="font-weight: 600; color:#1e3a8a; margin-bottom: 8px;">Edit student — leave a field unchanged to keep the current value.</div>
+                <div class="row" style="gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                  <div class="field" style="flex: 1; min-width: 200px;">
+                    <label style="font-size: 12px;">Full name</label>
+                    <input type="text" data-ef="name" value="${safeName}" />
+                  </div>
+                  <div class="field" style="flex: 1; min-width: 240px;">
+                    <label style="font-size: 12px;">Email address</label>
+                    <input type="email" data-ef="email" value="${safeEmail}" />
+                  </div>
+                  <div class="field" style="flex: 0 0 140px;">
+                    <label style="font-size: 12px;">Student # (optional)</label>
+                    <input type="text" data-ef="num" value="${safeNum}" />
+                  </div>
+                </div>
+                <div class="row" style="gap: 8px;">
+                  <button class="btn primary" data-act="ef-save">Save</button>
+                  <button class="btn" data-act="ef-cancel">Cancel</button>
+                  <div class="spacer"></div>
+                  <span data-act="ef-status" class="muted" style="font-size: 12px;"></span>
+                </div>
+              </div>
+            </td>
+          `;
+          const form = document.getElementById(editorId);
+          const nameEl = form.querySelector('[data-ef=name]');
+          const emailEl = form.querySelector('[data-ef=email]');
+          const numEl = form.querySelector('[data-ef=num]');
+          const status = form.querySelector('[data-act=ef-status]');
+          nameEl.focus();
 
-          b.disabled = true;
-          b.textContent = 'Saving...';
-          try {
-            await api(`/api/classes/${classId}/roster/${encodeURIComponent(oldEmail)}`, {
-              method: 'PUT',
-              body: {
-                name: newName,
-                newEmail: newEmail,
-                studentNumber: newStudentNumber,
-              },
-            });
-            await loadKnownStudents();
-            await loadClasses();
-            // Re-open the View students table so the row reflects the change.
+          form.querySelector('[data-act=ef-cancel]').onclick = () => {
+            tr.innerHTML = original;
+            // Re-wire the original buttons inside the restored row by
+            // re-triggering the View students re-render.
             const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
             if (trigger) {
               const v2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
               if (v2) v2.style.display = 'none';
               trigger.click();
             }
-          } catch (e) {
-            alert('Could not update: ' + e.message);
-            b.disabled = false;
-            b.textContent = 'Edit';
-          }
+          };
+
+          form.querySelector('[data-act=ef-save]').onclick = async () => {
+            const newName = (nameEl.value || '').trim();
+            const newEmail = (emailEl.value || '').trim().toLowerCase();
+            const newNum = (numEl.value || '').trim();
+            if (!newEmail || !newEmail.includes('@')) {
+              status.textContent = '⚠ Enter a valid email address.';
+              status.style.color = '#b91c1c';
+              emailEl.focus();
+              return;
+            }
+            status.textContent = 'Saving...';
+            status.style.color = '';
+            try {
+              await api(`/api/classes/${classId}/roster/${encodeURIComponent(oldEmail)}`, {
+                method: 'PUT',
+                body: { name: newName, newEmail: newEmail, studentNumber: newNum },
+              });
+              await loadKnownStudents();
+              await loadClasses();
+              const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
+              if (trigger) {
+                const v2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
+                if (v2) v2.style.display = 'none';
+                trigger.click();
+              }
+            } catch (e) {
+              status.textContent = '❌ ' + e.message;
+              status.style.color = '#b91c1c';
+            }
+          };
         };
       });
 

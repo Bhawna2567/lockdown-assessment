@@ -1146,6 +1146,33 @@ async function submit(reason) {
   if (submitted) return;
   submitted = true;
   clearInterval(timerInterval);
+
+  // Cover the whole page IMMEDIATELY with a "Submitting..." overlay so the
+  // student cannot keep typing, scrolling, or opening tabs while we wait
+  // for the server. The overlay sits above everything (including the
+  // watermark) and is removed only on success/failure.
+  let overlay = document.getElementById('_cc_submit_overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = '_cc_submit_overlay';
+    overlay.style.cssText = [
+      'position: fixed', 'inset: 0',
+      'z-index: 2147483647',
+      'background: rgba(11, 16, 32, 0.96)',
+      'color: #ffffff',
+      'display: flex', 'flex-direction: column',
+      'align-items: center', 'justify-content: center',
+      'gap: 18px', 'padding: 24px',
+      'font: 600 22px/1.4 -apple-system, system-ui, sans-serif',
+      'text-align: center',
+    ].join(';');
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div style="font-size:26px;">Submitting your assessment...</div>
+    <div style="font-size:16px; color:#cbd5e1;">Please don't close this tab or refresh.</div>
+  `;
+
   if (FEATURES.webcam) {
     stopProctorInterval();
     stopIdentityCheckInterval();
@@ -1153,27 +1180,50 @@ async function submit(reason) {
     await captureAndUpload(`submit-${reason}`).catch(() => {});
     stopWebcam();
   }
-  uninstallLockdown();
-  try { await document.exitFullscreen?.(); } catch {}
 
+  let resp;
   try {
-    const { result } = await api(`/api/assessments/${currentAssessment.id}/submit`, {
+    resp = await api(`/api/assessments/${currentAssessment.id}/submit`, {
       method: 'POST',
       body: { answers, violations, startedAt, submitReason: reason, remainingMs: Math.max(0, (endAt || 0) - Date.now()) },
     });
-    lastResultId = result.id;
-    els.assessmentView.style.display = 'none';
-    els.doneView.style.display = 'block';
-    els.doneMsg.innerHTML = `
-      Your assessment has been submitted (reason: ${reason}).<br/>
-      Auto-graded score (multiple choice / true-false / short answer with expected value):
-      <strong>${result.autoScore} / ${result.autoMax}</strong>.<br/>
-      Essay and long-answer questions will be scored by your teacher.
-      ${violations.length ? `<br/><br/><span style="color:#ff6b6b;">${violations.length} lockdown violation(s) were recorded.</span>` : ''}
-    `;
   } catch (e) {
-    alert('Submission error: ' + e.message);
+    // Submit failed (network blip, server error). Show a Retry path so the
+    // student isn't stranded — DO NOT uninstall lockdown yet because they
+    // might need to retry, and a stranded session with the lockdown gone
+    // would let them open tabs.
+    overlay.innerHTML = `
+      <div style="font-size:24px; color:#fca5a5;">Submission failed</div>
+      <div style="font-size:16px; color:#cbd5e1; max-width: 520px;">
+        ${(e && e.message ? String(e.message) : 'Network error')}.<br/>
+        Your answers are still on this device. Click Retry to try sending them again.
+      </div>
+      <button id="_cc_submit_retry" class="btn primary" style="margin-top:8px;">Retry submission</button>
+    `;
+    document.getElementById('_cc_submit_retry').onclick = () => {
+      // Allow another attempt — reset the guard and rerun.
+      submitted = false;
+      submit(reason);
+    };
+    return;
   }
+
+  // Success path. Uninstall lockdown only NOW.
+  uninstallLockdown();
+  try { await document.exitFullscreen?.(); } catch {}
+
+  const result = resp && resp.result;
+  lastResultId = result && result.id ? result.id : null;
+  if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  els.assessmentView.style.display = 'none';
+  els.doneView.style.display = 'block';
+  els.doneMsg.innerHTML = `
+    Your assessment has been submitted (reason: ${reason}).<br/>
+    Auto-graded score (multiple choice / true-false / short answer with expected value):
+    <strong>${result ? result.autoScore : '?'} / ${result ? result.autoMax : '?'}</strong>.<br/>
+    Essay and long-answer questions will be scored by your teacher.
+    ${violations.length ? `<br/><br/><span style="color:#ff6b6b;">${violations.length} lockdown violation(s) were recorded.</span>` : ''}
+  `;
 }
 
 // ---------- Past results + feedback view ----------
