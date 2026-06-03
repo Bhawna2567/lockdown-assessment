@@ -2444,7 +2444,12 @@ async function openResults(id) {
           <td>${vcount ? `<span class="badge red">${vcount}</span>` : '<span class="muted">—</span>'}</td>
           <td>${envBadge}</td>
           <td class="muted">${new Date(r.submittedAt).toLocaleString()}</td>
-          <td><button class="btn primary" data-report="${r.id}">📋 Report</button></td>
+          <td>
+            <button class="btn primary" data-report="${r.id}">📋 Report</button>
+            ${vcount || (r.submitReason && r.submitReason !== 'manual')
+              ? `<button class="btn" data-grant-reentry="${assessment.id}" data-student-id="${r.studentId}" data-student-name="${escapeAttr(r.studentName || r.studentEmail || '')}" style="margin-left: 4px;">🔓 Grant re-entry</button>`
+              : ''}
+          </td>
         </tr>
         ${details}
       `;
@@ -2469,6 +2474,32 @@ async function openResults(id) {
   });
   els.resultsBody.querySelectorAll('button[data-report]').forEach((btn) => {
     btn.onclick = () => openReportCard(btn.dataset.report);
+  });
+  els.resultsBody.querySelectorAll('button[data-grant-reentry]').forEach((btn) => {
+    btn.onclick = async () => {
+      const assessmentId = btn.dataset.grantReentry;
+      const studentId = btn.dataset.studentId;
+      const name = btn.dataset.studentName || 'this student';
+      if (!confirm(
+        `Grant a one-time re-entry to "${name}"?\n\n` +
+        `Their previous submission will be DELETED so they can take the assessment from the start. ` +
+        `Their existing answers and any lockdown violations will not be kept.\n\n` +
+        `This grant can only be used once — if they get locked out again, you'll need to grant another re-entry.`
+      )) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        await api(`/api/assessments/${assessmentId}/grant-reentry`, {
+          method: 'POST',
+          body: { studentId },
+        });
+        openResults(assessmentId);
+      } catch (e) {
+        alert('Could not grant re-entry: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = '🔓 Grant re-entry';
+      }
+    };
   });
 }
 

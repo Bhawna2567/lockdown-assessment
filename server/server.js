@@ -987,6 +987,43 @@ app.delete('/api/assessments/:id', requireTeacher, (req, res) => {
   res.json({ ok: true });
 });
 
+// Grant a one-time re-entry to a student who got locked out (3 violations
+// or any auto-submit). Only the teacher who owns the assessment can grant.
+// Idempotent: if a previous grant exists and hasn't been used yet, re-grant
+// just stamps a fresh grantedAt timestamp.
+app.post('/api/assessments/:id/grant-reentry', requireTeacher, (req, res) => {
+  const studentId = String(req.body && req.body.studentId || '');
+  if (!studentId) return res.status(400).json({ error: 'Missing studentId' });
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Assessment not found' });
+  if (a.teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  // Verify the student exists.
+  const users = readAll('users.json');
+  const student = users.find((u) => u.id === studentId && u.role === 'student');
+  if (!student) return res.status(404).json({ error: 'Student not found' });
+
+  if (!Array.isArray(a.reentryGrants)) a.reentryGrants = [];
+  // If an unused grant already exists, just refresh its timestamp.
+  const existing = a.reentryGrants.find((g) => g.studentId === studentId && !g.usedAt);
+  if (existing) {
+    existing.grantedAt = new Date().toISOString();
+  } else {
+    a.reentryGrants.push({
+      studentId,
+      grantedAt: new Date().toISOString(),
+      grantedBy: req.session.user.id,
+    });
+  }
+  writeAll('assessments.json', all);
+  res.json({
+    ok: true,
+    grantedTo: { id: student.id, name: student.name, email: student.email },
+  });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
@@ -994,12 +1031,36 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const a = all.find((x) => x.id === req.params.id && x.published);
   if (!a) return res.status(404).json({ error: 'Not found' });
 
-  // Ensure the student hasn't already submitted
+  // Ensure the student hasn't already submitted — unless the teacher has
+  // granted a one-time re-entry. A grant is a record on the assessment with
+  // { studentId, grantedAt, usedAt? }.
+  //
+  // When an active grant exists for this student, we PRESERVE their prior
+  // submission and return its answers so the student picks up where they
+  // left off. The grant is NOT marked used at this point — only at submit
+  // time — so the student can re-open the link if their browser crashes
+  // before submit.
   const results = readAll('results.json');
   const already = results.find(
     (r) => r.studentId === req.session.user.id && r.assessmentId === a.id
   );
-  if (already) return res.status(403).json({ error: 'You have already submitted this assessment.' });
+  let previousAnswersMap = null;
+  if (already) {
+    const grants = Array.isArray(a.reentryGrants) ? a.reentryGrants : [];
+    const grant = grants.find(
+      (g) => g.studentId === req.session.user.id && !g.usedAt
+    );
+    if (!grant) {
+      return res.status(403).json({ error: 'You have already submitted this assessment.' });
+    }
+    // Build a { questionId -> given-answer } map for the client to pre-fill.
+    previousAnswersMap = {};
+    for (const ans of (already.answers || [])) {
+      if (ans && ans.questionId !== undefined && ans.given !== undefined) {
+        previousAnswersMap[ans.questionId] = ans.given;
+      }
+    }
+  }
 
   const safe = {
     id: a.id,
@@ -1012,6 +1073,14 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     subject: a.subject || null,
     assessmentLanguage: a.assessmentLanguage || null,
     deliveryMode: a.deliveryMode || 'online',
+    // Re-entry mode: when the teacher has granted re-entry and the
+    // student had a prior submission, we send back the answers they
+    // had recorded so the client can pre-fill the form, plus the
+    // milliseconds remaining on the original timer so the resumed
+    // session starts at that count-down (not at full duration).
+    reentryActive: !!previousAnswersMap,
+    previousAnswers: previousAnswersMap,
+    remainingMs: (already && Number.isFinite(already.remainingMs)) ? already.remainingMs : null,
     sections: Array.isArray(a.sections) ? a.sections : [],
     questions: a.questions.map((q) => ({
       id: q.id,
@@ -1033,7 +1102,7 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
   const a = all.find((x) => x.id === req.params.id && x.published);
   if (!a) return res.status(404).json({ error: 'Not found' });
 
-  const { answers, violations, startedAt } = req.body || {};
+  const { answers, violations, startedAt, submitReason, remainingMs } = req.body || {};
   const results = readAll('results.json');
 
   // Block re-submission
@@ -1083,11 +1152,36 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
     autoScore,
     autoMax,
     violations: violations || [],
+    submitReason: submitReason || null,
+    remainingMs: Number.isFinite(Number(remainingMs)) ? Number(remainingMs) : null,
     environment: vmFlags.get(envKey) || null,
     answers: gradedAnswers,
     manualGrades: {},
   };
   vmFlags.delete(envKey);
+
+  // If the student already had a submission for this assessment, this is a
+  // re-entry. Delete the previous submission (it was preserved up until now
+  // so /take could pre-fill answers) and stamp usedAt on the matching grant.
+  const priorIdx = results.findIndex(
+    (r) => r.studentId === req.session.user.id && r.assessmentId === a.id
+  );
+  if (priorIdx !== -1) {
+    results.splice(priorIdx, 1);
+    const allAss = readAll('assessments.json');
+    const aIdx = allAss.findIndex((x) => x.id === a.id);
+    if (aIdx !== -1) {
+      const grants = Array.isArray(allAss[aIdx].reentryGrants) ? allAss[aIdx].reentryGrants : [];
+      const grant = grants.find(
+        (g) => g.studentId === req.session.user.id && !g.usedAt
+      );
+      if (grant) {
+        grant.usedAt = new Date().toISOString();
+        writeAll('assessments.json', allAss);
+      }
+    }
+  }
+
   results.push(result);
   writeAll('results.json', results);
 
@@ -1313,6 +1407,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
     teacherCommentAt: result.teacherCommentAt || '',
     review,
     violations: result.violations || [],
+    submitReason: result.submitReason || null,
   });
 });
 

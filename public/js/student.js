@@ -897,9 +897,19 @@ function startAssessment() {
   els.assessmentView.style.display = 'block';
   els.assessTitle.textContent = currentAssessment.title;
   startedAt = new Date().toISOString();
-  endAt = Date.now() + currentAssessment.durationMinutes * 60 * 1000;
+  // Re-entry: resume the original count-down instead of a fresh duration.
+  if (currentAssessment && currentAssessment.reentryActive && Number.isFinite(currentAssessment.remainingMs) && currentAssessment.remainingMs > 0) {
+    endAt = Date.now() + currentAssessment.remainingMs;
+  } else {
+    endAt = Date.now() + currentAssessment.durationMinutes * 60 * 1000;
+  }
   answers = {};
   violations = [];
+  // Re-entry: if the server returned previousAnswers (teacher granted a
+  // re-entry after a lockout), pre-load them so the form starts populated.
+  if (currentAssessment && currentAssessment.reentryActive && currentAssessment.previousAnswers) {
+    Object.assign(answers, currentAssessment.previousAnswers);
+  }
   submitted = false;
 
   // Show the reading passage above the questions if the teacher attached one.
@@ -913,6 +923,32 @@ function startAssessment() {
   }
 
   renderQuestions();
+  // Re-entry: pre-fill the rendered inputs with the previous answers and
+  // show a clear banner so the student knows what's happening.
+  if (currentAssessment && currentAssessment.reentryActive && currentAssessment.previousAnswers) {
+    for (const q of currentAssessment.questions) {
+      const prev = currentAssessment.previousAnswers[q.id];
+      if (prev === undefined || prev === null || prev === '') continue;
+      if (q.type === 'mc') {
+        const radios = document.getElementsByName(`q-${q.id}`);
+        radios.forEach((r) => { if (Number(r.value) === Number(prev)) r.checked = true; });
+      } else if (q.type === 'tf' || q.type === 'tfng') {
+        const radios = document.getElementsByName(`q-${q.id}`);
+        radios.forEach((r) => { if (r.value === String(prev)) r.checked = true; });
+      } else {
+        const input = document.querySelector(`[data-q="${q.id}"]`);
+        if (input) input.value = String(prev);
+      }
+    }
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#dbeafe; color:#1e3a8a; border:1px solid #93c5fd; border-radius:10px; padding:14px 18px; margin: 0 0 18px; font-size:17px; line-height:1.5;';
+    const mins = Math.max(0, Math.round(((currentAssessment.remainingMs || 0) / 1000) / 60));
+    const timeNote = mins > 0 ? ` You have <strong>${mins} minute${mins === 1 ? '' : 's'}</strong> remaining on the original timer.` : '';
+    banner.innerHTML = '<strong>Continuing from where you left off.</strong> Your teacher granted you a re-entry — your previous answers have been restored.' + timeNote + ' Review, change, or complete the remaining questions, then click Submit.';
+    if (els.questions && els.questions.parentNode) {
+      els.questions.parentNode.insertBefore(banner, els.questions);
+    }
+  }
   installLockdown();
   startTimer();
   // On-site mode: skip ALL webcam infrastructure. Lockdown still installs
@@ -1020,7 +1056,7 @@ function renderQuestions() {
 
       // Section header — title + instructions + passage, then questions.
       const passageBlock = sec.passage && sec.passage.trim()
-        ? `<div style="background:#fef7e6; color:#1a1e33; border:1px solid #f59e0b; border-radius: 10px; padding: 16px 18px; max-height: 400px; overflow-y: auto; margin: 0 0 14px; white-space: pre-wrap; line-height: 1.7; font-size:17px;">${escapeHtml(sec.passage)}</div>`
+        ? `<div class="exam-passage-body" style="background:#fef7e6; color:#1a1e33; border:1px solid #f59e0b; border-radius: 10px; padding: 16px 18px; margin: 0 0 14px; white-space: pre-wrap; line-height: 1.7; font-size:17px;">${escapeHtml(sec.passage)}</div>`
         : '';
       const instructionsBlock = sec.instructions && sec.instructions.trim()
         ? `<div style="font-style: italic; color:#475569; margin: 0 0 14px; font-size:16px;">${escapeHtml(sec.instructions)}</div>`
@@ -1029,11 +1065,25 @@ function renderQuestions() {
         ? `<h2 style="color:#1a1e33; margin: 20px 0 10px; font-size: 24px;">${escapeHtml(sec.title)}</h2>`
         : '';
 
-      sectionsHtml += `<div class="exam-section">${titleBlock}${instructionsBlock}${passageBlock}`;
-      for (const q of sectionQs) {
-        sectionsHtml += questionCard(q, globalIdx++);
+      // When the section has a passage, render in a two-column split:
+      // passage sticky on the left, questions scrolling on the right.
+      // When there's no passage, fall back to the single-column layout.
+      const hasPassage = sec.passage && sec.passage.trim();
+      if (hasPassage) {
+        sectionsHtml += `<div class="exam-section split">`;
+        sectionsHtml += `<aside class="exam-passage">${titleBlock}${instructionsBlock}${passageBlock}</aside>`;
+        sectionsHtml += `<div class="exam-q-col">`;
+        for (const q of sectionQs) {
+          sectionsHtml += questionCard(q, globalIdx++);
+        }
+        sectionsHtml += `</div></div>`;
+      } else {
+        sectionsHtml += `<div class="exam-section">${titleBlock}${instructionsBlock}`;
+        for (const q of sectionQs) {
+          sectionsHtml += questionCard(q, globalIdx++);
+        }
+        sectionsHtml += `</div>`;
       }
-      sectionsHtml += `</div>`;
     }
     // Catch any orphan questions (no matching section).
     const orphans = currentAssessment.questions.filter((q) => !sectionsById.has(q.sectionId));
@@ -1101,7 +1151,7 @@ async function submit(reason) {
   try {
     const { result } = await api(`/api/assessments/${currentAssessment.id}/submit`, {
       method: 'POST',
-      body: { answers, violations, startedAt },
+      body: { answers, violations, startedAt, submitReason: reason, remainingMs: Math.max(0, (endAt || 0) - Date.now()) },
     });
     lastResultId = result.id;
     els.assessmentView.style.display = 'none';

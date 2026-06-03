@@ -1051,3 +1051,49 @@ body.lockdown-body .assessment-content .btn.primary {
   body.lockdown-body .assessment-content #assess-title { font-size: 22px !important; }
 }
 
+/* ---------- Split-screen exam layout (Option B) ----------
+ * For any section that has a reading passage, we use a two-column grid:
+ * passage on the left (sticky, scrolls internally), questions on the right
+ * (page-level scroll). Below 900px the layout collapses to a stacked one
+ * with the passage still sticky at the top but capped at half the viewport.
+ */
+body.lockdown-body #assessment-view .exam-section.split,
+body.lockdown-body .assessment-content .exam-section.split {
+  display: grid !important;
+  grid-template-columns: 5fr 6fr !important;
+  gap: 22px !important;
+  align-items: start !important;
+  margin-bottom: 26px !important;
+}
+body.lockdown-body #assessment-view .exam-section.split aside.exam-passage,
+body.lockdown-body .assessment-content .exam-section.split aside.exam-passage {
+  position: sticky !important;
+  top: 18px !important;
+  max-height: calc(100vh - 60px) !important;
+  overflow-y: auto !important;
+  align-self: start !important;
+  padding-right: 4px !important;
+}
+body.lockdown-body #assessment-view .exam-section.split .exam-q-col,
+body.lockdown-body .assessment-content .exam-section.split .exam-q-col {
+  min-width: 0 !important;
+}
+/* On phones/narrow tablets, drop to one column. The passage stays at the
+ * top of the section and is bounded to half the viewport so the student can
+ * still see questions when they look down. */
+@media (max-width: 900px) {
+  body.lockdown-body #assessment-view .exam-section.split,
+  body.lockdown-body .assessment-content .exam-section.split {
+    grid-template-columns: 1fr !important;
+  }
+  body.lockdown-body #assessment-view .exam-section.split aside.exam-passage,
+  body.lockdown-body .assessment-content .exam-section.split aside.exam-passage {
+    position: sticky !important;
+    top: 0 !important;
+    max-height: 50vh !important;
+    background: #ffffff !important;
+    padding-bottom: 6px !important;
+    z-index: 2;
+  }
+}
+
