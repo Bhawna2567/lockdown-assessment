@@ -1124,13 +1124,21 @@ function startTimer() {
   timerInterval = setInterval(updateTimer, 500);
 }
 function updateTimer() {
+  // Defensive: if endAt got corrupted (NaN, null), recover by treating it
+  // as 'time is up' so we auto-submit instead of trapping the student.
+  if (!Number.isFinite(endAt)) {
+    els.timer.textContent = '00:00';
+    els.timer.classList.add('danger');
+    if (!submitted) submit('time');
+    return;
+  }
   const remaining = Math.max(0, endAt - Date.now());
   const m = Math.floor(remaining / 60000);
   const s = Math.floor((remaining % 60000) / 1000);
   els.timer.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   els.timer.classList.toggle('warn', remaining < 5 * 60000 && remaining >= 60000);
   els.timer.classList.toggle('danger', remaining < 60000);
-  if (remaining <= 0) submit('time');
+  if (remaining <= 0 && !submitted) submit('time');
 }
 
 // ---------- Submission ----------

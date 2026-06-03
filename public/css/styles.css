@@ -1097,3 +1097,52 @@ body.lockdown-body .assessment-content .exam-section.split .exam-q-col {
   }
 }
 
+/* ---------- Timer pinned to viewport top-right (ALWAYS visible) ----------
+ * Previously the timer was inline at the top of the assessment card. When
+ * the card went white-on-white, the timer became invisible. We pin it to
+ * the viewport so it survives any future theme change and the student can
+ * always see how much time is left.
+ */
+body.lockdown-body #assessment-view #timer,
+body.lockdown-body .assessment-content #timer {
+  position: fixed !important;
+  top: 14px !important;
+  right: 18px !important;
+  z-index: 2147483645 !important;     /* below the watermark, above everything else */
+  font-variant-numeric: tabular-nums !important;
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: #1a1e33 !important;
+  border: 2px solid #c69214 !important;  /* gold accent so it's unmissable */
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35) !important;
+  letter-spacing: 0.5px !important;
+}
+body.lockdown-body #assessment-view #timer.warn,
+body.lockdown-body .assessment-content #timer.warn {
+  background: #b45309 !important;
+  border-color: #fcd34d !important;
+  color: #fff7ed !important;
+}
+body.lockdown-body #assessment-view #timer.danger,
+body.lockdown-body .assessment-content #timer.danger {
+  background: #b91c1c !important;
+  border-color: #fca5a5 !important;
+  color: #ffffff !important;
+  animation: timerPulse 1s infinite;
+}
+@keyframes timerPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  50%      { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+}
+
+/* The H1 title sat as white text inside the white card — fix it. */
+body.lockdown-body #assessment-view #assess-title,
+body.lockdown-body .assessment-content #assess-title {
+  color: #1a1e33 !important;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+}
+
