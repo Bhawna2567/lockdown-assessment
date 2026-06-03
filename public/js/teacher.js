@@ -787,9 +787,12 @@ function renderClassesList() {
               const editBtn = s.email
                 ? `<button class="btn" data-roster-edit-email="${escapeAttr(s.email)}" data-class-id="${id}" style="margin-left: 6px;">Edit</button>`
                 : '';
+              const moveBtn = s.email
+                ? `<button class="btn" data-roster-move-email="${escapeAttr(s.email)}" data-class-id="${id}" style="margin-left: 6px;">Move/Copy</button>`
+                : '';
               const actions = matched
-                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + editBtn + deleteBtn
-                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + editBtn + (s.email
+                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + editBtn + moveBtn + deleteBtn
+                : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + editBtn + moveBtn + (s.email
                     ? ` <button class="btn danger" data-roster-delete-email="${escapeAttr(s.email)}" data-class-id="${id}" data-roster-name="${escapeAttr(s.name || s.email || '')}">Remove</button>`
                     : '');
               return `
@@ -939,6 +942,101 @@ function renderClassesList() {
               status.style.color = '#b91c1c';
             }
           };
+        };
+      });
+
+      // Move or copy a student to another class. Replaces the row with an
+      // inline form: dropdown of OTHER classes + Move / Copy / Cancel
+      // buttons. Calls /transfer with mode=move|copy.
+      view.querySelectorAll('[data-roster-move-email]').forEach((b) => {
+        b.onclick = () => {
+          const oldEmail = b.dataset.rosterMoveEmail;
+          const classId = b.dataset.classId;
+          const otherClasses = classes.filter((c) => c.id !== classId);
+          if (otherClasses.length === 0) {
+            alert('You only have one class. Create another class first, then come back here.');
+            return;
+          }
+          const tr = b.closest('tr');
+          if (!tr) return;
+          const colCount = tr.children.length || 4;
+          const formId = 'mv-form-' + Math.random().toString(36).slice(2, 8);
+          const original = tr.innerHTML;
+          const opts = otherClasses.map((c) =>
+            `<option value="${escapeAttr(c.id)}">${escapeHtml(c.name)} (${(c.roster || []).length} students)</option>`
+          ).join('');
+          tr.innerHTML = `
+            <td colspan="${colCount}" style="padding: 0;">
+              <div id="${formId}" style="background:#eff6ff; border:2px solid #93c5fd; border-radius:8px; padding: 14px 16px; margin: 6px 0;">
+                <div style="font-weight: 600; color:#1e3a8a; margin-bottom: 8px;">
+                  Move or copy <strong>${escapeHtml(oldEmail)}</strong> to another class
+                </div>
+                <div class="row" style="gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: end;">
+                  <div class="field" style="flex: 1; min-width: 220px;">
+                    <label style="font-size: 12px;">Target class</label>
+                    <select data-mvf="target">${opts}</select>
+                  </div>
+                </div>
+                <div class="row" style="gap: 8px;">
+                  <button class="btn primary" data-act="mv-move">Move (remove from this class)</button>
+                  <button class="btn" data-act="mv-copy">Copy (keep on both)</button>
+                  <button class="btn ghost" data-act="mv-cancel">Cancel</button>
+                  <div class="spacer"></div>
+                  <span data-act="mv-status" class="muted" style="font-size: 12px;"></span>
+                </div>
+              </div>
+            </td>
+          `;
+          const form = document.getElementById(formId);
+          const sel = form.querySelector('[data-mvf=target]');
+          const status = form.querySelector('[data-act=mv-status]');
+
+          form.querySelector('[data-act=mv-cancel]').onclick = () => {
+            tr.innerHTML = original;
+            const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
+            if (trigger) {
+              const v2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
+              if (v2) v2.style.display = 'none';
+              trigger.click();
+            }
+          };
+
+          async function run(mode) {
+            const targetId = sel.value;
+            if (!targetId) return;
+            status.textContent = mode === 'move' ? 'Moving...' : 'Copying...';
+            status.style.color = '';
+            form.querySelectorAll('button').forEach((bn) => { bn.disabled = true; });
+            try {
+              const resp = await api(`/api/classes/${classId}/roster/${encodeURIComponent(oldEmail)}/transfer`, {
+                method: 'POST',
+                body: { targetClassId: targetId, mode },
+              });
+              await loadClasses();
+              const trigger = els.classesList.querySelector(`[data-class-view-roster="${classId}"]`);
+              if (trigger) {
+                const v2 = els.classesList.querySelector(`[data-class-roster-view="${classId}"]`);
+                if (v2) v2.style.display = 'none';
+                trigger.click();
+              }
+              // Toast on the classesStatus line so the teacher sees what happened.
+              const target = classes.find((c) => c.id === targetId);
+              const targetName = target ? target.name : 'the target class';
+              const verb = mode === 'move' ? 'Moved' : 'Copied';
+              const where = resp.alreadyInTarget
+                ? `was already on ${targetName} — no change in target`
+                : `added to ${targetName}`;
+              els.classesStatus.innerHTML = `✓ ${verb}: ${escapeHtml(oldEmail)} — ${where}.`;
+              els.classesStatus.style.color = '#166534';
+              setTimeout(() => { els.classesStatus.textContent = ''; els.classesStatus.style.color = ''; }, 5000);
+            } catch (e) {
+              status.textContent = '❌ ' + e.message;
+              status.style.color = '#b91c1c';
+              form.querySelectorAll('button').forEach((bn) => { bn.disabled = false; });
+            }
+          }
+          form.querySelector('[data-act=mv-move]').onclick = () => run('move');
+          form.querySelector('[data-act=mv-copy]').onclick = () => run('copy');
         };
       });
 

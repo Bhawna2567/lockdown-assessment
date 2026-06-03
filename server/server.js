@@ -1180,6 +1180,78 @@ app.put('/api/classes/:id/roster/:email', requireTeacher, async (req, res) => {
   });
 });
 
+// Move OR copy a student between two classes owned by the teacher.
+// mode: 'move' removes the source row after adding to target;
+// mode: 'copy' leaves the source row in place.
+app.post('/api/classes/:fromId/roster/:email/transfer', requireTeacher, (req, res) => {
+  const fromId = req.params.fromId;
+  const oldEmail = String(req.params.email || '').toLowerCase();
+  const targetId = String(req.body && req.body.targetClassId || '');
+  const mode = String(req.body && req.body.mode || 'move').toLowerCase();
+  if (!targetId) return res.status(400).json({ error: 'Missing targetClassId' });
+  if (mode !== 'move' && mode !== 'copy') {
+    return res.status(400).json({ error: 'mode must be "move" or "copy"' });
+  }
+  if (fromId === targetId) {
+    return res.status(400).json({ error: 'Source and target classes are the same.' });
+  }
+
+  const classes = readAll('classes.json');
+  const srcIdx = classes.findIndex((c) => c.id === fromId);
+  const dstIdx = classes.findIndex((c) => c.id === targetId);
+  if (srcIdx === -1 || dstIdx === -1) {
+    return res.status(404).json({ error: 'Class not found.' });
+  }
+  if (classes[srcIdx].teacherId !== req.session.user.id ||
+      classes[dstIdx].teacherId !== req.session.user.id) {
+    return res.status(403).json({ error: 'You can only move students between your own classes.' });
+  }
+
+  const srcRoster = Array.isArray(classes[srcIdx].roster) ? classes[srcIdx].roster : [];
+  const rIdx = srcRoster.findIndex((r) =>
+    String(r && r.email || '').toLowerCase() === oldEmail
+  );
+  if (rIdx === -1) {
+    return res.status(404).json({ error: 'Student not found on the source class roster.' });
+  }
+  const studentRow = srcRoster[rIdx];
+
+  const dstRoster = Array.isArray(classes[dstIdx].roster) ? classes[dstIdx].roster : [];
+  const alreadyInTarget = dstRoster.some((r) =>
+    String(r && r.email || '').toLowerCase() === oldEmail
+  );
+
+  // Add to target if missing.
+  if (!alreadyInTarget) {
+    dstRoster.push({
+      email: studentRow.email,
+      name: studentRow.name,
+      studentNumber: studentRow.studentNumber,
+      addedFrom: mode === 'move' ? 'moved' : 'copied',
+      addedAt: new Date().toISOString(),
+    });
+    classes[dstIdx].roster = dstRoster;
+  }
+
+  // For move: drop from source.
+  let removedFromSource = false;
+  if (mode === 'move') {
+    srcRoster.splice(rIdx, 1);
+    classes[srcIdx].roster = srcRoster;
+    removedFromSource = true;
+  }
+
+  writeAll('classes.json', classes);
+  res.json({
+    ok: true,
+    mode,
+    addedToTarget: !alreadyInTarget,
+    alreadyInTarget,
+    removedFromSource,
+    targetRosterCount: dstRoster.length,
+  });
+});
+
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
