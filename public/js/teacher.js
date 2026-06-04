@@ -4540,31 +4540,67 @@ if (els.audioTtsTest) els.audioTtsTest.onclick = async () => {
   await speakScript(script, voice);
 };
 
-// ✨ Generate script with AI — calls /generate-script and fills the textarea.
+// ✨ Generate script with AI — works whether the assessment has been saved
+// yet or not. Saved assessments use the per-id endpoint (which also
+// persists the script). Unsaved drafts use the inline endpoint and the
+// next Save will persist everything together.
 if (els.audioTtsGenerate) els.audioTtsGenerate.onclick = async () => {
-  if (!editingId) {
-    els.audioTtsStatus.textContent = 'Save the assessment first (so the AI knows what questions to write the script for).';
-    return;
-  }
   els.audioTtsGenerate.disabled = true;
-  els.audioTtsStatus.textContent = '✨ Asking AI to write a listening script… this takes 5–10 seconds.';
+  const originalLabel = els.audioTtsGenerate.textContent;
+  els.audioTtsGenerate.textContent = '✨ Generating…';
+  els.audioTtsStatus.textContent = '✨ Asking AI to write a listening script… this usually takes 5–15 seconds.';
+
   try {
-    const res = await fetch(`/api/assessments/${editingId}/generate-script`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'content-type': 'application/json' },
-      body: '{}',
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Generation failed');
-    if (els.audioScript) els.audioScript.value = data.audioScript || '';
+    let data;
+    if (editingId) {
+      const r = await fetch(`/api/assessments/${editingId}/generate-script`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      });
+      const text = await r.text();
+      try { data = JSON.parse(text); }
+      catch { throw new Error('Server returned an unexpected response: ' + text.slice(0, 120)); }
+      if (!r.ok) throw new Error(data.error || `Server error ${r.status}`);
+    } else {
+      // Unsaved draft — send the current builder state inline.
+      const payload = {
+        title:       els.title ? els.title.value : '',
+        description: els.description ? els.description.value : '',
+        subject:     els.subject ? els.subject.value : '',
+        language:    els.assessmentLanguage ? els.assessmentLanguage.value : '',
+        questions:   (questions || []).map((q) => ({
+          type: q.type,
+          prompt: q.prompt,
+          options: q.options || [],
+          correctAnswer: q.correctAnswer,
+        })),
+      };
+      const r = await fetch('/api/listening/generate-script', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const text = await r.text();
+      try { data = JSON.parse(text); }
+      catch { throw new Error('Server returned an unexpected response: ' + text.slice(0, 120)); }
+      if (!r.ok) throw new Error(data.error || `Server error ${r.status}`);
+    }
+
+    const script = (data && data.audioScript) || '';
+    if (!script.trim()) throw new Error('AI returned an empty script.');
+    if (els.audioScript) els.audioScript.value = script;
     currentAudioVoices = {};
-    renderSpeakersPanel(data.audioScript || '');
-    els.audioTtsStatus.textContent = `✓ Script ready (${(data.audioScript || '').length} chars). Pick a voice and click 🔊 Test play to preview.`;
+    renderSpeakersPanel(script);
+    els.audioTtsStatus.textContent = `✓ Script ready (${script.length} chars). Pick a voice for each speaker, then click 🔊 Test play.`;
   } catch (e) {
     els.audioTtsStatus.textContent = '❌ ' + (e.message || 'Generation failed');
+    console.error('[generate-script]', e);
   } finally {
     els.audioTtsGenerate.disabled = false;
+    els.audioTtsGenerate.textContent = originalLabel;
   }
 };
 if (els.audioTtsStop) els.audioTtsStop.onclick = ttsStop;
