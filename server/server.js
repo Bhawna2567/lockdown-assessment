@@ -5,6 +5,9 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const FileStore = require('session-file-store')(session);
+const SESSION_DIR = require('path').join(__dirname, '..', 'data', 'sessions');
+require('fs').mkdirSync(SESSION_DIR, { recursive: true });
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
@@ -36,11 +39,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'change-me-in-production',
+    // FileStore persists sessions to /data/sessions/ on the Render disk so
+    // they survive every restart, deploy, and idle timeout. Without this,
+    // every Render restart wipes the default in-memory store and kicks
+    // every active student out with a 401 "Not authenticated".
+    store: new FileStore({
+      path: SESSION_DIR,
+      ttl: 60 * 60 * 12,            // seconds; 12 hours
+      retries: 1,
+      logFn: () => {},               // suppress the chatty "session not found" messages
+    }),
     resave: false,
     saveUninitialized: false,
-    // rolling=true extends the cookie expiry on every request, so a student
-    // actively taking an exam (sending proctor snapshots every 15s) never
-    // hits the cookie timeout. 12h baseline for safety.
     rolling: true,
     cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 12 },
   })
