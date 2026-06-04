@@ -220,6 +220,7 @@
             <option value="Arabic">Arabic</option>
             <option value="French">French</option>
             <option value="English">English</option>
+              <option value="Listening">Listening</option>
             <option value="Other">Other</option>
           </select>
           <div class="muted" style="font-size: 12px; margin-top: 4px;">Tells the AI to use the right style and conventions — diagrams, formulas, sources, vocabulary — for this subject.</div>
@@ -500,6 +501,30 @@
             </div>
           </div>
         </div>
+      </div>
+
+
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label>🎧 Listening audio (optional)</label>
+            <div id="audio-panel" style="border: 1px dashed #c69214; border-radius: 10px; padding: 12px; background: #fff8e6;">
+              <div id="audio-current" style="display:none; margin-bottom: 10px;">
+                <strong>Current audio:</strong>
+                <span id="audio-current-name"></span>
+                <span class="muted" id="audio-current-size"></span>
+                <button type="button" class="btn" id="audio-remove" style="margin-left: 8px;">Remove</button>
+              </div>
+              <input type="file" id="audio-input" accept=".mp3,.m4a,.wav,.ogg,.aac,audio/*" style="margin-bottom: 8px;" />
+              <button type="button" class="btn primary" id="audio-upload-btn">Upload audio</button>
+              <div id="audio-status" class="muted" style="margin-top: 6px;"></div>
+              <audio id="audio-preview" controls style="display:none; margin-top: 10px; width: 100%;"></audio>
+              <div class="muted" style="font-size: 12px; margin-top: 8px;">
+                Save the assessment first, then upload the audio. Students see a play bar at the top of the exam — one click to listen. Supported: MP3, M4A, WAV, OGG, AAC. Max 50 MB (~50 min at 128 kbps).
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="panel">

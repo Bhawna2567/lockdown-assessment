@@ -1601,6 +1601,7 @@ if (els.uiLang) {
 let currentResultsAssessmentId = null;
 
 let editingId = null;
+    if (window.__syncAudioPanelForEdit) window.__syncAudioPanelForEdit(null);
 let questions = [];
 let sections = [];   // [{id, title, instructions, passage, order}]
 
@@ -4286,4 +4287,97 @@ async function downloadAssessmentDocx(assessmentId) {
     URL.revokeObjectURL(url);
   }, 1000);
 }
+
+// ── Listening-audio UI refs (added by listening-feature patch) ─────────────
+els.audioPanel       = document.getElementById('audio-panel');
+els.audioInput       = document.getElementById('audio-input');
+els.audioUploadBtn   = document.getElementById('audio-upload-btn');
+els.audioRemoveBtn   = document.getElementById('audio-remove');
+els.audioStatus      = document.getElementById('audio-status');
+els.audioPreview     = document.getElementById('audio-preview');
+els.audioCurrent     = document.getElementById('audio-current');
+els.audioCurrentName = document.getElementById('audio-current-name');
+els.audioCurrentSize = document.getElementById('audio-current-size');
+
+// ── Listening-audio management ─────────────────────────────────────────────
+function fmtAudioSize(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return n + ' B';
+  if (n < 1024*1024) return (n/1024).toFixed(0) + ' KB';
+  return (n/(1024*1024)).toFixed(1) + ' MB';
+}
+function renderAudioPanel(audioFile) {
+  if (!els.audioCurrent) return;
+  if (audioFile && audioFile.name) {
+    els.audioCurrent.style.display = '';
+    els.audioCurrentName.textContent = audioFile.name;
+    els.audioCurrentSize.textContent = audioFile.size ? ' · ' + fmtAudioSize(audioFile.size) : '';
+    // Preview source: stream from server (avoids re-uploading on edit).
+    if (editingId && els.audioPreview) {
+      els.audioPreview.src = `/api/assessments/${editingId}/audio?v=${Date.now()}`;
+      els.audioPreview.style.display = '';
+    }
+  } else {
+    els.audioCurrent.style.display = 'none';
+    if (els.audioPreview) { els.audioPreview.style.display = 'none'; els.audioPreview.src = ''; }
+  }
+}
+async function uploadAudio() {
+  if (!editingId) {
+    els.audioStatus.textContent = 'Save the assessment first — then upload audio.';
+    return;
+  }
+  if (!els.audioInput || !els.audioInput.files || !els.audioInput.files[0]) {
+    els.audioStatus.textContent = 'Choose an audio file first.';
+    return;
+  }
+  const file = els.audioInput.files[0];
+  if (file.size > 50 * 1024 * 1024) {
+    els.audioStatus.textContent = 'File too big — max 50 MB.';
+    return;
+  }
+  els.audioStatus.textContent = 'Uploading…';
+  const fd = new FormData();
+  fd.append('audio', file);
+  try {
+    const res = await fetch(`/api/assessments/${editingId}/audio`, {
+      method: 'POST',
+      body: fd,
+      credentials: 'include',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    els.audioStatus.textContent = 'Audio uploaded. Students will hear it at the top of the assessment.';
+    renderAudioPanel(data.audioFile);
+  } catch (e) {
+    els.audioStatus.textContent = 'Upload failed: ' + (e.message || e);
+  }
+}
+async function removeAudio() {
+  if (!editingId) return;
+  if (!confirm('Remove the audio from this assessment?')) return;
+  try {
+    const res = await fetch(`/api/assessments/${editingId}/audio`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Failed');
+    els.audioStatus.textContent = 'Audio removed.';
+    renderAudioPanel(null);
+    if (els.audioInput) els.audioInput.value = '';
+  } catch (e) {
+    els.audioStatus.textContent = 'Remove failed: ' + (e.message || e);
+  }
+}
+if (els.audioUploadBtn) els.audioUploadBtn.onclick = uploadAudio;
+if (els.audioRemoveBtn) els.audioRemoveBtn.onclick = removeAudio;
+
+// Whenever the builder opens an existing assessment, sync the audio panel.
+window.__syncAudioPanelForEdit = function(assessment) {
+  try {
+    if (assessment && assessment.audioFile) renderAudioPanel(assessment.audioFile);
+    else renderAudioPanel(null);
+    if (els.audioStatus) els.audioStatus.textContent = '';
+  } catch {}
+};
 

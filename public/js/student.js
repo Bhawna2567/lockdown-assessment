@@ -959,7 +959,7 @@ function startAssessment() {
   }
 
   renderQuestions();
-  setTimeout(() => { installHighlighterToolbar(); restoreHighlights(); }, 100);
+  setTimeout(() => { installHighlighterToolbar(); restoreHighlights(); installAudioBarForAssessment(currentAssessment); }, 100);
   // Re-entry: pre-fill the rendered inputs with the previous answers and
   // show a clear banner so the student knows what's happening.
   if (currentAssessment && currentAssessment.reentryActive && currentAssessment.previousAnswers) {
@@ -1294,6 +1294,7 @@ async function submit(reason) {
   if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
   clearAnswersBackup();
   uninstallHighlighterToolbar();
+  removeAudioBar();
   els.assessmentView.style.display = 'none';
   els.doneView.style.display = 'block';
   els.doneMsg.innerHTML = `
@@ -2463,5 +2464,50 @@ function installHighlighterToolbar() {
 function uninstallHighlighterToolbar() {
   const bar = document.getElementById('_cc_highlighter');
   if (bar && bar.parentNode) bar.parentNode.removeChild(bar);
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Listening-audio bar (in-exam player)
+// ───────────────────────────────────────────────────────────────────────────
+// When the loaded assessment has hasAudio:true, prepend a yellow bar with
+// an <audio controls> player at the top of the assessment view. Students
+// click play once; volume + scrub controls are available; we set
+// controlsList="nodownload" and block right-click to discourage saving.
+function installAudioBarForAssessment(a) {
+  removeAudioBar();
+  if (!a || !a.hasAudio) return;
+  const wrap = document.createElement('div');
+  wrap.id = '_cc_audio_bar';
+  wrap.setAttribute('data-cc-ui', '1'); // ignored by lockdown blur handler
+  wrap.style.cssText = [
+    'position: sticky', 'top: 0',
+    'z-index: 50',
+    'background: #fde68a',
+    'border: 2px solid #c69214',
+    'border-radius: 12px',
+    'padding: 10px 14px',
+    'margin: 0 0 12px',
+    'display: flex', 'align-items: center', 'gap: 12px',
+    'box-shadow: 0 4px 12px rgba(0,0,0,0.10)',
+  ].join(';');
+  const label = document.createElement('div');
+  label.innerHTML = '🎧 <strong style="color:#1a1e33;">Listening audio</strong>';
+  label.style.cssText = 'flex: 0 0 auto; color:#1a1e33; font-weight:600;';
+  const audio = document.createElement('audio');
+  audio.controls = true;
+  audio.preload = 'metadata';
+  audio.setAttribute('controlsList', 'nodownload noplaybackrate');
+  audio.style.cssText = 'flex:1; min-width: 0;';
+  audio.src = `/api/assessments/${a.id}/audio?v=${Date.now()}`;
+  audio.oncontextmenu = (e) => { e.preventDefault(); return false; };
+  wrap.appendChild(label);
+  wrap.appendChild(audio);
+  // Insert at the very top of the assessment view.
+  const view = els.assessmentView || document.getElementById('assessment-view');
+  if (view) view.insertBefore(wrap, view.firstChild);
+}
+function removeAudioBar() {
+  const el = document.getElementById('_cc_audio_bar');
+  if (el && el.parentNode) el.parentNode.removeChild(el);
 }
 

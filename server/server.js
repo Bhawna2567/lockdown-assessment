@@ -22,12 +22,27 @@ const { Packer } = require('docx');
 // Uploads go to a tmp dir; we delete after parsing.
 const UPLOAD_DIR = path.join(__dirname, '..', 'data', 'uploads');
 const PROCTOR_DIR = path.join(__dirname, '..', 'data', 'proctor');
-for (const d of [UPLOAD_DIR, PROCTOR_DIR]) {
+// Listening-assessment audio lives on the persistent disk so it survives
+// every Render restart. One file per assessment, keyed by id.<ext>.
+const AUDIO_DIR = path.join(__dirname, '..', 'data', 'audio');
+for (const d of [UPLOAD_DIR, PROCTOR_DIR, AUDIO_DIR]) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 }
 const upload = multer({
   dest: UPLOAD_DIR,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+});
+// Larger ceiling for listening audio (50 MB ≈ 50 minutes of 128 kbps mp3).
+const audioUpload = multer({
+  dest: UPLOAD_DIR,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = ['audio/mpeg','audio/mp3','audio/mp4','audio/x-m4a','audio/m4a',
+                'audio/wav','audio/x-wav','audio/ogg','audio/aac','audio/webm'];
+    if (ok.includes(file.mimetype) || /\.(mp3|m4a|wav|ogg|aac|webm)$/i.test(file.originalname)) {
+      cb(null, true);
+    } else cb(new Error('Unsupported audio format'));
+  },
 });
 
 const PORT = process.env.PORT || 3000;
@@ -782,7 +797,7 @@ function normalizeGrade(g) {
 const SUBJECTS = new Set([
   'Math', 'Physics', 'Chemistry', 'Biology',
   'Health Science', 'Islamic Studies', 'Social Studies',
-  'Arabic', 'French', 'English', 'Other',
+  'Arabic', 'French', 'English', 'Listening', 'Other',
 ]);
 function normalizeSubject(s) {
   if (!s) return null;
@@ -878,6 +893,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     scheduledDate: scheduledDate ? String(scheduledDate).slice(0, 10) : null,
     durationMinutes: Number(durationMinutes) || 30,
     published: Boolean(published),
+    audioFile: null,
     questions: questions.map((q, i) => {
       const type = normalizeQuestionType(q.type);
       // Validate sectionId: must reference a real section on this assessment.
@@ -999,6 +1015,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       : (scheduledDate ? String(scheduledDate).slice(0, 10) : null),
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
+    audioFile: all[idx].audioFile || null,
     questions: Array.isArray(questions)
       ? questions.map((q, i) => {
           const type = normalizeQuestionType(q.type);
@@ -1679,6 +1696,82 @@ app.put('/api/results/:resultId/teacher-grade', requireTeacher, (req, res) => {
 
 // JSON export of an assessment for the teacher (used by the PDF print
 // flow and any other "preview the whole paper" feature).
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Listening-assessment audio endpoints
+// ───────────────────────────────────────────────────────────────────────────
+// Teacher attaches/replaces the audio for one of their own assessments.
+// We store the file as <assessmentId>.<ext> in AUDIO_DIR so cleanup is
+// trivial (overwrite or unlink). The metadata { name, size, mime, ext }
+// goes on the assessment record.
+app.post('/api/assessments/:id/audio', requireTeacher, audioUpload.single('audio'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No audio uploaded' });
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((a) => a.id === req.params.id);
+  if (idx === -1) { try { fs.unlinkSync(req.file.path); } catch {} ; return res.status(404).json({ error: 'Not found' }); }
+  if (all[idx].teacherId !== req.session.user.id) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  // Pick a safe extension from the original filename or mime.
+  const extFromName = (req.file.originalname.match(/\.([a-z0-9]+)$/i) || [])[1] || '';
+  const ext = (extFromName || (req.file.mimetype.split('/')[1] || 'mp3')).toLowerCase();
+  const dest = path.join(AUDIO_DIR, `${req.params.id}.${ext}`);
+  // Remove any pre-existing audio for this assessment (different extension).
+  try {
+    fs.readdirSync(AUDIO_DIR)
+      .filter((f) => f.startsWith(req.params.id + '.'))
+      .forEach((f) => { try { fs.unlinkSync(path.join(AUDIO_DIR, f)); } catch {} });
+  } catch {}
+  fs.renameSync(req.file.path, dest);
+  all[idx].audioFile = {
+    name: req.file.originalname,
+    size: req.file.size,
+    mime: req.file.mimetype,
+    ext,
+    uploadedAt: new Date().toISOString(),
+  };
+  writeAll('assessments.json', all);
+  res.json({ audioFile: all[idx].audioFile });
+});
+
+// Stream the audio. Allowed for the owning teacher OR an authenticated
+// student who is enrolled (we don't enforce class enrollment beyond the
+// signed-in role; the student needs a valid session and the assessment
+// must be published).
+app.get('/api/assessments/:id/audio', requireAuth, (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a || !a.audioFile || !a.audioFile.ext) return res.status(404).json({ error: 'No audio' });
+  const isOwner = req.session.user.role === 'teacher' && a.teacherId === req.session.user.id;
+  const isStudent = req.session.user.role === 'student' && a.published;
+  if (!isOwner && !isStudent) return res.status(403).json({ error: 'Forbidden' });
+  const fp = path.join(AUDIO_DIR, `${a.id}.${a.audioFile.ext}`);
+  if (!fs.existsSync(fp)) return res.status(404).json({ error: 'Audio file missing' });
+  res.setHeader('Content-Type', a.audioFile.mime || 'audio/mpeg');
+  // Discourage download tools — not bulletproof, but matches the rest of
+  // the lockdown posture. The HTML5 player still streams just fine.
+  res.setHeader('Content-Disposition', 'inline; filename="audio"');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.sendFile(fp);
+});
+
+// Teacher removes the audio.
+app.delete('/api/assessments/:id/audio', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((a) => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  try {
+    fs.readdirSync(AUDIO_DIR)
+      .filter((f) => f.startsWith(req.params.id + '.'))
+      .forEach((f) => { try { fs.unlinkSync(path.join(AUDIO_DIR, f)); } catch {} });
+  } catch {}
+  all[idx].audioFile = null;
+  writeAll('assessments.json', all);
+  res.json({ ok: true });
+});
+
 app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id);
@@ -1910,6 +2003,8 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     subject: a.subject || null,
     assessmentLanguage: a.assessmentLanguage || null,
     deliveryMode: a.deliveryMode || 'online',
+    hasAudio: !!(a.audioFile && a.audioFile.ext),
+    audioFile: a.audioFile ? { name: a.audioFile.name, mime: a.audioFile.mime } : null,
     // Re-entry mode: when the teacher has granted re-entry and the
     // student had a prior submission, we send back the answers they
     // had recorded so the client can pre-fill the form, plus the
