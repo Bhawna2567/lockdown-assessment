@@ -4395,7 +4395,8 @@ els.audioVoice     = document.getElementById('audio-voice');
 els.audioTtsTest   = document.getElementById('audio-tts-test');
 els.audioTtsStop   = document.getElementById('audio-tts-stop');
 els.audioTtsSave   = document.getElementById('audio-tts-save');
-els.audioTtsStatus = document.getElementById('audio-tts-status');
+els.audioTtsStatus   = document.getElementById('audio-tts-status');
+els.audioTtsGenerate = document.getElementById('audio-tts-generate');
 
 function populateVoiceList() {
   if (!els.audioVoice) return;
@@ -4441,12 +4442,100 @@ function ttsSpeak(text, voiceName) {
 function ttsStop() {
   try { speechSynthesis.cancel(); } catch {}
 }
-if (els.audioTtsTest) els.audioTtsTest.onclick = () => {
+// Robust Test play — waits for voices to load, chunks long scripts so very
+// long utterances don't silently fail in some browsers, and surfaces a clear
+// error if the browser can't produce any speech.
+async function waitForVoices(timeoutMs = 2000) {
+  if (!('speechSynthesis' in window)) return [];
+  let voices = speechSynthesis.getVoices();
+  if (voices.length) return voices;
+  return await new Promise((resolve) => {
+    const t0 = Date.now();
+    function poll() {
+      voices = speechSynthesis.getVoices();
+      if (voices.length || Date.now() - t0 > timeoutMs) return resolve(voices);
+      setTimeout(poll, 80);
+    }
+    speechSynthesis.onvoiceschanged = poll;
+    poll();
+  });
+}
+function chunkScript(text, max = 220) {
+  // Split on sentence boundaries; combine into chunks under `max` chars.
+  const sentences = String(text).split(/(?<=[.!?؟。！？])\s+/);
+  const chunks = [];
+  let buf = '';
+  for (const s of sentences) {
+    if ((buf + ' ' + s).length > max && buf) { chunks.push(buf.trim()); buf = s; }
+    else { buf = buf ? buf + ' ' + s : s; }
+  }
+  if (buf.trim()) chunks.push(buf.trim());
+  return chunks;
+}
+async function speakScript(text, voiceName) {
+  if (!('speechSynthesis' in window)) {
+    els.audioTtsStatus.textContent = 'This browser has no speech engine.';
+    return;
+  }
+  try { speechSynthesis.cancel(); } catch {}
+  const voices = await waitForVoices();
+  if (!voices.length) {
+    els.audioTtsStatus.textContent = 'No voices installed on this device — try Chrome on desktop, or Edge for high-quality voices.';
+    return;
+  }
+  const voice = voices.find((v) => v.name === voiceName) || voices.find((v) => v.default) || voices[0];
+  const chunks = chunkScript(text);
+  els.audioTtsStatus.textContent = `▶ Playing preview (${chunks.length} part${chunks.length === 1 ? '' : 's'})…`;
+  for (let i = 0; i < chunks.length; i++) {
+    await new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(chunks[i]);
+      u.voice = voice;
+      u.lang = voice.lang;
+      u.rate = 0.95;
+      u.pitch = 1.0;
+      u.onend = resolve;
+      u.onerror = (e) => {
+        els.audioTtsStatus.textContent = 'Playback error: ' + (e.error || 'unknown') + ' — try a different voice.';
+        resolve();
+      };
+      speechSynthesis.speak(u);
+    });
+    if (speechSynthesis.speaking === false && i < chunks.length - 1) break;
+  }
+  if (speechSynthesis.speaking === false) els.audioTtsStatus.textContent = '✓ Preview finished.';
+}
+
+if (els.audioTtsTest) els.audioTtsTest.onclick = async () => {
   const script = (els.audioScript && els.audioScript.value || '').trim();
-  if (!script) { els.audioTtsStatus.textContent = 'Write a script first.'; return; }
+  if (!script) { els.audioTtsStatus.textContent = 'No script yet — click ✨ Generate script with AI, or type one.'; return; }
   const voice = els.audioVoice && els.audioVoice.value || '';
-  els.audioTtsStatus.textContent = 'Playing preview…';
-  ttsSpeak(script, voice);
+  await speakScript(script, voice);
+};
+
+// ✨ Generate script with AI — calls /generate-script and fills the textarea.
+if (els.audioTtsGenerate) els.audioTtsGenerate.onclick = async () => {
+  if (!editingId) {
+    els.audioTtsStatus.textContent = 'Save the assessment first (so the AI knows what questions to write the script for).';
+    return;
+  }
+  els.audioTtsGenerate.disabled = true;
+  els.audioTtsStatus.textContent = '✨ Asking AI to write a listening script… this takes 5–10 seconds.';
+  try {
+    const res = await fetch(`/api/assessments/${editingId}/generate-script`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: '{}',
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Generation failed');
+    if (els.audioScript) els.audioScript.value = data.audioScript || '';
+    els.audioTtsStatus.textContent = `✓ Script ready (${(data.audioScript || '').length} chars). Pick a voice and click 🔊 Test play to preview.`;
+  } catch (e) {
+    els.audioTtsStatus.textContent = '❌ ' + (e.message || 'Generation failed');
+  } finally {
+    els.audioTtsGenerate.disabled = false;
+  }
 };
 if (els.audioTtsStop) els.audioTtsStop.onclick = ttsStop;
 if (els.audioTtsSave) els.audioTtsSave.onclick = async () => {

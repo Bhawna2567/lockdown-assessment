@@ -1782,6 +1782,103 @@ app.delete('/api/assessments/:id/audio', requireTeacher, (req, res) => {
   res.json({ ok: true });
 });
 
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Listening: generate the AI-read transcript for an existing assessment.
+// ───────────────────────────────────────────────────────────────────────────
+// Given an existing assessment id, ask Claude to write a full listening
+// script that the questions can be answered from. Persist to audioScript.
+app.post('/api/assessments/:id/generate-script', requireTeacher, async (req, res) => {
+  const apiKey = readApiKey();
+  if (!apiKey) return res.status(400).json({ error: 'No Anthropic API key configured.' });
+
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((a) => a.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const a = all[idx];
+  // Lay out the assessment's structure so the model knows what the script
+  // has to support. Include questions, options, and any expected answer.
+  const qLines = (a.questions || []).map((q, i) => {
+    const parts = [];
+    parts.push(`Q${i + 1} [${q.type}] ${q.prompt}`);
+    if (Array.isArray(q.options) && q.options.length) {
+      q.options.forEach((opt, j) => parts.push(`     (${String.fromCharCode(65 + j)}) ${opt}`));
+    }
+    if (q.correctAnswer !== undefined && q.correctAnswer !== null && q.correctAnswer !== '') {
+      const ca = typeof q.correctAnswer === 'number'
+        ? `option (${String.fromCharCode(65 + q.correctAnswer)})`
+        : String(q.correctAnswer);
+      parts.push(`     answer: ${ca}`);
+    }
+    return parts.join('\n');
+  }).join('\n');
+
+  const language = a.assessmentLanguage || 'English';
+  const subject  = a.subject || 'Listening';
+  const prompt = [
+    'You write LISTENING-TEST audio scripts for classroom assessments.',
+    'Your task: produce ONE complete spoken-word script that the student will hear ONCE during the exam.',
+    '',
+    'OUTPUT FORMAT — return ONLY this JSON object (no markdown fences, no commentary):',
+    '{ "audioScript": "string — the full transcript, ready to be read aloud" }',
+    '',
+    'RULES',
+    '  1. The script must contain EVERY piece of information needed to answer EVERY question below. A student listening once should be able to answer all of them.',
+    `  2. Language: ${language}. Write the entire script in this language.`,
+    '  3. Length: at least 250 words and at most 700 words. Long enough to be a real listening section, short enough to fit a 3–5 minute audio.',
+    '  4. Style: natural spoken English (or the chosen language). Use full sentences. If it is a dialogue, label speakers ("Speaker 1:", "Speaker 2:", or named roles like "Interviewer:", "Dr. Khan:"). For announcements/monologues, just write the prose.',
+    '  5. NO stage directions in brackets (e.g. NO "[pause]", NO "[music]"). NO question prompts — only the spoken material.',
+    '  6. NEVER read the questions or answer choices aloud — just the source material that lets the student deduce the answers.',
+    '  7. Mention specific facts (names, dates, places, numbers) that map clearly to each question.',
+    '',
+    `ASSESSMENT METADATA`,
+    `  Title: ${a.title}`,
+    `  Subject: ${subject}`,
+    `  Language: ${language}`,
+    `  Description: ${a.description || '(none)'}`,
+    '',
+    'QUESTIONS THE SCRIPT MUST COVER',
+    qLines || '(no questions yet — write a generic 300-word listening passage on a school-appropriate topic for the language above)',
+  ].join('\n');
+
+  try {
+    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }],
+      }),
+    });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text().catch(() => '');
+      console.error('[generate-script] API error', apiRes.status, errText);
+      return res.status(502).json({ error: 'AI service error: ' + apiRes.status });
+    }
+    const data = await apiRes.json();
+    let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+    let parsed;
+    try { parsed = JSON.parse(text); }
+    catch (e) {
+      // Fallback: treat the entire response as the script (some models drop the JSON wrapper).
+      parsed = { audioScript: text };
+    }
+    const script = String(parsed.audioScript || '').slice(0, 12000).trim();
+    if (!script) return res.status(502).json({ error: 'AI returned an empty script.' });
+
+    all[idx].audioScript = script;
+    writeAll('assessments.json', all);
+    res.json({ ok: true, audioScript: script });
+  } catch (e) {
+    console.error('[generate-script] failed', e);
+    res.status(500).json({ error: 'Generation failed: ' + e.message });
+  }
+});
+
 app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id);
