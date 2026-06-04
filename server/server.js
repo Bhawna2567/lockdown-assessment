@@ -1928,8 +1928,17 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
   const { answers, violations, startedAt, submitReason, remainingMs } = req.body || {};
   const results = readAll('results.json');
 
-  // Block re-submission
-  if (results.find((r) => r.studentId === req.session.user.id && r.assessmentId === a.id)) {
+  // Block re-submission UNLESS the teacher has granted a re-entry. A grant
+  // means the student is allowed to resubmit; in that case we fall through
+  // to the rest of the handler, which will replace the prior result.
+  const reentryGrants = Array.isArray(a.reentryGrants) ? a.reentryGrants : [];
+  const hasActiveGrant = reentryGrants.some(
+    (g) => g.studentId === req.session.user.id && !g.usedAt
+  );
+  const existingPrior = results.find(
+    (r) => r.studentId === req.session.user.id && r.assessmentId === a.id
+  );
+  if (existingPrior && !hasActiveGrant) {
     return res.status(403).json({ error: 'Already submitted' });
   }
 
