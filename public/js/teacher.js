@@ -1582,6 +1582,12 @@ function startUiObserver() {
   } catch {}
 }
 
+// Default to list-only on page load. Editor views (#builder-view, etc.)
+// have style="display:none" in the HTML; cc-list-only adds an !important
+// override so even a re-show via inline JS can't override unless an
+// open*() function explicitly removes the class.
+document.body.classList.add('cc-list-only');
+
 if (els.uiLang) {
   els.uiLang.value = getUiLang();
   currentUiLang = els.uiLang.value;
@@ -2804,16 +2810,18 @@ els.saveBtn.onclick = async () => {
       await api('/api/assessments', { method: 'POST', body: payload });
     }
     els.saveStatus.textContent = 'Saved.';
-    // HARD CLOSE: reload the page. Every editor surface (#builder-view,
-    // #results-view, #template-picker, #essay-queue-view, etc.) has
-    // style="display:none" in the HTML, so a reload guarantees the
-    // dashboard list is the only thing visible. Belt + braces with the
-    // CSS class so even mid-reload the user doesn't see a flash.
+    // HARD CLOSE — synchronous + immediate. Apply cc-list-only AND set
+    // display:none directly on the builder so the user sees ZERO flash of
+    // the editor between Save and reload. Then force a hard reload that
+    // bypasses any cached state.
     document.body.classList.add('cc-list-only');
-    setTimeout(() => {
-      // Strip the URL hash if any, then full reload.
-      window.location.href = window.location.pathname + window.location.search;
-    }, 300);
+    if (els.builderView) els.builderView.style.cssText = 'display:none !important;';
+    if (els.resultsView) els.resultsView.style.cssText = 'display:none !important;';
+    if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
+    // location.reload(true) is the most-aggressive: forces the browser to
+    // bypass its disk cache and re-fetch every resource on this URL.
+    try { window.location.reload(); }
+    catch { window.location.href = window.location.pathname; }
   } catch (e) {
     els.saveStatus.textContent = '';
     alert(e.message);
