@@ -1567,10 +1567,18 @@ const handlers = {
     }
   },
   blur: () => {
-    if (!submitted) {
+    if (submitted) return;
+    // Ignore blur events caused by focus moving to OUR own UI (highlighter
+    // toolbar, submit confirm modal, etc.). The relatedTarget on a blur is
+    // the element receiving focus — if it's tagged data-cc-ui, the student
+    // is interacting with our overlay, not escaping the window.
+    setTimeout(() => {
+      const ae = document.activeElement;
+      if (ae && (ae.closest && ae.closest('[data-cc-ui="1"]'))) return;
+      if (document.hasFocus()) return;
       lockdownBlurEntered = Date.now();
       scheduleHardLockdownSubmit('window-blurred');
-    }
+    }, 50);
   },
   focus: () => {
     // Returning focus cancels a pending submit IF the user came back fast
@@ -2303,6 +2311,12 @@ function restoreHighlights() {
 }
 
 function applyHighlightToSelection() {
+  // Defensive: a click on the toolbar can briefly move focus and arm the
+  // hardened-lockdown timer. Cancel it before doing any DOM work.
+  if (typeof hardLockdownTimer !== 'undefined' && hardLockdownTimer) {
+    clearTimeout(hardLockdownTimer); hardLockdownTimer = null;
+  }
+
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed) return false;
   const range = sel.getRangeAt(0);
@@ -2336,6 +2350,12 @@ function applyHighlightToSelection() {
 }
 
 function eraseHighlightAt(node) {
+  // Defensive: a click on the toolbar can briefly move focus and arm the
+  // hardened-lockdown timer. Cancel it before doing any DOM work.
+  if (typeof hardLockdownTimer !== 'undefined' && hardLockdownTimer) {
+    clearTimeout(hardLockdownTimer); hardLockdownTimer = null;
+  }
+
   // Climb to the nearest .cc-highlight ancestor and unwrap it.
   let el = node;
   while (el && el !== document.body) {
@@ -2352,13 +2372,43 @@ function eraseHighlightAt(node) {
 }
 
 function clearAllHighlights() {
-  if (!confirm('Remove all highlights from this assessment?')) return;
-  document.querySelectorAll('.cc-highlight').forEach((el) => {
-    const parent = el.parentNode;
-    while (el.firstChild) parent.insertBefore(el.firstChild, el);
-    parent.removeChild(el);
-  });
-  saveHighlights();
+  // Inline confirm — never use the native confirm() inside a lockdown
+  // session, because the dialog steals window focus and the blur handler
+  // fires scheduleHardLockdownSubmit → auto-submit after 1.5s.
+  if (document.getElementById('_cc_hl_clear_modal')) return;
+  const m = document.createElement('div');
+  m.id = '_cc_hl_clear_modal';
+  m.setAttribute('data-cc-ui', '1');  // ignored by lockdown blur handler
+  m.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'background: rgba(11,16,32,0.55)',
+    'z-index: 2147483645',
+    'display: flex', 'align-items: center', 'justify-content: center',
+  ].join(';');
+  m.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:22px 26px; max-width: 380px; width: 92%; box-shadow: 0 16px 48px rgba(0,0,0,0.30);">
+      <h3 style="margin: 0 0 8px; color:#1a1e33;">Clear all highlights?</h3>
+      <p style="margin: 0 0 14px; color:#475569; font-size: 14px;">
+        This removes every yellow highlight on the page. You can keep highlighting after this.
+      </p>
+      <div class="row" style="display:flex; gap:10px; justify-content: flex-end;">
+        <button class="btn" id="_cc_hl_no" data-cc-ui="1">Cancel</button>
+        <button class="btn primary" id="_cc_hl_yes" data-cc-ui="1">Clear all</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const close = () => { if (m.parentNode) m.parentNode.removeChild(m); };
+  document.getElementById('_cc_hl_no').onclick = close;
+  document.getElementById('_cc_hl_yes').onclick = () => {
+    close();
+    document.querySelectorAll('.cc-highlight').forEach((el) => {
+      const parent = el.parentNode;
+      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+    });
+    saveHighlights();
+  };
 }
 
 function installHighlighterToolbar() {
@@ -2366,6 +2416,21 @@ function installHighlighterToolbar() {
   const bar = document.createElement('div');
   bar.id = '_cc_highlighter';
   bar.className = 'cc-highlighter-toolbar';
+  bar.setAttribute('data-cc-ui', '1');  // tells blur handler this is OUR UI, not an escape attempt
+  // Cancel any pending auto-submit when the student is actively using the
+  // toolbar — clicking a highlighter button is not a "left the window" event.
+  bar.addEventListener('mousedown', () => {
+    if (typeof hardLockdownTimer !== 'undefined' && hardLockdownTimer) {
+      clearTimeout(hardLockdownTimer);
+      hardLockdownTimer = null;
+    }
+    if (typeof lockdownBlurEntered !== 'undefined') lockdownBlurEntered = 0;
+    if (typeof lockdownBlockEl !== 'undefined' && lockdownBlockEl && lockdownBlockEl.parentNode) {
+      lockdownBlockEl.parentNode.removeChild(lockdownBlockEl);
+      lockdownBlockEl = null;
+    }
+  });
+  bar.querySelectorAll('button').forEach((b) => b.setAttribute('data-cc-ui', '1'));
   bar.innerHTML = `
     <span class="cc-highlighter-label">🖍 Highlighter</span>
     <button id="_cc_hl_apply" title="Select text inside a passage, then click">Highlight</button>
