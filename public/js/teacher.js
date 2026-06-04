@@ -2007,6 +2007,7 @@ els.backBtn.onclick = () => {
 
 // ----- Template picker -----
 function openTemplatePicker() {
+  document.body.classList.remove('cc-list-only');
   els.listView.style.display = 'none';
   els.resultsView.style.display = 'none';
   els.builderView.style.display = 'none';
@@ -2210,6 +2211,7 @@ if (els.aiGenerateBtn) {
 }
 
 function openBuilder(a, presets) {
+  document.body.classList.remove('cc-list-only');
   els.listView.style.display = 'none';
   els.resultsView.style.display = 'none';
   closeTemplatePicker();
@@ -2803,13 +2805,11 @@ els.saveBtn.onclick = async () => {
     }
     els.saveStatus.textContent = 'Saved.';
     setTimeout(() => {
-      // ATOMIC close: hide EVERY editor surface (builder, results, essay
-      // queue, students, progress, report card, template picker) and then
-      // show ONLY the assessment list. Without this, the AI-generator
-      // path left the builder visible below the freshly-rendered list.
+      // STEP 1 — toggle the CSS class that wins over any inline style.
+      document.body.classList.add('cc-list-only');
+      // STEP 2 — defence-in-depth: still call hideAllViews + reset state.
       if (typeof hideAllViews === 'function') hideAllViews();
       if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
-      // Reset transient builder state so re-opening starts clean.
       editingId = null;
       currentAudioVoices = {};
       questions = [];
@@ -2830,6 +2830,7 @@ els.saveBtn.onclick = async () => {
 
 // ---------- Results view ----------
 async function openResults(id) {
+  document.body.classList.remove('cc-list-only');
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'block';
@@ -3630,6 +3631,7 @@ async function refreshQueueCount() {
 }
 
 async function openEssayQueue() {
+  document.body.classList.remove('cc-list-only');
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'none';

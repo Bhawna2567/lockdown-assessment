@@ -1259,3 +1259,20 @@ body.lockdown-body .assessment-content #assess-title {
 .btn, button, .card, a, select, input[type="button"], input[type="submit"] {
   touch-action: manipulation;
 }
+
+
+/* Hard-fix: when body has .cc-list-only, every editor surface is hidden
+ * with !important so no inline style or later JS can re-show them. */
+body.cc-list-only #builder-view,
+body.cc-list-only #results-view,
+body.cc-list-only #template-picker,
+body.cc-list-only #essay-queue-view,
+body.cc-list-only #report-card-view,
+body.cc-list-only #students-view,
+body.cc-list-only #progress-view {
+  display: none !important;
+}
+body.cc-list-only #list-view {
+  display: block !important;
+}
+.cc-hidden { display: none !important; }
