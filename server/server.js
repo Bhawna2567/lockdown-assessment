@@ -861,6 +861,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
     subject, assessmentLanguage, classId, deliveryMode, sections,
+    audioScript, audioVoice,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -894,6 +895,8 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     durationMinutes: Number(durationMinutes) || 30,
     published: Boolean(published),
     audioFile: null,
+    audioScript: audioScript ? String(audioScript).slice(0, 12000) : '',
+    audioVoice:  audioVoice  ? String(audioVoice).slice(0, 200)  : '',
     questions: questions.map((q, i) => {
       const type = normalizeQuestionType(q.type);
       // Validate sectionId: must reference a real section on this assessment.
@@ -971,6 +974,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
     subject, assessmentLanguage, classId, deliveryMode, sections,
+    audioScript, audioVoice,
   } = req.body || {};
   // Validate classId if provided: must belong to this teacher.
   let nextClassId = all[idx].classId;
@@ -1016,6 +1020,12 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     audioFile: all[idx].audioFile || null,
+    audioScript: audioScript === undefined
+      ? (all[idx].audioScript || '')
+      : (audioScript ? String(audioScript).slice(0, 12000) : ''),
+    audioVoice: audioVoice === undefined
+      ? (all[idx].audioVoice || '')
+      : (audioVoice ? String(audioVoice).slice(0, 200) : ''),
     questions: Array.isArray(questions)
       ? questions.map((q, i) => {
           const type = normalizeQuestionType(q.type);
@@ -2005,6 +2015,8 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     deliveryMode: a.deliveryMode || 'online',
     hasAudio: !!(a.audioFile && a.audioFile.ext),
     audioFile: a.audioFile ? { name: a.audioFile.name, mime: a.audioFile.mime } : null,
+    audioScript: a.audioScript || '',
+    audioVoice:  a.audioVoice  || '',
     // Re-entry mode: when the teacher has granted re-entry and the
     // student had a prior submission, we send back the answers they
     // had recorded so the client can pre-fill the form, plus the
@@ -3260,6 +3272,13 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '       • Place the passage in the section\'s "passage" field. Tie every reading question in that section back to specific details, inferences, or vocabulary from the passage you wrote.',
     '   - It is BETTER to invent one solid passage than to write reading questions with no passage to anchor them. Reading questions without a passage are FORBIDDEN.',
     '',
+    'C0. LISTENING ASSESSMENTS (subject == "Listening" OR prompt mentions listening)',
+    '   - WRITE A FULL audioScript that the student will hear during the exam. The script is the WHOLE TRANSCRIPT — announcement, dialogue, monologue, news report, etc. — written verbatim as it should be spoken.',
+    '   - Format dialogues with explicit speaker labels and short pauses written naturally ("Speaker 1: ... Speaker 2: ..."). Avoid stage directions.',
+    '   - Length: roughly 150-250 words per minute of intended audio, scaled to grade level and questionCount.',
+    '   - The questions must be answerable ONLY by listening to the audioScript (not by reading the page) — i.e. design like a real IELTS/PISA Listening section.',
+    '   - Do NOT copy the audioScript into any section.passage. The script is heard, not seen.',
+    '',
     'C. INSTRUCTIONS ARE NOT QUESTIONS',
     '   - Lines like "Read the following passage", "Answer all questions", "Use a separate sheet", "Spelling counts" are INSTRUCTIONS — put them in the section\'s "instructions" field. NEVER create a question with that text.',
     '   - Lines like "Section B: Writing", "Part 2", "Question 1" are SECTION TITLES — put them in "title".',
@@ -3410,6 +3429,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       ok: true,
       title: String(parsed.title || 'AI-generated assessment').slice(0, 200),
       description: String(parsed.description || '').slice(0, 500),
+      audioScript: String(parsed.audioScript || '').slice(0, 12000),
       // Top-level `passage` is kept for backward-compat — front-end now
       // prefers sections[].passage. We surface the first section's passage
       // for clients that still read it.

@@ -2475,7 +2475,11 @@ function uninstallHighlighterToolbar() {
 // controlsList="nodownload" and block right-click to discourage saving.
 function installAudioBarForAssessment(a) {
   removeAudioBar();
-  if (!a || !a.hasAudio) return;
+  if (!a) return;
+  // Two playback modes:
+  //   (1) teacher uploaded an MP3  → use the <audio> element.
+  //   (2) teacher saved a script   → use speechSynthesis to read it on click.
+  if (!a.hasAudio && !(a.audioScript && a.audioScript.trim())) return;
   const wrap = document.createElement('div');
   wrap.id = '_cc_audio_bar';
   wrap.setAttribute('data-cc-ui', '1'); // ignored by lockdown blur handler
@@ -2493,20 +2497,97 @@ function installAudioBarForAssessment(a) {
   const label = document.createElement('div');
   label.innerHTML = '🎧 <strong style="color:#1a1e33;">Listening audio</strong>';
   label.style.cssText = 'flex: 0 0 auto; color:#1a1e33; font-weight:600;';
-  const audio = document.createElement('audio');
-  audio.controls = true;
-  audio.preload = 'metadata';
-  audio.setAttribute('controlsList', 'nodownload noplaybackrate');
-  audio.style.cssText = 'flex:1; min-width: 0;';
-  audio.src = `/api/assessments/${a.id}/audio?v=${Date.now()}`;
-  audio.oncontextmenu = (e) => { e.preventDefault(); return false; };
   wrap.appendChild(label);
-  wrap.appendChild(audio);
+  // Mode 1: real audio file uploaded by teacher.
+  if (a.hasAudio) {
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.preload = 'metadata';
+    audio.setAttribute('controlsList', 'nodownload noplaybackrate');
+    audio.style.cssText = 'flex:1; min-width: 0;';
+    audio.src = `/api/assessments/${a.id}/audio?v=${Date.now()}`;
+    audio.oncontextmenu = (e) => { e.preventDefault(); return false; };
+    wrap.appendChild(audio);
+  } else {
+    // Mode 2: TTS — script read by the browser's speechSynthesis.
+    const status = document.createElement('span');
+    status.style.cssText = 'color:#1a1e33; font-weight:500; flex: 1;';
+    status.textContent = 'AI voice ready — click play';
+    const btnPlay  = document.createElement('button');
+    const btnPause = document.createElement('button');
+    const btnStop  = document.createElement('button');
+    for (const b of [btnPlay, btnPause, btnStop]) {
+      b.className = 'btn';
+      b.style.cssText = 'background:#1a1e33; color:#fde68a; border:1px solid #c69214; padding:8px 12px; border-radius:8px; font-weight:700; cursor:pointer;';
+      b.setAttribute('data-cc-ui', '1');
+    }
+    btnPlay.textContent  = '▶ Play';
+    btnPause.textContent = '⏸ Pause';
+    btnStop.textContent  = '⏹ Stop';
+    // Build the utterance once per click — speechSynthesis is finicky about
+    // re-using utterances across resume cycles.
+    let utter = null;
+    function pickVoice() {
+      const voices = speechSynthesis.getVoices() || [];
+      if (!voices.length) return null;
+      // First try the exact voice name the teacher saved.
+      if (a.audioVoice) {
+        const exact = voices.find((v) => v.name === a.audioVoice);
+        if (exact) return exact;
+      }
+      // Fallback: same language family as the assessment.
+      const langWord = (a.assessmentLanguage || '').toLowerCase();
+      const prefix = ({english:'en',arabic:'ar',french:'fr',spanish:'es',german:'de',italian:'it',portuguese:'pt',russian:'ru',chinese:'zh',japanese:'ja',korean:'ko',hindi:'hi',urdu:'ur',turkish:'tr',dutch:'nl'})[langWord] || '';
+      if (prefix) {
+        const m = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+        if (m) return m;
+      }
+      return voices.find((v) => v.default) || voices[0];
+    }
+    btnPlay.onclick = () => {
+      if (!('speechSynthesis' in window)) {
+        status.textContent = 'This browser has no speech engine — ask your teacher for the audio file.';
+        return;
+      }
+      try {
+        if (speechSynthesis.paused && utter) {
+          speechSynthesis.resume();
+          status.textContent = '▶ Playing…';
+          return;
+        }
+        speechSynthesis.cancel();
+        utter = new SpeechSynthesisUtterance(a.audioScript || '');
+        const v = pickVoice();
+        if (v) { utter.voice = v; utter.lang = v.lang; }
+        utter.rate = 0.95;
+        utter.pitch = 1.0;
+        utter.onstart = () => { status.textContent = '▶ Playing…'; };
+        utter.onpause = () => { status.textContent = '⏸ Paused — click Play to resume.'; };
+        utter.onend   = () => { status.textContent = '✓ Finished.'; };
+        utter.onerror = (e) => { status.textContent = 'Playback error: ' + (e.error || 'unknown'); };
+        speechSynthesis.speak(utter);
+      } catch (e) {
+        status.textContent = 'Could not play: ' + e.message;
+      }
+    };
+    btnPause.onclick = () => { try { speechSynthesis.pause(); } catch {} };
+    btnStop.onclick  = () => { try { speechSynthesis.cancel(); status.textContent = '⏹ Stopped.'; } catch {} };
+    wrap.appendChild(btnPlay);
+    wrap.appendChild(btnPause);
+    wrap.appendChild(btnStop);
+    wrap.appendChild(status);
+    // Voices load asynchronously on some browsers — refresh the voice list
+    // once it's ready, so the right voice is picked on first click.
+    if (speechSynthesis && !speechSynthesis.getVoices().length) {
+      speechSynthesis.onvoiceschanged = () => {};
+    }
+  }
   // Insert at the very top of the assessment view.
   const view = els.assessmentView || document.getElementById('assessment-view');
   if (view) view.insertBefore(wrap, view.firstChild);
 }
 function removeAudioBar() {
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch {}
   const el = document.getElementById('_cc_audio_bar');
   if (el && el.parentNode) el.parentNode.removeChild(el);
 }

@@ -1602,6 +1602,7 @@ let currentResultsAssessmentId = null;
 
 let editingId = null;
     if (window.__syncAudioPanelForEdit) window.__syncAudioPanelForEdit(null);
+    if (els.audioScript) els.audioScript.value = '';
 let questions = [];
 let sections = [];   // [{id, title, instructions, passage, order}]
 
@@ -2191,7 +2192,12 @@ if (els.aiGenerateBtn) {
         }
         sections = fake.sections;
         questions = fake.questions;
+        // Listening: surface AI-generated audioScript in the builder.
+        if (els.audioScript) els.audioScript.value = (data.audioScript || '');
         renderQuestions();
+        if (data.audioScript && els.audioTtsStatus) {
+          els.audioTtsStatus.textContent = 'AI wrote a listening script — review it, pick a voice, then Save the assessment.';
+        }
       }, 600);
     } catch (e) {
       els.aiStatus.textContent = '❌ ' + (e.message || 'Generation failed');
@@ -2769,6 +2775,8 @@ els.saveBtn.onclick = async () => {
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
       durationMinutes: Number(els.duration.value) || 30,
+      audioScript: els.audioScript ? els.audioScript.value : '',
+      audioVoice:  els.audioVoice  ? els.audioVoice.value  : '',
       published: els.published.value === 'true',
       sections,
       questions,
@@ -4379,5 +4387,85 @@ window.__syncAudioPanelForEdit = function(assessment) {
     else renderAudioPanel(null);
     if (els.audioStatus) els.audioStatus.textContent = '';
   } catch {}
+};
+
+// ── Listening: browser-TTS script + voice picker ───────────────────────────
+els.audioScript    = document.getElementById('audio-script');
+els.audioVoice     = document.getElementById('audio-voice');
+els.audioTtsTest   = document.getElementById('audio-tts-test');
+els.audioTtsStop   = document.getElementById('audio-tts-stop');
+els.audioTtsSave   = document.getElementById('audio-tts-save');
+els.audioTtsStatus = document.getElementById('audio-tts-status');
+
+function populateVoiceList() {
+  if (!els.audioVoice) return;
+  const voices = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  // Filter to voices matching the chosen assessment language when possible.
+  const langWord = (els.assessmentLanguage && els.assessmentLanguage.value || '').toLowerCase();
+  const langPrefix = {
+    'english':'en','arabic':'ar','french':'fr','spanish':'es','german':'de',
+    'italian':'it','portuguese':'pt','russian':'ru','chinese':'zh','japanese':'ja',
+    'korean':'ko','hindi':'hi','urdu':'ur','turkish':'tr','dutch':'nl',
+  }[langWord] || '';
+  const filtered = langPrefix
+    ? voices.filter((v) => v.lang.toLowerCase().startsWith(langPrefix))
+    : voices;
+  const list = filtered.length ? filtered : voices;
+  els.audioVoice.innerHTML = list.length
+    ? list.map((v) => `<option value="${v.name}">${v.name} — ${v.lang}${v.default ? ' (default)' : ''}</option>`).join('')
+    : '<option value="">No voices installed on this device</option>';
+}
+// Voices populate asynchronously in Chrome — listen for the event too.
+if (window.speechSynthesis) {
+  speechSynthesis.onvoiceschanged = populateVoiceList;
+  setTimeout(populateVoiceList, 300);
+}
+// Refresh when teacher switches assessment language.
+if (els.assessmentLanguage) {
+  els.assessmentLanguage.addEventListener('change', populateVoiceList);
+}
+
+function ttsSpeak(text, voiceName) {
+  if (!('speechSynthesis' in window)) {
+    if (els.audioTtsStatus) els.audioTtsStatus.textContent = 'This browser has no speech engine.';
+    return;
+  }
+  try { speechSynthesis.cancel(); } catch {}
+  const u = new SpeechSynthesisUtterance(text);
+  const v = speechSynthesis.getVoices().find((x) => x.name === voiceName);
+  if (v) { u.voice = v; u.lang = v.lang; }
+  u.rate = 0.95;
+  u.pitch = 1.0;
+  speechSynthesis.speak(u);
+}
+function ttsStop() {
+  try { speechSynthesis.cancel(); } catch {}
+}
+if (els.audioTtsTest) els.audioTtsTest.onclick = () => {
+  const script = (els.audioScript && els.audioScript.value || '').trim();
+  if (!script) { els.audioTtsStatus.textContent = 'Write a script first.'; return; }
+  const voice = els.audioVoice && els.audioVoice.value || '';
+  els.audioTtsStatus.textContent = 'Playing preview…';
+  ttsSpeak(script, voice);
+};
+if (els.audioTtsStop) els.audioTtsStop.onclick = ttsStop;
+if (els.audioTtsSave) els.audioTtsSave.onclick = async () => {
+  if (!editingId) {
+    els.audioTtsStatus.textContent = 'Save the assessment first, then click Use AI voice.';
+    return;
+  }
+  const script = (els.audioScript && els.audioScript.value || '').trim();
+  if (!script) { els.audioTtsStatus.textContent = 'Write a script first.'; return; }
+  const voice = els.audioVoice && els.audioVoice.value || '';
+  els.audioTtsStatus.textContent = 'Saving…';
+  try {
+    await api(`/api/assessments/${editingId}`, {
+      method: 'PUT',
+      body: { audioScript: script, audioVoice: voice },
+    });
+    els.audioTtsStatus.textContent = '✓ Saved. Students will hear this script read by the AI voice when they click play.';
+  } catch (e) {
+    els.audioTtsStatus.textContent = 'Save failed: ' + (e.message || e);
+  }
 };
 

@@ -521,6 +521,22 @@
               <div class="muted" style="font-size: 12px; margin-top: 8px;">
                 Save the assessment first, then upload the audio. Students see a play bar at the top of the exam — one click to listen. Supported: MP3, M4A, WAV, OGG, AAC. Max 50 MB (~50 min at 128 kbps).
               </div>
+
+              <hr style="margin: 14px 0; border:0; border-top: 1px dashed #c69214;" />
+              <h3 style="margin: 0 0 8px; color:#1a1e33; font-size: 15px;">🔊 Or use a free AI voice (no upload, no file)</h3>
+              <p class="muted" style="font-size: 12px; margin: 0 0 8px;">
+                Type or paste the listening script below — what the AI voice should read aloud. The student's browser will speak it on play. The AI generator fills this in automatically when the subject is <strong>Listening</strong>.
+              </p>
+              <label style="font-size: 13px; font-weight: 600;">Listening script</label>
+              <textarea id="audio-script" rows="6" placeholder="Speaker 1: Good morning, this is the daily weather report…&#10;Speaker 2: Thank you, John. Today we expect…" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #c69214; background: #fff; font-family: inherit; font-size: 14px; line-height: 1.45;"></textarea>
+              <div class="row" style="gap: 8px; margin-top: 8px; align-items: center;">
+                <label style="font-size: 13px; font-weight: 600; flex: 0 0 auto;">Voice:</label>
+                <select id="audio-voice" style="flex: 1; padding: 6px; border-radius: 8px; border: 1px solid #c69214;"></select>
+                <button type="button" class="btn" id="audio-tts-test">🔊 Test play</button>
+                <button type="button" class="btn" id="audio-tts-stop">⏹ Stop</button>
+                <button type="button" class="btn primary" id="audio-tts-save">Use AI voice</button>
+              </div>
+              <div id="audio-tts-status" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
             </div>
           </div>
         </div>
