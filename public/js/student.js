@@ -959,6 +959,7 @@ function startAssessment() {
   }
 
   renderQuestions();
+  setTimeout(() => { installHighlighterToolbar(); restoreHighlights(); }, 100);
   // Re-entry: pre-fill the rendered inputs with the previous answers and
   // show a clear banner so the student knows what's happening.
   if (currentAssessment && currentAssessment.reentryActive && currentAssessment.previousAnswers) {
@@ -1292,6 +1293,7 @@ async function submit(reason) {
   lastResultId = result && result.id ? result.id : null;
   if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
   clearAnswersBackup();
+  uninstallHighlighterToolbar();
   els.assessmentView.style.display = 'none';
   els.doneView.style.display = 'block';
   els.doneMsg.innerHTML = `
@@ -2257,3 +2259,144 @@ function uninstallLockdown() {
     try { window.lockdown.exitKiosk(); } catch {}
   }
 }
+
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Reading-passage highlighter
+// ───────────────────────────────────────────────────────────────────────────
+// Adds a floating toolbar when the assessment view opens. The student selects
+// text inside a passage container (.exam-passage-body / #passage-text) and
+// clicks "Highlight" to wrap the selection in a yellow <span class="cc-highlight">.
+// All highlights for the current assessment are stored under one localStorage
+// key so they survive blur, accidental reloads, and re-entry resumes.
+
+function highlighterStorageKey() {
+  if (!currentAssessment) return null;
+  const me = currentUser && (currentUser.email || currentUser.id) || 'anon';
+  return `cc_highlights_${currentAssessment.id}_${me}`;
+}
+function saveHighlights() {
+  try {
+    const k = highlighterStorageKey();
+    if (!k) return;
+    const snapshot = [];
+    document.querySelectorAll('.exam-passage-body, #passage-text').forEach((box, i) => {
+      // Save innerHTML — round-trip of <span class="cc-highlight">…</span>
+      // works because we restore via direct innerHTML assignment.
+      snapshot.push({ idx: i, html: box.innerHTML });
+    });
+    localStorage.setItem(k, JSON.stringify(snapshot));
+  } catch {}
+}
+function restoreHighlights() {
+  try {
+    const k = highlighterStorageKey();
+    if (!k) return;
+    const raw = localStorage.getItem(k);
+    if (!raw) return;
+    const snapshot = JSON.parse(raw);
+    document.querySelectorAll('.exam-passage-body, #passage-text').forEach((box, i) => {
+      const found = snapshot.find((s) => s.idx === i);
+      if (found && found.html) box.innerHTML = found.html;
+    });
+  } catch {}
+}
+
+function applyHighlightToSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return false;
+  const range = sel.getRangeAt(0);
+  // Make sure the entire selection is inside a passage container.
+  const allowed = (node) => {
+    let el = node && (node.nodeType === 3 ? node.parentElement : node);
+    while (el) {
+      if (el.classList && (el.classList.contains('exam-passage-body') ||
+                           el.id === 'passage-text')) return true;
+      el = el.parentElement;
+    }
+    return false;
+  };
+  if (!allowed(range.startContainer) || !allowed(range.endContainer)) return false;
+
+  // Wrap the selection in a <span class="cc-highlight">. extractContents
+  // handles spans/lines correctly even across multiple inline elements.
+  const span = document.createElement('span');
+  span.className = 'cc-highlight';
+  try {
+    const frag = range.extractContents();
+    span.appendChild(frag);
+    range.insertNode(span);
+    sel.removeAllRanges();
+    saveHighlights();
+    return true;
+  } catch (e) {
+    console.warn('highlight failed', e);
+    return false;
+  }
+}
+
+function eraseHighlightAt(node) {
+  // Climb to the nearest .cc-highlight ancestor and unwrap it.
+  let el = node;
+  while (el && el !== document.body) {
+    if (el.classList && el.classList.contains('cc-highlight')) {
+      const parent = el.parentNode;
+      while (el.firstChild) parent.insertBefore(el.firstChild, el);
+      parent.removeChild(el);
+      saveHighlights();
+      return true;
+    }
+    el = el.parentNode;
+  }
+  return false;
+}
+
+function clearAllHighlights() {
+  if (!confirm('Remove all highlights from this assessment?')) return;
+  document.querySelectorAll('.cc-highlight').forEach((el) => {
+    const parent = el.parentNode;
+    while (el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
+  });
+  saveHighlights();
+}
+
+function installHighlighterToolbar() {
+  if (document.getElementById('_cc_highlighter')) return;
+  const bar = document.createElement('div');
+  bar.id = '_cc_highlighter';
+  bar.className = 'cc-highlighter-toolbar';
+  bar.innerHTML = `
+    <span class="cc-highlighter-label">🖍 Highlighter</span>
+    <button id="_cc_hl_apply" title="Select text inside a passage, then click">Highlight</button>
+    <button id="_cc_hl_erase" class="secondary" title="Click an existing highlight to remove it">Erase</button>
+    <button id="_cc_hl_clear" class="secondary" title="Remove every highlight">Clear all</button>
+  `;
+  document.body.appendChild(bar);
+  document.getElementById('_cc_hl_apply').onclick = () => {
+    const ok = applyHighlightToSelection();
+    if (!ok) {
+      // Brief inline note — selection was empty or outside a passage.
+      const note = document.createElement('span');
+      note.style.cssText = 'color:#fca5a5; margin-left:6px; font-weight:600;';
+      note.textContent = '↑ select text in a passage first';
+      bar.appendChild(note);
+      setTimeout(() => { if (note.parentNode) note.parentNode.removeChild(note); }, 1800);
+    }
+  };
+  document.getElementById('_cc_hl_erase').onclick = () => {
+    // Erase mode: next click on a highlight removes it.
+    const onceErase = (e) => {
+      eraseHighlightAt(e.target);
+      document.removeEventListener('click', onceErase, true);
+    };
+    document.addEventListener('click', onceErase, true);
+  };
+  document.getElementById('_cc_hl_clear').onclick = clearAllHighlights;
+}
+
+function uninstallHighlighterToolbar() {
+  const bar = document.getElementById('_cc_highlighter');
+  if (bar && bar.parentNode) bar.parentNode.removeChild(bar);
+}
+
