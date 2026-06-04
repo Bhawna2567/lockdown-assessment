@@ -1588,6 +1588,15 @@ function startUiObserver() {
 // open*() function explicitly removes the class.
 document.body.classList.add('cc-list-only');
 
+// Diagnostic + cleanup for ?just_saved=1 — confirms the save flow ran.
+try {
+  if (window.location.search.includes('just_saved=1')) {
+    console.log('[ClassCurio] Page reloaded after save. Builder is hidden.');
+    // Clean URL — strip the query string after we've handled it.
+    history.replaceState({}, '', window.location.pathname);
+  }
+} catch {}
+
 if (els.uiLang) {
   els.uiLang.value = getUiLang();
   currentUiLang = els.uiLang.value;
@@ -2810,18 +2819,26 @@ els.saveBtn.onclick = async () => {
       await api('/api/assessments', { method: 'POST', body: payload });
     }
     els.saveStatus.textContent = 'Saved.';
-    // HARD CLOSE — synchronous + immediate. Apply cc-list-only AND set
-    // display:none directly on the builder so the user sees ZERO flash of
-    // the editor between Save and reload. Then force a hard reload that
-    // bypasses any cached state.
+    console.log('[ClassCurio] Save succeeded. Closing builder and reloading…');
+    // ── Layer 1: nuke the DOM. Remove the builder + every editor view from
+    //    the document entirely. They CAN'T render if they aren't in the DOM.
+    try {
+      ['builder-view','results-view','template-picker','essay-queue-view',
+       'report-card-view','students-view','progress-view']
+        .forEach((id) => {
+          const el = document.getElementById(id);
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        });
+    } catch (e) { console.warn('[ClassCurio] DOM cleanup error:', e); }
     document.body.classList.add('cc-list-only');
-    if (els.builderView) els.builderView.style.cssText = 'display:none !important;';
-    if (els.resultsView) els.resultsView.style.cssText = 'display:none !important;';
-    if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
-    // location.reload(true) is the most-aggressive: forces the browser to
-    // bypass its disk cache and re-fetch every resource on this URL.
-    try { window.location.reload(); }
-    catch { window.location.href = window.location.pathname; }
+    // ── Layer 2: navigate to a clean URL. location.replace removes the
+    //    builder URL from history so Back doesn't return there. Adding
+    //    ?just_saved=1 makes the new page able to verify the save flow.
+    try {
+      window.location.replace(window.location.pathname + '?just_saved=1');
+    } catch {
+      window.location.href = window.location.pathname + '?just_saved=1';
+    }
   } catch (e) {
     els.saveStatus.textContent = '';
     alert(e.message);
