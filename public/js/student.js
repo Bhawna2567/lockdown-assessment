@@ -1113,9 +1113,36 @@ function renderQuestions() {
 }
 
 els.submitBtn.onclick = () => {
-  if (confirm('Submit your assessment? You cannot change answers afterward.')) {
+  if (submitted) return;
+  // Custom inline confirm — keeps focus inside the same window so the
+  // lockdown's blur-based auto-submit does NOT fire mid-click.
+  const overlay = document.createElement('div');
+  overlay.id = '_cc_submit_confirm';
+  overlay.style.cssText = [
+    'position: fixed', 'inset: 0',
+    'background: rgba(11, 16, 32, 0.55)',
+    'z-index: 2147483645',
+    'display: flex', 'align-items: center', 'justify-content: center',
+  ].join(';');
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 460px; width: 92%; box-shadow: 0 16px 48px rgba(0,0,0,0.30);">
+      <h2 style="margin: 0 0 8px; color:#1a1e33;">Submit your assessment?</h2>
+      <p style="margin: 0 0 16px; color:#475569; font-size: 15px;">
+        You cannot change your answers afterward. Make sure you've reviewed everything.
+      </p>
+      <div class="row" style="gap: 10px; justify-content: flex-end;">
+        <button class="btn" id="_cc_confirm_no">Keep working</button>
+        <button class="btn primary" id="_cc_confirm_yes">Submit</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  const close = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+  document.getElementById('_cc_confirm_no').onclick = close;
+  document.getElementById('_cc_confirm_yes').onclick = () => {
+    close();
     submit('manual');
-  }
+  };
 };
 
 // ---------- Timer ----------
@@ -1564,7 +1591,7 @@ function scheduleHardLockdownSubmit(reason) {
       addViolation('Focus left window — auto-submitting (' + reason + ')');
       submit(reason).catch(() => {});
     }
-  }, 1500);
+  }, 3000);
 }
 
 // Giant red overlay that covers the page when focus leaves. Re-uses the
@@ -1572,6 +1599,10 @@ function scheduleHardLockdownSubmit(reason) {
 // continue interacting until they're back.
 let lockdownBlockEl = null;
 function showLockdownBlockOverlay(reason) {
+  // Don't show the red lockdown overlay if the student has already started
+  // submitting — that would just clutter the legitimate submit flow.
+  if (submitted || document.getElementById('_cc_submit_overlay')) return;
+  if (document.getElementById('_cc_submit_confirm')) return; // confirm dialog open
   if (lockdownBlockEl) return;
   lockdownBlockEl = document.createElement('div');
   lockdownBlockEl.id = '_cc_lockdown_block';
@@ -1590,7 +1621,7 @@ function showLockdownBlockOverlay(reason) {
     <div style="font-size:44px;">⚠ Focus lost</div>
     <div style="font-size:22px; max-width: 640px; font-weight:500;">
       You left the assessment window. Return to this tab IMMEDIATELY or the
-      assessment will be auto-submitted in 1.5 seconds.
+      assessment will be auto-submitted in 3 seconds.
     </div>
     <div style="font-size:18px; font-weight:400; opacity:0.85;">
       Reason: ${reason}
