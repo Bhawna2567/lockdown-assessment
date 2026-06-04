@@ -2803,9 +2803,22 @@ els.saveBtn.onclick = async () => {
     }
     els.saveStatus.textContent = 'Saved.';
     setTimeout(() => {
+      // Close every editor surface so the dashboard reliably shows up,
+      // even when the builder was reached through the AI generator or
+      // the template picker (these surfaces can sit behind the builder
+      // and re-appear when the builder hides).
       els.builderView.style.display = 'none';
+      if (els.resultsView) els.resultsView.style.display = 'none';
+      if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
+      // Reset transient builder state so re-opening starts clean.
+      editingId = null;
+      currentAudioVoices = {};
+      if (els.audioScript) els.audioScript.value = '';
+      if (els.audioTtsStatus) els.audioTtsStatus.textContent = '';
+      if (els.audioSpeakersPanel) els.audioSpeakersPanel.style.display = 'none';
       els.listView.style.display = 'block';
       els.saveStatus.textContent = '';
+      window.scrollTo({ top: 0, behavior: 'instant' });
       loadAssessments();
     }, 400);
   } catch (e) {

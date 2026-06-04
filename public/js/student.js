@@ -2594,9 +2594,34 @@ function installAudioBarForAssessment(a) {
       }
       return voices.find((v) => v.default) || voices[0];
     }
+    // Exam-board listening rules: official IELTS / TOEFL / PISA listening
+    // sections play the audio exactly once. Classroom "Listening" subject
+    // allows one replay so students can practise. Other subjects default
+    // to two plays (same as the previous behaviour).
+    const SINGLE_PLAY_SUBJECTS = ['IELTS', 'TOEFL', 'PISA'];
+    const subj = String(a.subject || '').trim();
+    const MAX_PLAYS = SINGLE_PLAY_SUBJECTS.includes(subj) ? 1 : 2;
+    let playsRemaining = MAX_PLAYS;
     let isPlaying = false;
+    function lockPlayPermanently() {
+      btnPlay.disabled = true;
+      btnPlay.style.opacity = '0.5';
+      btnPlay.style.cursor = 'not-allowed';
+      btnPlay.textContent = '▶ Play (used up)';
+    }
+    function updateRemainingLabel() {
+      const used = MAX_PLAYS - Math.max(0, playsRemaining);
+      const left = Math.max(0, playsRemaining);
+      if (MAX_PLAYS === 1) {
+        status.textContent = `⚠ Official exam rule — you may play this audio ONCE only. No replays.`;
+      } else {
+        status.textContent = `Plays remaining: ${left} of ${MAX_PLAYS}. You can play this audio up to ${MAX_PLAYS} times in total.`;
+      }
+    }
+    updateRemainingLabel();
     btnPlay.onclick = async () => {
-      if (isPlaying) return;  // ignore clicks while already playing
+      if (isPlaying) return;            // ignore clicks while already playing
+      if (playsRemaining <= 0) return;  // already used both plays
       isPlaying = true;
       btnPlay.disabled = true;
       btnPlay.style.opacity = '0.5';
@@ -2641,14 +2666,26 @@ function installAudioBarForAssessment(a) {
             });
           }
         }
-        status.textContent = '✓ Finished. You can replay if needed.';
+        playsRemaining -= 1;
+        const used = MAX_PLAYS - Math.max(0, playsRemaining);
+        if (playsRemaining <= 0) {
+          status.textContent = MAX_PLAYS === 1
+            ? '✓ Audio finished. Single-play rule — no more plays available.'
+            : `✓ Audio finished. You have used both plays (${MAX_PLAYS} of ${MAX_PLAYS}) — no more replays available.`;
+        } else {
+          status.textContent = `✓ Audio finished. Plays remaining: ${playsRemaining} of ${MAX_PLAYS}.`;
+        }
       } catch (e) {
         status.textContent = 'Could not play: ' + e.message;
       } finally {
         isPlaying = false;
-        btnPlay.disabled = false;
-        btnPlay.style.opacity = '1';
-        btnPlay.style.cursor = 'pointer';
+        if (playsRemaining <= 0) {
+          lockPlayPermanently();
+        } else {
+          btnPlay.disabled = false;
+          btnPlay.style.opacity = '1';
+          btnPlay.style.cursor = 'pointer';
+        }
       }
     };
     wrap.appendChild(btnPlay);

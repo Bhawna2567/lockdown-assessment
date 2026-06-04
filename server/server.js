@@ -797,7 +797,9 @@ function normalizeGrade(g) {
 const SUBJECTS = new Set([
   'Math', 'Physics', 'Chemistry', 'Biology',
   'Health Science', 'Islamic Studies', 'Social Studies',
-  'Arabic', 'French', 'English', 'Listening', 'Other',
+  'Arabic', 'French', 'English', 'Listening',
+  'IELTS', 'PISA', 'TOEFL',
+  'Other',
 ]);
 function normalizeSubject(s) {
   if (!s) return null;
