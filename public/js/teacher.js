@@ -2809,7 +2809,23 @@ async function openResults(id) {
   const analyticsHtml = await renderAnalytics(id);
 
   if (!results.length) {
-    els.resultsBody.innerHTML = analyticsHtml + `<div class="muted">No submissions yet.</div>`;
+    // Manual grant-re-entry panel — for students who got logged out and
+  // never submitted, so they don't appear in the table below.
+  const reentryPanelId = `re-panel-${currentResultsAssessmentId || 'x'}`;
+  const manualReentryHtml = `
+    <div class="panel" style="background:#fef3c7; border:2px solid #f59e0b; padding: 14px 16px; margin-bottom: 14px;">
+      <div style="font-weight:600; color:#92400e; margin-bottom: 6px;">🔓 Grant re-entry by student email</div>
+      <div class="muted" style="font-size:13px; margin-bottom: 8px;">
+        If a student got logged out mid-exam and isn't showing in the table below, type their email here to grant them a re-entry. They'll be able to resume from where they left off.
+      </div>
+      <div class="row" style="gap: 8px;">
+        <input id="manual-reentry-email" type="email" placeholder="student@school.com" style="flex: 1;" />
+        <button class="btn primary" id="manual-reentry-go">Grant re-entry</button>
+        <span id="manual-reentry-status" class="muted" style="font-size: 12px; align-self: center;"></span>
+      </div>
+    </div>
+  `;
+  els.resultsBody.innerHTML = analyticsHtml + manualReentryHtml + `<div class="muted">No submissions yet.</div>`;
     return;
   }
 
@@ -2897,6 +2913,43 @@ async function openResults(id) {
   els.resultsBody.querySelectorAll('button[data-proctor]').forEach((btn) => {
     btn.onclick = () => loadProctor(btn.dataset.proctor, btn.dataset.student, btn.dataset.target, btn);
   });
+  // Wire the manual grant-reentry panel.
+  const manualReentryGo = document.getElementById('manual-reentry-go');
+  if (manualReentryGo) {
+    manualReentryGo.onclick = async () => {
+      const emailInput = document.getElementById('manual-reentry-email');
+      const status = document.getElementById('manual-reentry-status');
+      const email = (emailInput.value || '').trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        status.textContent = '⚠ Enter a valid email address.';
+        status.style.color = '#b91c1c';
+        return;
+      }
+      status.textContent = 'Finding student...';
+      status.style.color = '';
+      try {
+        // Look up student id from the known-students cache.
+        const matchedStudent = (knownStudents || []).find((s) =>
+          String(s.email || '').toLowerCase() === email
+        );
+        if (!matchedStudent) {
+          status.textContent = '❌ No student with that email is registered. Did they sign in at least once?';
+          status.style.color = '#b91c1c';
+          return;
+        }
+        await api(`/api/assessments/${currentResultsAssessmentId}/grant-reentry`, {
+          method: 'POST',
+          body: { studentId: matchedStudent.studentId || matchedStudent.id },
+        });
+        status.textContent = `✓ Re-entry granted to ${matchedStudent.name || email}. They can sign back in and resume.`;
+        status.style.color = '#166534';
+        emailInput.value = '';
+      } catch (e) {
+        status.textContent = '❌ ' + e.message;
+        status.style.color = '#b91c1c';
+      }
+    };
+  }
   els.resultsBody.querySelectorAll('button[data-report]').forEach((btn) => {
     btn.onclick = () => openReportCard(btn.dataset.report);
   });

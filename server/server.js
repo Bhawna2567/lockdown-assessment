@@ -38,7 +38,11 @@ app.use(
     secret: process.env.SESSION_SECRET || 'change-me-in-production',
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 8 },
+    // rolling=true extends the cookie expiry on every request, so a student
+    // actively taking an exam (sending proctor snapshots every 15s) never
+    // hits the cookie timeout. 12h baseline for safety.
+    rolling: true,
+    cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 12 },
   })
 );
 

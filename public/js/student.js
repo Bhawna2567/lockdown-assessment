@@ -551,6 +551,42 @@ let lastResultId = null;
 
 let currentAssessment = null;
 let answers = {};           // questionId -> value
+
+// ── Local backup of answers ──────────────────────────────────────────────
+// Saves to localStorage on every keystroke so a session-expiry "Not
+// authenticated" error never costs the student their work. Cleared on
+// successful submit.
+function answersBackupKey() {
+  if (!currentAssessment || !currentUser) return null;
+  return `cc_answers_${currentAssessment.id}_${currentUser.email || currentUser.id}`;
+}
+function saveAnswersBackup() {
+  try {
+    const k = answersBackupKey();
+    if (k) localStorage.setItem(k, JSON.stringify({
+      assessmentId: currentAssessment.id,
+      savedAt: new Date().toISOString(),
+      answers,
+      violations,
+      startedAt,
+    }));
+  } catch {}
+}
+function clearAnswersBackup() {
+  try {
+    const k = answersBackupKey();
+    if (k) localStorage.removeItem(k);
+  } catch {}
+}
+function loadAnswersBackup() {
+  try {
+    const k = answersBackupKey();
+    if (!k) return null;
+    const raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 let violations = [];        // array of strings (reasons)
 let multiFaceFlagged = false; // latch so multi-face only fires on rising edge
 const MAX_VIOLATIONS = 3;
@@ -1103,11 +1139,12 @@ function renderQuestions() {
           if (q.type === 'mc') answers[q.id] = Number(e.target.value);
           else if (q.type === 'tf') answers[q.id] = e.target.value === 'true';
           else answers[q.id] = e.target.value; // tfng: 'true' | 'false' | 'ng'
+          saveAnswersBackup();
         });
       });
     } else if (q.type === 'short' || q.type === 'long' || q.type === 'essay' || q.type === 'writing') {
       const input = document.querySelector(`[data-q="${q.id}"]`);
-      input.addEventListener('input', (e) => { answers[q.id] = e.target.value; });
+      input.addEventListener('input', (e) => { answers[q.id] = e.target.value; saveAnswersBackup(); });
     }
   });
 }
@@ -1221,17 +1258,29 @@ async function submit(reason) {
     // would let them open tabs.
     overlay.innerHTML = `
       <div style="font-size:24px; color:#fca5a5;">Submission failed</div>
-      <div style="font-size:16px; color:#cbd5e1; max-width: 520px;">
+      <div style="font-size:16px; color:#cbd5e1; max-width: 540px;">
         ${(e && e.message ? String(e.message) : 'Network error')}.<br/>
-        Your answers are still on this device. Click Retry to try sending them again.
+        Your answers are saved on this device. ${/not authenticated/i.test(e && e.message || '') ? 'Your sign-in session has expired. Click below to sign in again and resubmit — your answers will be restored.' : 'Click Retry to try sending them again.'}
       </div>
-      <button id="_cc_submit_retry" class="btn primary" style="margin-top:8px;">Retry submission</button>
+      <div style="display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; justify-content:center;">
+        <button id="_cc_submit_retry" class="btn primary">Retry submission</button>
+        ${/not authenticated/i.test(e && e.message || '') ? '<button id="_cc_submit_signin" class="btn" style="background:#1d4ed8; color:#fff;">Sign in again</button>' : ''}
+      </div>
     `;
     document.getElementById('_cc_submit_retry').onclick = () => {
-      // Allow another attempt — reset the guard and rerun.
       submitted = false;
       submit(reason);
     };
+    const signinBtn = document.getElementById('_cc_submit_signin');
+    if (signinBtn) {
+      signinBtn.onclick = () => {
+        // Make absolutely sure the backup is saved with the current state.
+        saveAnswersBackup();
+        // Redirect to sign-in with a return marker — after sign in, JS on
+        // the sign-in page detects the backup and offers to restore.
+        location.href = '/?return=resubmit&assessmentId=' + encodeURIComponent(currentAssessment.id);
+      };
+    }
     return;
   }
 
@@ -1242,6 +1291,7 @@ async function submit(reason) {
   const result = resp && resp.result;
   lastResultId = result && result.id ? result.id : null;
   if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  clearAnswersBackup();
   els.assessmentView.style.display = 'none';
   els.doneView.style.display = 'block';
   els.doneMsg.innerHTML = `
