@@ -1563,22 +1563,21 @@ const handlers = {
   // glitches (notifications, the OS asking for camera permission again).
   visibilitychange: () => {
     if (document.hidden && !submitted) {
-      lockdownBlurEntered = Date.now();
-      scheduleHardLockdownSubmit('tab-hidden');
+      addViolation('Tab/window hidden (Cmd+Tab, minimised, or app switcher)');
     }
   },
   blur: () => {
     if (submitted) return;
     // Ignore blur events caused by focus moving to OUR own UI (highlighter
-    // toolbar, submit confirm modal, etc.). The relatedTarget on a blur is
-    // the element receiving focus — if it's tagged data-cc-ui, the student
-    // is interacting with our overlay, not escaping the window.
+    // toolbar, submit confirm modal, audio bar, etc.). If the focused
+    // element is tagged data-cc-ui or the window still has focus, it isn't
+    // an escape attempt.
     setTimeout(() => {
       const ae = document.activeElement;
       if (ae && (ae.closest && ae.closest('[data-cc-ui="1"]'))) return;
       if (document.hasFocus()) return;
-      lockdownBlurEntered = Date.now();
-      scheduleHardLockdownSubmit('window-blurred');
+      // ONE violation per real blur. The 3-strike rule handles auto-submit.
+      addViolation('Window focus left the assessment');
     }, 50);
   },
   focus: () => {
@@ -1591,14 +1590,11 @@ const handlers = {
     lockdownBlurEntered = 0;
   },
   fullscreenchange: () => {
-    // Any exit from fullscreen during an exam = instant auto-submit. The
-    // browser only exits fullscreen because the student pressed Esc or
-    // navigated away — there is no legitimate reason mid-exam.
     if (!submitted) {
       const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
       if (!isFs && lockdownActive) {
+        // ONE violation per exit. 3-strike rule auto-submits at #3.
         addViolation('Exited fullscreen mode');
-        submit('fullscreen-exited').catch(() => {});
       }
     }
   },
@@ -1615,11 +1611,20 @@ const handlers = {
       e.preventDefault();
       addViolation('Blocked developer-tools shortcut');
     }
-    if (e.key === 'PrintScreen' ||
-        ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3','4','5'].includes(e.key))) {
+    // Screenshot shortcuts on every OS we can detect from the browser.
+    // NOTE: macOS Cmd+Shift+3/4/5/6 are intercepted by the OS BEFORE the
+    // browser sees them, so JS cannot reliably block them. The Electron
+    // desktop app uses setContentProtection(true) which IS reliable.
+    const isScreenshot =
+      e.key === 'PrintScreen' ||                                          // Windows / Linux PrintScreen
+      ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3','4','5','6'].includes(e.key)) || // macOS variants
+      ((e.metaKey || e.ctrlKey) && e.shiftKey && (k === 's' || k === 'p'))             // Win+Shift+S / Cmd+Shift+S
+    ;
+    if (isScreenshot) {
       e.preventDefault();
-      addViolation('Screenshot keypress detected — auto-submitting');
-      submit('screenshot-key').catch(() => {});
+      e.stopPropagation();
+      // ONE violation per detected keypress — 3-strike rule handles logout.
+      addViolation('Screenshot shortcut pressed');
     }
   },
   copy: (e) => { e.preventDefault(); addViolation('Copy attempted'); },
@@ -1909,7 +1914,7 @@ async function startWebcam() {
       if (!submitted) {
         els.webcamStatus.textContent = 'OFF';
         els.webcamStatus.classList.add('off');
-        addViolation('Webcam turned off — auto-submitting');
+        addViolation('Webcam turned off');
         // Force immediate submit instead of waiting for 3-strike threshold.
         submit('camera-off').catch(() => {});
       }
@@ -1918,7 +1923,7 @@ async function startWebcam() {
       if (!submitted) {
         els.webcamStatus.textContent = 'MUTED';
         els.webcamStatus.classList.add('off');
-        addViolation('Webcam muted — auto-submitting');
+        addViolation('Webcam muted');
         submit('camera-muted').catch(() => {});
       }
     };
@@ -2119,7 +2124,7 @@ async function runLocalFaceCheck() {
     els.webcamStatus.classList.add('warn');
   }
   if (localFaceConsecutiveAbsences >= LOCAL_FACE_NOFACE_THRESHOLD) {
-    addViolation('Face not visible — auto-submitting');
+    addViolation('Face not visible');
     submit('face-not-visible-local').catch(() => {});
   }
 }
@@ -2170,12 +2175,12 @@ async function runIdentityCheck() {
     // submit the assessment immediately. Other violations (tab-switch,
     // shortcut, paste-outside-field, etc.) keep the 3-strike grace.
     if (data.faceVisible === false) {
-      addViolation('Face not visible in webcam — auto-submitting');
-      submit('face-not-visible').catch(() => {});
+      addViolation('Face not visible in webcam');
+      /* 3-strike: addViolation handles auto-submit at MAX_VIOLATIONS */
       return;
     }
     if (data.samePerson === false && data.confidence !== 'low') {
-      addViolation('Different person detected — auto-submitting');
+      addViolation('Different person detected');
       submit('different-person').catch(() => {});
       return;
     }
@@ -2229,7 +2234,7 @@ async function captureAndUpload(note) {
     cameraOffViolationFired = true;
     els.webcamStatus.textContent = 'DARK';
     els.webcamStatus.classList.add('off');
-    addViolation('Webcam covered or obstructed — auto-submitting');
+    addViolation('Webcam covered or obstructed');
     submit('camera-covered').catch(() => {});
     return;
   }
@@ -2513,17 +2518,14 @@ function installAudioBarForAssessment(a) {
     const status = document.createElement('span');
     status.style.cssText = 'color:#1a1e33; font-weight:500; flex: 1;';
     status.textContent = 'AI voice ready — click play';
+    // Only ONE button: Play. The student cannot pause or stop the audio
+    // mid-stream — listening exams expect the whole audio played at once.
+    // After the audio finishes, Play re-enables so the student can replay.
     const btnPlay  = document.createElement('button');
-    const btnPause = document.createElement('button');
-    const btnStop  = document.createElement('button');
-    for (const b of [btnPlay, btnPause, btnStop]) {
-      b.className = 'btn';
-      b.style.cssText = 'background:#1a1e33; color:#fde68a; border:1px solid #c69214; padding:8px 12px; border-radius:8px; font-weight:700; cursor:pointer;';
-      b.setAttribute('data-cc-ui', '1');
-    }
+    btnPlay.className = 'btn';
+    btnPlay.style.cssText = 'background:#1a1e33; color:#fde68a; border:1px solid #c69214; padding:8px 14px; border-radius:8px; font-weight:700; cursor:pointer;';
+    btnPlay.setAttribute('data-cc-ui', '1');
     btnPlay.textContent  = '▶ Play';
-    btnPause.textContent = '⏸ Pause';
-    btnStop.textContent  = '⏹ Stop';
     // Build the utterance once per click — speechSynthesis is finicky about
     // re-using utterances across resume cycles.
     let utter = null;
@@ -2592,8 +2594,13 @@ function installAudioBarForAssessment(a) {
       }
       return voices.find((v) => v.default) || voices[0];
     }
-    let stopped = false;
+    let isPlaying = false;
     btnPlay.onclick = async () => {
+      if (isPlaying) return;  // ignore clicks while already playing
+      isPlaying = true;
+      btnPlay.disabled = true;
+      btnPlay.style.opacity = '0.5';
+      btnPlay.style.cursor = 'not-allowed';
       if (!('speechSynthesis' in window)) {
         status.textContent = 'This browser has no speech engine — ask your teacher for the audio file.';
         return;
@@ -2619,10 +2626,10 @@ function installAudioBarForAssessment(a) {
           });
         }
         for (let i = 0; i < turns.length; i++) {
-          if (stopped) break;
+          /* play-through; no stop button */
           const voice = pickVoiceFor(turns[i].speaker);
           for (const chunk of chunkText(turns[i].text)) {
-            if (stopped) break;
+            /* play-through; no stop button */
             await new Promise((resolve) => {
               const u = new SpeechSynthesisUtterance(chunk);
               if (voice) { u.voice = voice; u.lang = voice.lang; }
@@ -2634,16 +2641,17 @@ function installAudioBarForAssessment(a) {
             });
           }
         }
-        if (!stopped) status.textContent = '✓ Finished.';
+        status.textContent = '✓ Finished. You can replay if needed.';
       } catch (e) {
         status.textContent = 'Could not play: ' + e.message;
+      } finally {
+        isPlaying = false;
+        btnPlay.disabled = false;
+        btnPlay.style.opacity = '1';
+        btnPlay.style.cursor = 'pointer';
       }
     };
-    btnPause.onclick = () => { try { speechSynthesis.pause(); } catch {} };
-    btnStop.onclick  = () => { stopped = true; try { speechSynthesis.cancel(); status.textContent = '⏹ Stopped.'; } catch {} };
     wrap.appendChild(btnPlay);
-    wrap.appendChild(btnPause);
-    wrap.appendChild(btnStop);
     wrap.appendChild(status);
     // Voices load asynchronously on some browsers — refresh the voice list
     // once it's ready, so the right voice is picked on first click.

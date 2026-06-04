@@ -1107,8 +1107,8 @@ body.lockdown-body #assessment-view #timer,
 body.lockdown-body .assessment-content #timer {
   position: fixed !important;
   top: 14px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
+  left: 14px !important;             /* TOP-LEFT — above the highlighter sidebar, never overlapping the audio bar */
+  transform: none !important;
   z-index: 2147483645 !important;     /* below the watermark, above everything else */
   font-variant-numeric: tabular-nums !important;
   font-size: 24px !important;
@@ -1189,7 +1189,7 @@ body.lockdown-body .assessment-content #assess-title {
 .cc-highlighter-toolbar {
   position: fixed;
   left: 12px;
-  top: 50%;
+  top: calc(50% + 24px);             /* nudge below the timer (top:14px + height) */
   transform: translateY(-50%);
   z-index: 2147483640;
   background: #1a1e33;
