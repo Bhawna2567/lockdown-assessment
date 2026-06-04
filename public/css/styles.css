@@ -1245,3 +1245,17 @@ body.lockdown-body .assessment-content #assess-title {
     padding: 10px 8px;
   }
 }
+
+
+/* CC fix: hover only on devices with real hover (mouse pointers).
+ * Without this, touchscreens require TWO taps — the first activates
+ * the :hover state, the second activates the click. */
+@media (hover: none) {
+  .btn:hover     { background: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
+  .card:hover    { transform: none !important; box-shadow: inherit !important; }
+  .topbar .btn:hover { background: inherit !important; border-color: inherit !important; }
+}
+/* Remove the 300ms tap-to-zoom delay on iOS for our interactive controls. */
+.btn, button, .card, a, select, input[type="button"], input[type="submit"] {
+  touch-action: manipulation;
+}

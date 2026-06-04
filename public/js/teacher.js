@@ -2803,16 +2803,17 @@ els.saveBtn.onclick = async () => {
     }
     els.saveStatus.textContent = 'Saved.';
     setTimeout(() => {
-      // Close every editor surface so the dashboard reliably shows up,
-      // even when the builder was reached through the AI generator or
-      // the template picker (these surfaces can sit behind the builder
-      // and re-appear when the builder hides).
-      els.builderView.style.display = 'none';
-      if (els.resultsView) els.resultsView.style.display = 'none';
+      // ATOMIC close: hide EVERY editor surface (builder, results, essay
+      // queue, students, progress, report card, template picker) and then
+      // show ONLY the assessment list. Without this, the AI-generator
+      // path left the builder visible below the freshly-rendered list.
+      if (typeof hideAllViews === 'function') hideAllViews();
       if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
       // Reset transient builder state so re-opening starts clean.
       editingId = null;
       currentAudioVoices = {};
+      questions = [];
+      sections = [];
       if (els.audioScript) els.audioScript.value = '';
       if (els.audioTtsStatus) els.audioTtsStatus.textContent = '';
       if (els.audioSpeakersPanel) els.audioSpeakersPanel.style.display = 'none';
