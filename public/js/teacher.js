@@ -2194,9 +2194,11 @@ if (els.aiGenerateBtn) {
         questions = fake.questions;
         // Listening: surface AI-generated audioScript in the builder.
         if (els.audioScript) els.audioScript.value = (data.audioScript || '');
+        currentAudioVoices = {};                // re-detect from scratch
+        renderSpeakersPanel(data.audioScript || '');
         renderQuestions();
         if (data.audioScript && els.audioTtsStatus) {
-          els.audioTtsStatus.textContent = 'AI wrote a listening script — review it, pick a voice, then Save the assessment.';
+          els.audioTtsStatus.textContent = 'AI wrote a listening script — pick a voice for each speaker, then Save the assessment.';
         }
       }, 600);
     } catch (e) {
@@ -2303,6 +2305,13 @@ function openBuilder(a, presets) {
     if (!sIds.has(q.sectionId)) q.sectionId = sections[0].id;
   }
   renderQuestions();
+  // Listening: hydrate the audio script + per-speaker voices for this assessment.
+  try {
+    if (els.audioScript) els.audioScript.value = (a && a.audioScript) || '';
+    currentAudioVoices = (a && a.audioVoices && typeof a.audioVoices === 'object') ? { ...a.audioVoices } : {};
+    if (typeof renderSpeakersPanel === 'function') renderSpeakersPanel();
+    if (els.audioTtsStatus) els.audioTtsStatus.textContent = '';
+  } catch {}
 }
 
 document.querySelectorAll('button[data-add]').forEach((b) => {
@@ -2777,6 +2786,7 @@ els.saveBtn.onclick = async () => {
       durationMinutes: Number(els.duration.value) || 30,
       audioScript: els.audioScript ? els.audioScript.value : '',
       audioVoice:  els.audioVoice  ? els.audioVoice.value  : '',
+      audioVoices: currentAudioVoices || {},
       published: els.published.value === 'true',
       sections,
       questions,
@@ -4395,8 +4405,11 @@ els.audioVoice     = document.getElementById('audio-voice');
 els.audioTtsTest   = document.getElementById('audio-tts-test');
 els.audioTtsStop   = document.getElementById('audio-tts-stop');
 els.audioTtsSave   = document.getElementById('audio-tts-save');
-els.audioTtsStatus   = document.getElementById('audio-tts-status');
-els.audioTtsGenerate = document.getElementById('audio-tts-generate');
+els.audioTtsStatus    = document.getElementById('audio-tts-status');
+els.audioTtsGenerate  = document.getElementById('audio-tts-generate');
+els.audioTtsRedetect  = document.getElementById('audio-tts-redetect');
+els.audioSpeakersPanel = document.getElementById('audio-speakers-panel');
+els.audioSpeakersList = document.getElementById('audio-speakers-list');
 
 function populateVoiceList() {
   if (!els.audioVoice) return;
@@ -4472,7 +4485,29 @@ function chunkScript(text, max = 220) {
   if (buf.trim()) chunks.push(buf.trim());
   return chunks;
 }
-async function speakScript(text, voiceName) {
+// Play one turn — possibly chunked across multiple utterances — with the
+// chosen voice. Returns when the last chunk ends.
+async function playTurn(text, voice) {
+  const chunks = chunkScript(text);
+  for (const c of chunks) {
+    await new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(c);
+      if (voice) { u.voice = voice; u.lang = voice.lang; }
+      // Slight per-utterance variation makes successive turns sound less robotic.
+      u.rate  = 0.92 + Math.random() * 0.08;   // 0.92–1.00
+      u.pitch = 0.97 + Math.random() * 0.06;   // 0.97–1.03
+      u.onend = resolve;
+      u.onerror = (e) => {
+        els.audioTtsStatus.textContent = 'Playback error: ' + (e.error || 'unknown') + ' — try a different voice.';
+        resolve();
+      };
+      speechSynthesis.speak(u);
+    });
+    if (!speechSynthesis.speaking) break;
+  }
+}
+
+async function speakScript(text, defaultVoiceName) {
   if (!('speechSynthesis' in window)) {
     els.audioTtsStatus.textContent = 'This browser has no speech engine.';
     return;
@@ -4483,26 +4518,19 @@ async function speakScript(text, voiceName) {
     els.audioTtsStatus.textContent = 'No voices installed on this device — try Chrome on desktop, or Edge for high-quality voices.';
     return;
   }
-  const voice = voices.find((v) => v.name === voiceName) || voices.find((v) => v.default) || voices[0];
-  const chunks = chunkScript(text);
-  els.audioTtsStatus.textContent = `▶ Playing preview (${chunks.length} part${chunks.length === 1 ? '' : 's'})…`;
-  for (let i = 0; i < chunks.length; i++) {
-    await new Promise((resolve) => {
-      const u = new SpeechSynthesisUtterance(chunks[i]);
-      u.voice = voice;
-      u.lang = voice.lang;
-      u.rate = 0.95;
-      u.pitch = 1.0;
-      u.onend = resolve;
-      u.onerror = (e) => {
-        els.audioTtsStatus.textContent = 'Playback error: ' + (e.error || 'unknown') + ' — try a different voice.';
-        resolve();
-      };
-      speechSynthesis.speak(u);
-    });
-    if (speechSynthesis.speaking === false && i < chunks.length - 1) break;
+  const pickVoice = (name) => voices.find((v) => v.name === name) || null;
+  const defaultVoice = pickVoice(defaultVoiceName) || voices.find((v) => v.default) || voices[0];
+  const turns = parseScriptIntoTurns(text);
+  if (!turns.length) { els.audioTtsStatus.textContent = 'No script to play.'; return; }
+  els.audioTtsStatus.textContent = `▶ Playing preview (${turns.length} turn${turns.length === 1 ? '' : 's'})…`;
+  for (let i = 0; i < turns.length; i++) {
+    const turn = turns[i];
+    const voiceName = currentAudioVoices[turn.speaker];
+    const voice = pickVoice(voiceName) || defaultVoice;
+    await playTurn(turn.text, voice);
+    if (!speechSynthesis.speaking && i < turns.length - 1) break;
   }
-  if (speechSynthesis.speaking === false) els.audioTtsStatus.textContent = '✓ Preview finished.';
+  if (!speechSynthesis.speaking) els.audioTtsStatus.textContent = '✓ Preview finished.';
 }
 
 if (els.audioTtsTest) els.audioTtsTest.onclick = async () => {
@@ -4530,6 +4558,8 @@ if (els.audioTtsGenerate) els.audioTtsGenerate.onclick = async () => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Generation failed');
     if (els.audioScript) els.audioScript.value = data.audioScript || '';
+    currentAudioVoices = {};
+    renderSpeakersPanel(data.audioScript || '');
     els.audioTtsStatus.textContent = `✓ Script ready (${(data.audioScript || '').length} chars). Pick a voice and click 🔊 Test play to preview.`;
   } catch (e) {
     els.audioTtsStatus.textContent = '❌ ' + (e.message || 'Generation failed');
@@ -4550,11 +4580,172 @@ if (els.audioTtsSave) els.audioTtsSave.onclick = async () => {
   try {
     await api(`/api/assessments/${editingId}`, {
       method: 'PUT',
-      body: { audioScript: script, audioVoice: voice },
+      body: { audioScript: script, audioVoice: voice, audioVoices: currentAudioVoices || {} },
     });
     els.audioTtsStatus.textContent = '✓ Saved. Students will hear this script read by the AI voice when they click play.';
   } catch (e) {
     els.audioTtsStatus.textContent = 'Save failed: ' + (e.message || e);
   }
 };
+
+// ── Multi-voice dialogue support ───────────────────────────────────────────
+// Match a line that starts with a speaker label.
+const SPEAKER_RE = /^\s*([A-Z][A-Za-z0-9 .'’-]{0,40}?):\s*(.*)$/;
+
+// Score a voice for "humanistic-ness" — higher = more natural.
+// Most browsers don't expose a quality field, so we infer from the name.
+function voiceQuality(v) {
+  const n = (v.name || '').toLowerCase();
+  let s = 0;
+  if (n.includes('natural'))       s += 100;
+  if (n.includes('neural'))        s += 100;
+  if (n.includes('premium'))       s +=  80;
+  if (n.includes('online'))        s +=  60;
+  if (n.includes('enhanced'))      s +=  50;
+  if (n.includes('eloquence'))     s -=  30;
+  if (n.includes('novelty'))       s -=  50;
+  // Mac System Voices "Novelty" group:
+  const novelty = ['albert','bad news','bahh','bells','boing','bubbles','cellos',
+    'deranged','good news','hysterical','organ','superstar','trinoids',
+    'whisper','wobble','zarvox','jester','pipe organ','grandma','grandpa',
+    'kathy','fred','junior','ralph','flo'];
+  if (novelty.some((bad) => n.includes(bad))) s -= 100;
+  if (v.localService === false)    s +=  20;   // remote/cloud voices are usually better
+  return s;
+}
+function sortVoices(voices) {
+  return [...voices].sort((a, b) => voiceQuality(b) - voiceQuality(a) || a.name.localeCompare(b.name));
+}
+function voicesForCurrentLanguage() {
+  const all = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  const langWord = (els.assessmentLanguage && els.assessmentLanguage.value || '').toLowerCase();
+  const prefix = ({english:'en',arabic:'ar',french:'fr',spanish:'es',german:'de',italian:'it',portuguese:'pt',russian:'ru',chinese:'zh',japanese:'ja',korean:'ko',hindi:'hi',urdu:'ur',turkish:'tr',dutch:'nl'})[langWord] || '';
+  const filtered = prefix ? all.filter((v) => v.lang.toLowerCase().startsWith(prefix)) : all;
+  return sortVoices(filtered.length ? filtered : all);
+}
+function voiceOptionsHtml(voices, selected) {
+  // Group: humanistic (positive score) first, then a "Less natural" optgroup.
+  const top = voices.filter((v) => voiceQuality(v) >= 0);
+  const low = voices.filter((v) => voiceQuality(v) <  0);
+  const opt = (v) => `<option value="${v.name.replace(/"/g, '&quot;')}" ${v.name === selected ? 'selected' : ''}>${v.name} — ${v.lang}${v.default ? ' (default)' : ''}</option>`;
+  return [
+    top.length ? '<optgroup label="More humanistic voices">' + top.map(opt).join('') + '</optgroup>' : '',
+    low.length ? '<optgroup label="Less natural voices">'   + low.map(opt).join('') + '</optgroup>' : '',
+  ].join('');
+}
+function detectSpeakersInScript(script) {
+  const speakers = [];
+  const seen = new Set();
+  String(script || '').split(/\r?\n/).forEach((line) => {
+    const m = line.match(SPEAKER_RE);
+    if (m && m[2]) {
+      const label = m[1].trim();
+      if (!seen.has(label)) { seen.add(label); speakers.push(label); }
+    }
+  });
+  return speakers;
+}
+// Hold the teacher's current per-speaker voice choices in memory.
+let currentAudioVoices = {};
+function autoAssignVoices(speakers, voices) {
+  // Try to alternate by likely gender by scanning the voice name for hints.
+  const isFemale = (v) => /female|woman|samantha|victoria|karen|moira|tessa|fiona|kate|allison|ava|susan|alice|amelia|emma|olivia|nora|salma|laila|aria|jenny|sara|isabella|joanna|kendra|veena|kalpana|amira|naayf/i.test(v.name);
+  const isMale   = (v) => /male|man|daniel|alex|tom|fred|david|mark|james|oliver|reed|albert|kevin|brian|guy|matthew|justin|alonzo|maged|tarek|raid|wael|naayf|hamza/i.test(v.name);
+  const females = voices.filter(isFemale);
+  const males   = voices.filter(isMale);
+  const rest    = voices.filter((v) => !isFemale(v) && !isMale(v));
+  const fan = [];
+  const max = Math.max(females.length, males.length);
+  for (let i = 0; i < max; i++) {
+    if (i < females.length) fan.push(females[i]);
+    if (i < males.length)   fan.push(males[i]);
+  }
+  fan.push(...rest);
+  const out = {};
+  speakers.forEach((s, i) => { if (fan[i % fan.length]) out[s] = fan[i % fan.length].name; });
+  return out;
+}
+function renderSpeakersPanel(scriptOverride) {
+  if (!els.audioSpeakersPanel) return;
+  const script = scriptOverride !== undefined ? scriptOverride : (els.audioScript && els.audioScript.value) || '';
+  const speakers = detectSpeakersInScript(script);
+  const voices   = voicesForCurrentLanguage();
+  // Always show the default-narration dropdown.
+  if (els.audioVoice) {
+    const current = els.audioVoice.value;
+    els.audioVoice.innerHTML = voiceOptionsHtml(voices, current);
+  }
+  if (!speakers.length) {
+    els.audioSpeakersList.innerHTML = '<div class="muted" style="font-size: 12px;">No speaker labels found. If this is a dialogue, prefix each turn with a name and a colon — e.g. <code>Speaker 1: …</code>, <code>Sarah: …</code>. For a monologue/announcement, the default narration voice will be used.</div>';
+    els.audioSpeakersPanel.style.display = '';
+    return;
+  }
+  // Initialise voice choices: keep any existing assignments, auto-assign
+  // the rest distinctly.
+  const auto = autoAssignVoices(speakers, voices);
+  speakers.forEach((s) => {
+    if (!currentAudioVoices[s]) currentAudioVoices[s] = auto[s] || '';
+  });
+  // Render one row per speaker.
+  els.audioSpeakersList.innerHTML = speakers.map((s) => `
+    <div class="row" style="gap: 8px; align-items: center;">
+      <strong style="flex: 0 0 130px; color:#1a1e33;">${s}:</strong>
+      <select data-speaker="${s.replace(/"/g, '&quot;')}" class="audio-speaker-select" style="flex:1; padding: 6px; border-radius: 8px; border: 1px solid #c69214;">
+        ${voiceOptionsHtml(voices, currentAudioVoices[s])}
+      </select>
+    </div>
+  `).join('');
+  els.audioSpeakersPanel.style.display = '';
+  // Wire each dropdown to update the in-memory map.
+  els.audioSpeakersList.querySelectorAll('.audio-speaker-select').forEach((sel) => {
+    sel.addEventListener('change', () => {
+      currentAudioVoices[sel.getAttribute('data-speaker')] = sel.value;
+    });
+  });
+}
+// Re-render automatically when the script changes (debounced).
+let _speakerDebounce = null;
+if (els.audioScript) {
+  els.audioScript.addEventListener('input', () => {
+    clearTimeout(_speakerDebounce);
+    _speakerDebounce = setTimeout(() => renderSpeakersPanel(), 400);
+  });
+}
+if (els.audioTtsRedetect) els.audioTtsRedetect.onclick = () => renderSpeakersPanel();
+// Re-render after voice list loads.
+if (window.speechSynthesis) {
+  const prev = speechSynthesis.onvoiceschanged;
+  speechSynthesis.onvoiceschanged = function () {
+    try { if (prev) prev.apply(this, arguments); } catch {}
+    renderSpeakersPanel();
+  };
+}
+
+// Override the existing populateVoiceList — same as before but uses
+// sortVoices + filtered set so the dropdown order is humanistic-first.
+function populateVoiceList() {
+  if (!els.audioVoice) return;
+  const voices = voicesForCurrentLanguage();
+  els.audioVoice.innerHTML = voices.length
+    ? voiceOptionsHtml(voices, els.audioVoice.value)
+    : '<option value="">No voices installed on this device</option>';
+}
+
+// Parse script into [{speaker, text}, ...] for the playback engine.
+function parseScriptIntoTurns(script) {
+  const turns = [];
+  let current = { speaker: '', text: [] };
+  String(script || '').split(/\r?\n/).forEach((line) => {
+    const m = line.match(SPEAKER_RE);
+    if (m && m[2] !== undefined) {
+      // New turn starts.
+      if (current.text.length) turns.push({ speaker: current.speaker, text: current.text.join('\n').trim() });
+      current = { speaker: m[1].trim(), text: [m[2]] };
+    } else {
+      if (line.trim()) current.text.push(line);
+    }
+  });
+  if (current.text.length) turns.push({ speaker: current.speaker, text: current.text.join('\n').trim() });
+  return turns.filter((t) => t.text);
+}
 

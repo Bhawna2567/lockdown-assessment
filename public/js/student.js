@@ -2544,34 +2544,103 @@ function installAudioBarForAssessment(a) {
       }
       return voices.find((v) => v.default) || voices[0];
     }
-    btnPlay.onclick = () => {
+    // Parse the script into turns: { speaker, text }
+    const SPEAKER_RE_S = /^\s*([A-Z][A-Za-z0-9 .'’-]{0,40}?):\s*(.*)$/;
+    function parseTurnsStudent(script) {
+      const turns = [];
+      let cur = { speaker: '', text: [] };
+      String(script || '').split(/\r?\n/).forEach((line) => {
+        const m = line.match(SPEAKER_RE_S);
+        if (m && m[2] !== undefined) {
+          if (cur.text.length) turns.push({ speaker: cur.speaker, text: cur.text.join('\n').trim() });
+          cur = { speaker: m[1].trim(), text: [m[2]] };
+        } else if (line.trim()) cur.text.push(line);
+      });
+      if (cur.text.length) turns.push({ speaker: cur.speaker, text: cur.text.join('\n').trim() });
+      return turns.filter((tt) => tt.text);
+    }
+    function chunkText(text, max = 220) {
+      const sentences = String(text).split(/(?<=[.!?؟。！？])\s+/);
+      const chunks = []; let buf = '';
+      for (const s of sentences) {
+        if ((buf + ' ' + s).length > max && buf) { chunks.push(buf.trim()); buf = s; }
+        else { buf = buf ? buf + ' ' + s : s; }
+      }
+      if (buf.trim()) chunks.push(buf.trim());
+      return chunks;
+    }
+    function voicesAvailable() { return (window.speechSynthesis && speechSynthesis.getVoices()) || []; }
+    function pickVoiceFor(speakerLabel) {
+      const voices = voicesAvailable();
+      if (!voices.length) return null;
+      const map = a.audioVoices || {};
+      if (speakerLabel && map[speakerLabel]) {
+        const exact = voices.find((v) => v.name === map[speakerLabel]);
+        if (exact) return exact;
+      }
+      // Fallback: legacy single-voice field
+      if (a.audioVoice) {
+        const legacy = voices.find((v) => v.name === a.audioVoice);
+        if (legacy) return legacy;
+      }
+      // Language-based fallback
+      const langWord = (a.assessmentLanguage || '').toLowerCase();
+      const prefix = ({english:'en',arabic:'ar',french:'fr',spanish:'es',german:'de',italian:'it',portuguese:'pt',russian:'ru',chinese:'zh',japanese:'ja',korean:'ko',hindi:'hi',urdu:'ur',turkish:'tr',dutch:'nl'})[langWord] || '';
+      if (prefix) {
+        const m = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+        if (m) return m;
+      }
+      return voices.find((v) => v.default) || voices[0];
+    }
+    let stopped = false;
+    btnPlay.onclick = async () => {
       if (!('speechSynthesis' in window)) {
         status.textContent = 'This browser has no speech engine — ask your teacher for the audio file.';
         return;
       }
       try {
-        if (speechSynthesis.paused && utter) {
+        if (speechSynthesis.paused) {
           speechSynthesis.resume();
           status.textContent = '▶ Playing…';
           return;
         }
+        stopped = false;
         speechSynthesis.cancel();
-        utter = new SpeechSynthesisUtterance(a.audioScript || '');
-        const v = pickVoice();
-        if (v) { utter.voice = v; utter.lang = v.lang; }
-        utter.rate = 0.95;
-        utter.pitch = 1.0;
-        utter.onstart = () => { status.textContent = '▶ Playing…'; };
-        utter.onpause = () => { status.textContent = '⏸ Paused — click Play to resume.'; };
-        utter.onend   = () => { status.textContent = '✓ Finished.'; };
-        utter.onerror = (e) => { status.textContent = 'Playback error: ' + (e.error || 'unknown'); };
-        speechSynthesis.speak(utter);
+        const turns = parseTurnsStudent(a.audioScript || '');
+        if (!turns.length) { status.textContent = 'No script to play.'; return; }
+        status.textContent = `▶ Playing (${turns.length} turn${turns.length === 1 ? '' : 's'})…`;
+        // Wait for voices if they haven't loaded yet.
+        if (!voicesAvailable().length) {
+          await new Promise((res) => {
+            const t0 = Date.now();
+            const poll = () => (voicesAvailable().length || Date.now() - t0 > 2000) ? res() : setTimeout(poll, 80);
+            speechSynthesis.onvoiceschanged = poll;
+            poll();
+          });
+        }
+        for (let i = 0; i < turns.length; i++) {
+          if (stopped) break;
+          const voice = pickVoiceFor(turns[i].speaker);
+          for (const chunk of chunkText(turns[i].text)) {
+            if (stopped) break;
+            await new Promise((resolve) => {
+              const u = new SpeechSynthesisUtterance(chunk);
+              if (voice) { u.voice = voice; u.lang = voice.lang; }
+              u.rate  = 0.92 + Math.random() * 0.08;
+              u.pitch = 0.97 + Math.random() * 0.06;
+              u.onend = resolve;
+              u.onerror = (e) => { status.textContent = 'Playback error: ' + (e.error || 'unknown'); resolve(); };
+              speechSynthesis.speak(u);
+            });
+          }
+        }
+        if (!stopped) status.textContent = '✓ Finished.';
       } catch (e) {
         status.textContent = 'Could not play: ' + e.message;
       }
     };
     btnPause.onclick = () => { try { speechSynthesis.pause(); } catch {} };
-    btnStop.onclick  = () => { try { speechSynthesis.cancel(); status.textContent = '⏹ Stopped.'; } catch {} };
+    btnStop.onclick  = () => { stopped = true; try { speechSynthesis.cancel(); status.textContent = '⏹ Stopped.'; } catch {} };
     wrap.appendChild(btnPlay);
     wrap.appendChild(btnPause);
     wrap.appendChild(btnStop);

@@ -861,7 +861,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
     subject, assessmentLanguage, classId, deliveryMode, sections,
-    audioScript, audioVoice,
+    audioScript, audioVoice, audioVoices,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -897,6 +897,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     audioFile: null,
     audioScript: audioScript ? String(audioScript).slice(0, 12000) : '',
     audioVoice:  audioVoice  ? String(audioVoice).slice(0, 200)  : '',
+    audioVoices: (audioVoices && typeof audioVoices === 'object') ? audioVoices : {},
     questions: questions.map((q, i) => {
       const type = normalizeQuestionType(q.type);
       // Validate sectionId: must reference a real section on this assessment.
@@ -974,7 +975,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
     subject, assessmentLanguage, classId, deliveryMode, sections,
-    audioScript, audioVoice,
+    audioScript, audioVoice, audioVoices,
   } = req.body || {};
   // Validate classId if provided: must belong to this teacher.
   let nextClassId = all[idx].classId;
@@ -1026,6 +1027,9 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     audioVoice: audioVoice === undefined
       ? (all[idx].audioVoice || '')
       : (audioVoice ? String(audioVoice).slice(0, 200) : ''),
+    audioVoices: audioVoices === undefined
+      ? (all[idx].audioVoices || {})
+      : (audioVoices && typeof audioVoices === 'object' ? audioVoices : {}),
     questions: Array.isArray(questions)
       ? questions.map((q, i) => {
           const type = normalizeQuestionType(q.type);
@@ -2114,6 +2118,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     audioFile: a.audioFile ? { name: a.audioFile.name, mime: a.audioFile.mime } : null,
     audioScript: a.audioScript || '',
     audioVoice:  a.audioVoice  || '',
+    audioVoices: a.audioVoices || {},
     // Re-entry mode: when the teacher has granted re-entry and the
     // student had a prior submission, we send back the answers they
     // had recorded so the client can pre-fill the form, plus the
@@ -3371,7 +3376,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '',
     'C0. LISTENING ASSESSMENTS (subject == "Listening" OR prompt mentions listening)',
     '   - WRITE A FULL audioScript that the student will hear during the exam. The script is the WHOLE TRANSCRIPT — announcement, dialogue, monologue, news report, etc. — written verbatim as it should be spoken.',
-    '   - Format dialogues with explicit speaker labels and short pauses written naturally ("Speaker 1: ... Speaker 2: ..."). Avoid stage directions.',
+    '   - Format dialogues with explicit speaker labels at the START of each line, followed by a colon. Use either "Speaker 1:", "Speaker 2:", … OR named roles like "Interviewer:", "Dr. Khan:", "Sarah:". Each turn starts on a NEW LINE. Each speaker uses the SAME label EVERY time they speak. Avoid stage directions.',
     '   - Length: roughly 150-250 words per minute of intended audio, scaled to grade level and questionCount.',
     '   - The questions must be answerable ONLY by listening to the audioScript (not by reading the page) — i.e. design like a real IELTS/PISA Listening section.',
     '   - Do NOT copy the audioScript into any section.passage. The script is heard, not seen.',
