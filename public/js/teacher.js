@@ -2804,24 +2804,16 @@ els.saveBtn.onclick = async () => {
       await api('/api/assessments', { method: 'POST', body: payload });
     }
     els.saveStatus.textContent = 'Saved.';
+    // HARD CLOSE: reload the page. Every editor surface (#builder-view,
+    // #results-view, #template-picker, #essay-queue-view, etc.) has
+    // style="display:none" in the HTML, so a reload guarantees the
+    // dashboard list is the only thing visible. Belt + braces with the
+    // CSS class so even mid-reload the user doesn't see a flash.
+    document.body.classList.add('cc-list-only');
     setTimeout(() => {
-      // STEP 1 — toggle the CSS class that wins over any inline style.
-      document.body.classList.add('cc-list-only');
-      // STEP 2 — defence-in-depth: still call hideAllViews + reset state.
-      if (typeof hideAllViews === 'function') hideAllViews();
-      if (typeof closeTemplatePicker === 'function') closeTemplatePicker();
-      editingId = null;
-      currentAudioVoices = {};
-      questions = [];
-      sections = [];
-      if (els.audioScript) els.audioScript.value = '';
-      if (els.audioTtsStatus) els.audioTtsStatus.textContent = '';
-      if (els.audioSpeakersPanel) els.audioSpeakersPanel.style.display = 'none';
-      els.listView.style.display = 'block';
-      els.saveStatus.textContent = '';
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      loadAssessments();
-    }, 400);
+      // Strip the URL hash if any, then full reload.
+      window.location.href = window.location.pathname + window.location.search;
+    }, 300);
   } catch (e) {
     els.saveStatus.textContent = '';
     alert(e.message);
