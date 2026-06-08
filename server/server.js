@@ -2030,6 +2030,53 @@ app.get('/api/admin/users-export', requireTeacher, (req, res) => {
   res.send(csv);
 });
 
+// Admin-only: every student grouped by class — CSV for sending
+// class-specific announcements. Columns: class_name, teacher_name,
+// student_name, student_email. Sorted by class then student name.
+app.get('/api/admin/students-by-class-export', requireTeacher, (req, res) => {
+  if ((req.session.user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return res.status(403).json({ error: 'Forbidden — admin only.' });
+  }
+  const users   = readAll('users.json');
+  const classes = readAll('classes.json');
+  const teacherById = new Map(users.filter((u) => u.role === 'teacher').map((u) => [u.id, u]));
+
+  const esc = (v) => {
+    const s = String(v == null ? '' : v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const header = ['class_name','teacher_name','teacher_email','student_name','student_email'];
+  const lines = [header.join(',')];
+
+  const sortedClasses = [...classes].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  for (const c of sortedClasses) {
+    const teacher = teacherById.get(c.teacherId) || {};
+    const roster = Array.isArray(c.roster) ? c.roster : [];
+    const sortedRoster = [...roster].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (!sortedRoster.length) {
+      // Include empty classes too so the admin sees "class exists but no students".
+      lines.push([
+        esc(c.name), esc(teacher.name || ''), esc(teacher.email || ''),
+        '', '',
+      ].join(','));
+      continue;
+    }
+    for (const r of sortedRoster) {
+      lines.push([
+        esc(c.name),
+        esc(teacher.name || ''),
+        esc(teacher.email || ''),
+        esc(r.name || ''),
+        esc(r.email || ''),
+      ].join(','));
+    }
+  }
+  const csv = lines.join('\n') + '\n';
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="classcurio_students_by_class.csv"');
+  res.send(csv);
+});
+
 // Lightweight check the dashboard uses to decide whether to show the
 // admin Export button without exposing the admin email to the client.
 app.get('/api/admin/is-admin', requireAuth, (req, res) => {

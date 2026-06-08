@@ -4832,6 +4832,14 @@ function parseScriptIntoTurns(script) {
         // sends Content-Disposition: attachment so the browser saves it.
         window.location.href = '/api/admin/users-export';
       };
+      // Second admin button — students grouped by class.
+      const classBtn = document.getElementById('admin-export-classes');
+      if (classBtn) {
+        classBtn.style.display = '';
+        classBtn.onclick = () => {
+          window.location.href = '/api/admin/students-by-class-export';
+        };
+      }
     }
   } catch {}
 })();
