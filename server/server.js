@@ -1975,6 +1975,67 @@ app.post('/api/listening/generate-script', requireTeacher, async (req, res) => {
   }
 });
 
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin-only: export every user as CSV
+// ───────────────────────────────────────────────────────────────────────────
+// Locked to one email so other teachers cannot pull the full user list.
+// To rotate the admin, change ADMIN_EMAIL below.
+const ADMIN_EMAIL = 'bsharma2567@gmail.com';
+app.get('/api/admin/users-export', requireTeacher, (req, res) => {
+  if ((req.session.user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return res.status(403).json({ error: 'Forbidden — admin only.' });
+  }
+  const users   = readAll('users.json');
+  const classes = readAll('classes.json');
+  // For each user, count how many classes reference them.
+  const teacherClassCount = (id) => classes.filter((c) => c.teacherId === id).length;
+  const studentClassCount = (email) => classes.filter((c) =>
+    Array.isArray(c.roster) && c.roster.some((r) => (r.email || '').toLowerCase() === (email || '').toLowerCase())
+  ).length;
+
+  // Sort: teachers first (alpha by name), then students (alpha by name).
+  const sorted = users
+    .map((u) => ({ ...u }))
+    .sort((a, b) => {
+      const ra = a.role === 'teacher' ? 0 : 1;
+      const rb = b.role === 'teacher' ? 0 : 1;
+      if (ra !== rb) return ra - rb;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+  // CSV-escape helper.
+  const esc = (v) => {
+    const s = String(v == null ? '' : v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const header = ['role','name','email','classes_count','created_at','must_change_password'];
+  const lines = [header.join(',')];
+  for (const u of sorted) {
+    const count = u.role === 'teacher'
+      ? teacherClassCount(u.id)
+      : studentClassCount(u.email);
+    lines.push([
+      esc(u.role),
+      esc(u.name),
+      esc(u.email),
+      esc(count),
+      esc(u.createdAt || ''),
+      esc(u.mustChangePassword ? 'yes' : 'no'),
+    ].join(','));
+  }
+  const csv = lines.join('\n') + '\n';
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="classcurio_users.csv"');
+  res.send(csv);
+});
+
+// Lightweight check the dashboard uses to decide whether to show the
+// admin Export button without exposing the admin email to the client.
+app.get('/api/admin/is-admin', requireAuth, (req, res) => {
+  res.json({ isAdmin: (req.session.user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase() });
+});
+
 app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id);

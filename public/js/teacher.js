@@ -4818,3 +4818,21 @@ function parseScriptIntoTurns(script) {
   return turns.filter((t) => t.text);
 }
 
+// ── Admin-only: Export users CSV button ────────────────────────────────────
+(async function setupAdminExport() {
+  const btn = document.getElementById('admin-export-users');
+  if (!btn) return;
+  try {
+    const r = await fetch('/api/admin/is-admin', { credentials: 'include' });
+    const data = await r.json().catch(() => ({}));
+    if (data && data.isAdmin) {
+      btn.style.display = '';
+      btn.onclick = () => {
+        // Direct browser navigation triggers the file download. The endpoint
+        // sends Content-Disposition: attachment so the browser saves it.
+        window.location.href = '/api/admin/users-export';
+      };
+    }
+  } catch {}
+})();
+
