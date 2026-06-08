@@ -1981,9 +1981,11 @@ app.post('/api/listening/generate-script', requireTeacher, async (req, res) => {
 // ───────────────────────────────────────────────────────────────────────────
 // Locked to one email so other teachers cannot pull the full user list.
 // To rotate the admin, change ADMIN_EMAIL below.
-const ADMIN_EMAIL = 'bsharma2567@gmail.com';
+// Multiple admin emails — either one has access to the user-export endpoints.
+const ADMIN_EMAILS = ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
+const ADMIN_EMAIL  = ADMIN_EMAILS[0]; // kept for backward compatibility
 app.get('/api/admin/users-export', requireTeacher, (req, res) => {
-  if ((req.session.user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
     return res.status(403).json({ error: 'Forbidden — admin only.' });
   }
   const users   = readAll('users.json');
@@ -2034,7 +2036,7 @@ app.get('/api/admin/users-export', requireTeacher, (req, res) => {
 // class-specific announcements. Columns: class_name, teacher_name,
 // student_name, student_email. Sorted by class then student name.
 app.get('/api/admin/students-by-class-export', requireTeacher, (req, res) => {
-  if ((req.session.user.email || '').toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+  if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
     return res.status(403).json({ error: 'Forbidden — admin only.' });
   }
   const users   = readAll('users.json');
@@ -2080,7 +2082,7 @@ app.get('/api/admin/students-by-class-export', requireTeacher, (req, res) => {
 // Lightweight check the dashboard uses to decide whether to show the
 // admin Export button without exposing the admin email to the client.
 app.get('/api/admin/is-admin', requireAuth, (req, res) => {
-  res.json({ isAdmin: (req.session.user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase() });
+  res.json({ isAdmin: ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase()) });
 });
 
 app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
