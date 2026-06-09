@@ -4846,7 +4846,8 @@ function parseScriptIntoTurns(script) {
       // Second admin button — students grouped by class.
       const classBtn = document.getElementById('admin-export-classes');
       if (classBtn) {
-        classBtn.style.display = '';
+        // Buttons stay always-visible inside the dropdown; we toggle the
+        // whole admin-menu-wrap container below instead.
         classBtn.onclick = () => {
           window.location.href = '/api/admin/students-by-class-export';
         };
@@ -4854,8 +4855,22 @@ function parseScriptIntoTurns(script) {
       // Third admin button — disk usage modal.
       const diskBtn = document.getElementById('admin-disk-usage');
       if (diskBtn) {
-        diskBtn.style.display = '';
         diskBtn.onclick = showDiskUsageModal;
+      }
+      // Show the whole admin dropdown wrap (which contains all 3 items).
+      const adminWrap = document.getElementById('admin-menu-wrap');
+      if (adminWrap) {
+        adminWrap.style.display = '';
+        const toggle = document.getElementById('admin-menu-toggle');
+        const menu = document.getElementById('admin-menu-dropdown');
+        toggle.onclick = (e) => {
+          e.stopPropagation();
+          menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+        };
+        // Close when clicking outside the dropdown.
+        document.addEventListener('click', (e) => {
+          if (!adminWrap.contains(e.target)) menu.style.display = 'none';
+        });
       }
     }
   } catch {}

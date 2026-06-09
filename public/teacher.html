@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1780989564" />
+  <link rel="stylesheet" href="/css/styles.css?v=1780990501" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -66,9 +66,15 @@
       <option value="nl">🌐 Nederlands</option>
     </select>
     <span id="who" class="muted"></span>
-    <button id="admin-export-users" class="btn" style="display:none; background:#1a1e33; color:#fde68a; border:1px solid #c69214; margin-right: 6px;" title="Admin only — download every teacher and student as CSV">👥 Export users CSV</button>
-    <button id="admin-export-classes" class="btn" style="display:none; background:#1a1e33; color:#fde68a; border:1px solid #c69214; margin-right: 6px;" title="Admin only — download every student grouped by class">🏫 Export students by class</button>
-    <button id="admin-disk-usage" class="btn" style="display:none; background:#1a1e33; color:#fde68a; border:1px solid #c69214; margin-right: 6px;" title="Admin only — view persistent disk usage">💾 Disk usage</button>
+    <!-- Admin dropdown — visible only to admin emails; collapses three actions into one tidy menu -->
+    <div id="admin-menu-wrap" style="display:none; position:relative;">
+      <button id="admin-menu-toggle" class="btn" style="background:#1a1e33; color:#fde68a; border:1px solid #c69214;" title="Admin tools">⋯ Admin ▾</button>
+      <div id="admin-menu-dropdown" style="display:none; position:absolute; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.18); min-width:240px; z-index:2147483600; padding:6px;">
+        <button id="admin-export-users" class="btn" style="display:block; width:100%; text-align:left; margin:2px 0; background:transparent; color:#1a1e33; border:1px solid transparent;" title="Download every teacher and student as CSV">👥 Export users CSV</button>
+        <button id="admin-export-classes" class="btn" style="display:block; width:100%; text-align:left; margin:2px 0; background:transparent; color:#1a1e33; border:1px solid transparent;" title="Download every student grouped by class">🏫 Export students by class</button>
+        <button id="admin-disk-usage" class="btn" style="display:block; width:100%; text-align:left; margin:2px 0; background:transparent; color:#1a1e33; border:1px solid transparent;" title="View persistent disk usage">💾 Disk usage</button>
+      </div>
+    </div>
     <button id="open-user-guide" class="btn" style="margin-right: 6px; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.30); color: #fff;" title="Step-by-step instructions for every feature">📖 User Guide</button>
     <button id="logout" class="btn">Sign out</button>
   </div>
@@ -86,14 +92,15 @@
         </div>
       </div>
 
-      <div class="row" style="margin-bottom: 12px;">
-        <h1 style="margin:0;">Your assessments</h1>
-        <div class="spacer"></div>
-        <button id="settings-btn" class="btn">⚙ Settings</button>
-        <button id="students-btn" class="btn">👥 Students</button>
-        <button id="essay-queue-btn" class="btn">📝 Grade essays <span id="queue-count" class="badge" style="display:none;"></span></button>
-        <button id="import-btn" class="btn">⇪ Quick Import (PDF/DOCX)</button>
-        <button id="new-btn" class="btn primary">+ New assessment</button>
+      <div class="cc-action-toolbar" style="margin-bottom: 14px;">
+        <h1 style="margin:0; flex: 1 1 100%; min-width: 220px;">Your assessments</h1>
+        <div class="cc-action-buttons">
+          <button id="settings-btn"    class="btn">⚙ Settings</button>
+          <button id="students-btn"    class="btn">👥 Students</button>
+          <button id="essay-queue-btn" class="btn">📝 Grade essays <span id="queue-count" class="badge" style="display:none;"></span></button>
+          <button id="import-btn"      class="btn">⇪ Quick Import</button>
+          <button id="new-btn"         class="btn primary">+ New assessment</button>
+        </div>
       </div>
 
       <div class="row" style="margin-bottom: 12px; gap: 8px;">
@@ -697,6 +704,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1780989564"></script>
+  <script src="/js/teacher.js?v=1780990501"></script>
 </body>
 </html>
