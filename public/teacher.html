@@ -4,6 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Teacher Dashboard — ClassCurio</title>
+  <style id="cc-inline-list-only">
+  /* CC inline guard — same as styles.css's cc-list-only block, embedded
+   * here so it loads with the HTML and can never be served from a stale
+   * cached CSS file. */
+  body.cc-list-only #builder-view,
+  body.cc-list-only #results-view,
+  body.cc-list-only #template-picker,
+  body.cc-list-only #essay-queue-view,
+  body.cc-list-only #report-card-view,
+  body.cc-list-only #students-view,
+  body.cc-list-only #progress-view {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+  body.cc-list-only #list-view {
+    display: block !important;
+  }
+</style>
 
   <!-- PWA: manifest, icons, install hints. -->
   <link rel="manifest" href="/manifest.json" />
@@ -16,7 +37,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1780994606" />
+  <link rel="stylesheet" href="/css/styles.css?v=1780995171" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -704,6 +725,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1780994606"></script>
+  <script src="/js/teacher.js?v=1780995171"></script>
 </body>
 </html>
