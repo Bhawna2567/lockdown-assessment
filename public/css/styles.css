@@ -1337,3 +1337,34 @@ body.cc-list-only #list-view {
   .topbar #who { max-width: 160px; }
   .cc-action-toolbar h1 { font-size: 22px !important; }
 }
+
+
+/* CC: pulsing User Guide button ────────────────────────────────────────── */
+.cc-pulse-btn {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  color: #1a1e33 !important;
+  border: 2px solid #fde68a !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.3px !important;
+  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.65), 0 4px 12px rgba(245, 158, 11, 0.4) !important;
+  animation: ccPulseGlow 1.4s ease-in-out infinite;
+  position: relative;
+}
+.cc-pulse-btn:hover {
+  background: linear-gradient(135deg, #fcd34d, #fbbf24) !important;
+  transform: translateY(-1px);
+}
+@keyframes ccPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.85), 0 4px 12px rgba(245, 158, 11, 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.0), 0 6px 18px rgba(245, 158, 11, 0.75);
+    transform: scale(1.04);
+  }
+}
+/* Respect "reduced motion" accessibility preference. */
+@media (prefers-reduced-motion: reduce) {
+  .cc-pulse-btn { animation: none; }
+}
