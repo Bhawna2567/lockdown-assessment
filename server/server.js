@@ -2106,6 +2106,88 @@ app.get('/api/admin/students-by-class-export', requireTeacher, (req, res) => {
 
 // Lightweight check the dashboard uses to decide whether to show the
 // admin Export button without exposing the admin email to the client.
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin-only: how much space is left on the persistent disk
+// ───────────────────────────────────────────────────────────────────────────
+// Reports total / used / free for the volume that holds /data/ (or wherever
+// readAll() reads from), plus a per-subfolder breakdown so the admin can see
+// what's taking up space.
+app.get('/api/admin/disk-usage', requireTeacher, async (req, res) => {
+  if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
+    return res.status(403).json({ error: 'Forbidden — admin only.' });
+  }
+  const dataDir = path.join(__dirname, '..', 'data');
+
+  // Recursively walk a directory and sum up file sizes.
+  async function dirSize(dir) {
+    let total = 0;
+    try {
+      const entries = await require('fs').promises.readdir(dir, { withFileTypes: true });
+      for (const e of entries) {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          total += await dirSize(p);
+        } else if (e.isFile()) {
+          try { total += (await require('fs').promises.stat(p)).size; } catch {}
+        }
+      }
+    } catch {}
+    return total;
+  }
+
+  // Volume-level numbers: prefer `df --block-size=1` for byte precision.
+  // If df isn't available (e.g. some Render base images), gracefully fall
+  // back to "unknown".
+  function dfBytes(p) {
+    return new Promise((resolve) => {
+      require('child_process').execFile('df', ['-Pk', p], { timeout: 4000 }, (err, stdout) => {
+        if (err) return resolve(null);
+        // Header line then values: 1024-blocks Used Available Capacity Mounted
+        const lines = String(stdout || '').trim().split(/\n/);
+        if (lines.length < 2) return resolve(null);
+        const cols = lines[1].split(/\s+/);
+        if (cols.length < 6) return resolve(null);
+        resolve({
+          total: Number(cols[1]) * 1024,
+          used:  Number(cols[2]) * 1024,
+          free:  Number(cols[3]) * 1024,
+          mount: cols[5],
+        });
+      });
+    });
+  }
+
+  try {
+    const vol = await dfBytes(dataDir);
+    // Per-subfolder breakdown for the data tree.
+    const subs = ['assessments.json','users.json','results.json','classes.json','config.json',
+                  'audio','sessions','uploads','proctor'];
+    const breakdown = {};
+    for (const s of subs) {
+      const p = path.join(dataDir, s);
+      try {
+        const st = await require('fs').promises.stat(p);
+        breakdown[st.isDirectory() ? s + '/' : s] = st.isDirectory()
+          ? await dirSize(p)
+          : st.size;
+      } catch {}
+    }
+    const dataFolderSize = Object.values(breakdown).reduce((a, b) => a + b, 0);
+    res.json({
+      diskPath: dataDir,
+      total: vol ? vol.total : null,
+      used:  vol ? vol.used  : null,
+      free:  vol ? vol.free  : null,
+      mount: vol ? vol.mount : null,
+      dataFolderSize,
+      breakdown,
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Could not read disk usage: ' + e.message });
+  }
+});
+
 app.get('/api/admin/is-admin', requireAuth, (req, res) => {
   res.json({ isAdmin: ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase()) });
 });

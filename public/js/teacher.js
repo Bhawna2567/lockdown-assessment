@@ -4851,9 +4851,75 @@ function parseScriptIntoTurns(script) {
           window.location.href = '/api/admin/students-by-class-export';
         };
       }
+      // Third admin button — disk usage modal.
+      const diskBtn = document.getElementById('admin-disk-usage');
+      if (diskBtn) {
+        diskBtn.style.display = '';
+        diskBtn.onclick = showDiskUsageModal;
+      }
     }
   } catch {}
 })();
+
+function fmtBytes(n) {
+  if (n == null || !Number.isFinite(n)) return '—';
+  if (n < 1024) return n + ' B';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + ' MB';
+  return (n / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+}
+async function showDiskUsageModal() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483645; display:flex; align-items:center; justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 560px; width: 92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">
+      <h2 style="margin:0 0 8px; color:#1a1e33;">💾 Disk usage</h2>
+      <p class="muted" style="margin:0 0 16px; font-size:14px;">Persistent disk on Render — survives every restart.</p>
+      <div id="disk-body" class="muted">Loading…</div>
+      <div class="row" style="gap:10px; justify-content:flex-end; margin-top:16px;">
+        <button class="btn" id="disk-close">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const close = () => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); };
+  document.getElementById('disk-close').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  try {
+    const r = await fetch('/api/admin/disk-usage', { credentials: 'include' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed');
+    const pct = (data.total && data.used) ? Math.min(100, Math.round((data.used / data.total) * 100)) : null;
+    const barColor = pct == null ? '#94a3b8' : pct > 90 ? '#dc2626' : pct > 70 ? '#f59e0b' : '#16a34a';
+    const breakdownRows = Object.entries(data.breakdown || {})
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, bytes]) => `
+        <div class="row" style="gap:10px; padding:6px 0; border-bottom:1px solid #e5e7eb; font-size:14px;">
+          <code style="flex:1; color:#1a1e33;">${name}</code>
+          <span style="color:#475569;">${fmtBytes(bytes)}</span>
+        </div>
+      `).join('');
+    document.getElementById('disk-body').innerHTML = `
+      <div style="background:#f1f5f9; border-radius:8px; padding:14px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-weight:700; color:#1a1e33; margin-bottom:6px;">
+          <span>Total ${fmtBytes(data.total)}</span>
+          <span>Free ${fmtBytes(data.free)} (${data.total ? Math.round((data.free / data.total) * 100) : '—'}%)</span>
+        </div>
+        ${pct == null ? '<div class="muted" style="font-size:13px;">df not available — volume totals unknown.</div>' : `
+          <div style="background:#e2e8f0; border-radius:6px; overflow:hidden; height:14px;">
+            <div style="background:${barColor}; height:100%; width:${pct}%;"></div>
+          </div>
+          <div style="font-size:13px; color:#475569; margin-top:4px;">${pct}% used &nbsp;·&nbsp; ${fmtBytes(data.used)} of ${fmtBytes(data.total)}</div>
+        `}
+      </div>
+      <div style="font-weight:700; color:#1a1e33; margin-bottom:6px;">What's in your /data folder (${fmtBytes(data.dataFolderSize)} total):</div>
+      ${breakdownRows || '<div class="muted">No files yet.</div>'}
+      <div class="muted" style="font-size:12px; margin-top:12px;">Mount: <code>${data.mount || '—'}</code> · Path: <code>${data.diskPath}</code></div>
+    `;
+  } catch (e) {
+    document.getElementById('disk-body').innerHTML = '<div style="color:#dc2626;">❌ ' + (e.message || 'Could not load disk usage.') + '</div>';
+  }
+}
 
 // ── Match-the-following editor ─────────────────────────────────────────────
 function renderMatchEditor(q) {
