@@ -274,4 +274,112 @@ async function importFile(filePath, mimeType, originalName) {
   return { title, questions, passage, rawText: text };
 }
 
-module.exports = { importFile, parse, extractText };
+
+// ───────────────────────────────────────────────────────────────────────────
+//  extractMediaImages — pull images out of an uploaded PDF / DOCX so the
+//  Claude API can SEE them.
+//
+//  PDF: shells out to `pdftoppm` (poppler-utils). If the binary isn't
+//  installed (some hosts), returns [] and the caller falls back to
+//  text-only Claude prompting.
+//  DOCX: uses mammoth's image hook to extract embedded media.
+//
+//  Returns: Array<{ media: 'image/jpeg' | 'image/png' | ..., buf: Buffer }>
+// ───────────────────────────────────────────────────────────────────────────
+const { execFile } = require('child_process');
+const path = require('path');
+const os = require('os');
+const fsP = require('fs').promises;
+
+function execFileP(cmd, args, opts = {}) {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, { ...opts, timeout: 60000 }, (err, stdout, stderr) => {
+      if (err) return reject(err);
+      resolve({ stdout, stderr });
+    });
+  });
+}
+
+async function extractPageImagesFromPDF(filepath, maxPages = 8) {
+  // Try pdftoppm first — produces page-1.jpg, page-2.jpg, ... in a tmpdir.
+  let tmp;
+  try {
+    tmp = await fsP.mkdtemp(path.join(os.tmpdir(), 'cc-pdf-'));
+    await execFileP('pdftoppm', [
+      '-jpeg', '-r', '110',
+      '-f', '1', '-l', String(maxPages),    // limit to first N pages
+      filepath,
+      path.join(tmp, 'page'),
+    ]);
+    const files = (await fsP.readdir(tmp))
+      .filter((f) => /^page-?\d+\.jpe?g$/i.test(f))
+      .sort();
+    const out = [];
+    for (const f of files) {
+      const buf = await fsP.readFile(path.join(tmp, f));
+      out.push({ media: 'image/jpeg', buf });
+    }
+    return out;
+  } catch (e) {
+    // pdftoppm not installed, file unreadable, or timeout. Return [] —
+    // text extraction still works for the caller.
+    return [];
+  } finally {
+    if (tmp) { try { await fsP.rm(tmp, { recursive: true, force: true }); } catch {} }
+  }
+}
+
+async function extractEmbeddedImagesFromDOCX(filepath, maxImages = 12) {
+  try {
+    const mammoth = require('mammoth');
+    const images = [];
+    await mammoth.extractRawText({
+      path: filepath,
+      convertImage: mammoth.images.imgElement(async (image) => {
+        if (images.length >= maxImages) return { src: '' };
+        try {
+          const buf = await image.read();
+          const contentType = image.contentType || 'image/png';
+          // Anthropic supports png, jpeg, gif, webp.
+          const media = ['image/png','image/jpeg','image/gif','image/webp'].includes(contentType)
+            ? contentType : 'image/png';
+          images.push({ media, buf });
+        } catch {}
+        return { src: '' };
+      }),
+    });
+    return images;
+  } catch (e) {
+    return [];
+  }
+}
+
+async function extractMediaImages(filepath, mimetype, name) {
+  const lname = String(name || '').toLowerCase();
+  const lmime = String(mimetype || '').toLowerCase();
+  // Cap individual + total payload sizes so we don't blow the Anthropic limit.
+  const MAX_ONE = 4 * 1024 * 1024;
+  const MAX_TOTAL = 25 * 1024 * 1024;
+  let total = 0;
+  const filtered = (imgs) => {
+    const out = [];
+    for (const img of imgs) {
+      if (!img || !img.buf) continue;
+      if (img.buf.length > MAX_ONE) continue;
+      if (total + img.buf.length > MAX_TOTAL) break;
+      total += img.buf.length;
+      out.push(img);
+    }
+    return out;
+  };
+  if (lmime === 'application/pdf' || lname.endsWith('.pdf')) {
+    return filtered(await extractPageImagesFromPDF(filepath));
+  }
+  if (lmime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      lname.endsWith('.docx')) {
+    return filtered(await extractEmbeddedImagesFromDOCX(filepath));
+  }
+  return [];
+}
+
+module.exports = { importFile, parse, extractText, extractMediaImages };

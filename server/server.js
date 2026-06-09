@@ -14,7 +14,7 @@ const { v4: uuidv4 } = require('uuid');
 const ExcelJS = require('exceljs');
 
 const { readAll, writeAll } = require('./store');
-const { importFile, extractText } = require('./importer');
+const { importFile, extractText, extractMediaImages } = require('./importer');
 const { gradeWriting, readApiKey } = require('./grader');
 const reports = require('./reports');
 const { Packer } = require('docx');
@@ -3601,6 +3601,20 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         } else {
           skipped.push(`${f.originalname} (no readable text found)`);
         }
+        // Pull embedded images out of the PDF/DOCX and add them as Claude
+        // Vision blocks alongside the text. Cap so we don't blow the
+        // per-request payload limit.
+        try {
+          const docImgs = await extractMediaImages(f.path, f.mimetype, f.originalname);
+          for (const img of docImgs) {
+            if (totalImageBytes + img.buf.length > MAX_TOTAL_IMAGE_BYTES) break;
+            totalImageBytes += img.buf.length;
+            imageBlocks.push({
+              type: 'image',
+              source: { type: 'base64', media_type: img.media, data: img.buf.toString('base64') },
+            });
+          }
+        } catch {}
       } else {
         skipped.push(`${f.originalname} (unsupported file type)`);
       }
@@ -3919,13 +3933,28 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '"""',
       ].join('\n');
 
+      // Also extract any embedded images (or PDF page rasters) so Claude can
+      // SEE the pictures. Important for match-with-picture questions and
+      // any diagram-heavy paper.
+      let mediaImages = [];
+      try { mediaImages = await extractMediaImages(req.file.path, req.file.mimetype, req.file.originalname); } catch {}
+      const userContent = [{ type: 'text', text: sys }];
+      if (mediaImages.length) {
+        userContent.push({ type: 'text', text: `\n---\nThe paper contains ${mediaImages.length} image${mediaImages.length === 1 ? '' : 's'}. Use them to reproduce match-with-picture questions, diagrams, and any visual elements. If a question shows pictures to be matched, emit type "match" with matchVariant "word-picture" and leave rightImageUrl empty (teacher uploads pictures in the builder).` });
+        for (const img of mediaImages) {
+          userContent.push({
+            type: 'image',
+            source: { type: 'base64', media_type: img.media, data: img.buf.toString('base64') },
+          });
+        }
+      }
       const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 8192,
-          messages: [{ role: 'user', content: [{ type: 'text', text: sys }] }],
+          messages: [{ role: 'user', content: userContent }],
         }),
       });
 

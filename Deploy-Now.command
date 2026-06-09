@@ -52,7 +52,7 @@ echo
 git add -A -- public/css/styles.css public/js/student.js public/js/teacher.js \
   public/index.html public/teacher.html public/student.html \
   server/server.js server/grader.js server/store.js \
-  package.json electron/icons/icon.ico electron/icons/icon.png \
+  package.json server/importer.js RENDER-POPPLER-SETUP.md electron/icons/icon.ico electron/icons/icon.png \
   Deploy-Now.command Stop-Wipe.command Verify-Persistence.command 2>/dev/null || true
 
 # If there's an unpushed commit but nothing new to stage, jump straight to push.
