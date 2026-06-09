@@ -9,6 +9,8 @@
    * here so it loads with the HTML and can never be served from a stale
    * cached CSS file. */
   body.cc-list-only #builder-view,
+  body.cc-list-only #builder-questions-panel,
+  body.cc-list-only #builder-save-row,
   body.cc-list-only #results-view,
   body.cc-list-only #template-picker,
   body.cc-list-only #essay-queue-view,
@@ -37,7 +39,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1780995171" />
+  <link rel="stylesheet" href="/css/styles.css?v=1780995805" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -587,7 +589,7 @@
 
       </div>
 
-      <div class="panel">
+      <div class="panel" id="builder-questions-panel">
         <div class="row" style="margin-bottom: 10px;">
           <h2 style="margin:0;">Questions</h2>
           <div class="spacer"></div>
@@ -603,7 +605,7 @@
         <div id="questions"></div>
       </div>
 
-      <div class="row">
+      <div class="row" id="builder-save-row">
         <button id="save-btn" class="btn primary">Save assessment</button>
         <span id="save-status" class="muted"></span>
       </div>
@@ -725,6 +727,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1780995171"></script>
+  <script src="/js/teacher.js?v=1780995805"></script>
 </body>
 </html>

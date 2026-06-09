@@ -1264,6 +1264,8 @@ body.lockdown-body .assessment-content #assess-title {
 /* Hard-fix: when body has .cc-list-only, every editor surface is hidden
  * with !important so no inline style or later JS can re-show them. */
 body.cc-list-only #builder-view,
+body.cc-list-only #builder-questions-panel,
+body.cc-list-only #builder-save-row,
 body.cc-list-only #results-view,
 body.cc-list-only #template-picker,
 body.cc-list-only #essay-queue-view,
