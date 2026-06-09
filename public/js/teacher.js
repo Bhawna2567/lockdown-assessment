@@ -1934,6 +1934,12 @@ function renderCalendar() {
 }
 
 async function handleAction(act, id) {
+  if (act === 'preview') {
+    // Open the read-only preview in a new tab. The page lives at
+    // /public/preview.html and fetches /api/assessments/:id/preview.
+    window.open(`/preview.html?id=${id}`, '_blank', 'noopener');
+    return;
+  }
   if (act === 'print') { return showExportChooser(id); }
   if (act === 'share-teacher') { return shareAssessment(id); }
 
