@@ -50,7 +50,7 @@ echo
 # Stage everything we expect to deploy. Files that don't exist are
 # silently ignored by `git add -A -- <paths>`.
 git add -A -- public/css/styles.css public/js/student.js public/js/teacher.js \
-  public/index.html public/teacher.html public/student.html \
+  public/index.html public/teacher.html public/student.html public/preview.html \
   server/server.js server/grader.js server/store.js \
   package.json server/importer.js RENDER-POPPLER-SETUP.md public/docs/ClassCurio_Teacher_Guide.docx public/docs/ClassCurio_Teacher_Guide.pdf electron/icons/icon.ico electron/icons/icon.png \
   Deploy-Now.command Stop-Wipe.command Verify-Persistence.command 2>/dev/null || true

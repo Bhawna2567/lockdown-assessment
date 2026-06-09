@@ -2408,6 +2408,60 @@ app.get('/api/assessments/:id/export.docx', requireTeacher, async (req, res) => 
 
 // ---------- Student assessment flow ----------
 // Fetch one assessment for taking — strips correct answers
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Preview-as-student — teacher-only endpoint
+// ───────────────────────────────────────────────────────────────────────────
+// Returns the same student-facing shape /take produces, but only for the
+// teacher who owns the assessment. Used by /public/preview.html to render
+// the exam exactly as a student would see it — without lockdown, without
+// webcam, without submission.
+app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const a = all.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const safe = {
+    id: a.id,
+    title: a.title,
+    description: a.description,
+    passage: a.passage || '',
+    rubricStage: a.rubricStage || null,
+    durationMinutes: a.durationMinutes,
+    teacherName: a.teacherName,
+    subject: a.subject || null,
+    assessmentLanguage: a.assessmentLanguage || null,
+    deliveryMode: a.deliveryMode || 'online',
+    hasAudio: !!(a.audioFile && a.audioFile.ext),
+    audioFile: a.audioFile ? { name: a.audioFile.name, mime: a.audioFile.mime } : null,
+    audioScript: a.audioScript || '',
+    audioVoice:  a.audioVoice  || '',
+    audioVoices: a.audioVoices || {},
+    sections: Array.isArray(a.sections) ? a.sections : [],
+    // For preview we INCLUDE the answer key so the teacher can verify it.
+    questions: (a.questions || []).map((q) => {
+      const out = {
+        id: q.id,
+        order: q.order,
+        sectionId: q.sectionId || '',
+        type: q.type,
+        prompt: q.prompt,
+        options: q.options,
+        points: q.points,
+        imageUrl: q.imageUrl || '',
+        correctAnswer: q.correctAnswer,   // ← only sent in preview
+      };
+      if (q.type === 'match') {
+        out.matchVariant = q.matchVariant || 'word-definition';
+        out.pairs        = q.pairs || [];
+      }
+      return out;
+    }),
+  };
+  res.json({ assessment: safe });
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);

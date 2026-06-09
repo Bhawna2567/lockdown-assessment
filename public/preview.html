@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview as student — ClassCurio</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+  <style>
+    body { background: #f8fafc; margin: 0; }
+    .preview-bar {
+      position: sticky; top: 0; z-index: 50;
+      background: #1a1e33; color: #fff;
+      padding: 12px 22px;
+      display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .preview-bar .badge {
+      background: #fde68a; color: #1a1e33;
+      padding: 4px 10px; border-radius: 999px;
+      font-weight: 800; font-size: 12px; letter-spacing: 0.5px;
+    }
+    .preview-bar h1 { margin: 0; font-size: 18px; flex: 1; }
+    .preview-bar .btn { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+    .preview-content { max-width: 900px; margin: 24px auto; padding: 0 24px; }
+    .preview-meta { color: #6b7280; font-size: 14px; margin-bottom: 18px; }
+    .preview-section {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+      padding: 20px 24px; margin-bottom: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .preview-section h2 { color: #4338ca; margin: 0 0 8px; font-size: 19px; }
+    .preview-section .instructions { color: #475569; font-style: italic; margin: 8px 0 14px; }
+    .preview-passage {
+      background: #fef7e6; border: 1px solid #f59e0b; border-radius: 8px;
+      padding: 14px 18px; margin: 12px 0;
+      white-space: pre-wrap; line-height: 1.6;
+    }
+    .preview-question {
+      background: #f8fafc; border-left: 4px solid #4338ca; border-radius: 6px;
+      padding: 14px 18px; margin: 12px 0;
+    }
+    .preview-question .q-prompt { font-weight: 600; color: #1a1e33; margin-bottom: 8px; }
+    .preview-question .q-meta   { color: #6b7280; font-size: 12px; margin-bottom: 8px; }
+    .preview-question .q-options li { margin: 6px 0; }
+    .preview-question textarea, .preview-question input[type="text"] {
+      width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: inherit;
+    }
+    .preview-audio {
+      background: #fde68a; border: 2px solid #c69214; border-radius: 12px;
+      padding: 12px 16px; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .match-grid {
+      display: grid; grid-template-columns: 1.2fr auto 1.8fr; gap: 8px 14px; margin-top: 10px;
+    }
+    .match-grid .item { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px; }
+    .match-grid select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+    .match-pictures { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+    .match-pictures .pic { border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px; background: #fff; text-align: center; }
+    .match-pictures img { max-height: 90px; max-width: 130px; display: block; }
+    .preview-correct { color: #16a34a; font-weight: 700; }
+    .answer-key { background: #ecfdf5; border: 1px dashed #16a34a; border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 13px; color: #065f46; }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <span class="badge">👁 PREVIEW</span>
+    <h1 id="preview-title">Loading…</h1>
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+      <input type="checkbox" id="show-answers" /> Show answer key
+    </label>
+    <button class="btn" id="edit-btn">✎ Edit this assessment</button>
+    <button class="btn" id="close-btn">← Back to dashboard</button>
+  </div>
+
+  <div class="preview-content">
+    <div class="preview-meta" id="preview-meta"></div>
+    <div id="preview-body"><div style="text-align: center; color: #6b7280; padding: 40px;">Loading preview…</div></div>
+  </div>
+
+  <script>
+    // ── Helpers ─────────────────────────────────────────────────────────────
+    const esc = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    const urlParams = new URLSearchParams(window.location.search);
+    const assessmentId = urlParams.get('id');
+    let assessmentData = null;
+
+    document.getElementById('close-btn').onclick = () => { window.location.href = '/teacher.html'; };
+    document.getElementById('edit-btn').onclick = () => {
+      if (assessmentData) window.location.href = `/teacher.html?edit=${assessmentData.id}`;
+      else window.location.href = '/teacher.html';
+    };
+    document.getElementById('show-answers').onchange = () => render(assessmentData);
+
+    // ── Load + render ──────────────────────────────────────────────────────
+    async function loadPreview() {
+      if (!assessmentId) {
+        document.getElementById('preview-body').innerHTML = '<p style="color:#dc2626;">No assessment ID in URL.</p>';
+        return;
+      }
+      try {
+        const r = await fetch(`/api/assessments/${assessmentId}/preview`, { credentials: 'include' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Could not load preview');
+        assessmentData = data.assessment;
+        render(assessmentData);
+      } catch (e) {
+        document.getElementById('preview-body').innerHTML = '<p style="color:#dc2626;">❌ ' + esc(e.message) + '</p>';
+      }
+    }
+
+    function render(a) {
+      if (!a) return;
+      document.getElementById('preview-title').textContent = a.title;
+      const showAnswers = document.getElementById('show-answers').checked;
+      document.getElementById('preview-meta').textContent =
+        `${a.questions.length} questions · ${a.durationMinutes} min · ${a.subject || 'No subject'} · ${a.assessmentLanguage || 'Any language'} · ${a.deliveryMode === 'onsite' ? '🏫 On-site' : '🌐 Online'}`;
+      const body = document.getElementById('preview-body');
+      body.innerHTML = '';
+
+      // Listening audio bar (visual representation only — no play limit).
+      if (a.hasAudio || (a.audioScript && a.audioScript.trim())) {
+        const audio = document.createElement('div');
+        audio.className = 'preview-audio';
+        audio.innerHTML = `
+          <span style="font-size: 20px;">🎧</span>
+          <strong style="color:#1a1e33;">Listening audio attached</strong>
+          <span style="color: #475569; font-size: 14px;">
+            ${a.hasAudio ? '(MP3 uploaded)' : '(AI voice script)'}
+            — students see a Play button here.
+          </span>
+        `;
+        body.appendChild(audio);
+      }
+
+      const sections = a.sections && a.sections.length ? a.sections : [{ id: '', title: '', instructions: '', passage: '' }];
+      sections.forEach((sec, i) => {
+        const sectionEl = document.createElement('div');
+        sectionEl.className = 'preview-section';
+        let html = '';
+        if (sec.title) html += `<h2>${esc(sec.title)}</h2>`;
+        if (sec.instructions) html += `<div class="instructions">${esc(sec.instructions)}</div>`;
+        if (sec.passage) html += `<div class="preview-passage">${esc(sec.passage)}</div>`;
+        const qs = a.questions.filter((q) => (q.sectionId || '') === sec.id);
+        qs.forEach((q, qi) => {
+          html += renderQuestion(q, sections.flatMap((s) => a.questions.filter((qq) => (qq.sectionId || '') === s.id)).indexOf(q) + 1, showAnswers);
+        });
+        sectionEl.innerHTML = html;
+        body.appendChild(sectionEl);
+      });
+    }
+
+    function renderQuestion(q, qNum, showAnswers) {
+      const points = q.points || 1;
+      let bodyHtml = '';
+      const correctMark = showAnswers ? '<div class="answer-key"></div>' : '';
+
+      if (q.type === 'mc') {
+        const opts = (q.options || []).map((o, i) =>
+          `<li>${showAnswers && i === q.correctAnswer ? '✅ ' : '○ '}${esc(o)}</li>`
+        ).join('');
+        bodyHtml = `<ul class="q-options">${opts}</ul>`;
+        if (showAnswers) bodyHtml += `<div class="answer-key">Correct: option ${String.fromCharCode(65 + (q.correctAnswer || 0))}</div>`;
+      } else if (q.type === 'tf') {
+        bodyHtml = `<ul class="q-options"><li>${showAnswers && q.correctAnswer === true ? '✅ ' : '○ '}True</li><li>${showAnswers && q.correctAnswer === false ? '✅ ' : '○ '}False</li></ul>`;
+      } else if (q.type === 'tfng') {
+        const ca = String(q.correctAnswer || '').toLowerCase();
+        bodyHtml = `<ul class="q-options">
+          <li>${showAnswers && ca === 'true'  ? '✅ ' : '○ '}True</li>
+          <li>${showAnswers && ca === 'false' ? '✅ ' : '○ '}False</li>
+          <li>${showAnswers && ca === 'ng'    ? '✅ ' : '○ '}Not Given</li>
+        </ul>`;
+      } else if (q.type === 'short') {
+        bodyHtml = `<input type="text" disabled placeholder="(students type a short answer here)" />`;
+        if (showAnswers && q.correctAnswer) bodyHtml += `<div class="answer-key">Expected: ${esc(q.correctAnswer)}</div>`;
+      } else if (q.type === 'long' || q.type === 'essay' || q.type === 'writing') {
+        const rows = q.type === 'writing' ? 14 : (q.type === 'long' ? 8 : 6);
+        bodyHtml = `<textarea disabled rows="${rows}" placeholder="(students write their answer here)"></textarea>`;
+        if (showAnswers && q.type === 'writing') bodyHtml += `<div class="answer-key">Auto-graded with rubric.</div>`;
+      } else if (q.type === 'match') {
+        const variant = q.matchVariant || 'word-definition';
+        const pairs = q.pairs || [];
+        let pictures = '';
+        if (variant === 'word-picture') {
+          const pics = pairs.map((p, i) => p.rightImageUrl
+            ? `<div class="pic"><img src="${esc(p.rightImageUrl)}" /><div style="font-size:12px; color:#475569; margin-top:4px;">picture ${i + 1}</div></div>`
+            : ''
+          ).filter(Boolean).join('');
+          if (pics) pictures = `<div class="match-pictures">${pics}</div>`;
+        }
+        const rows = pairs.map((p, i) =>
+          `<div class="item">${esc(p.left)}</div>
+           <div style="text-align:center; line-height:36px; color:#6b7280;">↔</div>
+           <div class="item">
+             ${showAnswers ? '✅ ' + esc(variant === 'word-picture' ? '(picture ' + (i + 1) + ') ' + (p.right || '') : (p.right || '')) : '(student selects from shuffled options)'}
+           </div>`
+        ).join('');
+        bodyHtml = pictures + `<div class="match-grid">${rows}</div>`;
+        bodyHtml += `<div class="answer-key" style="background:#eff6ff; border-color:#2563eb; color:#1e40af;">Variant: ${esc(variant)} · ${pairs.length} pair${pairs.length === 1 ? '' : 's'}. Students see the right column SHUFFLED.</div>`;
+      }
+
+      return `
+        <div class="preview-question">
+          <div class="q-meta">Question ${qNum} · ${esc(q.type)} · ${points} point${points === 1 ? '' : 's'}</div>
+          <div class="q-prompt">${esc(q.prompt)}</div>
+          ${bodyHtml}
+        </div>
+      `;
+    }
+
+    loadPreview();
+  </script>
+</body>
+</html>

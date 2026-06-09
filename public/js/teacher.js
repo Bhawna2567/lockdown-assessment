@@ -1850,6 +1850,7 @@ function renderList() {
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
           <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
+          <button class="btn" data-act="preview" data-id="${a.id}" title="See the assessment exactly as a student would">👁 Preview</button>
           <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
@@ -5155,7 +5156,16 @@ const USER_GUIDE_HTML = `
   <li>Review every question, edit anything, click Save.</li>
 </ol>
 
-<h2>7. Creating an assessment — manually</h2>
+<h2>7. Preview the assessment (NEW)</h2>
+<p>After you save (or duplicate) an assessment, click <strong>👁 Preview</strong> on the assessment card to open a read-only view in a new tab. You will see every section, passage, question, audio, and match-the-following pair exactly as a student would.</p>
+<ul>
+  <li>Toggle <strong>Show answer key</strong> at the top to verify correct answers.</li>
+  <li>No lockdown runs in preview — you can navigate freely.</li>
+  <li>Click <strong>✎ Edit this assessment</strong> in the preview's top bar to jump back into the builder if you spot something to fix.</li>
+</ul>
+<div class="tip"><strong>Tip:</strong> Always preview a new assessment once before sharing the link with students. It's the fastest way to catch typos, missing options, or pairs you forgot to fill in.</div>
+
+<h2>8. Creating an assessment — manually</h2>
 <p>Click <strong>+ New assessment</strong> → <strong>Start from scratch</strong>.</p>
 <h3>Basic settings</h3>
 <ul>
@@ -5172,7 +5182,7 @@ const USER_GUIDE_HTML = `
 </ol>
 <div class="tip"><strong>Tip:</strong> Essay (auto-graded) uses Claude with the rubric you picked — Stage 7 or 8 for IB, 3–5 / 5–9 for primary/middle.</div>
 
-<h2>8. Reading comprehension + highlighter</h2>
+<h2>9. Reading comprehension + highlighter</h2>
 <p>When a section has a reading passage, students see a vertical yellow highlighter toolbar on the left during the exam. They can:</p>
 <ul>
   <li>Select text in the passage → click <strong>Highlight</strong> to mark it yellow.</li>
@@ -5181,7 +5191,7 @@ const USER_GUIDE_HTML = `
 </ul>
 <p>Highlights persist if the student briefly loses focus or is granted re-entry.</p>
 
-<h2>9. Listening assessments (audio)</h2>
+<h2>10. Listening assessments (audio)</h2>
 <h3>Subject choices</h3>
 <ul>
   <li><strong>Listening</strong> — practice mode. Audio can be played <strong>twice</strong>.</li>
@@ -5203,7 +5213,7 @@ const USER_GUIDE_HTML = `
 </ol>
 <div class="tip"><strong>Tip:</strong> For more natural voices: on Mac download Premium voices in System Settings → Accessibility → Spoken Content. On Windows, use Edge for the Microsoft Natural voices.</div>
 
-<h2>10. Match the following</h2>
+<h2>11. Match the following</h2>
 <p>In the builder, click <strong>+ Match the following</strong>. Three variants:</p>
 <ul>
   <li><strong>Word ↔ definition</strong> (default)</li>
@@ -5212,7 +5222,7 @@ const USER_GUIDE_HTML = `
 </ul>
 <p>The student sees the right column shuffled. Score: <code>points / pairs</code> per correct match. AI Generator and Quick Import preserve match questions from uploaded papers; pictures embedded in PDFs/DOCX come through automatically (when poppler-utils is installed on the server).</p>
 
-<h2>11. Lockdown + 3-violation rule</h2>
+<h2>12. Lockdown + 3-violation rule</h2>
 <p>The exam blocks copy, paste, right-click, screenshots (where possible), tab-switching, and full-screen exits. Each event = 1 violation. On the <strong>3rd violation</strong>, the assessment auto-submits.</p>
 <ul>
   <li>Tab switch / Cmd+Tab / minimise → 1 strike</li>
@@ -5224,7 +5234,7 @@ const USER_GUIDE_HTML = `
 </ul>
 <div class="note"><strong>macOS screenshot caveat:</strong> Cmd+Shift+3/4/5 are intercepted by the OS before the browser sees them. For true screenshot prevention, students must use the ClassCurio <strong>desktop app</strong>.</div>
 
-<h2>12. Sharing with students</h2>
+<h2>13. Sharing with students</h2>
 <ol>
   <li>Make sure the assessment is <strong>Published</strong>.</li>
   <li>Click 🔗 <strong>Share with students</strong> → Copy.</li>
@@ -5234,7 +5244,7 @@ const USER_GUIDE_HTML = `
 <h3>Sharing with another teacher</h3>
 <p>Click 🤝 <strong>Share with teacher</strong> for a teacher-only preview link. The receiving teacher can preview, print, or Duplicate into their own class with one click.</p>
 
-<h2>13. Viewing results + analytics</h2>
+<h2>14. Viewing results + analytics</h2>
 <ol>
   <li>Click <strong>Results</strong> on the assessment card.</li>
   <li>The Class analytics panel shows the distribution by band (Low/Med/High, A1–C2 for language, PISA Level 1–6 for Math/Science).</li>
@@ -5248,7 +5258,7 @@ const USER_GUIDE_HTML = `
   <li>Word doc — editable .docx version.</li>
 </ul>
 
-<h2>14. Re-entry for locked-out students</h2>
+<h2>15. Re-entry for locked-out students</h2>
 <p>If a student violates the 3-strike rule or loses connection, you can grant a one-time re-entry.</p>
 <ol>
   <li>Open Results for that assessment.</li>
@@ -5257,10 +5267,10 @@ const USER_GUIDE_HTML = `
   <li>Tell the student to sign in again and reopen the assessment. They'll resume from where they left off, with previous answers pre-filled.</li>
 </ol>
 
-<h2>15. Settings + AI key</h2>
+<h2>16. Settings + AI key</h2>
 <p>The AI features (generate, grade, identity check, vision) all need an Anthropic API key. Add yours in <strong>Settings → API key</strong>. Stored on the server only, never shared with students.</p>
 
-<h2>16. Tips for first-time deployment</h2>
+<h2>17. Tips for first-time deployment</h2>
 <ul>
   <li>Pilot one assessment with a small group before rolling out school-wide.</li>
   <li>For listening exams, the desktop app gives the cleanest lockdown.</li>
