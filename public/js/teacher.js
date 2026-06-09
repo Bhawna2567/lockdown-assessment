@@ -5290,3 +5290,28 @@ const USER_GUIDE_HTML = `
 </div>
 `;
 
+// CC: dashboard-only watchdog. If no editor surface is set to display:block,
+// force cc-list-only so the builder/results/etc. can't leak through.
+(function dashboardWatchdog() {
+  function isAnyEditorVisible() {
+    return ['builder-view','results-view','template-picker','essay-queue-view',
+            'report-card-view','students-view','progress-view']
+      .some((id) => {
+        const el = document.getElementById(id);
+        if (!el) return false;
+        const inline = el.style && el.style.display;
+        const computed = window.getComputedStyle(el).display;
+        return (inline === 'block' || (inline !== 'none' && computed !== 'none'));
+      });
+  }
+  function check() {
+    if (!isAnyEditorVisible()) {
+      document.body.classList.add('cc-list-only');
+    }
+  }
+  // Run on load + periodically + on visibilitychange.
+  setTimeout(check, 50);
+  setInterval(check, 500);
+  document.addEventListener('visibilitychange', check);
+})();
+
