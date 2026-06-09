@@ -2706,3 +2706,93 @@ function removeAudioBar() {
   if (el && el.parentNode) el.parentNode.removeChild(el);
 }
 
+// ── Match-the-following: in-exam renderer + answer collector ──────────────
+function ccBuildMatchUI(q, host) {
+  // q.lefts, q.rights, q.rightShuffle come from /take. q.rightShuffle maps
+  // shuffled-position → original-position.
+  const lefts  = Array.isArray(q.lefts)  ? q.lefts  : [];
+  const rights = Array.isArray(q.rights) ? q.rights : [];
+  const variant = q.matchVariant || 'word-definition';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display: grid; grid-template-columns: 1.2fr auto 1.8fr; gap: 8px 14px; margin-top: 10px;';
+  // Header row
+  wrap.innerHTML = '<div style="font-weight:700; color:#1a1e33;">Item</div><div></div><div style="font-weight:700; color:#1a1e33;">Match with</div>';
+  // Body rows: one dropdown per left item.
+  lefts.forEach((leftText, i) => {
+    const left = document.createElement('div');
+    left.textContent = leftText;
+    left.style.cssText = 'padding: 8px; background:#fff; border:1px solid #cbd5e1; border-radius:6px;';
+    const arrow = document.createElement('div');
+    arrow.textContent = '↔';
+    arrow.style.cssText = 'text-align:center; line-height:36px; color:#6b7280;';
+    const sel = document.createElement('select');
+    sel.setAttribute('data-match-pick', i);
+    sel.style.cssText = 'padding: 8px; border:1px solid #cbd5e1; border-radius:6px;';
+    sel.innerHTML = '<option value="">— choose —</option>' +
+      rights.map((r, j) => {
+        const txt = (variant === 'word-picture')
+          ? `(picture ${j + 1})${r.text ? ' — ' + r.text : ''}`
+          : (r.text || '(blank)');
+        return `<option value="${j}">${txt}</option>`;
+      }).join('');
+    sel.onchange = () => { ccCollectMatchAnswer(q); saveAnswersBackup(); };
+    const row = document.createElement('div');
+    row.style.cssText = 'display: contents;';
+    wrap.appendChild(left);
+    wrap.appendChild(arrow);
+    wrap.appendChild(sel);
+  });
+  // If word-picture: also show a thumbnail row above the dropdown selector.
+  if (variant === 'word-picture') {
+    const thumbs = document.createElement('div');
+    thumbs.style.cssText = 'grid-column: 1 / span 3; display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0;';
+    rights.forEach((r, j) => {
+      if (!r.imageUrl) return;
+      const cell = document.createElement('div');
+      cell.style.cssText = 'border:1px solid #cbd5e1; border-radius:6px; padding:6px; text-align:center; background:#fff;';
+      cell.innerHTML = `<img src="${r.imageUrl}" style="max-height:80px; max-width:120px; display:block;" /><div style="font-size:12px; color:#475569; margin-top:4px;">picture ${j + 1}</div>`;
+      thumbs.appendChild(cell);
+    });
+    wrap.insertBefore(thumbs, wrap.children[3]); // after header row
+  }
+  host.appendChild(wrap);
+}
+
+function ccCollectMatchAnswer(q) {
+  const picks = [];
+  const selects = document.querySelectorAll(`[data-q-id="${q.id}"] [data-match-pick]`);
+  selects.forEach((s) => {
+    const i = Number(s.getAttribute('data-match-pick'));
+    picks[i] = s.value === '' ? -1 : Number(s.value);
+  });
+  // Save as { picks, rightShuffle } so the server can grade either form.
+  answers[q.id] = { picks, rightShuffle: q.rightShuffle || null };
+}
+
+// After the existing renderQuestions runs, find every match-question wrapper
+// and inject the matching UI.
+(function attachStudentMatchRenderer() {
+  const orig = typeof renderQuestions === 'function' ? renderQuestions : null;
+  if (!orig) return;
+  window.renderQuestions = function () {
+    orig.apply(this, arguments);
+    if (!currentAssessment || !Array.isArray(currentAssessment.questions)) return;
+    currentAssessment.questions.forEach((q) => {
+      if (q.type !== 'match') return;
+      const card = document.querySelector(`[data-q-id="${q.id}"] [data-q-body], [data-q-id="${q.id}"]`);
+      if (!card) return;
+      // Avoid double-attach.
+      if (card.querySelector('[data-match-pick]')) return;
+      ccBuildMatchUI(q, card);
+      // Restore previous answer on re-entry.
+      const prev = answers[q.id];
+      if (prev && prev.picks) {
+        prev.picks.forEach((p, i) => {
+          const sel = card.querySelector(`[data-match-pick="${i}"]`);
+          if (sel && p >= 0) sel.value = String(p);
+        });
+      }
+    });
+  };
+})();
+

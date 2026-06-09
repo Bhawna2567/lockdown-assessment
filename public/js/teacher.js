@@ -2334,6 +2334,17 @@ function openBuilder(a, presets) {
 document.querySelectorAll('button[data-add]').forEach((b) => {
   b.onclick = () => {
     const type = b.dataset.add;
+    // Seed match defaults.
+    let matchSeed = null;
+    if (type === 'match') {
+      matchSeed = {
+        matchVariant: 'word-definition',
+        pairs: [{ left: '', right: '', rightImageUrl: '' },
+                { left: '', right: '', rightImageUrl: '' },
+                { left: '', right: '', rightImageUrl: '' },
+                { left: '', right: '', rightImageUrl: '' }],
+      };
+    }
     // Ensure at least one section exists.
     if (!sections.length) {
       sections.push({ id: uid(), title: '', instructions: '', passage: '', order: 0 });
@@ -4842,5 +4853,114 @@ function parseScriptIntoTurns(script) {
       }
     }
   } catch {}
+})();
+
+// ── Match-the-following editor ─────────────────────────────────────────────
+function renderMatchEditor(q) {
+  const variant = q.matchVariant || 'word-definition';
+  const pairs   = Array.isArray(q.pairs) ? q.pairs : [];
+  const showImg = variant === 'word-picture';
+  const rows = pairs.map((p, i) => `
+    <div class="row" style="gap:6px; align-items:flex-start; margin-bottom:6px;">
+      <input type="text" data-mp-i="${i}" data-mp-f="left" placeholder="Left item (e.g. word)" value="${(p.left || '').replace(/"/g, '&quot;')}" style="flex:1; padding:6px; border:1px solid #cbd5e1; border-radius:6px;" />
+      <span style="line-height:32px; color:#6b7280;">↔</span>
+      <input type="text" data-mp-i="${i}" data-mp-f="right" placeholder="${showImg ? 'Optional caption' : 'Right item (definition / matching word)'}" value="${(p.right || '').replace(/"/g, '&quot;')}" style="flex:2; padding:6px; border:1px solid #cbd5e1; border-radius:6px;" />
+      ${showImg ? `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+          <label class="btn" style="padding:4px 8px; font-size:12px;">📷 Image
+            <input type="file" data-mp-i="${i}" data-mp-img="1" accept="image/*" style="display:none;" />
+          </label>
+          ${p.rightImageUrl ? `<img src="${p.rightImageUrl}" style="height:38px; border-radius:4px; border:1px solid #cbd5e1;" />` : ''}
+        </div>
+      ` : ''}
+      <button type="button" class="btn danger" data-mp-i="${i}" data-mp-del="1" style="padding:4px 8px;">✕</button>
+    </div>
+  `).join('');
+  return `
+    <div class="muted" style="font-size:13px; margin-bottom:6px;">Pairs (left ↔ correct right). The student sees the right column SHUFFLED.</div>
+    <div class="row" style="gap:8px; margin-bottom:8px;">
+      <label style="font-size:13px; font-weight:600;">Type:</label>
+      <select data-mv style="padding:6px; border:1px solid #cbd5e1; border-radius:6px;">
+        <option value="word-definition" ${variant === 'word-definition' ? 'selected' : ''}>Word ↔ definition</option>
+        <option value="word-word"        ${variant === 'word-word'        ? 'selected' : ''}>Word ↔ word</option>
+        <option value="word-picture"     ${variant === 'word-picture'     ? 'selected' : ''}>Word ↔ picture</option>
+      </select>
+    </div>
+    <div data-mp-rows>${rows}</div>
+    <button type="button" class="btn" data-mp-add="1" style="margin-top:6px;">+ Add pair</button>
+  `;
+}
+
+// Wire interactions inside a freshly-rendered match editor.
+function wireMatchEditor(qWrap, q) {
+  if (!qWrap) return;
+  const refresh = () => {
+    const host = qWrap.querySelector('[data-match-host]');
+    if (host) host.innerHTML = renderMatchEditor(q);
+    wireMatchEditor(qWrap, q);
+  };
+  const variantSel = qWrap.querySelector('[data-mv]');
+  if (variantSel) variantSel.onchange = () => { q.matchVariant = variantSel.value; refresh(); };
+  qWrap.querySelectorAll('[data-mp-f]').forEach((inp) => {
+    inp.oninput = () => {
+      const i = Number(inp.getAttribute('data-mp-i'));
+      const f = inp.getAttribute('data-mp-f');
+      if (!q.pairs[i]) q.pairs[i] = { left: '', right: '', rightImageUrl: '' };
+      q.pairs[i][f] = inp.value;
+    };
+  });
+  qWrap.querySelectorAll('[data-mp-img]').forEach((inp) => {
+    inp.onchange = async () => {
+      const i = Number(inp.getAttribute('data-mp-i'));
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      try {
+        const url = await compressImageToDataUrl(f, 600);
+        if (!q.pairs[i]) q.pairs[i] = { left: '', right: '', rightImageUrl: '' };
+        q.pairs[i].rightImageUrl = url;
+        refresh();
+      } catch (e) { alert('Image upload failed: ' + e.message); }
+    };
+  });
+  qWrap.querySelectorAll('[data-mp-del]').forEach((btn) => {
+    btn.onclick = () => {
+      const i = Number(btn.getAttribute('data-mp-i'));
+      q.pairs.splice(i, 1);
+      refresh();
+    };
+  });
+  const addBtn = qWrap.querySelector('[data-mp-add]');
+  if (addBtn) addBtn.onclick = () => {
+    if (!Array.isArray(q.pairs)) q.pairs = [];
+    q.pairs.push({ left: '', right: '', rightImageUrl: '' });
+    refresh();
+  };
+}
+
+// Post-render hook: replace any match-question body with the rich editor.
+(function attachMatchPostRender() {
+  const origRender = typeof renderQuestions === 'function' ? renderQuestions : null;
+  if (!origRender) return;
+  window.renderQuestions = function () {
+    origRender.apply(this, arguments);
+    document.querySelectorAll('[data-q-id]').forEach((row) => {
+      const id = row.getAttribute('data-q-id');
+      const q = questions.find((x) => x.id === id);
+      if (!q || q.type !== 'match') return;
+      if (!Array.isArray(q.pairs)) q.pairs = [{ left: '', right: '', rightImageUrl: '' }];
+      // Replace the body of the row with the match editor.
+      let host = row.querySelector('[data-match-host]');
+      if (!host) {
+        // Build a host div at the end of the row.
+        const wrap = document.createElement('div');
+        wrap.setAttribute('data-match-host', '1');
+        wrap.style.cssText = 'margin-top: 8px; padding: 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;';
+        row.appendChild(wrap);
+        host = wrap;
+      }
+      host.innerHTML = renderMatchEditor(q);
+      wireMatchEditor(row, q);
+    });
+  };
 })();
 

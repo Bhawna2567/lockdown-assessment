@@ -844,9 +844,26 @@ function normalizeSections(incoming) {
 
 // Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
 // 'long' = long-answer text (manually graded). Anything else is rejected.
-const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
 function normalizeQuestionType(t) {
   return QUESTION_TYPES.has(t) ? t : 'short';
+}
+
+
+// Match-the-following normaliser.
+function normalizeMatchVariant(v) {
+  const s = String(v || '').toLowerCase();
+  if (s === 'word-word' || s === 'word-picture') return s;
+  return 'word-definition';
+}
+function normalizeMatchPairs(pairs) {
+  if (!Array.isArray(pairs)) return [];
+  return pairs.slice(0, 30).map((p) => ({
+    left:           String((p && p.left)  || '').slice(0, 500),
+    right:          String((p && p.right) || '').slice(0, 800),
+    rightImageUrl: (p && typeof p.rightImageUrl === 'string' && p.rightImageUrl.length < 1500000)
+      ? p.rightImageUrl : '',
+  })).filter((p) => p.left.trim() || p.right.trim() || p.rightImageUrl);
 }
 
 // Normalize a tfng correctAnswer into one of 'true' | 'false' | 'ng'.
@@ -923,6 +940,10 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
       else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
       else if (type === 'tfng') out.correctAnswer = normalizeTfngAnswer(q.correctAnswer);
       else if (type === 'short') out.correctAnswer = q.correctAnswer ?? null;
+      else if (type === 'match') {
+        out.matchVariant = normalizeMatchVariant(q.matchVariant);
+        out.pairs        = normalizeMatchPairs(q.pairs);
+      }
       return out;
     }),
     createdAt: new Date().toISOString(),
@@ -1053,6 +1074,10 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
           else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
           else if (type === 'tfng') out.correctAnswer = normalizeTfngAnswer(q.correctAnswer);
           else if (type === 'short') out.correctAnswer = q.correctAnswer ?? null;
+          else if (type === 'match') {
+            out.matchVariant = normalizeMatchVariant(q.matchVariant);
+            out.pairs        = normalizeMatchPairs(q.pairs);
+          }
           return out;
         })
       : all[idx].questions,
@@ -2204,6 +2229,38 @@ app.get('/api/assessments/:id/export.docx', requireTeacher, async (req, res) => 
         blocks.push(...writingLines(6));
       } else if (q.type === 'writing') {
         blocks.push(...writingLines(14));
+      } else if (q.type === 'match' && Array.isArray(q.pairs)) {
+        const variant = q.matchVariant || 'word-definition';
+        blocks.push(new Paragraph({
+          spacing: { before: 60, after: 60 },
+          children: [new TextRun({ text: 'Match each item on the LEFT with the correct item on the RIGHT.', italics: true, font: 'Calibri', size: 20, color: MUTED })],
+        }));
+        for (let i = 0; i < q.pairs.length; i++) {
+          const p = q.pairs[i];
+          blocks.push(new Paragraph({
+            spacing: { before: 30, after: 30 },
+            children: [
+              new TextRun({ text: '  ' + String.fromCharCode(65 + i) + '. ', bold: true, font: 'Calibri', size: 22, color: INK }),
+              new TextRun({ text: (p && p.left) || '', font: 'Calibri', size: 22, color: INK }),
+              new TextRun({ text: '   →   ____', font: 'Calibri', size: 22, color: MUTED }),
+            ],
+          }));
+        }
+        blocks.push(new Paragraph({
+          spacing: { before: 80, after: 60 },
+          children: [new TextRun({ text: 'Options:', bold: true, font: 'Calibri', size: 22, color: NAVY })],
+        }));
+        const shuffled = [...q.pairs].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < shuffled.length; i++) {
+          const p = shuffled[i];
+          blocks.push(new Paragraph({
+            spacing: { before: 20, after: 20 },
+            children: [
+              new TextRun({ text: '  ' + (i + 1) + '. ', bold: true, font: 'Calibri', size: 22, color: INK }),
+              new TextRun({ text: (p && p.right) || (variant === 'word-picture' ? '[picture]' : ''), font: 'Calibri', size: 22, color: INK }),
+            ],
+          }));
+        }
       }
       return blocks;
     };
@@ -2330,16 +2387,35 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     previousAnswers: previousAnswersMap,
     remainingMs: (already && Number.isFinite(already.remainingMs)) ? already.remainingMs : null,
     sections: Array.isArray(a.sections) ? a.sections : [],
-    questions: a.questions.map((q) => ({
-      id: q.id,
-      order: q.order,
-      sectionId: q.sectionId || '',
-      type: q.type,
-      prompt: q.prompt,
-      options: q.options,
-      points: q.points,
-      imageUrl: q.imageUrl || '',
-    })),
+    questions: a.questions.map((q) => {
+      const out = {
+        id: q.id,
+        order: q.order,
+        sectionId: q.sectionId || '',
+        type: q.type,
+        prompt: q.prompt,
+        options: q.options,
+        points: q.points,
+        imageUrl: q.imageUrl || '',
+      };
+      if (q.type === 'match' && Array.isArray(q.pairs)) {
+        // Shuffle the right column so the order isn't the answer key.
+        const n = q.pairs.length;
+        const idx = Array.from({ length: n }, (_, i) => i);
+        for (let i = n - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [idx[i], idx[j]] = [idx[j], idx[i]];
+        }
+        out.matchVariant = q.matchVariant || 'word-definition';
+        out.lefts        = q.pairs.map((p) => p.left || '');
+        out.rights       = idx.map((origI) => ({
+          text: q.pairs[origI].right || '',
+          imageUrl: q.pairs[origI].rightImageUrl || '',
+        }));
+        out.rightShuffle = idx;
+      }
+      return out;
+    }),
   };
   res.json({ assessment: safe });
 });
@@ -2387,6 +2463,38 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
         typeof given === 'string' &&
         given.trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
       if (correct) autoScore += q.points;
+    } else if (q.type === 'match' && Array.isArray(q.pairs) && q.pairs.length) {
+      // Match scoring: the student sends { shuffleIndexMap, picks } where
+      // picks[i] = the SHUFFLED right-column position the student matched
+      // to left[i]. To remap back to the original right-side index, we use
+      // the same shuffle the server generated. But /take used a random
+      // shuffle, so we accept either:
+      //   - picks: [origIdx_for_left0, origIdx_for_left1, ...]  (canonical)
+      //   - { picks: [...], rightShuffle: [...] }                (legacy)
+      // Whichever form arrives, we resolve to the ORIGINAL right index per
+      // left, then check left[i] vs pairs[i] (which is the correct mapping
+      // because pairs[i].right matches pairs[i].left).
+      let picksOrigIdx = [];
+      if (given && typeof given === 'object' && Array.isArray(given.picks)) {
+        const shuffle = Array.isArray(given.rightShuffle) ? given.rightShuffle : null;
+        picksOrigIdx = given.picks.map((p) => {
+          const n = Number(p);
+          if (!Number.isFinite(n) || n < 0) return -1;
+          if (!shuffle) return n;
+          return Number(shuffle[n] ?? -1);
+        });
+      } else if (Array.isArray(given)) {
+        picksOrigIdx = given.map((n) => Number(n));
+      }
+      const n = q.pairs.length;
+      let correctCount = 0;
+      for (let i = 0; i < n; i++) {
+        if (picksOrigIdx[i] === i) correctCount++;
+      }
+      autoMax += q.points;
+      const earned = (correctCount / n) * q.points;
+      autoScore += earned;
+      correct = correctCount === n;
     }
     // 'long' and 'essay' types are always manual; 'writing' is rubric-based.
     return {
@@ -3693,7 +3801,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     }
 
     // Validate + normalize each question to match exactly what the builder expects.
-    const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+    const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
     const questions = (Array.isArray(parsed.questions) ? parsed.questions : []).map((q) => {
       const type = validTypes.has(q.type) ? q.type : 'short';
       // Map AI's sectionIndex (0-based) → our generated sectionId.
@@ -3792,6 +3900,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '  { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1, "sectionIndex": 0 }',
         '  { "type": "long",  "prompt": "...", "points": 5, "sectionIndex": 0 }',
         '  { "type": "essay", "prompt": "...", "points": 5, "sectionIndex": 0 }',
+        '  { "type": "match", "prompt": "Match the words on the left with their definitions on the right.", "matchVariant": "word-definition|word-word|word-picture", "pairs": [ { "left": "...", "right": "...", "rightImageUrl": "" } ], "points": <pair-count>, "sectionIndex": 0 }',
         '',
         'HARD RULES:',
         '1. Reproduce the paper EXACTLY. Do not invent, paraphrase, or shorten anything.',
@@ -3802,6 +3911,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '6. For "mc" questions, correctAnswer is the 0-based INDEX of the correct option (or 0 if not given).',
         '7. Do NOT prepend "1.", "Q1.", etc. to the prompt — the front-end numbers questions automatically.',
         '8. If the paper has no sections at all, create ONE section with empty title, sensible default instructions, and (only if the paper has a single reading passage) put it in that section\'s passage field.',
+        '9. When the paper has "Match the following", "Match column A with column B", "Match the word to its meaning", or "Draw lines to connect", emit type "match" with the original pairs in the same order they appear. Use matchVariant "word-definition" for word/definition, "word-word" for word/word, or "word-picture" if the paper shows pictures (leave rightImageUrl as empty string — the teacher will upload pictures in the builder). NEVER convert match questions into multiple-choice.',
         '',
         'EXAM PAPER TEXT:',
         '"""',
@@ -3839,7 +3949,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
             order: i,
           }));
 
-          const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing']);
+          const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
           const questions = parsed.questions.map((q) => {
             const type = validTypes.has(q.type) ? q.type : 'short';
             const sidx = Number.isFinite(q.sectionIndex) && q.sectionIndex >= 0 && q.sectionIndex < sections.length
@@ -3864,9 +3974,18 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               out.correctAnswer = ['true', 'false', 'ng'].includes(v) ? v : 'true';
             } else if (type === 'short') {
               out.correctAnswer = q.correctAnswer ? String(q.correctAnswer) : '';
+            } else if (type === 'match') {
+              out.matchVariant = (q.matchVariant === 'word-word' || q.matchVariant === 'word-picture')
+                ? q.matchVariant : 'word-definition';
+              out.pairs = Array.isArray(q.pairs) ? q.pairs.slice(0, 30).map((p) => ({
+                left:  String((p && p.left)  || ''),
+                right: String((p && p.right) || ''),
+                rightImageUrl: typeof (p && p.rightImageUrl) === 'string' ? p.rightImageUrl : '',
+              })) : [];
+              if (!out.points || out.points < out.pairs.length) out.points = Math.max(1, out.pairs.length);
             }
             return out;
-          }).filter((q) => q.prompt.trim());
+          }).filter((q) => q.prompt.trim() || (q.type === 'match' && q.pairs && q.pairs.length));
 
           if (questions.length) {
             try { fs.unlinkSync(req.file.path); } catch {}
