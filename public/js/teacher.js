@@ -5030,3 +5030,232 @@ function wireMatchEditor(qWrap, q) {
   };
 })();
 
+// ── 📖 User Guide modal ────────────────────────────────────────────────────
+(function setupUserGuideButton() {
+  const btn = document.getElementById('open-user-guide');
+  if (!btn) return;
+  btn.onclick = openUserGuide;
+})();
+
+function openUserGuide() {
+  // Avoid double-open.
+  if (document.getElementById('cc-user-guide-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-user-guide-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483645; display:flex; align-items:center; justify-content:center; padding: 24px;';
+  overlay.innerHTML = `
+    <div style="background:#fff; border-radius:14px; padding:0; max-width: 900px; width:100%; max-height: 90vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,0.30);">
+      <div style="padding: 18px 22px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #4338ca, #6d28d9); color:#fff; border-radius: 14px 14px 0 0;">
+        <div class="row" style="align-items:center;">
+          <h2 style="margin:0; flex:1;">📖 ClassCurio User Guide</h2>
+          <a href="/docs/ClassCurio_Teacher_Guide.docx" download class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4); margin-right: 6px;">📥 Word</a>
+          <a href="/docs/ClassCurio_Teacher_Guide.pdf"  download class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4); margin-right: 6px;">📥 PDF</a>
+          <button id="cc-ug-close" class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4);">Close</button>
+        </div>
+      </div>
+      <div id="cc-ug-body" style="overflow-y:auto; padding: 20px 28px; line-height:1.55; color:#1a1e33;"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.getElementById('cc-ug-body').innerHTML = USER_GUIDE_HTML;
+  const close = () => { overlay.remove(); };
+  document.getElementById('cc-ug-close').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+}
+
+// Inline guide content — mirrors the DOCX/PDF available for download.
+const USER_GUIDE_HTML = `
+<style>
+  #cc-ug-body h2 { color:#1a1e33; margin: 22px 0 8px; font-size: 20px; }
+  #cc-ug-body h3 { color:#4338ca; margin: 16px 0 6px; font-size: 16px; }
+  #cc-ug-body p  { margin: 8px 0; }
+  #cc-ug-body ol, #cc-ug-body ul { margin: 6px 0 12px 22px; }
+  #cc-ug-body li { margin: 4px 0; }
+  #cc-ug-body code { background:#f1f5f9; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  #cc-ug-body .tip { background:#fef7e6; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  #cc-ug-body .note { background:#eff6ff; border-left: 4px solid #2563eb; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+</style>
+
+<h2>1. Signing in</h2>
+<p><strong>First time:</strong> click the Register tab on the sign-in page, enter your name, email, password, choose Teacher, click Register.</p>
+<p><strong>Returning:</strong> click Sign in tab, enter email + password, click Sign in.</p>
+<p><strong>Forgot password:</strong> click the "Forgot password?" link on the sign-in page, enter your email and new password — it's applied immediately.</p>
+
+<h2>2. Dashboard tour</h2>
+<ul>
+  <li><strong>Class dropdown</strong> (top) — switch between the classes you teach.</li>
+  <li><strong>Assessment cards</strong> — each one has Share with students, Results, PDF, Share with teacher, Edit, Duplicate, Delete.</li>
+  <li><strong>Filters</strong> — narrow by term, grade, or academic year.</li>
+  <li><strong>Views</strong> — toggle between List and Calendar.</li>
+  <li><strong>Buttons in the topbar</strong> — UI language, your name + email, Sign out. Admins also see 👥 Export users, 🏫 Export students by class, 💾 Disk usage.</li>
+</ul>
+
+<h2>3. Managing classes</h2>
+<p>Click <strong>⚙ Manage classes</strong> in the topbar.</p>
+<ol>
+  <li>Type the class name in the "New class" field (e.g. "Grade 11 English — Section A").</li>
+  <li>Click Add. The new class appears in the dropdown immediately.</li>
+  <li>To delete: click the trash icon next to a class. This also removes its student roster and assessments — be careful.</li>
+</ol>
+
+<h2>4. Adding students to a class</h2>
+<p>Four ways:</p>
+<h3>Upload a CSV / PDF / Word list</h3>
+<ol>
+  <li>⚙ Manage classes → click the class.</li>
+  <li>Click 📋 Upload roster.</li>
+  <li>Choose your file (one student per line: name, email).</li>
+  <li>Click Upload → review → Confirm.</li>
+</ol>
+<h3>Add a single student manually</h3>
+<ol>
+  <li>⚙ Manage classes → ➕ Add student → type name + email → Save.</li>
+  <li>A temporary password appears — share it with the student.</li>
+</ol>
+<h3>Pre-register a whole class with temp passwords</h3>
+<ol>
+  <li>⚙ Manage classes → 🔐 Pre-register students → upload CSV.</li>
+  <li>Click <strong>💾 Download credentials CSV immediately</strong> — this is your only chance.</li>
+  <li>On first sign-in, each student is forced to change their password.</li>
+</ol>
+<h3>Auto-sync from results</h3>
+<p>If students self-registered and took an assessment but aren't on the roster, click <strong>🔄 Sync from results</strong>. ClassCurio scans every result for that class and adds missing students.</p>
+
+<h2>5. Editing or moving students</h2>
+<ul>
+  <li><strong>Edit name/email:</strong> Manage classes → click the student → Edit → Save.</li>
+  <li><strong>Move/copy to another class:</strong> Tick the checkbox(es) → click Move to… or Copy to… → pick destination.</li>
+  <li><strong>Bulk delete:</strong> Tick the students → Delete selected → confirm.</li>
+</ul>
+
+<h2>6. Creating an assessment — with AI (fastest)</h2>
+<ol>
+  <li>Click <strong>+ New assessment</strong>.</li>
+  <li>Click <strong>✨ Generate with AI</strong>.</li>
+  <li>Choose Subject (English, Math, Listening, IELTS, TOEFL, PISA, …) and Language.</li>
+  <li>Pick how many questions.</li>
+  <li>Describe what you want — e.g. <em>"30 minutes, 10 questions on photosynthesis for Grade 9 biology, include 2 short-answer."</em></li>
+  <li>Optional: drag in a scheme of work, past paper, or screenshot.</li>
+  <li>Click Generate. The builder opens with everything pre-filled.</li>
+  <li>Review every question, edit anything, click Save.</li>
+</ol>
+
+<h2>7. Creating an assessment — manually</h2>
+<p>Click <strong>+ New assessment</strong> → <strong>Start from scratch</strong>.</p>
+<h3>Basic settings</h3>
+<ul>
+  <li>Title, Class, Subject, Language, Grade level, Academic year, Term, Date, Duration.</li>
+  <li><strong>Delivery mode</strong> — Online (webcam mandatory) or On-site (you supervise; no webcam).</li>
+  <li><strong>Published / Draft</strong> — only Published assessments are visible to students.</li>
+</ul>
+<h3>Sections + questions</h3>
+<ol>
+  <li>Click <strong>+ Section</strong>. Give it a title + instructions.</li>
+  <li>If the section has a reading passage, paste it into the Reading passage box.</li>
+  <li>Add questions: + Multiple choice, + True/False, + True/False/Not Given, + Short answer, + Long answer, + Essay (manual or auto), + Match the following.</li>
+  <li>Click Save when done.</li>
+</ol>
+<div class="tip"><strong>Tip:</strong> Essay (auto-graded) uses Claude with the rubric you picked — Stage 7 or 8 for IB, 3–5 / 5–9 for primary/middle.</div>
+
+<h2>8. Reading comprehension + highlighter</h2>
+<p>When a section has a reading passage, students see a vertical yellow highlighter toolbar on the left during the exam. They can:</p>
+<ul>
+  <li>Select text in the passage → click <strong>Highlight</strong> to mark it yellow.</li>
+  <li>Click <strong>Erase</strong> then a highlighted span to remove that one.</li>
+  <li>Click <strong>Clear all</strong> to remove every highlight.</li>
+</ul>
+<p>Highlights persist if the student briefly loses focus or is granted re-entry.</p>
+
+<h2>9. Listening assessments (audio)</h2>
+<h3>Subject choices</h3>
+<ul>
+  <li><strong>Listening</strong> — practice mode. Audio can be played <strong>twice</strong>.</li>
+  <li><strong>IELTS / TOEFL / PISA</strong> — official exam mode. Audio plays <strong>once only</strong>, no replays.</li>
+</ul>
+<h3>Option A — Upload your own MP3</h3>
+<ol>
+  <li>Save the assessment first.</li>
+  <li>Scroll to the 🎧 Listening audio panel.</li>
+  <li>Choose File → Upload audio. Max 50 MB. Formats: MP3, M4A, WAV, OGG, AAC.</li>
+</ol>
+<h3>Option B — Free AI voice (no file needed)</h3>
+<ol>
+  <li>In the 🎧 Listening audio panel, click <strong>✨ Generate script with AI</strong>. ~10s later the textarea fills with a transcript that matches your questions.</li>
+  <li>The 🎭 Speakers panel auto-detects every speaker label (Speaker 1, Sarah, Dr. Khan, …) and assigns distinct voices.</li>
+  <li>Pick a voice per speaker (more humanistic voices are listed first) + a default narration voice.</li>
+  <li>Click <strong>🔊 Test play</strong> to preview.</li>
+  <li>Click <strong>Use AI voice</strong> (or Save) to persist everything.</li>
+</ol>
+<div class="tip"><strong>Tip:</strong> For more natural voices: on Mac download Premium voices in System Settings → Accessibility → Spoken Content. On Windows, use Edge for the Microsoft Natural voices.</div>
+
+<h2>10. Match the following</h2>
+<p>In the builder, click <strong>+ Match the following</strong>. Three variants:</p>
+<ul>
+  <li><strong>Word ↔ definition</strong> (default)</li>
+  <li><strong>Word ↔ word</strong></li>
+  <li><strong>Word ↔ picture</strong> — each right item has a 📷 Image uploader</li>
+</ul>
+<p>The student sees the right column shuffled. Score: <code>points / pairs</code> per correct match. AI Generator and Quick Import preserve match questions from uploaded papers; pictures embedded in PDFs/DOCX come through automatically (when poppler-utils is installed on the server).</p>
+
+<h2>11. Lockdown + 3-violation rule</h2>
+<p>The exam blocks copy, paste, right-click, screenshots (where possible), tab-switching, and full-screen exits. Each event = 1 violation. On the <strong>3rd violation</strong>, the assessment auto-submits.</p>
+<ul>
+  <li>Tab switch / Cmd+Tab / minimise → 1 strike</li>
+  <li>Window loses focus → 1 strike</li>
+  <li>Exit full-screen → 1 strike</li>
+  <li>Screenshot keypress → 1 strike</li>
+  <li>Webcam off / covered / muted → 1 strike (online mode)</li>
+  <li>Different face / no face visible → 1 strike (online mode)</li>
+</ul>
+<div class="note"><strong>macOS screenshot caveat:</strong> Cmd+Shift+3/4/5 are intercepted by the OS before the browser sees them. For true screenshot prevention, students must use the ClassCurio <strong>desktop app</strong>.</div>
+
+<h2>12. Sharing with students</h2>
+<ol>
+  <li>Make sure the assessment is <strong>Published</strong>.</li>
+  <li>Click 🔗 <strong>Share with students</strong> → Copy.</li>
+  <li>Paste the link into your classroom chat (WhatsApp, Email, Teams, …).</li>
+  <li>Students click → sign in → start.</li>
+</ol>
+<h3>Sharing with another teacher</h3>
+<p>Click 🤝 <strong>Share with teacher</strong> for a teacher-only preview link. The receiving teacher can preview, print, or Duplicate into their own class with one click.</p>
+
+<h2>13. Viewing results + analytics</h2>
+<ol>
+  <li>Click <strong>Results</strong> on the assessment card.</li>
+  <li>The Class analytics panel shows the distribution by band (Low/Med/High, A1–C2 for language, PISA Level 1–6 for Math/Science).</li>
+  <li>Each student row has a Report card button — opens detail with every question, the student's answer, the correct answer, and Claude's essay feedback.</li>
+  <li>Disagree with an auto grade? Click <strong>Override grade</strong> and enter your own.</li>
+</ol>
+<h3>Exporting</h3>
+<ul>
+  <li>📊 Excel scoresheet — all results as a spreadsheet.</li>
+  <li>📄 PDF — blank assessment as printable PDF.</li>
+  <li>Word doc — editable .docx version.</li>
+</ul>
+
+<h2>14. Re-entry for locked-out students</h2>
+<p>If a student violates the 3-strike rule or loses connection, you can grant a one-time re-entry.</p>
+<ol>
+  <li>Open Results for that assessment.</li>
+  <li>Find the student → click <strong>Grant re-entry</strong>.</li>
+  <li>If the student isn't in the list (because they were logged out before submitting anything), use the <strong>Grant re-entry by email</strong> panel at the bottom — enter their email → Grant.</li>
+  <li>Tell the student to sign in again and reopen the assessment. They'll resume from where they left off, with previous answers pre-filled.</li>
+</ol>
+
+<h2>15. Settings + AI key</h2>
+<p>The AI features (generate, grade, identity check, vision) all need an Anthropic API key. Add yours in <strong>Settings → API key</strong>. Stored on the server only, never shared with students.</p>
+
+<h2>16. Tips for first-time deployment</h2>
+<ul>
+  <li>Pilot one assessment with a small group before rolling out school-wide.</li>
+  <li>For listening exams, the desktop app gives the cleanest lockdown.</li>
+  <li>Tell students to allow webcam permission and run full-screen (both required for online mode).</li>
+  <li>Override AI grades whenever Claude's mark needs adjusting.</li>
+  <li>Pre-register students with temp passwords for the first session, then they choose their own.</li>
+</ul>
+
+<div class="tip" style="margin-top: 24px;">
+  Need the guide as a file? Use the <strong>📥 Word</strong> or <strong>📥 PDF</strong> buttons in the top bar of this modal — both are also bilingual (English + Arabic in one file).
+</div>
+`;
+
