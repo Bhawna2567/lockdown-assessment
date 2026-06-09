@@ -2030,6 +2030,7 @@ els.backBtn.onclick = () => {
 // ----- Template picker -----
 function openTemplatePicker() {
   document.body.classList.remove('cc-list-only');
+  document.body.classList.remove('cc-builder-open');
   els.listView.style.display = 'none';
   els.resultsView.style.display = 'none';
   els.builderView.style.display = 'none';
@@ -2234,6 +2235,7 @@ if (els.aiGenerateBtn) {
 
 function openBuilder(a, presets) {
   document.body.classList.remove('cc-list-only');
+  document.body.classList.add('cc-builder-open');
   els.listView.style.display = 'none';
   els.resultsView.style.display = 'none';
   closeTemplatePicker();
@@ -2866,6 +2868,7 @@ els.saveBtn.onclick = async () => {
 // ---------- Results view ----------
 async function openResults(id) {
   document.body.classList.remove('cc-list-only');
+  document.body.classList.remove('cc-builder-open');
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'block';
@@ -3355,6 +3358,7 @@ ${escapeHtml(q.manualGrade.feedback)}
 }
 
 function hideAllViews() {
+  document.body.classList.remove('cc-builder-open');
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'none';
@@ -3667,6 +3671,7 @@ async function refreshQueueCount() {
 
 async function openEssayQueue() {
   document.body.classList.remove('cc-list-only');
+  document.body.classList.remove('cc-builder-open');
   els.listView.style.display = 'none';
   els.builderView.style.display = 'none';
   els.resultsView.style.display = 'none';

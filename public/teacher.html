@@ -9,8 +9,6 @@
    * here so it loads with the HTML and can never be served from a stale
    * cached CSS file. */
   body.cc-list-only #builder-view,
-  body.cc-list-only #builder-questions-panel,
-  body.cc-list-only #builder-save-row,
   body.cc-list-only #results-view,
   body.cc-list-only #template-picker,
   body.cc-list-only #essay-queue-view,
@@ -26,6 +24,19 @@
   body.cc-list-only #list-view {
     display: block !important;
   }
+  /* Orphan panels (#builder-questions-panel + #builder-save-row) live as
+   * HTML SIBLINGS of #builder-view, not children — so they need their own
+   * toggle. Hidden by default; only shown when body has .cc-builder-open. */
+  #builder-questions-panel,
+  #builder-save-row {
+    display: none !important;
+  }
+  body.cc-builder-open #builder-questions-panel {
+    display: block !important;
+  }
+  body.cc-builder-open #builder-save-row {
+    display: flex !important;
+  }
 </style>
 
   <!-- PWA: manifest, icons, install hints. -->
@@ -39,7 +50,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1780995805" />
+  <link rel="stylesheet" href="/css/styles.css?v=1780996511" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -727,6 +738,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1780995805"></script>
+  <script src="/js/teacher.js?v=1780996511"></script>
 </body>
 </html>

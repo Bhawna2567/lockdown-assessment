@@ -1264,8 +1264,6 @@ body.lockdown-body .assessment-content #assess-title {
 /* Hard-fix: when body has .cc-list-only, every editor surface is hidden
  * with !important so no inline style or later JS can re-show them. */
 body.cc-list-only #builder-view,
-body.cc-list-only #builder-questions-panel,
-body.cc-list-only #builder-save-row,
 body.cc-list-only #results-view,
 body.cc-list-only #template-picker,
 body.cc-list-only #essay-queue-view,
@@ -1370,3 +1368,10 @@ body.cc-list-only #list-view {
 @media (prefers-reduced-motion: reduce) {
   .cc-pulse-btn { animation: none; }
 }
+
+
+/* CC: Questions panel + Save row are HTML siblings of #builder-view, so
+ * cc-list-only never sees them. Hide by default, opt-in via .cc-builder-open. */
+#builder-questions-panel, #builder-save-row { display: none !important; }
+body.cc-builder-open #builder-questions-panel { display: block !important; }
+body.cc-builder-open #builder-save-row { display: flex !important; }
