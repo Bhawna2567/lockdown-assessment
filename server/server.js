@@ -2061,7 +2061,21 @@ app.get('/api/admin/users-export', requireTeacher, (req, res) => {
   if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
     return res.status(403).json({ error: 'Forbidden — admin only.' });
   }
-  const users   = readAll('users.json');
+  // Optional date-range filter on createdAt — inclusive on both ends.
+  // ?from=2026-01-01&to=2026-06-30
+  const rawFrom = String(req.query.from || '').trim();
+  const rawTo   = String(req.query.to   || '').trim();
+  const fromMs  = rawFrom && /^\d{4}-\d{2}-\d{2}$/.test(rawFrom) ? Date.parse(rawFrom + 'T00:00:00.000Z') : null;
+  const toMs    = rawTo   && /^\d{4}-\d{2}-\d{2}$/.test(rawTo)   ? Date.parse(rawTo   + 'T23:59:59.999Z') : null;
+  let users = readAll('users.json');
+  if (fromMs || toMs) {
+    users = users.filter((u) => {
+      const t = u.createdAt ? Date.parse(u.createdAt) : 0;
+      if (fromMs && t < fromMs) return false;
+      if (toMs   && t > toMs)   return false;
+      return true;
+    });
+  }
   const classes = readAll('classes.json');
   // For each user, count how many classes reference them.
   const teacherClassCount = (id) => classes.filter((c) => c.teacherId === id).length;
