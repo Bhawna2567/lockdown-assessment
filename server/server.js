@@ -9,52 +9,7 @@ const FileStore = require('session-file-store')(session);
 const SESSION_DIR = require('path').join(__dirname, '..', 'data', 'sessions');
 require('fs').mkdirSync(SESSION_DIR, { recursive: true });
 
-// ─── One-time migration: rescale previous AI-graded essays to /40 ──────────
-// Older results have manualGrades[qid].maxScore = 12 (Stage 7/8) or 20
-// (legacy intermediate). New default is 40. Walk every result once, scale
-// score proportionally, set maxScore = 40. Marker file prevents re-runs.
-try {
-  const MIG_DIR = path.join(__dirname, '..', 'data', '.migrations');
-  const MIG_FLAG = path.join(MIG_DIR, 'essays-to-40.done');
-  if (!fs.existsSync(MIG_DIR)) fs.mkdirSync(MIG_DIR, { recursive: true });
-  if (!fs.existsSync(MIG_FLAG)) {
-    const results = readAll('results.json');
-    let touched = 0;
-    const TARGET = 40;
-    for (const r of results) {
-      if (!r.manualGrades) continue;
-      for (const [qid, g] of Object.entries(r.manualGrades)) {
-        if (!g || !g.aiGrade) continue;
-        const oldMax = Number(g.maxScore) || 0;
-        if (oldMax === TARGET || oldMax <= 0) continue;
-        const oldScore = Number(g.score) || 0;
-        const factor = TARGET / oldMax;
-        g.score = Math.round(oldScore * factor * 10) / 10;
-        g.maxScore = TARGET;
-        // Also scale per-criterion breakdown if present.
-        if (g.breakdown && typeof g.breakdown === 'object') {
-          for (const c of Object.keys(g.breakdown)) {
-            const b = g.breakdown[c];
-            if (!b) continue;
-            if (typeof b.score === 'number') b.score = Math.round(b.score * factor * 10) / 10;
-            if (typeof b.max   === 'number') b.max   = Math.round(b.max   * factor * 10) / 10;
-          }
-        }
-        g.rescaledTo40At = new Date().toISOString();
-        touched++;
-      }
-    }
-    if (touched > 0) {
-      writeAll('results.json', results);
-      console.log(`[migration] rescaled ${touched} AI-graded essay(s) to /40.`);
-    } else {
-      console.log('[migration] no AI-graded essays needed rescaling.');
-    }
-    fs.writeFileSync(MIG_FLAG, new Date().toISOString());
-  }
-} catch (e) {
-  console.error('[migration] essays-to-40 failed:', e.message);
-}
+
 
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
@@ -118,6 +73,51 @@ app.use(
     cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 12 },
   })
 );
+
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Rescale every AI-graded essay to a universal /40 scale.
+// ───────────────────────────────────────────────────────────────────────────
+// Idempotent — only touches entries where maxScore !== 40. Walks every
+// result, every manualGrades entry tagged aiGrade:true, multiplies score
+// by (40 / oldMax), updates maxScore to 40. Also rescales per-criterion
+// breakdown if present. Returns the count of entries touched.
+function rescaleEssaysTo40() {
+  const results = readAll('results.json');
+  let touched = 0;
+  const TARGET = 40;
+  for (const r of results) {
+    if (!r.manualGrades) continue;
+    for (const [, g] of Object.entries(r.manualGrades)) {
+      if (!g || !g.aiGrade) continue;
+      const oldMax = Number(g.maxScore) || 0;
+      if (oldMax === TARGET || oldMax <= 0) continue;
+      const oldScore = Number(g.score) || 0;
+      const factor = TARGET / oldMax;
+      g.score = Math.round(oldScore * factor * 10) / 10;
+      g.maxScore = TARGET;
+      if (g.breakdown && typeof g.breakdown === 'object') {
+        for (const c of Object.keys(g.breakdown)) {
+          const b = g.breakdown[c];
+          if (!b) continue;
+          if (typeof b.score === 'number') b.score = Math.round(b.score * factor * 10) / 10;
+          if (typeof b.max   === 'number') b.max   = Math.round(b.max   * factor * 10) / 10;
+        }
+      }
+      g.rescaledTo40At = new Date().toISOString();
+      touched++;
+    }
+  }
+  if (touched > 0) writeAll('results.json', results);
+  return touched;
+}
+// Run on startup too (no flag — function is idempotent, safe to re-run).
+try {
+  const n = rescaleEssaysTo40();
+  console.log(`[migration] startup rescale: ${n} essay(s) updated to /40.`);
+} catch (e) {
+  console.error('[migration] startup rescale error:', e.message);
+}
 
 // ---------- Auth helpers ----------
 function requireAuth(req, res, next) {
@@ -2233,6 +2233,21 @@ app.get('/api/admin/disk-usage', requireTeacher, async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ error: 'Could not read disk usage: ' + e.message });
+  }
+});
+
+
+// Admin-only: manually re-run the rescale (in case the startup pass was
+// missed or ran before the rescale code had shipped).
+app.post('/api/admin/rescale-essays', requireTeacher, (req, res) => {
+  if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
+    return res.status(403).json({ error: 'Forbidden — admin only.' });
+  }
+  try {
+    const touched = rescaleEssaysTo40();
+    res.json({ ok: true, touched });
+  } catch (e) {
+    res.status(500).json({ error: 'Rescale failed: ' + e.message });
   }
 });
 

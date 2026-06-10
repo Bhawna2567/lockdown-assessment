@@ -4869,6 +4869,28 @@ function parseScriptIntoTurns(script) {
       if (diskBtn) {
         diskBtn.onclick = showDiskUsageModal;
       }
+      // Fourth admin button — re-run the /40 essay rescale migration.
+      const rescaleBtn = document.getElementById('admin-rescale-essays');
+      if (rescaleBtn) {
+        rescaleBtn.onclick = async () => {
+          if (!confirm('Re-scale every previously auto-graded essay to /40?\n\nSafe to run multiple times — only essays where the max isn\'t already 40 get touched.')) return;
+          rescaleBtn.disabled = true;
+          rescaleBtn.textContent = '🔁 Rescaling…';
+          try {
+            const r = await fetch('/api/admin/rescale-essays', { method: 'POST', credentials: 'include' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Failed');
+            alert(`✓ Rescaled ${data.touched} auto-graded essay(s) to /40.`);
+            // Reload assessment list so any open Results panel re-fetches fresh data.
+            if (typeof loadAssessments === 'function') loadAssessments();
+          } catch (e) {
+            alert('❌ Rescale failed: ' + (e.message || 'unknown error'));
+          } finally {
+            rescaleBtn.disabled = false;
+            rescaleBtn.textContent = '🔁 Rescale essays to /40';
+          }
+        };
+      }
       // Show the whole admin dropdown wrap (which contains all 3 items).
       const adminWrap = document.getElementById('admin-menu-wrap');
       if (adminWrap) {
