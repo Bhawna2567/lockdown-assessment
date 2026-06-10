@@ -1375,3 +1375,12 @@ body.cc-list-only #list-view {
 #builder-questions-panel, #builder-save-row { display: none !important; }
 body.cc-builder-open #builder-questions-panel { display: block !important; }
 body.cc-builder-open #builder-save-row { display: flex !important; }
+
+
+/* CC: shaking 🔔 bell when API credit is low/out */
+@keyframes ccBellShake {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30%, 50% { transform: rotate(-12deg); }
+  20%, 40%, 60% { transform: rotate(12deg); }
+  70% { transform: rotate(0deg); }
+}

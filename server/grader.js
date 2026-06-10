@@ -108,6 +108,26 @@ function safeParseJson(text) {
 
 async function callClaude({ apiKey, prompt }) {
   // Uses native fetch (Node 18+).
+  
+const _ccCfgPath = require('path').join(__dirname, '..', 'data', 'config.json');
+function _ccReadCfg() { try { return JSON.parse(require('fs').readFileSync(_ccCfgPath, 'utf8')); } catch { return {}; } }
+function _ccWriteCfg(c) { try { require('fs').writeFileSync(_ccCfgPath, JSON.stringify(c, null, 2)); } catch {} }
+function _ccFlag(status, text) {
+  const lower = String(text || '').toLowerCase();
+  const isCredit = status === 402 || status === 401 ||
+    lower.includes('credit balance') || lower.includes('insufficient_quota') ||
+    lower.includes('billing') || lower.includes('payment required') ||
+    lower.includes('over your monthly limit');
+  if (isCredit) {
+    const c = _ccReadCfg();
+    c.apiCreditWarning = { status: Number(status) || 0, message: String(text || '').slice(0, 400), detectedAt: new Date().toISOString() };
+    _ccWriteCfg(c);
+  } else if (status >= 200 && status < 300) {
+    const c = _ccReadCfg();
+    if (c.apiCreditWarning) { delete c.apiCreditWarning; _ccWriteCfg(c); }
+  }
+}
+
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -121,6 +141,7 @@ async function callClaude({ apiKey, prompt }) {
       messages: [{ role: 'user', content: prompt }],
     }),
   });
+  try { const _txt = await res.clone().text(); _ccFlag(res.status, _txt); } catch {}
   if (!res.ok) {
     const txt = await res.text().catch(() => '');
     throw new Error(`Claude API error ${res.status}: ${txt.slice(0, 300)}`);

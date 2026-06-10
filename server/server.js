@@ -170,6 +170,7 @@ app.post('/api/login', async (req, res) => {
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
   const ok = await bcrypt.compare(password || '', user.passwordHash);
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+  if (user.blocked) return res.status(403).json({ error: 'Your account has been suspended. Contact your school administrator.' });
   req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role };
   res.json({ user: req.session.user });
 });
@@ -186,6 +187,11 @@ app.get('/api/me', (req, res) => {
   const users = readAll('users.json');
   const u = users.find((x) => x.id === req.session.user.id);
   if (!u) return res.json({ user: null });
+  if (u.blocked) {
+    // Account was blocked since this session was created — destroy the session.
+    try { req.session.destroy(() => {}); } catch {}
+    return res.json({ user: null, blocked: true });
+  }
   res.json({
     user: {
       id: u.id, name: u.name, email: u.email, role: u.role,
@@ -1923,7 +1929,7 @@ app.post('/api/assessments/:id/generate-script', requireTeacher, async (req, res
   ].join('\n');
 
   try {
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
@@ -2016,7 +2022,7 @@ app.post('/api/listening/generate-script', requireTeacher, async (req, res) => {
   ].join('\n');
 
   try {
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
@@ -2263,6 +2269,126 @@ app.post('/api/admin/rescale-essays', requireTeacher, (req, res) => {
   } catch (e) {
     res.status(500).json({ error: 'Rescale failed: ' + e.message });
   }
+});
+
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin-only: list / block / unblock / delete users
+// ───────────────────────────────────────────────────────────────────────────
+function _ccIsAdminReq(req) {
+  return ADMIN_EMAILS.map((e) => e.toLowerCase())
+    .includes((req.session.user.email || '').toLowerCase());
+}
+app.get('/api/admin/users', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const users = readAll('users.json').map((u) => ({
+    id: u.id, name: u.name, email: u.email, role: u.role,
+    createdAt: u.createdAt || null, blocked: !!u.blocked,
+  }));
+  // Teachers first, then students, alpha-sorted by name within each role.
+  users.sort((a, b) => {
+    const ra = a.role === 'teacher' ? 0 : 1;
+    const rb = b.role === 'teacher' ? 0 : 1;
+    if (ra !== rb) return ra - rb;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+  res.json({ users });
+});
+app.post('/api/admin/users/:id/block', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.params.id);
+  if (!u) return res.status(404).json({ error: 'Not found' });
+  // Don't let an admin block themselves out — that would lock everyone out.
+  if (ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((u.email || '').toLowerCase())) {
+    return res.status(400).json({ error: 'Cannot block an admin account.' });
+  }
+  u.blocked = true;
+  u.blockedAt = new Date().toISOString();
+  writeAll('users.json', users);
+  res.json({ ok: true, blocked: true });
+});
+app.post('/api/admin/users/:id/unblock', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.params.id);
+  if (!u) return res.status(404).json({ error: 'Not found' });
+  u.blocked = false;
+  delete u.blockedAt;
+  writeAll('users.json', users);
+  res.json({ ok: true, blocked: false });
+});
+app.delete('/api/admin/users/:id', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const users = readAll('users.json');
+  const idx = users.findIndex((x) => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((users[idx].email || '').toLowerCase())) {
+    return res.status(400).json({ error: 'Cannot delete an admin account.' });
+  }
+  // Remove from every class roster too.
+  const classes = readAll('classes.json');
+  for (const c of classes) {
+    if (!Array.isArray(c.roster)) continue;
+    c.roster = c.roster.filter((r) => (r.email || '').toLowerCase() !== (users[idx].email || '').toLowerCase());
+  }
+  writeAll('classes.json', classes);
+  users.splice(idx, 1);
+  writeAll('users.json', users);
+  res.json({ ok: true });
+});
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin-only: API status / credit-warning notification
+// ───────────────────────────────────────────────────────────────────────────
+// Whenever an Anthropic call returns a credit-related error, _ccRecordApiCreditWarning
+// stamps data/config.json so the admin sees a 🔔 bell. _ccClearApiCreditWarning
+// is called on the next successful call to dismiss the warning automatically.
+function _ccConfigPath() { return CONFIG_PATH; }
+function _ccReadConfig() {
+  try { return JSON.parse(fs.readFileSync(_ccConfigPath(), 'utf8')); }
+  catch { return {}; }
+}
+function _ccWriteConfig(cfg) {
+  try { fs.writeFileSync(_ccConfigPath(), JSON.stringify(cfg, null, 2)); } catch {}
+}
+function _ccRecordApiCreditWarning(status, text) {
+  const cfg = _ccReadConfig();
+  cfg.apiCreditWarning = {
+    status: Number(status) || 0,
+    message: String(text || '').slice(0, 400),
+    detectedAt: new Date().toISOString(),
+  };
+  _ccWriteConfig(cfg);
+}
+function _ccClearApiCreditWarning() {
+  const cfg = _ccReadConfig();
+  if (cfg.apiCreditWarning) {
+    delete cfg.apiCreditWarning;
+    _ccWriteConfig(cfg);
+  }
+}
+// Decide whether a non-OK Anthropic response means the funds are out.
+function _ccIsCreditError(status, text) {
+  if (status === 402) return true;
+  if (status === 401) return true; // could also be a stale key — still worth flagging
+  const lower = String(text || '').toLowerCase();
+  if (lower.includes('credit balance') ||
+      lower.includes('insufficient_quota') ||
+      lower.includes('billing') ||
+      lower.includes('payment required') ||
+      lower.includes('over your monthly limit')) return true;
+  return false;
+}
+app.get('/api/admin/api-status', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const cfg = _ccReadConfig();
+  res.json({ apiCreditWarning: cfg.apiCreditWarning || null });
+});
+app.post('/api/admin/api-status/clear', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  _ccClearApiCreditWarning();
+  res.json({ ok: true });
 });
 
 app.get('/api/admin/is-admin', requireAuth, (req, res) => {
@@ -3979,7 +4105,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   }
 
   try {
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
@@ -4161,7 +4287,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
           });
         }
       }
-      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
@@ -4381,7 +4507,7 @@ app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
   ].join('\n');
 
   try {
-    const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -4485,7 +4611,7 @@ app.post('/api/translate-ui', requireAuth, async (req, res) => {
         JSON.stringify(toTranslate),
       ].join('\n');
 
-      const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+      const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({

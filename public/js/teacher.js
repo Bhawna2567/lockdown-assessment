@@ -5426,3 +5426,157 @@ const _wireInterval = setInterval(() => {
   if (_wireTries > 12) clearInterval(_wireInterval);
 }, 250);
 
+// ── Admin: 👤 Manage users modal ──────────────────────────────────────────
+async function showManageUsersModal() {
+  if (document.getElementById('cc-mu-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-mu-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:14px; padding:0; max-width:840px; width:100%; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<div style="padding:16px 22px; border-bottom:1px solid #e5e7eb; background:linear-gradient(135deg,#1a1e33,#3b3a6b); color:#fff; border-radius:14px 14px 0 0;">' +
+      '<div class="row" style="gap:10px; align-items:center;">' +
+        '<h2 style="margin:0; flex:1;">👤 Manage users</h2>' +
+        '<input id="cc-mu-search" type="search" placeholder="Search name or email…" style="padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; min-width:240px;" />' +
+        '<button class="btn" id="cc-mu-close" style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.4);">Close</button>' +
+      '</div>' +
+    '</div>' +
+    '<div style="overflow-y:auto; padding:0;"><table style="width:100%; border-collapse:collapse;" id="cc-mu-table">' +
+      '<thead style="background:#f1f5f9; position:sticky; top:0;"><tr>' +
+        '<th style="text-align:left; padding:10px 14px;">Role</th>' +
+        '<th style="text-align:left; padding:10px 14px;">Name</th>' +
+        '<th style="text-align:left; padding:10px 14px;">Email</th>' +
+        '<th style="text-align:left; padding:10px 14px;">Status</th>' +
+        '<th style="text-align:right; padding:10px 14px;">Actions</th>' +
+      '</tr></thead><tbody id="cc-mu-body"><tr><td colspan="5" style="padding:20px; text-align:center; color:#6b7280;">Loading…</td></tr></tbody>' +
+    '</table></div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  document.getElementById('cc-mu-close').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  let users = [];
+  function render() {
+    const q = (document.getElementById('cc-mu-search').value || '').toLowerCase();
+    const filtered = users.filter((u) => !q || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q));
+    document.getElementById('cc-mu-body').innerHTML = filtered.length === 0
+      ? '<tr><td colspan="5" style="padding:20px; text-align:center; color:#6b7280;">No users match.</td></tr>'
+      : filtered.map((u) => (
+          '<tr style="border-top:1px solid #e5e7eb;' + (u.blocked ? ' background:#fef2f2;' : '') + '">' +
+            '<td style="padding:8px 14px; text-transform:capitalize;">' + (u.role||'') + '</td>' +
+            '<td style="padding:8px 14px;">' + (u.name||'') + '</td>' +
+            '<td style="padding:8px 14px; color:#475569;">' + (u.email||'') + '</td>' +
+            '<td style="padding:8px 14px;">' + (u.blocked ? '<span style="color:#b91c1c; font-weight:700;">🚫 Blocked</span>' : '<span style="color:#16a34a;">✓ Active</span>') + '</td>' +
+            '<td style="padding:8px 14px; text-align:right; white-space:nowrap;">' +
+              '<button class="btn" data-action="' + (u.blocked ? 'unblock' : 'block') + '" data-id="' + u.id + '" style="margin-right:4px;">' + (u.blocked ? '✓ Unblock' : '🚫 Block') + '</button>' +
+              '<button class="btn danger" data-action="delete" data-id="' + u.id + '">🗑 Delete</button>' +
+            '</td>' +
+          '</tr>'
+        )).join('');
+    document.querySelectorAll('#cc-mu-body button').forEach((btn) => {
+      btn.onclick = async () => {
+        const id = btn.getAttribute('data-id');
+        const action = btn.getAttribute('data-action');
+        const u = users.find((x) => x.id === id) || {};
+        if (action === 'delete') {
+          if (!confirm('Permanently delete ' + u.name + ' (' + u.email + ')?\nThis cannot be undone. Their results stay but become orphaned.')) return;
+          try {
+            const r = await fetch('/api/admin/users/' + id, { method: 'DELETE', credentials: 'include' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Failed');
+            users = users.filter((x) => x.id !== id);
+            render();
+          } catch (e) { alert('Delete failed: ' + e.message); }
+        } else {
+          const url = '/api/admin/users/' + id + '/' + action;
+          try {
+            const r = await fetch(url, { method: 'POST', credentials: 'include' });
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.error || 'Failed');
+            u.blocked = !!data.blocked;
+            render();
+          } catch (e) { alert(action + ' failed: ' + e.message); }
+        }
+      };
+    });
+  }
+
+  try {
+    const r = await fetch('/api/admin/users', { credentials: 'include' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Failed');
+    users = data.users || [];
+    render();
+  } catch (e) {
+    document.getElementById('cc-mu-body').innerHTML = '<tr><td colspan="5" style="padding:20px; text-align:center; color:#dc2626;">❌ ' + (e.message || 'Could not load users') + '</td></tr>';
+  }
+  document.getElementById('cc-mu-search').oninput = render;
+}
+
+// ── Admin: 🔔 API credit warning ──────────────────────────────────────────
+async function _ccCheckApiStatus() {
+  const bell = document.getElementById('api-funds-bell');
+  if (!bell) return;
+  try {
+    const r = await fetch('/api/admin/api-status', { credentials: 'include' });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data && data.apiCreditWarning) {
+      bell.style.display = '';
+      bell._ccWarning = data.apiCreditWarning;
+    } else {
+      bell.style.display = 'none';
+    }
+  } catch {}
+}
+function _ccWireApiBell() {
+  const bell = document.getElementById('api-funds-bell');
+  if (!bell || bell._ccWired) return;
+  bell._ccWired = true;
+  bell.onclick = () => {
+    const w = bell._ccWarning || {};
+    const overlay = document.createElement('div');
+    overlay.id = 'cc-api-warn-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:24px;';
+    overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:520px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+      '<h2 style="margin:0 0 10px; color:#b91c1c;">🔔 API credit issue</h2>' +
+      '<p style="margin:0 0 12px; color:#1a1e33;"><strong>HTTP ' + (w.status || '—') + '</strong> from the Anthropic API.</p>' +
+      '<pre style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; color:#7f1d1d; white-space:pre-wrap; max-height:200px; overflow:auto;">' + (w.message || '(no message)') + '</pre>' +
+      '<p style="margin:14px 0 6px; color:#475569; font-size:13px;">Detected: ' + (w.detectedAt || '—') + '</p>' +
+      '<p style="margin:6px 0 16px; font-size:14px;">Top up your Anthropic credit at <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener">console.anthropic.com/settings/billing</a>, then click "Dismiss" once you have added funds.</p>' +
+      '<div class="row" style="gap:10px; justify-content:flex-end;">' +
+        '<button class="btn" id="cc-api-warn-close">Close</button>' +
+        '<button class="btn primary" id="cc-api-warn-clear">✓ Dismiss</button>' +
+      '</div></div>';
+    document.body.appendChild(overlay);
+    const close = () => overlay.remove();
+    document.getElementById('cc-api-warn-close').onclick = close;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    document.getElementById('cc-api-warn-clear').onclick = async () => {
+      try { await fetch('/api/admin/api-status/clear', { method: 'POST', credentials: 'include' }); } catch {}
+      close();
+      _ccCheckApiStatus();
+    };
+  };
+}
+
+// Wire menu item + bell + start polling.
+function _ccWireAdminExtras() {
+  const muBtn = document.getElementById('admin-manage-users');
+  if (muBtn && !muBtn._ccWired) {
+    muBtn.onclick = showManageUsersModal;
+    muBtn._ccWired = true;
+  }
+  _ccWireApiBell();
+}
+if (document.readyState !== 'loading') _ccWireAdminExtras();
+else document.addEventListener('DOMContentLoaded', _ccWireAdminExtras);
+let _ccExtrasTries = 0;
+const _ccExtrasInterval = setInterval(() => {
+  _ccWireAdminExtras();
+  _ccExtrasTries += 1;
+  if (_ccExtrasTries > 16) clearInterval(_ccExtrasInterval);
+}, 250);
+// Poll API status every 60s once we know we're admin.
+setTimeout(_ccCheckApiStatus, 1500);
+setInterval(_ccCheckApiStatus, 60 * 1000);
+
