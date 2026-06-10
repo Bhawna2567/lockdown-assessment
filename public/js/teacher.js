@@ -5342,3 +5342,87 @@ const USER_GUIDE_HTML = `
   document.addEventListener('visibilitychange', check);
 })();
 
+
+// ── Admin: 📅 Date-range user export modal ─────────────────────────────────
+function showDateRangeExportModal() {
+  if (document.getElementById('cc-range-overlay')) return;
+  const today = new Date();
+  const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-range-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding: 24px;';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 480px; width: 92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<h2 style="margin: 0 0 6px; color:#1a1e33;">📅 Export users by date range</h2>' +
+    '<p class="muted" style="margin: 0 0 16px; font-size: 14px;">Download a CSV of teachers + students whose account was created between these dates (inclusive).</p>' +
+    '<div class="row" style="gap: 12px; align-items: center; margin-bottom: 12px;">' +
+      '<label style="flex:1;">' +
+        '<div style="font-size:13px; font-weight:600; color:#1a1e33; margin-bottom:4px;">From</div>' +
+        '<input type="date" id="cc-range-from" value="' + fmt(thirtyDaysAgo) + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" />' +
+      '</label>' +
+      '<label style="flex:1;">' +
+        '<div style="font-size:13px; font-weight:600; color:#1a1e33; margin-bottom:4px;">To</div>' +
+        '<input type="date" id="cc-range-to" value="' + fmt(today) + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" />' +
+      '</label>' +
+    '</div>' +
+    '<div class="row" style="gap:6px; flex-wrap:wrap; margin-bottom: 14px;">' +
+      '<button class="btn" data-preset="7"   style="padding:4px 10px; font-size:12px;">Last 7 days</button>' +
+      '<button class="btn" data-preset="30"  style="padding:4px 10px; font-size:12px;">Last 30 days</button>' +
+      '<button class="btn" data-preset="90"  style="padding:4px 10px; font-size:12px;">Last 90 days</button>' +
+      '<button class="btn" data-preset="365" style="padding:4px 10px; font-size:12px;">Last 365 days</button>' +
+      '<button class="btn" data-preset="all" style="padding:4px 10px; font-size:12px;">All time</button>' +
+    '</div>' +
+    '<div class="row" style="gap:10px; justify-content:flex-end;">' +
+      '<button class="btn" id="cc-range-close">Cancel</button>' +
+      '<button class="btn primary" id="cc-range-download">📥 Download CSV</button>' +
+    '</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('cc-range-close').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelectorAll('[data-preset]').forEach((b) => {
+    b.onclick = () => {
+      const v = b.getAttribute('data-preset');
+      if (v === 'all') {
+        document.getElementById('cc-range-from').value = '';
+        document.getElementById('cc-range-to').value = '';
+      } else {
+        const days = Number(v);
+        const fromD = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
+        document.getElementById('cc-range-from').value = fmt(fromD);
+        document.getElementById('cc-range-to').value   = fmt(today);
+      }
+    };
+  });
+  document.getElementById('cc-range-download').onclick = () => {
+    const fr = document.getElementById('cc-range-from').value;
+    const to = document.getElementById('cc-range-to').value;
+    const qs = new URLSearchParams();
+    if (fr) qs.set('from', fr);
+    if (to) qs.set('to', to);
+    window.location.href = '/api/admin/users-export' + (qs.toString() ? ('?' + qs.toString()) : '');
+    close();
+  };
+}
+
+// Attach the modal opener to the menu item, no matter when the DOM loads.
+// Use both DOMContentLoaded and a delayed retry — the admin-menu wrap can be
+// hidden initially and only revealed when isAdmin returns true.
+function _wireDateRangeButton() {
+  const rangeBtn = document.getElementById('admin-export-users-range');
+  if (rangeBtn && !rangeBtn._ccWired) {
+    rangeBtn.onclick = showDateRangeExportModal;
+    rangeBtn._ccWired = true;
+  }
+}
+if (document.readyState !== 'loading') _wireDateRangeButton();
+else document.addEventListener('DOMContentLoaded', _wireDateRangeButton);
+// Retry every 250ms for the first 3s in case the admin check finishes later.
+let _wireTries = 0;
+const _wireInterval = setInterval(() => {
+  _wireDateRangeButton();
+  _wireTries += 1;
+  if (_wireTries > 12) clearInterval(_wireInterval);
+}, 250);
+
