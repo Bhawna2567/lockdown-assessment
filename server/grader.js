@@ -134,7 +134,7 @@ async function callClaude({ apiKey, prompt }) {
   return out;
 }
 
-async function gradeWriting({ rubricStage, prompt, essay, maxScore = 12 }) {
+async function gradeWriting({ rubricStage, prompt, essay, maxScore = 40 }) {
   const apiKey = readApiKey();
   if (!apiKey) {
     return { ok: false, reason: 'no-api-key' };
@@ -250,12 +250,30 @@ async function gradeWriting({ rubricStage, prompt, essay, maxScore = 12 }) {
     feedbackParts.push(`Overall: ${String(parsed.overallFeedback).trim()}`);
   }
 
+  // Normalise to a universal 40-mark scale regardless of which rubric
+  // stage the teacher chose. Stage 3-5 / 5-9 already use totalMax=40
+  // (so this is a no-op). Stage 7 / 8 use totalMax=12 internally — we
+  // scale linearly so a 9/12 raw becomes 30/40.
+  const TARGET_MAX = 40;
+  const scaledScore = rubric.totalMax > 0
+    ? Math.round((total * TARGET_MAX / rubric.totalMax) * 10) / 10
+    : 0;
+  // Also scale every per-criterion max so the breakdown adds up to 40.
+  const scaledBreakdown = {};
+  const scaleFactor = rubric.totalMax > 0 ? (TARGET_MAX / rubric.totalMax) : 1;
+  for (const [k, v] of Object.entries(breakdown)) {
+    scaledBreakdown[k] = {
+      ...v,
+      score: Math.round((v.score * scaleFactor) * 10) / 10,
+      max: Math.round((v.max * scaleFactor) * 10) / 10,
+    };
+  }
   return {
     ok: true,
-    score: total,
-    maxScore: rubric.totalMax,
+    score: scaledScore,
+    maxScore: TARGET_MAX,
     rubricStage: rubric.stage,
-    breakdown,
+    breakdown: scaledBreakdown,
     feedback: feedbackParts.join('\n'),
   };
 }

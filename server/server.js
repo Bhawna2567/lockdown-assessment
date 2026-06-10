@@ -8,6 +8,54 @@ const session = require('express-session');
 const FileStore = require('session-file-store')(session);
 const SESSION_DIR = require('path').join(__dirname, '..', 'data', 'sessions');
 require('fs').mkdirSync(SESSION_DIR, { recursive: true });
+
+// ─── One-time migration: rescale previous AI-graded essays to /40 ──────────
+// Older results have manualGrades[qid].maxScore = 12 (Stage 7/8) or 20
+// (legacy intermediate). New default is 40. Walk every result once, scale
+// score proportionally, set maxScore = 40. Marker file prevents re-runs.
+try {
+  const MIG_DIR = path.join(__dirname, '..', 'data', '.migrations');
+  const MIG_FLAG = path.join(MIG_DIR, 'essays-to-40.done');
+  if (!fs.existsSync(MIG_DIR)) fs.mkdirSync(MIG_DIR, { recursive: true });
+  if (!fs.existsSync(MIG_FLAG)) {
+    const results = readAll('results.json');
+    let touched = 0;
+    const TARGET = 40;
+    for (const r of results) {
+      if (!r.manualGrades) continue;
+      for (const [qid, g] of Object.entries(r.manualGrades)) {
+        if (!g || !g.aiGrade) continue;
+        const oldMax = Number(g.maxScore) || 0;
+        if (oldMax === TARGET || oldMax <= 0) continue;
+        const oldScore = Number(g.score) || 0;
+        const factor = TARGET / oldMax;
+        g.score = Math.round(oldScore * factor * 10) / 10;
+        g.maxScore = TARGET;
+        // Also scale per-criterion breakdown if present.
+        if (g.breakdown && typeof g.breakdown === 'object') {
+          for (const c of Object.keys(g.breakdown)) {
+            const b = g.breakdown[c];
+            if (!b) continue;
+            if (typeof b.score === 'number') b.score = Math.round(b.score * factor * 10) / 10;
+            if (typeof b.max   === 'number') b.max   = Math.round(b.max   * factor * 10) / 10;
+          }
+        }
+        g.rescaledTo40At = new Date().toISOString();
+        touched++;
+      }
+    }
+    if (touched > 0) {
+      writeAll('results.json', results);
+      console.log(`[migration] rescaled ${touched} AI-graded essay(s) to /40.`);
+    } else {
+      console.log('[migration] no AI-graded essays needed rescaling.');
+    }
+    fs.writeFileSync(MIG_FLAG, new Date().toISOString());
+  }
+} catch (e) {
+  console.error('[migration] essays-to-40 failed:', e.message);
+}
+
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
@@ -3801,7 +3849,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '  Short answer:       { "type": "short", "prompt": "...", "correctAnswer": "expected answer or empty string", "points": 1, "sectionIndex": 0 }',
     '  Long answer:        { "type": "long", "prompt": "...", "points": 5, "sectionIndex": 0 }',
     '  Essay (manual):     { "type": "essay", "prompt": "...", "points": 5, "sectionIndex": 0 }',
-    '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 12, "sectionIndex": 0 }',
+    '  Essay (auto rubric):{ "type": "writing", "prompt": "...", "points": 40, "sectionIndex": 0 }',
     '  sectionIndex is the 0-based index of the section this question belongs to in the "sections" array.',
     '',
     '=== HARD RULES THAT MUST BE FOLLOWED ===',
@@ -3877,7 +3925,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '  ],',
     '  "questions": [',
     '    { "type": "mc", "prompt": "What does the narrator mean by \\"the best of times\\"?", "options": ["A period of peace", "A period of contradictions", "A period of war", "A period of joy"], "correctAnswer": 1, "points": 1, "sectionIndex": 0 },',
-    '    { "type": "writing", "prompt": "Discuss the theme of duality in the passage. Use evidence from the text.", "points": 12, "sectionIndex": 1 }',
+    '    { "type": "writing", "prompt": "Discuss the theme of duality in the passage. Use evidence from the text.", "points": 40, "sectionIndex": 1 }',
     '  ]',
     '}',
     '',
@@ -3963,7 +4011,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         prompt: String(q.prompt || ''),
         options: Array.isArray(q.options) ? q.options.map(String) : [],
         correctAnswer: null,
-        points: Number(q.points) || (type === 'writing' ? 12 : type === 'essay' || type === 'long' ? 5 : 1),
+        points: Number(q.points) || (type === 'writing' ? 40 : type === 'essay' || type === 'long' ? 5 : 1),
         sectionId: outSections[sidx].id,
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
@@ -4125,7 +4173,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               prompt: String(q.prompt || ''),
               options: Array.isArray(q.options) ? q.options.map(String) : [],
               correctAnswer: null,
-              points: Number(q.points) || (type === 'writing' ? 12 : (type === 'essay' || type === 'long' ? 5 : 1)),
+              points: Number(q.points) || (type === 'writing' ? 40 : (type === 'essay' || type === 'long' ? 5 : 1)),
               sectionId: sections[sidx].id,
             };
             if (type === 'mc') {
