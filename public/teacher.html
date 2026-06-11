@@ -50,7 +50,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1781159037" />
+  <link rel="stylesheet" href="/css/styles.css?v=1781160056" />
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -414,6 +414,19 @@
               <option value="Other">Other</option>
             </select>
           </div>
+          <div class="field" id="skill-field" style="flex:1; display:none;">
+            <label>📝 Skill (for language assessments)</label>
+            <select id="skill">
+              <option value="">— No skill —</option>
+              <option value="Reading">Reading</option>
+              <option value="Writing">Writing</option>
+              <option value="Listening">Listening</option>
+              <option value="Speaking">Speaking</option>
+              <option value="Grammar">Grammar</option>
+              <option value="Vocabulary">Vocabulary</option>
+            </select>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">Pick the language skill this assessment trains.</div>
+          </div>
           <div class="field" style="flex:1;">
             <label>🌐 Language of assessment</label>
             <select id="assessment-language">
@@ -556,7 +569,7 @@
       </div>
 
 
-        <div class="row">
+        <div id="listening-audio-host" class="row">
           <div class="field" style="flex:1;">
             <label>🎧 Listening audio (optional)</label>
             <div id="audio-panel" style="border: 1px dashed #c69214; border-radius: 10px; padding: 12px; background: #fff8e6;">
@@ -742,6 +755,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1781159037"></script>
+  <script src="/js/teacher.js?v=1781160056"></script>
 </body>
 </html>

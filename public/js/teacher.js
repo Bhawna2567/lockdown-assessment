@@ -77,6 +77,9 @@ const els = {
   uiLang: document.getElementById('ui-lang'),
 
   subject: document.getElementById('subject'),
+  skill: document.getElementById('skill'),
+  skillField: document.getElementById('skill-field'),
+  listeningAudioHost: document.getElementById('listening-audio-host'),
   assessmentLanguage: document.getElementById('assessment-language'),
   deliveryMode: document.getElementById('delivery-mode'),
 
@@ -2281,6 +2284,8 @@ function openBuilder(a, presets) {
     // existing ones (treats anything other than 'onsite' as 'online').
     els.deliveryMode.value = a && a.deliveryMode === 'onsite' ? 'onsite' : 'online';
   }
+  if (els.skill) els.skill.value = (a && a.skill) || '';
+  if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels();
   // Builder class dropdown — for new assessments default to the active class;
   // for edits use the assessment's stored classId.
   renderBuilderClassDropdown();
@@ -2834,6 +2839,7 @@ els.saveBtn.onclick = async () => {
       subject: els.subject ? els.subject.value || null : null,
       assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
       deliveryMode: els.deliveryMode ? els.deliveryMode.value : 'online',
+      skill: els.skill ? els.skill.value || null : null,
       classId: els.builderClass ? els.builderClass.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
       scheduledDate: els.scheduledDate ? els.scheduledDate.value || null : null,
@@ -5913,4 +5919,20 @@ document.addEventListener('click', async (e) => {
     return;
   }
 });
+
+// CC: show Listening Audio panel + Skill picker conditionally.
+function _ccApplyConditionalPanels() {
+  const subject = (els.subject && els.subject.value || '').trim();
+  const skill   = (els.skill   && els.skill.value   || '').trim();
+  const isLanguageSubject = ['English','Arabic','French','Listening','IELTS','TOEFL','PISA'].includes(subject);
+  // Skill dropdown — only relevant for language subjects.
+  if (els.skillField) els.skillField.style.display = isLanguageSubject ? '' : 'none';
+  // Listening Audio panel — show when subject implies listening OR skill is Listening.
+  const showListening = ['Listening','IELTS','TOEFL','PISA'].includes(subject) || skill === 'Listening';
+  if (els.listeningAudioHost) els.listeningAudioHost.style.display = showListening ? '' : 'none';
+}
+if (els.subject) els.subject.addEventListener('change', _ccApplyConditionalPanels);
+if (els.skill)   els.skill  .addEventListener('change', _ccApplyConditionalPanels);
+// Run once on script load (in case the builder is already open).
+setTimeout(_ccApplyConditionalPanels, 100);
 

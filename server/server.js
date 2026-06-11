@@ -934,7 +934,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     title, description, durationMinutes, questions, published,
     passage, rubricStage, term, academicYear, scheduledDate, grade,
     subject, assessmentLanguage, classId, deliveryMode, sections,
-    audioScript, audioVoice, audioVoices,
+    audioScript, audioVoice, audioVoices, skill,
   } = req.body || {};
   if (!title || !Array.isArray(questions) || questions.length === 0) {
     return res.status(400).json({ error: 'Title and at least one question required' });
@@ -969,6 +969,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     published: Boolean(published),
     audioFile: null,
     audioScript: audioScript ? String(audioScript).slice(0, 12000) : '',
+    skill: skill ? String(skill).slice(0, 40) : null,
     audioVoice:  audioVoice  ? String(audioVoice).slice(0, 200)  : '',
     audioVoices: (audioVoices && typeof audioVoices === 'object') ? audioVoices : {},
     questions: questions.map((q, i) => {
@@ -1200,6 +1201,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     audioFile: all[idx].audioFile || null,
+    skill: skill === undefined ? (all[idx].skill || null) : (skill ? String(skill).slice(0, 40) : null),
     audioScript: audioScript === undefined
       ? (all[idx].audioScript || '')
       : (audioScript ? String(audioScript).slice(0, 12000) : ''),
