@@ -1008,6 +1008,108 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   res.json({ assessment });
 });
 
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Folders — per teacher+class, with optional year/term metadata.
+// ───────────────────────────────────────────────────────────────────────────
+// Folders are lightweight buckets that group assessments inside a class.
+// Each folder belongs to ONE class. Teachers can move assessments freely
+// between folders — even across their own classes.
+
+app.get('/api/folders', requireTeacher, (req, res) => {
+  const folders = readAll('folders.json');
+  res.json({
+    folders: folders
+      .filter((f) => f.teacherId === req.session.user.id)
+      .sort((a, b) => (a.name || '').localeCompare(b.name || '')),
+  });
+});
+
+app.post('/api/folders', requireTeacher, (req, res) => {
+  const { classId, name, year, term } = req.body || {};
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Folder name required' });
+  // Validate classId belongs to this teacher.
+  const classes = readAll('classes.json');
+  const cls = classes.find((c) => c.id === classId && c.teacherId === req.session.user.id);
+  if (!cls) return res.status(400).json({ error: 'Class not found in your account' });
+  const folders = readAll('folders.json');
+  const folder = {
+    id: uuidv4(),
+    teacherId: req.session.user.id,
+    classId,
+    name: String(name).trim().slice(0, 120),
+    year: year ? String(year).slice(0, 20) : null,
+    term: term ? String(term).slice(0, 40) : null,
+    createdAt: new Date().toISOString(),
+  };
+  folders.push(folder);
+  writeAll('folders.json', folders);
+  res.json({ folder });
+});
+
+app.put('/api/folders/:id', requireTeacher, (req, res) => {
+  const folders = readAll('folders.json');
+  const f = folders.find((x) => x.id === req.params.id && x.teacherId === req.session.user.id);
+  if (!f) return res.status(404).json({ error: 'Not found' });
+  const { name, year, term, classId } = req.body || {};
+  if (name !== undefined) f.name = String(name).trim().slice(0, 120) || f.name;
+  if (year !== undefined) f.year = year ? String(year).slice(0, 20) : null;
+  if (term !== undefined) f.term = term ? String(term).slice(0, 40) : null;
+  if (classId !== undefined) {
+    const classes = readAll('classes.json');
+    const cls = classes.find((c) => c.id === classId && c.teacherId === req.session.user.id);
+    if (cls) f.classId = classId;
+  }
+  writeAll('folders.json', folders);
+  res.json({ folder: f });
+});
+
+app.delete('/api/folders/:id', requireTeacher, (req, res) => {
+  const folders = readAll('folders.json');
+  const idx = folders.findIndex((x) => x.id === req.params.id && x.teacherId === req.session.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  // Cascade: any assessment in this folder gets folderId cleared.
+  const assessments = readAll('assessments.json');
+  let touched = 0;
+  for (const a of assessments) {
+    if (a.folderId === req.params.id) { a.folderId = null; touched++; }
+  }
+  if (touched) writeAll('assessments.json', assessments);
+  folders.splice(idx, 1);
+  writeAll('folders.json', folders);
+  res.json({ ok: true, assessmentsDetached: touched });
+});
+
+// Move an assessment to another class + optional folder. Both must belong
+// to the calling teacher.
+app.post('/api/assessments/:id/move-to', requireTeacher, (req, res) => {
+  const { classId, folderId } = req.body || {};
+  const assessments = readAll('assessments.json');
+  const a = assessments.find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  if (classId) {
+    const classes = readAll('classes.json');
+    const cls = classes.find((c) => c.id === classId && c.teacherId === req.session.user.id);
+    if (!cls) return res.status(400).json({ error: 'Destination class not yours' });
+    a.classId = classId;
+  }
+  if (folderId === null || folderId === '') {
+    a.folderId = null;
+  } else if (folderId) {
+    const folders = readAll('folders.json');
+    const f = folders.find((x) => x.id === folderId && x.teacherId === req.session.user.id);
+    if (!f) return res.status(400).json({ error: 'Destination folder not yours' });
+    // If the folder is in a different class than what we just set, snap the
+    // assessment's classId to match the folder's class.
+    if (f.classId !== a.classId) a.classId = f.classId;
+    a.folderId = folderId;
+  }
+  writeAll('assessments.json', assessments);
+  res.json({ assessment: a });
+});
+
+
 // Duplicate an assessment for a new batch of students. Copies all the
 // content (title, description, questions, passage, rubric) but resets:
 // - assessment ID (new UUID, so submissions go to the new copy)

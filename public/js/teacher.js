@@ -1851,6 +1851,7 @@ function renderList() {
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
           <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
           <button class="btn" data-act="preview" data-id="${a.id}" title="See the assessment exactly as a student would">👁 Preview</button>
+          <button class="btn" data-act="move" data-id="${a.id}" title="Move this assessment to another folder or class">📂 Move</button>
           <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
           <button class="btn danger" data-act="delete" data-id="${a.id}">Delete</button>
@@ -1934,10 +1935,26 @@ function renderCalendar() {
 }
 
 async function handleAction(act, id) {
-  if (act === 'preview') {
-    // Open the read-only preview in a new tab. The page lives at
-    // /public/preview.html and fetches /api/assessments/:id/preview.
-    window.open(`/preview.html?id=${id}`, '_blank', 'noopener');
+  if (act === 'move') {
+    showMoveAssessmentModal(id);
+    return;
+  }
+    if (act === 'preview') {
+    // Inline modal — sidesteps browser popup blockers entirely. The
+    // preview page is rendered inside an iframe.
+    if (document.getElementById('cc-prev-overlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'cc-prev-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.65); z-index:2147483647; display:flex; flex-direction:column; padding:14px;';
+    overlay.innerHTML = '' +
+      '<div style="display:flex; gap:10px; align-items:center; color:#fff; margin-bottom:10px;">' +
+        '<strong style="flex:1;">👁 Preview as student</strong>' +
+        '<a class="btn" href="/preview.html?id=' + id + '" target="_blank" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4);">Open in new tab ↗</a>' +
+        '<button class="btn" id="cc-prev-close" style="background:#dc2626; color:#fff; border:1px solid #fecaca;">✕ Close</button>' +
+      '</div>' +
+      '<iframe src="/preview.html?id=' + id + '" style="flex:1; width:100%; border:0; border-radius:12px; background:#fff;"></iframe>';
+    document.body.appendChild(overlay);
+    document.getElementById('cc-prev-close').onclick = () => overlay.remove();
     return;
   }
   if (act === 'print') { return showExportChooser(id); }
@@ -5177,6 +5194,25 @@ const USER_GUIDE_HTML = `
   <li><strong>Bulk delete:</strong> Tick the students → Delete selected → confirm.</li>
 </ul>
 
+
+<h2>5b. Organising assessments with folders (NEW)</h2>
+<p>Each class now has its own set of folders so you can group assessments by topic, year, or term. Examples: <em>Reading</em>, <em>Writing</em>, <em>2025-2026 Term 1</em>, <em>Old papers</em>.</p>
+<h3>Create a folder</h3>
+<ol>
+  <li>Pick the class with the class dropdown.</li>
+  <li>Click <strong>+ New folder</strong> in the 📁 Folders bar above the assessment list.</li>
+  <li>Enter the name, optional year, optional term. Done.</li>
+</ol>
+<h3>Filter by folder</h3>
+<p>Click any folder chip to see only its assessments. Click <strong>All</strong> to show every assessment in the class again.</p>
+<h3>Move an assessment</h3>
+<ol>
+  <li>On any assessment card, click <strong>📂 Move</strong>.</li>
+  <li>Choose a destination class (any class you own) and folder.</li>
+  <li>Click Move. The assessment hops over instantly — folder picker auto-refreshes when you change class.</li>
+</ol>
+<div class="tip"><strong>Tip:</strong> Use folders to separate current-year work from archived old papers, or split a class into Reading / Writing / Speaking / Listening folders.</div>
+
 <h2>6. Creating an assessment — with AI (fastest)</h2>
 <ol>
   <li>Click <strong>+ New assessment</strong>.</li>
@@ -5579,4 +5615,151 @@ const _ccExtrasInterval = setInterval(() => {
 // Poll API status every 60s once we know we're admin.
 setTimeout(_ccCheckApiStatus, 1500);
 setInterval(_ccCheckApiStatus, 60 * 1000);
+
+// ── Folders + Move-to-folder modal ─────────────────────────────────────────
+let _ccFoldersCache = null;
+let _ccActiveFolderId = null;
+
+async function _ccLoadFolders() {
+  try {
+    const r = await fetch('/api/folders', { credentials: 'include' });
+    const data = await r.json();
+    _ccFoldersCache = Array.isArray(data.folders) ? data.folders : [];
+  } catch { _ccFoldersCache = []; }
+  return _ccFoldersCache;
+}
+
+async function _ccRenderFolderBar() {
+  let host = document.getElementById('cc-folder-bar');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'cc-folder-bar';
+    host.style.cssText = 'background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; margin: 0 0 12px;';
+    const list = document.getElementById('list-view');
+    if (list) list.insertBefore(host, list.children[1] || null);
+  }
+  const folders = await _ccLoadFolders();
+  const activeClass = (typeof getActiveClassId === 'function') ? getActiveClassId() : '';
+  const mine = folders.filter((f) => f.classId === activeClass);
+  const all = (typeof allAssessments !== 'undefined') ? (allAssessments || []) : [];
+  const countIn = (fid) => all.filter((a) => (a.classId === activeClass) && (fid === null ? !a.folderId : a.folderId === fid)).length;
+  const chip = (label, fid, active) => '<button class="btn" data-folder-chip="' + (fid || '') + '" style="margin:3px; ' + (active ? 'background:#4338ca; color:#fff; border-color:#4338ca;' : '') + '">' + label + ' <span style="font-size:11px; opacity:.7;">(' + countIn(fid) + ')</span></button>';
+  host.innerHTML = '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><strong style="margin-right:6px;">📁 Folders:</strong>' +
+    chip('All', null, _ccActiveFolderId === null) +
+    mine.map((f) => {
+      const label = f.name + (f.year ? ' · ' + f.year : '') + (f.term ? ' · ' + f.term : '');
+      return '<span style="display:inline-flex; align-items:center;">' + chip(label, f.id, _ccActiveFolderId === f.id) +
+        '<span style="margin-left:4px;"><button class="btn" data-folder-rename="' + f.id + '" title="Rename" style="padding:2px 6px; font-size:11px;">✎</button>' +
+        '<button class="btn danger" data-folder-del="' + f.id + '" title="Delete" style="padding:2px 6px; font-size:11px;">✕</button></span></span>';
+    }).join('') +
+    '<span style="flex:1;"></span><button class="btn primary" id="cc-folder-new" style="background:#4338ca;">+ New folder</button></div>';
+  host.querySelectorAll('[data-folder-chip]').forEach((b) => {
+    b.onclick = () => {
+      const v = b.getAttribute('data-folder-chip');
+      _ccActiveFolderId = v === '' ? null : v;
+      _ccRenderFolderBar();
+      if (typeof render === 'function') render();
+    };
+  });
+  host.querySelectorAll('[data-folder-rename]').forEach((b) => {
+    b.onclick = async (e) => {
+      e.stopPropagation();
+      const f = mine.find((x) => x.id === b.getAttribute('data-folder-rename'));
+      if (!f) return;
+      const nn = prompt('Rename folder:', f.name);
+      if (!nn || !nn.trim()) return;
+      await fetch('/api/folders/' + f.id, { method: 'PUT', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: nn.trim() }) });
+      _ccFoldersCache = null;
+      await _ccRenderFolderBar();
+    };
+  });
+  host.querySelectorAll('[data-folder-del]').forEach((b) => {
+    b.onclick = async (e) => {
+      e.stopPropagation();
+      const f = mine.find((x) => x.id === b.getAttribute('data-folder-del'));
+      if (!f) return;
+      if (!confirm('Delete folder "' + f.name + '"? Assessments inside will move back to "All".')) return;
+      await fetch('/api/folders/' + f.id, { method: 'DELETE', credentials: 'include' });
+      _ccFoldersCache = null;
+      if (_ccActiveFolderId === f.id) _ccActiveFolderId = null;
+      await _ccRenderFolderBar();
+      if (typeof render === 'function') render();
+    };
+  });
+  const newBtn = document.getElementById('cc-folder-new');
+  if (newBtn) newBtn.onclick = async () => {
+    const name = prompt('New folder name (e.g. Reading, Writing, Old papers):');
+    if (!name || !name.trim()) return;
+    const year = prompt('Year (optional, e.g. 2025-2026):') || '';
+    const term = prompt('Term (optional, e.g. Term 1):') || '';
+    try {
+      const r = await fetch('/api/folders', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ classId: activeClass, name: name.trim(), year: year.trim(), term: term.trim() }) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Failed');
+      _ccFoldersCache = null;
+      await _ccRenderFolderBar();
+    } catch (e) { alert('Could not create: ' + e.message); }
+  };
+}
+
+function _ccFilterByFolder(list) {
+  if (_ccActiveFolderId === null) return list;
+  return list.filter((a) => a.folderId === _ccActiveFolderId);
+}
+
+(function hookRenderForFolders() {
+  if (typeof render === 'function') {
+    const orig = render;
+    window.render = function () { try { _ccRenderFolderBar(); } catch {} return orig.apply(this, arguments); };
+  }
+  if (typeof loadAssessments === 'function') {
+    const o = loadAssessments;
+    window.loadAssessments = async function () { _ccActiveFolderId = null; _ccFoldersCache = null; const r = await o.apply(this, arguments); try { await _ccRenderFolderBar(); } catch {} return r; };
+  }
+  if (typeof filteredAssessments === 'function') {
+    const o2 = filteredAssessments;
+    window.filteredAssessments = function () { return _ccFilterByFolder(o2.apply(this, arguments)); };
+  }
+})();
+
+async function showMoveAssessmentModal(assessmentId) {
+  if (document.getElementById('cc-move-overlay')) return;
+  let classes = (typeof allClasses !== 'undefined' && Array.isArray(allClasses)) ? allClasses : [];
+  if (!classes.length) {
+    try { const data = await (await fetch('/api/classes', { credentials: 'include' })).json(); classes = data.classes || data || []; } catch {}
+  }
+  const folders = await _ccLoadFolders();
+  const ass = (allAssessments || []).find((x) => x.id === assessmentId) || {};
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-move-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  const folderOpts = (cid) => '<option value="">— No folder —</option>' + folders.filter((f) => f.classId === cid).map((f) => '<option value="' + f.id + '"' + (ass.folderId === f.id ? ' selected' : '') + '>' + f.name + '</option>').join('');
+  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:520px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.3);">' +
+    '<h2 style="margin:0 0 10px; color:#1a1e33;">📂 Move "' + (ass.title || 'assessment') + '"</h2>' +
+    '<p style="margin:0 0 14px; color:#475569; font-size:14px;">Move this assessment to a different class or folder.</p>' +
+    '<div class="field"><label>Class</label><select id="cc-move-class" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">' +
+      classes.map((c) => '<option value="' + c.id + '"' + (ass.classId === c.id ? ' selected' : '') + '>' + c.name + '</option>').join('') +
+    '</select></div>' +
+    '<div class="field"><label>Folder (optional)</label><select id="cc-move-folder" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;">' + folderOpts(ass.classId) + '</select></div>' +
+    '<div class="row" style="gap:10px; justify-content:flex-end; margin-top:18px;">' +
+      '<button class="btn" id="cc-move-cancel">Cancel</button>' +
+      '<button class="btn primary" id="cc-move-confirm">Move</button>' +
+    '</div></div>';
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('cc-move-cancel').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.getElementById('cc-move-class').onchange = (e) => { document.getElementById('cc-move-folder').innerHTML = folderOpts(e.target.value); };
+  document.getElementById('cc-move-confirm').onclick = async () => {
+    const classId = document.getElementById('cc-move-class').value;
+    const folderId = document.getElementById('cc-move-folder').value || null;
+    try {
+      const r = await fetch('/api/assessments/' + assessmentId + '/move-to', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ classId, folderId }) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Move failed');
+      close();
+      if (typeof loadAssessments === 'function') loadAssessments();
+    } catch (e) { alert('Move failed: ' + e.message); }
+  };
+}
 
