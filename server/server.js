@@ -4662,6 +4662,70 @@ app.post('/api/proctor/identity-check', requireStudent, async (req, res) => {
 // keyed by [lang|sourceText] so each unique string is translated exactly
 // once per language across the whole server lifetime. Cheap after warm-up.
 const uiTranslateCache = new Map(); // key = `${lang}::${str}` → translated
+
+// ───────────────────────────────────────────────────────────────────────────
+//  User-Guide translator
+// ───────────────────────────────────────────────────────────────────────────
+const _ccGuideCache = new Map();
+function _ccHashGuide(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = (h * 33) ^ s.charCodeAt(i);
+  return (h >>> 0).toString(36);
+}
+app.post('/api/translate-guide', requireAuth, async (req, res) => {
+  const apiKey = readApiKey();
+  if (!apiKey) return res.status(400).json({ ok: false, error: 'No Anthropic API key configured.' });
+  const targetLang = String((req.body && req.body.targetLang) || '').toLowerCase().trim();
+  const html = String((req.body && req.body.html) || '');
+  if (!targetLang || !html.trim()) return res.json({ ok: true, html: html });
+  const key = targetLang + '::' + _ccHashGuide(html);
+  if (_ccGuideCache.has(key)) return res.json({ ok: true, html: _ccGuideCache.get(key), cached: true });
+  const langName = ({
+    ar: 'Arabic', hi: 'Hindi', th: 'Thai', zh: 'Mandarin Chinese (Simplified)',
+    es: 'Spanish', fr: 'French', bn: 'Bengali', ur: 'Urdu', ta: 'Tamil',
+    pa: 'Punjabi (Gurmukhi)', te: 'Telugu', ml: 'Malayalam', id: 'Indonesian',
+    ms: 'Malay', vi: 'Vietnamese', tl: 'Filipino (Tagalog)', km: 'Khmer',
+    ja: 'Japanese', ko: 'Korean', fa: 'Persian (Farsi)', tr: 'Turkish',
+    he: 'Hebrew', sw: 'Swahili', de: 'German', it: 'Italian',
+    pt: 'Portuguese', ru: 'Russian', pl: 'Polish', nl: 'Dutch',
+  })[targetLang] || targetLang;
+  try {
+    const prompt = [
+      'Translate the following classroom-app User Guide HTML from English to ' + langName + '.',
+      'Return ONLY the translated HTML. No code fences, no commentary.',
+      'Rules:',
+      '- Preserve EVERY HTML tag and attribute exactly. Do not reorder, add, or remove tags.',
+      '- Translate visible text inside tags, plus user-facing attribute values (title, placeholder, alt, aria-label).',
+      '- Do NOT translate id/class/style/href/src/data-* values. Do NOT translate code, file extensions, URLs, emails, product names ("ClassCurio").',
+      '- Preserve leading emojis unchanged.',
+      '- Use a polite, professional register suitable for teachers. Numbers stay in Latin numerals.',
+      '',
+      'HTML to translate:',
+      html,
+    ].join('\n');
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 8192,
+        messages: [{ role: 'user', content: [{ type: 'text', text: prompt }] }],
+      }),
+    });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text().catch(() => '');
+      return res.status(502).json({ ok: false, error: 'API error ' + apiRes.status, detail: errText.slice(0, 200) });
+    }
+    const data = await apiRes.json();
+    let out = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
+    out = out.replace(/^```(?:html)?\s*/i, '').replace(/```\s*$/, '').trim();
+    if (out) _ccGuideCache.set(key, out);
+    res.json({ ok: true, html: out });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 app.post('/api/translate-ui', requireAuth, async (req, res) => {
   const apiKey = readApiKey();
   if (!apiKey) return res.json({ ok: false, reason: 'no_api_key', translations: req.body?.strings || [] });

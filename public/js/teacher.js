@@ -5114,7 +5114,7 @@ function openUserGuide() {
       <div style="padding: 18px 22px; border-bottom: 1px solid #e5e7eb; background: linear-gradient(135deg, #4338ca, #6d28d9); color:#fff; border-radius: 14px 14px 0 0;">
         <div class="row" style="align-items:center;">
           <h2 style="margin:0; flex:1;">📖 ClassCurio User Guide</h2>
-          <a href="/docs/ClassCurio_Teacher_Guide.docx" download class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4); margin-right: 6px;">📥 Word</a>
+          <select id="cc-ug-lang" data-no-translate="1" style="margin-right: 8px; padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.95); font-size: 12px; cursor: pointer; max-width: 140px;"><option value="">🌐 English</option><option value="ar">🌐 العربية</option><option value="hi">🌐 हिन्दी</option><option value="zh">🌐 中文</option><option value="es">🌐 Español</option><option value="fr">🌐 Français</option><option value="th">🌐 ไทย</option><option value="bn">🌐 বাংলা</option><option value="ur">🌐 اردو</option><option value="ta">🌐 தமிழ்</option><option value="te">🌐 తెలుగు</option><option value="ml">🌐 മലയാളം</option><option value="pa">🌐 ਪੰਜਾਬੀ</option><option value="id">🌐 Indonesia</option><option value="ms">🌐 Melayu</option><option value="vi">🌐 Tiếng Việt</option><option value="tl">🌐 Filipino</option><option value="km">🌐 ខ្មែរ</option><option value="ja">🌐 日本語</option><option value="ko">🌐 한국어</option><option value="fa">🌐 فارسی</option><option value="tr">🌐 Türkçe</option><option value="he">🌐 עברית</option><option value="sw">🌐 Kiswahili</option><option value="de">🌐 Deutsch</option><option value="it">🌐 Italiano</option><option value="pt">🌐 Português</option><option value="ru">🌐 Русский</option><option value="pl">🌐 Polski</option><option value="nl">🌐 Nederlands</option></select><a href="/docs/ClassCurio_Teacher_Guide.docx" download class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4); margin-right: 6px;">📥 Word</a>
           <a href="/docs/ClassCurio_Teacher_Guide.pdf"  download class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4); margin-right: 6px;">📥 PDF</a>
           <button id="cc-ug-close" class="btn" style="background: rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4);">Close</button>
         </div>
@@ -5127,6 +5127,43 @@ function openUserGuide() {
   const close = () => { overlay.remove(); };
   document.getElementById('cc-ug-close').onclick = close;
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  // Restore last-chosen guide language + wire change handler.
+  const langSel = document.getElementById('cc-ug-lang');
+  if (langSel) {
+    try { langSel.value = localStorage.getItem('cc_ug_lang') || ''; } catch {}
+    if (langSel.value) _ccTranslateGuide(langSel.value);
+    langSel.onchange = () => {
+      try { localStorage.setItem('cc_ug_lang', langSel.value); } catch {}
+      _ccTranslateGuide(langSel.value);
+    };
+  }
+}
+
+async function _ccTranslateGuide(targetLang) {
+  const body = document.getElementById('cc-ug-body');
+  if (!body) return;
+  if (!targetLang) {
+    body.innerHTML = USER_GUIDE_HTML;
+    body.removeAttribute('dir');
+    return;
+  }
+  body.innerHTML = '<div style="text-align:center; color:#6b7280; padding:30px;">Translating User Guide… this takes ~10 seconds the first time.</div>';
+  try {
+    const r = await fetch('/api/translate-guide', {
+      method: 'POST', credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ targetLang: targetLang, html: USER_GUIDE_HTML }),
+    });
+    const data = await r.json();
+    if (!r.ok || !data.html) throw new Error((data && data.error) || 'Translation failed');
+    body.innerHTML = data.html;
+    if (['ar','he','fa','ur'].indexOf(targetLang) >= 0) body.setAttribute('dir', 'rtl');
+    else body.removeAttribute('dir');
+  } catch (e) {
+    body.innerHTML = USER_GUIDE_HTML;
+    body.removeAttribute('dir');
+    alert('Could not translate the guide: ' + (e.message || ''));
+  }
 }
 
 // Inline guide content — mirrors the DOCX/PDF available for download.
