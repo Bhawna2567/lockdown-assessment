@@ -2976,7 +2976,25 @@ async function openResults(id) {
         <tr>
           <td><button class="btn ghost" data-toggle="${detailsId}">▸</button></td>
           <td>${escapeHtml(r.studentName)}<div class="muted">${escapeHtml(r.studentEmail)}</div></td>
-          <td>${r.autoScore}/${r.autoMax}</td>
+          <td>${(() => {
+            // Include AI-graded essay scores (stored in manualGrades with aiGrade:true)
+            // so the dashboard shows the full auto-graded total, not just MC/TF.
+            let aiScore = 0, aiMax = 0;
+            const mg = r.manualGrades || {};
+            for (const k in mg) {
+              const g = mg[k];
+              if (g && g.aiGrade) {
+                aiScore += Number(g.score) || 0;
+                aiMax   += Number(g.maxScore) || 0;
+              }
+            }
+            const totalScore = (Number(r.autoScore) || 0) + aiScore;
+            const totalMax   = (Number(r.autoMax)   || 0) + aiMax;
+            const breakdown = aiMax > 0
+              ? `<div class=\"muted\" style=\"font-size:11px;\">MC/TF: ${r.autoScore}/${r.autoMax} · Essay: ${aiScore}/${aiMax}</div>`
+              : '';
+            return `<strong>${totalScore}/${totalMax}</strong>${breakdown}`;
+          })()}</td>
           <td>${vcount ? `<span class="badge red">${vcount}</span>` : '<span class="muted">—</span>'}</td>
           <td>${envBadge}</td>
           <td class="muted">${new Date(r.submittedAt).toLocaleString()}</td>
