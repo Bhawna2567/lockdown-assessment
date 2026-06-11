@@ -5763,3 +5763,113 @@ async function showMoveAssessmentModal(assessmentId) {
   };
 }
 
+// ── Folder modals (no browser prompts) + global click delegation ───────────
+function _ccOpenNewFolderModal(classId) {
+  if (document.getElementById('cc-newfolder-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-newfolder-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:460px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<h2 style="margin:0 0 14px; color:#1a1e33;">📁 New folder</h2>' +
+    '<div class="field"><label>Folder name</label><input type="text" id="cc-nf-name" placeholder="e.g. Reading · Writing · Old papers" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div>' +
+    '<div class="row" style="gap:10px;"><div class="field" style="flex:1;"><label>Year (optional)</label><input type="text" id="cc-nf-year" placeholder="2025-2026" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div>' +
+    '<div class="field" style="flex:1;"><label>Term (optional)</label><input type="text" id="cc-nf-term" placeholder="Term 1" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div></div>' +
+    '<div class="row" style="gap:10px; justify-content:flex-end; margin-top:14px;"><button class="btn" id="cc-nf-cancel">Cancel</button><button class="btn primary" id="cc-nf-save">Create folder</button></div></div>';
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('cc-nf-cancel').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  setTimeout(() => { try { document.getElementById('cc-nf-name').focus(); } catch {} }, 30);
+  document.getElementById('cc-nf-save').onclick = async () => {
+    const name = (document.getElementById('cc-nf-name').value || '').trim();
+    const year = (document.getElementById('cc-nf-year').value || '').trim();
+    const term = (document.getElementById('cc-nf-term').value || '').trim();
+    if (!name) { alert('Please enter a folder name.'); return; }
+    try {
+      const r = await fetch('/api/folders', { method: 'POST', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ classId, name, year, term }) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Failed');
+      close();
+      _ccFoldersCache = null;
+      await _ccRenderFolderBar();
+    } catch (e) { alert('Could not create: ' + e.message); }
+  };
+}
+
+function _ccOpenRenameFolderModal(folder) {
+  if (document.getElementById('cc-rf-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-rf-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  const escAttr = (s) => String(s || '').replace(/"/g, '&quot;');
+  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:460px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<h2 style="margin:0 0 14px; color:#1a1e33;">✎ Rename folder</h2>' +
+    '<div class="field"><label>Folder name</label><input type="text" id="cc-rf-name" value="' + escAttr(folder.name) + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div>' +
+    '<div class="row" style="gap:10px;"><div class="field" style="flex:1;"><label>Year</label><input type="text" id="cc-rf-year" value="' + escAttr(folder.year||'') + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div>' +
+    '<div class="field" style="flex:1;"><label>Term</label><input type="text" id="cc-rf-term" value="' + escAttr(folder.term||'') + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" /></div></div>' +
+    '<div class="row" style="gap:10px; justify-content:flex-end; margin-top:14px;"><button class="btn" id="cc-rf-cancel">Cancel</button><button class="btn primary" id="cc-rf-save">Save</button></div></div>';
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  document.getElementById('cc-rf-cancel').onclick = close;
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.getElementById('cc-rf-save').onclick = async () => {
+    const name = (document.getElementById('cc-rf-name').value || '').trim();
+    const year = (document.getElementById('cc-rf-year').value || '').trim();
+    const term = (document.getElementById('cc-rf-term').value || '').trim();
+    if (!name) { alert('Please enter a folder name.'); return; }
+    try {
+      const r = await fetch('/api/folders/' + folder.id, { method: 'PUT', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name, year, term }) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Failed');
+      close();
+      _ccFoldersCache = null;
+      await _ccRenderFolderBar();
+    } catch (e) { alert('Could not rename: ' + e.message); }
+  };
+}
+
+// Global click delegation — guarantees folder buttons work after any rerender.
+document.addEventListener('click', async (e) => {
+  const target = e.target && e.target.closest ? e.target.closest('button') : null;
+  if (!target) return;
+  if (target.id === 'cc-folder-new') {
+    e.preventDefault();
+    const cid = (typeof getActiveClassId === 'function') ? getActiveClassId() : '';
+    _ccOpenNewFolderModal(cid);
+    return;
+  }
+  if (target.hasAttribute('data-folder-chip')) {
+    const v = target.getAttribute('data-folder-chip');
+    _ccActiveFolderId = v === '' ? null : v;
+    try { _ccRenderFolderBar(); } catch {}
+    if (typeof render === 'function') render();
+    return;
+  }
+  if (target.hasAttribute('data-folder-rename')) {
+    e.preventDefault(); e.stopPropagation();
+    const id = target.getAttribute('data-folder-rename');
+    const f = (_ccFoldersCache || []).find((x) => x.id === id);
+    if (f) _ccOpenRenameFolderModal(f);
+    return;
+  }
+  if (target.hasAttribute('data-folder-del')) {
+    e.preventDefault(); e.stopPropagation();
+    const id = target.getAttribute('data-folder-del');
+    const f = (_ccFoldersCache || []).find((x) => x.id === id);
+    if (!f) return;
+    if (!confirm('Delete folder "' + f.name + '"? Assessments inside will move back to "All".')) return;
+    try {
+      await fetch('/api/folders/' + id, { method: 'DELETE', credentials: 'include' });
+      _ccFoldersCache = null;
+      if (_ccActiveFolderId === id) _ccActiveFolderId = null;
+      await _ccRenderFolderBar();
+      if (typeof render === 'function') render();
+    } catch (err) { alert('Delete failed'); }
+    return;
+  }
+});
+
