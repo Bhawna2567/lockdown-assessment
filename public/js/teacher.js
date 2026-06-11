@@ -5423,67 +5423,144 @@ const USER_GUIDE_HTML = `
 
 
 // ── Admin: 📅 Date-range user export modal ─────────────────────────────────
-function showDateRangeExportModal() {
-  if (document.getElementById('cc-range-overlay')) return;
+
+function showAdminReportsModal() {
+  if (document.getElementById('cc-reports-overlay')) return;
   const today = new Date();
-  const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
   const fmt = (d) => d.toISOString().slice(0, 10);
+  const thirty = new Date(today.getTime() - 30*24*60*60*1000);
   const overlay = document.createElement('div');
-  overlay.id = 'cc-range-overlay';
-  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding: 24px;';
-  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 480px; width: 92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
-    '<h2 style="margin: 0 0 6px; color:#1a1e33;">📅 Export users by date range</h2>' +
-    '<p class="muted" style="margin: 0 0 16px; font-size: 14px;">Download a CSV of teachers + students whose account was created between these dates (inclusive).</p>' +
-    '<div class="row" style="gap: 12px; align-items: center; margin-bottom: 12px;">' +
-      '<label style="flex:1;">' +
-        '<div style="font-size:13px; font-weight:600; color:#1a1e33; margin-bottom:4px;">From</div>' +
-        '<input type="date" id="cc-range-from" value="' + fmt(thirtyDaysAgo) + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" />' +
-      '</label>' +
-      '<label style="flex:1;">' +
-        '<div style="font-size:13px; font-weight:600; color:#1a1e33; margin-bottom:4px;">To</div>' +
-        '<input type="date" id="cc-range-to" value="' + fmt(today) + '" style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px;" />' +
-      '</label>' +
+  overlay.id = 'cc-reports-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:14px; padding:0; max-width:980px; width:100%; max-height:92vh; display:flex; flex-direction:column; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<div style="padding:14px 22px; border-bottom:1px solid #e5e7eb; background:linear-gradient(135deg,#1a1e33,#3b3a6b); color:#fff; border-radius:14px 14px 0 0;">' +
+      '<div class="row" style="gap:10px; align-items:center; flex-wrap:wrap;">' +
+        '<h2 style="margin:0; flex:1;">📊 Admin Reports</h2>' +
+        '<button class="btn" id="cc-rep-tab-t" style="background:#fde68a; color:#1a1e33; border:1px solid #c69214;">👨‍🏫 Teachers</button>' +
+        '<button class="btn" id="cc-rep-tab-s" style="background:rgba(255,255,255,0.18); color:#fff; border:1px solid rgba(255,255,255,0.4);">🎓 Students</button>' +
+        '<button class="btn" id="cc-rep-close" style="background:#dc2626; color:#fff; border:1px solid #fecaca;">✕ Close</button>' +
+      '</div>' +
+      '<div class="row" style="gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; color:#fff;">' +
+        '<label style="font-size:13px;">From</label><input type="date" id="cc-rep-from" value="' + fmt(thirty) + '" style="padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); background:rgba(255,255,255,0.95);" />' +
+        '<label style="font-size:13px;">To</label><input type="date" id="cc-rep-to" value="' + fmt(today) + '" style="padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); background:rgba(255,255,255,0.95);" />' +
+        '<button class="btn" data-preset="7"   style="padding:4px 10px; font-size:12px;">7d</button>' +
+        '<button class="btn" data-preset="30"  style="padding:4px 10px; font-size:12px;">30d</button>' +
+        '<button class="btn" data-preset="90"  style="padding:4px 10px; font-size:12px;">90d</button>' +
+        '<button class="btn" data-preset="365" style="padding:4px 10px; font-size:12px;">1yr</button>' +
+        '<button class="btn" data-preset="all" style="padding:4px 10px; font-size:12px;">All</button>' +
+        '<span style="flex:1;"></span>' +
+        '<button class="btn" id="cc-rep-dl-users" style="background:#16a34a; color:#fff; border:1px solid #86efac;">📥 Users CSV</button>' +
+        '<button class="btn" id="cc-rep-dl-logins" style="background:#2563eb; color:#fff; border:1px solid #93c5fd;">📥 Logins CSV</button>' +
+      '</div>' +
     '</div>' +
-    '<div class="row" style="gap:6px; flex-wrap:wrap; margin-bottom: 14px;">' +
-      '<button class="btn" data-preset="7"   style="padding:4px 10px; font-size:12px;">Last 7 days</button>' +
-      '<button class="btn" data-preset="30"  style="padding:4px 10px; font-size:12px;">Last 30 days</button>' +
-      '<button class="btn" data-preset="90"  style="padding:4px 10px; font-size:12px;">Last 90 days</button>' +
-      '<button class="btn" data-preset="365" style="padding:4px 10px; font-size:12px;">Last 365 days</button>' +
-      '<button class="btn" data-preset="all" style="padding:4px 10px; font-size:12px;">All time</button>' +
-    '</div>' +
-    '<div class="row" style="gap:10px; justify-content:flex-end;">' +
-      '<button class="btn" id="cc-range-close">Cancel</button>' +
-      '<button class="btn primary" id="cc-range-download">📥 Download CSV</button>' +
-    '</div>' +
+    '<div style="overflow-y:auto; padding:18px 22px;" id="cc-rep-body"><div class="muted">Loading…</div></div>' +
   '</div>';
   document.body.appendChild(overlay);
-  const close = () => overlay.remove();
-  document.getElementById('cc-range-close').onclick = close;
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  document.getElementById('cc-rep-close').onclick = () => overlay.remove();
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  let activeRole = 'teacher';
+  function setTab(role) {
+    activeRole = role;
+    const t = document.getElementById('cc-rep-tab-t');
+    const s = document.getElementById('cc-rep-tab-s');
+    if (role === 'teacher') {
+      t.style.background = '#fde68a'; t.style.color = '#1a1e33';
+      s.style.background = 'rgba(255,255,255,0.18)'; s.style.color = '#fff';
+    } else {
+      s.style.background = '#fde68a'; s.style.color = '#1a1e33';
+      t.style.background = 'rgba(255,255,255,0.18)'; t.style.color = '#fff';
+    }
+    refresh();
+  }
+  document.getElementById('cc-rep-tab-t').onclick = () => setTab('teacher');
+  document.getElementById('cc-rep-tab-s').onclick = () => setTab('student');
+
+  // Date preset chips
   overlay.querySelectorAll('[data-preset]').forEach((b) => {
     b.onclick = () => {
       const v = b.getAttribute('data-preset');
       if (v === 'all') {
-        document.getElementById('cc-range-from').value = '';
-        document.getElementById('cc-range-to').value = '';
+        document.getElementById('cc-rep-from').value = '';
+        document.getElementById('cc-rep-to').value = '';
       } else {
         const days = Number(v);
-        const fromD = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
-        document.getElementById('cc-range-from').value = fmt(fromD);
-        document.getElementById('cc-range-to').value   = fmt(today);
+        document.getElementById('cc-rep-from').value = fmt(new Date(today.getTime() - days*24*60*60*1000));
+        document.getElementById('cc-rep-to').value   = fmt(today);
       }
+      refresh();
     };
   });
-  document.getElementById('cc-range-download').onclick = () => {
-    const fr = document.getElementById('cc-range-from').value;
-    const to = document.getElementById('cc-range-to').value;
+  document.getElementById('cc-rep-from').onchange = refresh;
+  document.getElementById('cc-rep-to').onchange = refresh;
+
+  function buildQs() {
+    const fr = document.getElementById('cc-rep-from').value;
+    const to = document.getElementById('cc-rep-to').value;
     const qs = new URLSearchParams();
+    qs.set('role', activeRole);
     if (fr) qs.set('from', fr);
     if (to) qs.set('to', to);
-    window.location.href = '/api/admin/users-export' + (qs.toString() ? ('?' + qs.toString()) : '');
-    close();
+    return qs.toString();
+  }
+
+  document.getElementById('cc-rep-dl-users').onclick = () => {
+    window.location.href = '/api/admin/users-export?' + buildQs();
   };
+  document.getElementById('cc-rep-dl-logins').onclick = () => {
+    window.location.href = '/api/admin/logins-export?' + buildQs();
+  };
+
+  async function refresh() {
+    const body = document.getElementById('cc-rep-body');
+    body.innerHTML = '<div class="muted">Loading…</div>';
+    try {
+      const qs = buildQs();
+      const [uRes, lRes] = await Promise.all([
+        fetch('/api/admin/users?' + qs, { credentials: 'include' }).then((r) => r.json()),
+        fetch('/api/admin/logins?' + qs, { credentials: 'include' }).then((r) => r.json()),
+      ]);
+      const users = (uRes && uRes.users) || [];
+      const logins = (lRes && lRes.logins) || [];
+      const dailyCounts = (lRes && lRes.dailyCounts) || [];
+      const totalLogins = (lRes && lRes.totalCount) || 0;
+      const roleLabel = activeRole === 'teacher' ? 'teachers' : 'students';
+
+      body.innerHTML =
+        '<div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">' +
+          '<div style="flex:1; min-width:160px; background:#f1f5f9; border-radius:10px; padding:14px;"><div style="font-size:12px; color:#475569;">Total ' + roleLabel + '</div><div style="font-size:28px; font-weight:800; color:#1a1e33;">' + users.length + '</div></div>' +
+          '<div style="flex:1; min-width:160px; background:#f1f5f9; border-radius:10px; padding:14px;"><div style="font-size:12px; color:#475569;">Logins in range</div><div style="font-size:28px; font-weight:800; color:#1a1e33;">' + totalLogins + '</div></div>' +
+          '<div style="flex:1; min-width:160px; background:#f1f5f9; border-radius:10px; padding:14px;"><div style="font-size:12px; color:#475569;">Active days</div><div style="font-size:28px; font-weight:800; color:#1a1e33;">' + dailyCounts.length + '</div></div>' +
+        '</div>' +
+        '<h3 style="margin:0 0 8px; color:#1a1e33;">📅 Logins by day</h3>' +
+        (dailyCounts.length === 0
+          ? '<div class="muted" style="padding:10px;">No logins in this date range.</div>'
+          : '<table style="width:100%; border-collapse:collapse; margin-bottom:18px;"><thead style="background:#f1f5f9;"><tr><th style="text-align:left; padding:8px 12px;">Date</th><th style="text-align:right; padding:8px 12px;">Logins</th></tr></thead><tbody>' +
+            dailyCounts.map((d) => '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:6px 12px;">' + d.date + '</td><td style="padding:6px 12px; text-align:right; font-weight:600;">' + d.count + '</td></tr>').join('') +
+            '</tbody></table>') +
+        '<h3 style="margin:14px 0 8px; color:#1a1e33;">👥 ' + roleLabel.replace(/^./, (c) => c.toUpperCase()) + ' (' + users.length + ')</h3>' +
+        (users.length === 0
+          ? '<div class="muted" style="padding:10px;">No ' + roleLabel + ' match the filter.</div>'
+          : '<table style="width:100%; border-collapse:collapse; margin-bottom:18px;"><thead style="background:#f1f5f9;"><tr><th style="text-align:left; padding:8px 12px;">Name</th><th style="text-align:left; padding:8px 12px;">Email</th><th style="text-align:left; padding:8px 12px;">Created</th><th style="text-align:left; padding:8px 12px;">Status</th></tr></thead><tbody>' +
+            users.slice(0, 500).map((u) => '<tr style="border-top:1px solid #e5e7eb;' + (u.blocked ? ' background:#fef2f2;' : '') + '"><td style="padding:6px 12px;">' + (u.name||'') + '</td><td style="padding:6px 12px; color:#475569;">' + (u.email||'') + '</td><td style="padding:6px 12px;">' + ((u.createdAt||'').slice(0,10) || '—') + '</td><td style="padding:6px 12px;">' + (u.blocked ? '<span style="color:#b91c1c; font-weight:700;">🚫 Blocked</span>' : '<span style="color:#16a34a;">✓ Active</span>') + '</td></tr>').join('') +
+            '</tbody></table>' +
+            (users.length > 500 ? '<div class="muted" style="font-size:12px;">Showing first 500 — download CSV for the full list.</div>' : '')) +
+        '<h3 style="margin:14px 0 8px; color:#1a1e33;">🕒 Recent logins</h3>' +
+        (logins.length === 0
+          ? '<div class="muted" style="padding:10px;">No logins recorded in this date range.</div>'
+          : '<table style="width:100%; border-collapse:collapse;"><thead style="background:#f1f5f9;"><tr><th style="text-align:left; padding:8px 12px;">When</th><th style="text-align:left; padding:8px 12px;">Name</th><th style="text-align:left; padding:8px 12px;">Email</th></tr></thead><tbody>' +
+            logins.slice(0, 200).map((g) => '<tr style="border-top:1px solid #e5e7eb;"><td style="padding:6px 12px; color:#475569;">' + (g.at||'').replace('T', ' ').slice(0, 19) + '</td><td style="padding:6px 12px;">' + (g.name||'') + '</td><td style="padding:6px 12px; color:#475569;">' + (g.email||'') + '</td></tr>').join('') +
+            '</tbody></table>' +
+            (logins.length > 200 ? '<div class="muted" style="font-size:12px;">Showing first 200 most-recent — download CSV for the full list.</div>' : ''));
+    } catch (e) {
+      body.innerHTML = '<div style="color:#dc2626;">❌ Could not load: ' + (e.message || '') + '</div>';
+    }
+  }
+  setTab('teacher');
 }
+
+// Keep the existing menu wiring alive — re-point to the new modal.
+function showDateRangeExportModal() { showAdminReportsModal(); }
 
 // Attach the modal opener to the menu item, no matter when the DOM loads.
 // Use both DOMContentLoaded and a delayed retry — the admin-menu wrap can be

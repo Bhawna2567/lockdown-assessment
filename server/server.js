@@ -172,6 +172,21 @@ app.post('/api/login', async (req, res) => {
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
   if (user.blocked) return res.status(403).json({ error: 'Your account has been suspended. Contact your school administrator.' });
   req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role };
+  // Log this sign-in for the admin reports.
+  try {
+    const logins = readAll('logins.json');
+    logins.push({
+      id: uuidv4(),
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      at: new Date().toISOString(),
+    });
+    // Trim if the file grows past 50k entries (safety guard).
+    if (logins.length > 50000) logins.splice(0, logins.length - 50000);
+    writeAll('logins.json', logins);
+  } catch {}
   res.json({ user: req.session.user });
 });
 
@@ -2167,6 +2182,71 @@ app.post('/api/listening/generate-script', requireTeacher, async (req, res) => {
 // Multiple admin emails — either one has access to the user-export endpoints.
 const ADMIN_EMAILS = ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
 const ADMIN_EMAIL  = ADMIN_EMAILS[0]; // kept for backward compatibility
+
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin-only: login reports + CSV export
+// ───────────────────────────────────────────────────────────────────────────
+function _ccParseRange(from, to) {
+  const rawFrom = String(from || '').trim();
+  const rawTo   = String(to   || '').trim();
+  const fromMs  = rawFrom && /^\d{4}-\d{2}-\d{2}$/.test(rawFrom) ? Date.parse(rawFrom + 'T00:00:00.000Z') : null;
+  const toMs    = rawTo   && /^\d{4}-\d{2}-\d{2}$/.test(rawTo)   ? Date.parse(rawTo   + 'T23:59:59.999Z') : null;
+  return { fromMs, toMs };
+}
+function _ccFilterLogins(logins, { role, fromMs, toMs }) {
+  return logins.filter((g) => {
+    if (role && g.role !== role) return false;
+    const t = g.at ? Date.parse(g.at) : 0;
+    if (fromMs && t < fromMs) return false;
+    if (toMs   && t > toMs)   return false;
+    return true;
+  });
+}
+app.get('/api/admin/logins', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const { fromMs, toMs } = _ccParseRange(req.query.from, req.query.to);
+  const role = req.query.role === 'teacher' || req.query.role === 'student' ? req.query.role : null;
+  const all = readAll('logins.json');
+  const filtered = _ccFilterLogins(all, { role, fromMs, toMs }).sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  // Daily summary for chart/table.
+  const byDay = {};
+  for (const g of filtered) {
+    const day = (g.at || '').slice(0, 10);
+    if (!day) continue;
+    byDay[day] = (byDay[day] || 0) + 1;
+  }
+  res.json({
+    logins: filtered.slice(0, 5000),
+    totalCount: filtered.length,
+    dailyCounts: Object.entries(byDay).sort().map(([date, count]) => ({ date, count })),
+  });
+});
+app.get('/api/admin/logins-export', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const { fromMs, toMs } = _ccParseRange(req.query.from, req.query.to);
+  const role = req.query.role === 'teacher' || req.query.role === 'student' ? req.query.role : null;
+  const filtered = _ccFilterLogins(readAll('logins.json'), { role, fromMs, toMs })
+    .sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  const esc = (v) => {
+    const s = String(v == null ? '' : v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const header = ['role','name','email','login_date','login_time_utc'];
+  const lines = [header.join(',')];
+  for (const g of filtered) {
+    const at = g.at || '';
+    lines.push([
+      esc(g.role), esc(g.name), esc(g.email),
+      esc(at.slice(0, 10)),
+      esc(at.slice(11, 19)),
+    ].join(','));
+  }
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="logins_${role || 'all'}.csv"`);
+  res.send(lines.join('\n') + '\n');
+});
+// Extend existing /api/admin/users to accept ?role= filter.
+
 app.get('/api/admin/users-export', requireTeacher, (req, res) => {
   if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
     return res.status(403).json({ error: 'Forbidden — admin only.' });
@@ -2385,10 +2465,21 @@ function _ccIsAdminReq(req) {
 }
 app.get('/api/admin/users', requireTeacher, (req, res) => {
   if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
-  const users = readAll('users.json').map((u) => ({
+  const { fromMs, toMs } = _ccParseRange(req.query.from, req.query.to);
+  const role = req.query.role === 'teacher' || req.query.role === 'student' ? req.query.role : null;
+  let users = readAll('users.json').map((u) => ({
     id: u.id, name: u.name, email: u.email, role: u.role,
     createdAt: u.createdAt || null, blocked: !!u.blocked,
   }));
+  if (role) users = users.filter((u) => u.role === role);
+  if (fromMs || toMs) {
+    users = users.filter((u) => {
+      const t = u.createdAt ? Date.parse(u.createdAt) : 0;
+      if (fromMs && t < fromMs) return false;
+      if (toMs   && t > toMs)   return false;
+      return true;
+    });
+  }
   // Teachers first, then students, alpha-sorted by name within each role.
   users.sort((a, b) => {
     const ra = a.role === 'teacher' ? 0 : 1;
