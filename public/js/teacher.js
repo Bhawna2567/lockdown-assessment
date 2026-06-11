@@ -5645,7 +5645,8 @@ async function _ccRenderFolderBar() {
   const countIn = (fid) => all.filter((a) => (a.classId === activeClass) && (fid === null ? !a.folderId : a.folderId === fid)).length;
   const chip = (label, fid, active) => '<button class="btn" data-folder-chip="' + (fid || '') + '" style="margin:3px; ' + (active ? 'background:#4338ca; color:#fff; border-color:#4338ca;' : '') + '">' + label + ' <span style="font-size:11px; opacity:.7;">(' + countIn(fid) + ')</span></button>';
   host.innerHTML = '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><strong style="margin-right:6px;">📁 Folders:</strong>' +
-    chip('All', null, _ccActiveFolderId === null) +
+    '<button class="btn" data-folder-chip="__ALL__" style="margin:3px; ' + (_ccActiveFolderId === '__ALL__' ? 'background:#4338ca; color:#fff; border-color:#4338ca;' : '') + '">🗂 Everything <span style="font-size:11px; opacity:.7;">(' + all.filter((a) => a.classId === activeClass).length + ')</span></button>' +
+    chip('📥 Unfiled', null, _ccActiveFolderId === null) +
     mine.map((f) => {
       const label = f.name + (f.year ? ' · ' + f.year : '') + (f.term ? ' · ' + f.term : '');
       return '<span style="display:inline-flex; align-items:center;">' + chip(label, f.id, _ccActiveFolderId === f.id) +
@@ -5703,7 +5704,10 @@ async function _ccRenderFolderBar() {
 }
 
 function _ccFilterByFolder(list) {
-  if (_ccActiveFolderId === null) return list;
+  // "🗂 Everything" chip shows the entire list. "📥 Unfiled" shows
+  // only assessments not in any folder. Folder chip shows that folder.
+  if (_ccActiveFolderId === '__ALL__') return list;
+  if (_ccActiveFolderId === null) return list.filter((a) => !a.folderId);
   return list.filter((a) => a.folderId === _ccActiveFolderId);
 }
 
