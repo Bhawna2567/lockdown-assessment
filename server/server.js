@@ -2482,6 +2482,21 @@ function _ccIsCreditError(status, text) {
       lower.includes('over your monthly limit')) return true;
   return false;
 }
+
+async function _ccAnthropicFetch(url, init) {
+  const r = await fetch(url, init);
+  try {
+    if (r.ok) {
+      _ccClearApiCreditWarning();
+    } else {
+      let errText = '';
+      try { errText = await r.clone().text(); } catch {}
+      if (_ccIsCreditError(r.status, errText)) _ccRecordApiCreditWarning(r.status, errText);
+    }
+  } catch {}
+  return r;
+}
+
 app.get('/api/admin/api-status', requireTeacher, (req, res) => {
   if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
   const cfg = _ccReadConfig();
