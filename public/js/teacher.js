@@ -6031,3 +6031,37 @@ if (els.skill)   els.skill  .addEventListener('change', _ccApplyConditionalPanel
 // Run once on script load (in case the builder is already open).
 setTimeout(_ccApplyConditionalPanels, 100);
 
+// CC: Tools dropdown — open/close + close-on-outside-click + mirror the
+// Grade-essays badge onto the parent button so the count is visible.
+(function setupToolsDropdown() {
+  const toggle = document.getElementById('tools-menu-toggle');
+  const menu   = document.getElementById('tools-menu-dropdown');
+  const wrap   = document.getElementById('tools-menu-wrap');
+  if (!toggle || !menu) return;
+  toggle.onclick = (e) => {
+    e.stopPropagation();
+    menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+  };
+  document.addEventListener('click', (e) => {
+    if (!wrap.contains(e.target)) menu.style.display = 'none';
+  });
+  // Close after picking any item in the menu.
+  menu.querySelectorAll('button').forEach((b) => {
+    b.addEventListener('click', () => { menu.style.display = 'none'; });
+  });
+  // Mirror the queue badge onto the dropdown button so it's visible even
+  // when the menu is closed.
+  const inner = document.getElementById('queue-count');
+  const pill  = document.getElementById('queue-count-pill');
+  if (inner && pill) {
+    const mirror = () => {
+      const txt = (inner.textContent || '').trim();
+      const visible = txt && inner.style.display !== 'none';
+      pill.textContent = txt;
+      pill.style.display = visible ? '' : 'none';
+    };
+    new MutationObserver(mirror).observe(inner, { childList: true, characterData: true, attributes: true, subtree: true });
+    setTimeout(mirror, 300);
+  }
+})();
+

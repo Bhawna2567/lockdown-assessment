@@ -1384,3 +1384,10 @@ body.cc-builder-open #builder-save-row { display: flex !important; }
   20%, 40%, 60% { transform: rotate(12deg); }
   70% { transform: rotate(0deg); }
 }
+
+
+/* CC: hover for items inside the Tools dropdown */
+#tools-menu-dropdown .btn:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
