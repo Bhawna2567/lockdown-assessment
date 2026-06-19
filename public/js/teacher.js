@@ -6067,3 +6067,42 @@ setTimeout(_ccApplyConditionalPanels, 100);
   }
 })();
 
+// CC: bulk-select toolbar on the Essay Grading Queue.
+function _ccWireEssayQueueBulk(queue) {
+  const all   = document.querySelectorAll('.cc-queue-check');
+  const selAll = document.getElementById('cc-queue-selectall');
+  const count  = document.getElementById('cc-queue-selcount');
+  const delBtn = document.getElementById('cc-queue-delete');
+  if (!selAll || !delBtn) return;
+  function refresh() {
+    const checked = Array.from(all).filter((c) => c.checked);
+    count.textContent = checked.length ? (checked.length + ' selected') : '';
+    delBtn.disabled = checked.length === 0;
+    delBtn.style.opacity = checked.length === 0 ? '0.5' : '1';
+  }
+  selAll.onchange = () => { all.forEach((c) => { c.checked = selAll.checked; }); refresh(); };
+  all.forEach((c) => c.onchange = () => { if (!c.checked) selAll.checked = false; refresh(); });
+  delBtn.onclick = async () => {
+    const checked = Array.from(all).filter((c) => c.checked);
+    if (!checked.length) return;
+    if (!confirm('Delete (dismiss) ' + checked.length + ' essay(s) from the grading queue? The submission is kept but these entries will no longer appear here.')) return;
+    delBtn.disabled = true; delBtn.textContent = 'Deleting…';
+    const items = checked.map((c) => ({
+      resultId: c.getAttribute('data-result-id'),
+      questionId: c.getAttribute('data-question-id'),
+    }));
+    try {
+      const r = await fetch('/api/essay-queue/dismiss', { method: 'POST', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ items }) });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Failed');
+      openEssayQueue();
+    } catch (e) {
+      alert('Delete failed: ' + e.message);
+      delBtn.disabled = false; delBtn.textContent = '🗑 Delete selected';
+    }
+  };
+  refresh();
+}
+

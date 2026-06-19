@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1781859851" />
+  <link rel="stylesheet" href="/css/styles.css?v=1781860654" />
   <script>
     // Register service worker so the app is installable on Chrome / Edge / Android.
     // Service workers only run over HTTPS or localhost, which Render provides.
@@ -53,6 +53,11 @@
         </div>
         <div style="text-align: right; margin: -8px 0 12px;">
           <a href="#" id="forgot-link" style="font-size: 13px; color: #4f46e5; text-decoration: underline;">Forgot password?</a>
+        </div>
+        <div class="row" style="align-items:center; gap:6px; margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; cursor:pointer;">
+            <input type="checkbox" id="remember-me" checked /> Remember me on this device
+          </label>
         </div>
         <button class="btn primary" type="submit">Sign in</button>
       </form>
@@ -392,6 +397,47 @@ if (forgotUse) {
 
   // Hide the button once installed.
   window.addEventListener('appinstalled', () => { btn.style.display = 'none'; });
+})();
+</script>
+
+
+
+<script>
+// CC: Remember me — save email (always) and password (only if Remember Me
+// is checked) in localStorage, then auto-fill on next visit. Note: storing
+// password in localStorage is a convenience for shared school devices
+// teachers explicitly opted into via the checkbox.
+(function setupRememberMe() {
+  const loginForm = document.getElementById('login-form');
+  if (!loginForm) return;
+  const emailInput = loginForm.querySelector('input[name="email"]');
+  const passInput  = loginForm.querySelector('input[name="password"]');
+  const remember   = document.getElementById('remember-me');
+  // Restore.
+  try {
+    const savedEmail = localStorage.getItem('cc_remembered_email') || '';
+    const savedPass  = localStorage.getItem('cc_remembered_pass')  || '';
+    const wasRemembered = localStorage.getItem('cc_remembered_flag') === '1';
+    if (savedEmail) emailInput.value = savedEmail;
+    if (savedPass)  passInput.value  = savedPass;
+    if (remember) remember.checked = wasRemembered || !savedPass; // default = checked
+  } catch {}
+  // Save on submit.
+  loginForm.addEventListener('submit', () => {
+    try {
+      const e = emailInput.value || '';
+      const p = passInput.value || '';
+      const rem = remember && remember.checked;
+      localStorage.setItem('cc_remembered_email', e);
+      if (rem) {
+        localStorage.setItem('cc_remembered_pass', p);
+        localStorage.setItem('cc_remembered_flag', '1');
+      } else {
+        localStorage.removeItem('cc_remembered_pass');
+        localStorage.removeItem('cc_remembered_flag');
+      }
+    } catch {}
+  });
 })();
 </script>
 
