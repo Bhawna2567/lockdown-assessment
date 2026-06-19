@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1781860654" />
+  <link rel="stylesheet" href="/css/styles.css?v=1781861456" />
   <script>
     // Register service worker so the app is installable on Chrome / Edge / Android.
     // Service workers only run over HTTPS or localhost, which Render provides.
@@ -306,70 +306,58 @@ if (forgotUse) {
 
 
 <script>
-// CC: PWA install handling — supports desktop Chrome/Edge, Android Chrome
-// (beforeinstallprompt) and iOS Safari (instructions modal because iOS
-// doesn't expose a programmatic install prompt).
-(function() {
+// CC: PWA install — listen for beforeinstallprompt as early as possible
+// so the Install button can do a true one-click install on Chrome / Edge /
+// Brave / Android. iOS Safari still needs the Add-to-Home-Screen flow
+// because Apple doesn't expose a programmatic prompt.
+window.__ccDeferredInstall = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window.__ccDeferredInstall = e;
+  const btn = document.getElementById('install-app-btn');
+  if (btn) {
+    btn.style.display = '';
+    btn.textContent = '📥 Install ClassCurio';
+    btn.removeAttribute('data-fallback');
+  }
+});
+
+(function setupInstallButton() {
   const btn = document.getElementById('install-app-btn');
   if (!btn) return;
-  let deferredPrompt = null;
-  // Already installed? Hide the button if running standalone.
+  // Hide if already installed.
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if (isStandalone) { btn.style.display = 'none'; return; }
 
-  // Detect iOS (Safari) — needs manual instructions because no install prompt.
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isMacOS = /Mac/.test(navigator.platform) && !('ontouchend' in document);
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/.test(navigator.userAgent);
+  const isMacOSSafari = /Mac/.test(navigator.platform) && /^((?!chrome|android|edg).)*safari/i.test(navigator.userAgent);
 
-  // Chrome/Edge/Android fire this event when the app is installable.
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    btn.style.display = '';
-  });
+  // Show the button. If beforeinstallprompt fires later we relabel it.
+  btn.style.display = '';
+  if (isIOS) { btn.textContent = '📥 Install on iPhone / iPad'; btn.setAttribute('data-fallback', 'ios'); }
+  else if (isMacOSSafari) { btn.textContent = '📥 Install instructions'; btn.setAttribute('data-fallback', 'mac-safari'); }
+  else { btn.textContent = '📥 Install ClassCurio'; }
 
-  // iOS / Safari / browsers that don't fire the event → show button anyway
-  // so we can guide the user.
-  if (isIOS) { btn.style.display = ''; }
-  // On Mac/desktop where Chrome may not fire the event quickly, still show
-  // the button after a short delay so users can find install instructions.
-  setTimeout(() => {
-    if (!deferredPrompt && !isIOS) {
-      btn.style.display = '';
-    }
-  }, 1500);
-
-  function showInstructions() {
+  function showInstructions(kind) {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:24px;';
     let body = '';
-    if (isIOS) {
-      body =
-        '<h2 style="margin:0 0 10px; color:#1a1e33;">📱 Install on iPhone / iPad</h2>' +
+    if (kind === 'ios') {
+      body = '<h2 style="margin:0 0 10px; color:#1a1e33;">📱 Install on iPhone / iPad</h2>' +
         '<ol style="padding-left:20px; color:#1a1e33; line-height:1.6;">' +
           '<li>Tap the <strong>Share</strong> button at the bottom of Safari (the square with the up-arrow ⬆).</li>' +
           '<li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>' +
           '<li>Tap <strong>Add</strong>. ClassCurio appears as an app icon on your home screen.</li>' +
-        '</ol>';
-    } else if (isMacOS) {
-      body =
-        '<h2 style="margin:0 0 10px; color:#1a1e33;">💻 Install on Mac</h2>' +
-        '<ol style="padding-left:20px; color:#1a1e33; line-height:1.6;">' +
-          '<li>Make sure you are using <strong>Chrome</strong> or <strong>Edge</strong> (Safari doesn\'t support web app install on Mac).</li>' +
-          '<li>Look at the right side of the address bar — click the <strong>Install</strong> icon (⊞ or ⤓).</li>' +
-          '<li>Or: click the ⋯ menu → <strong>Install ClassCurio…</strong>.</li>' +
-          '<li>The app opens in its own window and appears in Launchpad / Applications.</li>' +
-        '</ol>';
+        '</ol>' +
+        '<div class="muted" style="font-size:13px; margin-top:10px;">Apple doesn\'t allow apps to install themselves on iOS — these three taps are unavoidable.</div>';
     } else {
-      body =
-        '<h2 style="margin:0 0 10px; color:#1a1e33;">💻 Install on Windows / Android</h2>' +
-        '<ol style="padding-left:20px; color:#1a1e33; line-height:1.6;">' +
-          '<li>Make sure you are using <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Brave</strong>.</li>' +
-          '<li>Click the <strong>Install</strong> icon (⊞) at the right end of the address bar — or open the ⋯ menu → <strong>Install ClassCurio</strong>.</li>' +
-          '<li>On Android: tap <strong>Add to Home screen</strong> from the menu.</li>' +
-          '<li>The app appears with its own icon on your desktop / home screen.</li>' +
-        '</ol>';
+      body = '<h2 style="margin:0 0 10px; color:#1a1e33;">💻 Install on this device</h2>' +
+        '<p style="color:#1a1e33;">This browser doesn\'t support one-click PWA install. To install ClassCurio:</p>' +
+        '<ul style="padding-left:20px; color:#1a1e33; line-height:1.6;">' +
+          '<li><strong>Mac:</strong> open this page in <strong>Chrome</strong> or <strong>Edge</strong>, then click the install icon (⊞) in the address bar.</li>' +
+          '<li><strong>Windows:</strong> open in Chrome / Edge, click the install icon (⊞) in the address bar.</li>' +
+          '<li><strong>Android:</strong> Chrome menu (⋮) → <strong>Install app</strong>.</li>' +
+        '</ul>';
     }
     overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:480px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
       body +
@@ -380,22 +368,23 @@ if (forgotUse) {
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
   }
 
-  btn.onclick = async () => {
-    if (deferredPrompt) {
+  btn.onclick = async (e) => {
+    e.preventDefault();
+    if (window.__ccDeferredInstall) {
+      // One-click install on Chrome/Edge/Android.
       try {
-        deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice && choice.outcome === 'accepted') {
-          btn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } catch (e) { showInstructions(); }
+        window.__ccDeferredInstall.prompt();
+        const choice = await window.__ccDeferredInstall.userChoice;
+        window.__ccDeferredInstall = null;
+        if (choice && choice.outcome === 'accepted') btn.style.display = 'none';
+      } catch (err) {
+        showInstructions(btn.getAttribute('data-fallback') === 'ios' ? 'ios' : 'desktop');
+      }
     } else {
-      showInstructions();
+      showInstructions(btn.getAttribute('data-fallback') === 'ios' ? 'ios' : 'desktop');
     }
   };
 
-  // Hide the button once installed.
   window.addEventListener('appinstalled', () => { btn.style.display = 'none'; });
 })();
 </script>
