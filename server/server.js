@@ -3592,6 +3592,7 @@ app.get('/api/essay-queue', requireTeacher, (req, res) => {
       // Show items that are unscored OR scored only by AI (teacher review).
       // Hide once a human teacher has saved a grade (no aiGrade flag).
       if (grade && !grade.aiGrade) continue;
+      if (grade && grade.dismissed) continue; // teacher dismissed this entry
       const ans = (r.answers || []).find((x) => x.questionId === q.id);
       queue.push({
         resultId: r.id,
@@ -3617,6 +3618,35 @@ app.get('/api/essay-queue', requireTeacher, (req, res) => {
   }
   queue.sort((x, y) => (x.submittedAt || '').localeCompare(y.submittedAt || ''));
   res.json({ queue });
+});
+
+
+// Dismiss one or more essay-queue entries so they no longer appear in the
+// queue. Stores a `dismissed:true` flag on r.manualGrades[qid] so the
+// submission stays intact and can be restored if needed.
+app.post('/api/essay-queue/dismiss', requireTeacher, (req, res) => {
+  const items = Array.isArray(req.body && req.body.items) ? req.body.items : [];
+  if (!items.length) return res.status(400).json({ error: 'No items provided' });
+  const results = readAll('results.json');
+  const assessments = readAll('assessments.json');
+  const ownership = new Map(assessments.map((a) => [a.id, a.teacherId]));
+  let dismissed = 0;
+  for (const it of items) {
+    if (!it || !it.resultId || !it.questionId) continue;
+    const r = results.find((x) => x.id === it.resultId);
+    if (!r) continue;
+    if (ownership.get(r.assessmentId) !== req.session.user.id) continue;
+    r.manualGrades = r.manualGrades || {};
+    const existing = r.manualGrades[it.questionId] || {};
+    r.manualGrades[it.questionId] = {
+      ...existing,
+      dismissed: true,
+      dismissedAt: new Date().toISOString(),
+    };
+    dismissed += 1;
+  }
+  if (dismissed) writeAll('results.json', results);
+  res.json({ ok: true, dismissed });
 });
 
 // ---------- Cross-assessment student reports (Phase 2) ----------

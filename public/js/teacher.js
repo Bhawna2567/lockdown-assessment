@@ -3724,8 +3724,16 @@ async function openEssayQueue() {
       els.queueBody.innerHTML = '<div class="panel muted">No essays waiting for review. Nice work.</div>';
       return;
     }
-    els.queueBody.innerHTML = queue.map((item) => renderQueueItem(item)).join('');
+    els.queueBody.innerHTML =
+      '<div id="cc-queue-bulk" style="margin-bottom: 12px; padding: 10px 14px; background:#f1f5f9; border-radius:10px; display:flex; align-items:center; gap:10px;">' +
+        '<label style="font-weight:600; color:#1a1e33;"><input type="checkbox" id="cc-queue-selectall" /> Select all</label>' +
+        '<span class="muted" id="cc-queue-selcount" style="font-size:13px;"></span>' +
+        '<div style="flex:1;"></div>' +
+        '<button class="btn danger" id="cc-queue-delete" disabled style="opacity:0.5;">🗑 Delete selected</button>' +
+      '</div>' +
+      queue.map((item) => renderQueueItem(item)).join('');
     queue.forEach((item) => wireQueueItem(item));
+    _ccWireEssayQueueBulk(queue);
   } catch (e) {
     els.queueBody.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`;
   }
@@ -3760,8 +3768,9 @@ function renderQueueItem(item) {
   const initialFeedback = ai ? String(ai.feedback || '') : '';
 
   return `
-    <div class="panel" id="${rowId}">
-      <div class="row" style="margin-bottom: 6px;">
+    <div class="panel" id="${rowId}" data-result-id="${item.resultId}" data-question-id="${item.questionId}">
+      <div class="row" style="margin-bottom: 6px; align-items:center;">
+        <input type="checkbox" class="cc-queue-check" data-result-id="${item.resultId}" data-question-id="${item.questionId}" style="width:18px; height:18px; cursor:pointer;" />
         <strong>${escapeHtml(item.assessmentTitle)}</strong>
         <span class="badge">${typeLabel}</span>
         <span class="badge">${item.questionPoints} pt</span>
