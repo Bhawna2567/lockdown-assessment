@@ -5781,64 +5781,57 @@ async function _ccRenderFolderBar() {
   const mine = folders.filter((f) => f.classId === activeClass);
   const all = (typeof allAssessments !== 'undefined') ? (allAssessments || []) : [];
   const countIn = (fid) => all.filter((a) => (a.classId === activeClass) && (fid === null ? !a.folderId : a.folderId === fid)).length;
-  const chip = (label, fid, active) => '<button class="btn" data-folder-chip="' + (fid || '') + '" style="margin:3px; ' + (active ? 'background:#4338ca; color:#fff; border-color:#4338ca;' : '') + '">' + label + ' <span style="font-size:11px; opacity:.7;">(' + countIn(fid) + ')</span></button>';
-  host.innerHTML = '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><strong style="margin-right:6px;">📁 Folders:</strong>' +
-    '<button class="btn" data-folder-chip="__ALL__" style="margin:3px; ' + (_ccActiveFolderId === '__ALL__' ? 'background:#4338ca; color:#fff; border-color:#4338ca;' : '') + '">🗂 Everything <span style="font-size:11px; opacity:.7;">(' + all.filter((a) => a.classId === activeClass).length + ')</span></button>' +
-    chip('📥 Unfiled', null, _ccActiveFolderId === null) +
-    mine.map((f) => {
-      const label = f.name + (f.year ? ' · ' + f.year : '') + (f.term ? ' · ' + f.term : '');
-      return '<span style="display:inline-flex; align-items:center;">' + chip(label, f.id, _ccActiveFolderId === f.id) +
-        '<span style="margin-left:4px;"><button class="btn" data-folder-rename="' + f.id + '" title="Rename" style="padding:2px 6px; font-size:11px;">✎</button>' +
-        '<button class="btn danger" data-folder-del="' + f.id + '" title="Delete" style="padding:2px 6px; font-size:11px;">✕</button></span></span>';
-    }).join('') +
-    '<span style="flex:1;"></span><button class="btn primary" id="cc-folder-new" style="background:#4338ca;">+ New folder</button></div>';
-  host.querySelectorAll('[data-folder-chip]').forEach((b) => {
-    b.onclick = () => {
-      const v = b.getAttribute('data-folder-chip');
+  const everythingCount = all.filter((a) => a.classId === activeClass).length;
+  const activeLabel = (() => {
+    if (_ccActiveFolderId === '__ALL__') return '🗂 Everything (' + everythingCount + ')';
+    if (_ccActiveFolderId === null) return '📥 Unfiled (' + countIn(null) + ')';
+    const f = mine.find((x) => x.id === _ccActiveFolderId);
+    if (!f) return '📥 Unfiled (' + countIn(null) + ')';
+    return '📁 ' + f.name + (f.year ? ' · ' + f.year : '') + (f.term ? ' · ' + f.term : '') + ' (' + countIn(f.id) + ')';
+  })();
+  const itemHtml = (label, value, isActive) =>
+    '<button class="btn" data-folder-pick="' + (value === null ? '' : value) + '" style="display:block; width:100%; text-align:left; margin:2px 0; background:' + (isActive ? '#eef2ff' : 'transparent') + '; color:#1a1e33; border:1px solid transparent;">' + label + '</button>';
+  const folderRow = (f) =>
+    '<div style="display:flex; gap:4px; align-items:center; margin:2px 0;">' +
+      itemHtml('📁 ' + f.name + (f.year ? ' · ' + f.year : '') + (f.term ? ' · ' + f.term : '') + ' (' + countIn(f.id) + ')', f.id, _ccActiveFolderId === f.id).replace('display:block; width:100%;', 'display:block; flex:1;') +
+      '<button class="btn" data-folder-rename="' + f.id + '" title="Rename" style="padding:2px 6px; font-size:11px;">✎</button>' +
+      '<button class="btn danger" data-folder-del="' + f.id + '" title="Delete" style="padding:2px 6px; font-size:11px;">✕</button>' +
+    '</div>';
+  host.innerHTML = '<div style="display:flex; align-items:center; gap:8px;">' +
+      '<strong style="margin-right:4px;">📁 Folder:</strong>' +
+      '<div id="cc-folder-wrap" style="position:relative; flex:1;">' +
+        '<button id="cc-folder-toggle" class="btn" style="background:#fff; color:#1a1e33; border:1px solid #cbd5e1; text-align:left; width:100%;">' + activeLabel + ' ▾</button>' +
+        '<div id="cc-folder-dropdown" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.18); padding:6px; z-index:2147483600; max-height: 60vh; overflow-y: auto;">' +
+          itemHtml('🗂 Everything (' + everythingCount + ')', '__ALL__', _ccActiveFolderId === '__ALL__') +
+          itemHtml('📥 Unfiled (' + countIn(null) + ')', null, _ccActiveFolderId === null) +
+          (mine.length ? '<div style="border-top:1px solid #e5e7eb; margin:6px 0;"></div>' + mine.map(folderRow).join('') : '') +
+          '<div style="border-top:1px solid #e5e7eb; margin:6px 0;"></div>' +
+          '<button id="cc-folder-new" class="btn primary" style="display:block; width:100%; text-align:left; background:#4338ca; color:#fff;">+ New folder</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  // Wire toggle + close-on-outside-click.
+  const toggle = document.getElementById('cc-folder-toggle');
+  const menu = document.getElementById('cc-folder-dropdown');
+  const wrap = document.getElementById('cc-folder-wrap');
+  toggle.onclick = (e) => {
+    e.stopPropagation();
+    menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'block' : 'none';
+  };
+  document.addEventListener('click', function _cc_close(e) {
+    if (!wrap.contains(e.target)) menu.style.display = 'none';
+  });
+  // Picking an item updates active filter and closes the menu.
+  menu.querySelectorAll('[data-folder-pick]').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const v = b.getAttribute('data-folder-pick');
       _ccActiveFolderId = v === '' ? null : v;
+      menu.style.display = 'none';
       _ccRenderFolderBar();
       if (typeof render === 'function') render();
-    };
+    });
   });
-  host.querySelectorAll('[data-folder-rename]').forEach((b) => {
-    b.onclick = async (e) => {
-      e.stopPropagation();
-      const f = mine.find((x) => x.id === b.getAttribute('data-folder-rename'));
-      if (!f) return;
-      const nn = prompt('Rename folder:', f.name);
-      if (!nn || !nn.trim()) return;
-      await fetch('/api/folders/' + f.id, { method: 'PUT', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: nn.trim() }) });
-      _ccFoldersCache = null;
-      await _ccRenderFolderBar();
-    };
-  });
-  host.querySelectorAll('[data-folder-del]').forEach((b) => {
-    b.onclick = async (e) => {
-      e.stopPropagation();
-      const f = mine.find((x) => x.id === b.getAttribute('data-folder-del'));
-      if (!f) return;
-      if (!confirm('Delete folder "' + f.name + '"? Assessments inside will move back to "All".')) return;
-      await fetch('/api/folders/' + f.id, { method: 'DELETE', credentials: 'include' });
-      _ccFoldersCache = null;
-      if (_ccActiveFolderId === f.id) _ccActiveFolderId = null;
-      await _ccRenderFolderBar();
-      if (typeof render === 'function') render();
-    };
-  });
-  const newBtn = document.getElementById('cc-folder-new');
-  if (newBtn) newBtn.onclick = async () => {
-    const name = prompt('New folder name (e.g. Reading, Writing, Old papers):');
-    if (!name || !name.trim()) return;
-    const year = prompt('Year (optional, e.g. 2025-2026):') || '';
-    const term = prompt('Term (optional, e.g. Term 1):') || '';
-    try {
-      const r = await fetch('/api/folders', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ classId: activeClass, name: name.trim(), year: year.trim(), term: term.trim() }) });
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || 'Failed');
-      _ccFoldersCache = null;
-      await _ccRenderFolderBar();
-    } catch (e) { alert('Could not create: ' + e.message); }
-  };
 }
 
 function _ccFilterByFolder(list) {
