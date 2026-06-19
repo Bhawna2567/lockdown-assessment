@@ -1391,3 +1391,25 @@ body.cc-builder-open #builder-save-row { display: flex !important; }
   background: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
 }
+
+
+/* CC: prominent Tools dropdown button — purple gradient, white text,
+ * border, slight shadow. Hover and active states reinforce the affordance. */
+.cc-tools-btn {
+  background: linear-gradient(135deg, #4338ca, #7c3aed) !important;
+  color: #ffffff !important;
+  border: 2px solid #c4b5fd !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  padding: 9px 16px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35) !important;
+  letter-spacing: 0.3px !important;
+}
+.cc-tools-btn:hover {
+  background: linear-gradient(135deg, #4f46e5, #8b5cf6) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.5) !important;
+}
+.cc-tools-btn:active { transform: translateY(0); }
+.cc-tools-btn strong { font-weight: 800; }
