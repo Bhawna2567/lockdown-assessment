@@ -13,6 +13,14 @@ require('fs').mkdirSync(SESSION_DIR, { recursive: true });
 
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { authenticator } = require('otplib');
+
+authenticator.options = { step: 30, digits: 6, window: 1 };
+const _ccLOCK_MAX = 5;             // failed attempts before lockout
+const _ccLOCK_WINDOW_MS = 15 * 60 * 1000;
+
 const { v4: uuidv4 } = require('uuid');
 const ExcelJS = require('exceljs');
 
@@ -50,6 +58,27 @@ const audioUpload = multer({
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+// Security headers — frameguard, no-sniff, HSTS, hide X-Powered-By.
+// CSP is OFF for now: the app uses inline scripts/styles heavily;
+// adding a strict CSP needs a separate refactor.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+
+// Rate limiters — block brute-force password guessing.
+const _ccLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,   // 15 minutes
+  max: 10,                     // 10 attempts per IP per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many sign-in attempts from this device. Wait 15 minutes and try again.' },
+});
+const _ccForgotLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,   // 1 hour
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many password-reset attempts. Wait an hour and try again.' },
+});
+
 
 // Larger limit to accept base64-encoded webcam JPEGs.
 app.use(bodyParser.json({ limit: '15mb' }));
@@ -136,6 +165,15 @@ function requireStudent(req, res, next) {
 }
 
 // ---------- Auth routes ----------
+
+// Password must be >= 8 chars AND include at least one digit.
+function _ccValidatePassword(pw) {
+  const s = String(pw || '');
+  if (s.length < 8) return 'Password must be at least 8 characters.';
+  if (!/[0-9]/.test(s)) return 'Password must include at least one number.';
+  return null;
+}
+
 app.post('/api/register', async (req, res) => {
   const { name, email, password, role } = req.body || {};
   if (!name || !email || !password || !role) {
@@ -144,6 +182,8 @@ app.post('/api/register', async (req, res) => {
   if (!['teacher', 'student'].includes(role)) {
     return res.status(400).json({ error: 'Invalid role' });
   }
+  const _pwErr = _ccValidatePassword(password);
+  if (_pwErr) return res.status(400).json({ error: _pwErr });
   const users = readAll('users.json');
   if (users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
     return res.status(409).json({ error: 'Email already registered' });
@@ -163,14 +203,47 @@ app.post('/api/register', async (req, res) => {
   res.json({ user: req.session.user });
 });
 
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body || {};
+app.post('/api/login', _ccLoginLimiter, async (req, res) => {
+  const { email, password, otp } = req.body || {};
   const users = readAll('users.json');
   const user = users.find((u) => u.email.toLowerCase() === (email || '').toLowerCase());
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  // Per-account lockout — survives IP rotation that rate limiter alone won't catch.
+  if (user.lockedUntil && Date.parse(user.lockedUntil) > Date.now()) {
+    const minsLeft = Math.ceil((Date.parse(user.lockedUntil) - Date.now()) / 60000);
+    return res.status(423).json({ error: 'Account locked due to too many failed sign-ins. Try again in ' + minsLeft + ' minute(s) or use Forgot password.' });
+  }
   const ok = await bcrypt.compare(password || '', user.passwordHash);
-  if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+  if (!ok) {
+    // Record the failure on the user record.
+    user.failedAttempts = (Number(user.failedAttempts) || 0) + 1;
+    user.lastFailedAt = new Date().toISOString();
+    if (user.failedAttempts >= _ccLOCK_MAX) {
+      user.lockedUntil = new Date(Date.now() + _ccLOCK_WINDOW_MS).toISOString();
+      user.failedAttempts = 0;
+    }
+    writeAll('users.json', users);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
   if (user.blocked) return res.status(403).json({ error: 'Your account has been suspended. Contact your school administrator.' });
+  // 2FA gate (admins): if the account has 2FA enabled, demand a valid TOTP.
+  if (user.totpEnabled && user.totpSecret) {
+    if (!otp) return res.status(401).json({ error: '2FA code required', need2fa: true });
+    let valid = false;
+    try { valid = authenticator.check(String(otp).trim(), user.totpSecret); } catch {}
+    if (!valid) {
+      user.failedAttempts = (Number(user.failedAttempts) || 0) + 1;
+      writeAll('users.json', users);
+      return res.status(401).json({ error: 'Invalid 2FA code', need2fa: true });
+    }
+  }
+  // Success — clear failure counters.
+  if (user.failedAttempts || user.lockedUntil) {
+    delete user.failedAttempts;
+    delete user.lockedUntil;
+    delete user.lastFailedAt;
+    writeAll('users.json', users);
+  }
   req.session.user = { id: user.id, name: user.name, email: user.email, role: user.role };
   // Log this sign-in for the admin reports.
   try {
@@ -258,7 +331,7 @@ function ensureDefaultClass(teacherId) {
 // matches a real user we generate a fresh temp password, hash it, and
 // return the plaintext to the caller for them to use (same model as
 // pre-register). Email infrastructure isn't required.
-app.post('/api/auth/forgot-password', async (req, res) => {
+app.post('/api/auth/forgot-password', _ccForgotLimiter, async (req, res) => {
   const email = String(req.body && req.body.email || '').trim().toLowerCase();
   if (!email || !email.includes('@')) {
     return res.status(400).json({ error: 'Enter a valid email address.' });
@@ -536,6 +609,8 @@ app.post('/api/classes/:id/pre-register', requireTeacher, upload.single('file'),
 app.post('/api/auth/change-password', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
   const { currentPassword, newPassword } = req.body || {};
+  const _pwErr2 = _ccValidatePassword(newPassword);
+  if (_pwErr2) return res.status(400).json({ error: _pwErr2 });
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ error: 'Current and new password are required.' });
   }
@@ -2599,6 +2674,54 @@ app.post('/api/admin/api-status/clear', requireTeacher, (req, res) => {
   if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
   _ccClearApiCreditWarning();
   res.json({ ok: true });
+});
+
+
+// 2FA setup endpoints — admins only.
+app.post('/api/auth/2fa/setup', requireAuth, (req, res) => {
+  if (!ADMIN_EMAILS.map((e) => e.toLowerCase()).includes((req.session.user.email || '').toLowerCase())) {
+    return res.status(403).json({ error: '2FA setup is currently only for admin accounts.' });
+  }
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.session.user.id);
+  if (!u) return res.status(404).json({ error: 'User not found' });
+  const secret = authenticator.generateSecret();
+  u.totpPending = secret; // staged — only becomes active after /verify
+  writeAll('users.json', users);
+  const issuer = 'ClassCurio';
+  const otpauth = authenticator.keyuri(u.email, issuer, secret);
+  res.json({ secret, otpauth });
+});
+app.post('/api/auth/2fa/verify', requireAuth, (req, res) => {
+  const code = String((req.body && req.body.code) || '').trim();
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.session.user.id);
+  if (!u || !u.totpPending) return res.status(400).json({ error: 'No 2FA setup pending. Click Set up 2FA first.' });
+  let valid = false;
+  try { valid = authenticator.check(code, u.totpPending); } catch {}
+  if (!valid) return res.status(400).json({ error: 'Invalid code. Make sure your authenticator clock is in sync.' });
+  u.totpSecret = u.totpPending;
+  u.totpEnabled = true;
+  u.totpEnabledAt = new Date().toISOString();
+  delete u.totpPending;
+  writeAll('users.json', users);
+  res.json({ ok: true });
+});
+app.post('/api/auth/2fa/disable', requireAuth, (req, res) => {
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.session.user.id);
+  if (!u) return res.status(404).json({ error: 'User not found' });
+  delete u.totpSecret;
+  delete u.totpEnabled;
+  delete u.totpEnabledAt;
+  delete u.totpPending;
+  writeAll('users.json', users);
+  res.json({ ok: true });
+});
+app.get('/api/auth/2fa/status', requireAuth, (req, res) => {
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === req.session.user.id);
+  res.json({ enabled: !!(u && u.totpEnabled) });
 });
 
 app.get('/api/admin/is-admin', requireAuth, (req, res) => {

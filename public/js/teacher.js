@@ -6106,3 +6106,96 @@ function _ccWireEssayQueueBulk(queue) {
   refresh();
 }
 
+// CC: 🔐 Two-factor authentication modal (admin-only).
+async function show2faModal() {
+  if (document.getElementById('cc-2fa-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'cc-2fa-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483646; display:flex; align-items:center; justify-content:center; padding:24px;';
+  overlay.innerHTML = '<div style="background:#fff; border-radius:12px; padding:24px 28px; max-width:520px; width:92%; box-shadow:0 16px 48px rgba(0,0,0,0.30);">' +
+    '<h2 style="margin:0 0 10px; color:#1a1e33;">🔐 Two-factor authentication</h2>' +
+    '<div id="cc-2fa-body" class="muted">Loading…</div>' +
+  '</div>';
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  async function refresh() {
+    try {
+      const r = await fetch('/api/auth/2fa/status', { credentials: 'include' });
+      const data = await r.json();
+      if (data.enabled) {
+        document.getElementById('cc-2fa-body').innerHTML =
+          '<div style="background:#dcfce7; border:1px solid #16a34a; color:#14532d; padding:14px; border-radius:8px; margin-bottom:14px;">✓ 2FA is currently <strong>ENABLED</strong> on this account. You will need a 6-digit code at every sign-in.</div>' +
+          '<div style="text-align:right;"><button class="btn" id="cc-2fa-close">Close</button> <button class="btn danger" id="cc-2fa-disable">Disable 2FA</button></div>';
+        document.getElementById('cc-2fa-close').onclick = () => overlay.remove();
+        document.getElementById('cc-2fa-disable').onclick = async () => {
+          if (!confirm('Disable two-factor authentication? Your account will be less secure.')) return;
+          await fetch('/api/auth/2fa/disable', { method: 'POST', credentials: 'include' });
+          refresh();
+        };
+      } else {
+        document.getElementById('cc-2fa-body').innerHTML =
+          '<p>Add a second layer of protection to your admin account using a free authenticator app like Google Authenticator, Authy, or 1Password.</p>' +
+          '<div style="text-align:right; margin-top:14px;"><button class="btn" id="cc-2fa-cancel">Close</button> <button class="btn primary" id="cc-2fa-start">Set up 2FA</button></div>';
+        document.getElementById('cc-2fa-cancel').onclick = () => overlay.remove();
+        document.getElementById('cc-2fa-start').onclick = startSetup;
+      }
+    } catch (e) {
+      document.getElementById('cc-2fa-body').innerHTML = '<div style="color:#dc2626;">❌ Could not load 2FA status: ' + (e.message || '') + '</div>';
+    }
+  }
+
+  async function startSetup() {
+    try {
+      const r = await fetch('/api/auth/2fa/setup', { method: 'POST', credentials: 'include' });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Setup failed');
+      const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(data.otpauth);
+      document.getElementById('cc-2fa-body').innerHTML =
+        '<ol style="padding-left:20px; line-height:1.6; color:#1a1e33;">' +
+          '<li>On your phone, open <strong>Google Authenticator</strong>, <strong>Authy</strong>, <strong>Microsoft Authenticator</strong>, or any TOTP app.</li>' +
+          '<li>Tap <strong>+ Add</strong> → <strong>Scan QR code</strong> → point at the QR below.</li>' +
+          '<li>The app shows a 6-digit code. Type it here to confirm.</li>' +
+        '</ol>' +
+        '<div style="text-align:center; margin:14px 0;">' +
+          '<img src="' + qrUrl + '" alt="Scan with your authenticator app" style="border-radius:8px; border:1px solid #cbd5e1;" />' +
+        '</div>' +
+        '<details style="margin-bottom:10px;"><summary style="cursor:pointer; color:#475569;">Can\'t scan? Type the secret manually</summary>' +
+          '<code style="display:block; padding:8px; background:#f1f5f9; border-radius:6px; margin-top:6px; user-select:all; word-break:break-all;">' + data.secret + '</code>' +
+        '</details>' +
+        '<div class="field"><label>6-digit code from your app</label><input type="text" id="cc-2fa-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" style="width:100%; padding:8px; font-size:18px; letter-spacing:4px; text-align:center; border:1px solid #cbd5e1; border-radius:6px;" /></div>' +
+        '<div style="text-align:right; margin-top:10px;"><button class="btn" id="cc-2fa-back">Cancel</button> <button class="btn primary" id="cc-2fa-confirm">Verify + Enable</button></div>' +
+        '<div id="cc-2fa-err" style="color:#dc2626; margin-top:8px; display:none;"></div>';
+      document.getElementById('cc-2fa-back').onclick = () => refresh();
+      document.getElementById('cc-2fa-confirm').onclick = async () => {
+        const code = (document.getElementById('cc-2fa-code').value || '').trim();
+        if (!/^\d{6}$/.test(code)) { document.getElementById('cc-2fa-err').style.display = 'block'; document.getElementById('cc-2fa-err').textContent = 'Enter the 6-digit code from your app.'; return; }
+        const r2 = await fetch('/api/auth/2fa/verify', { method: 'POST', credentials: 'include', headers: {'content-type':'application/json'}, body: JSON.stringify({ code }) });
+        const data2 = await r2.json();
+        if (!r2.ok) { document.getElementById('cc-2fa-err').style.display = 'block'; document.getElementById('cc-2fa-err').textContent = data2.error || 'Failed'; return; }
+        alert('✓ Two-factor authentication is now ENABLED. From your next sign-in, you will need the 6-digit code from your authenticator app.');
+        overlay.remove();
+      };
+    } catch (e) {
+      document.getElementById('cc-2fa-body').innerHTML = '<div style="color:#dc2626;">❌ ' + (e.message || 'Setup failed') + '</div>';
+    }
+  }
+
+  refresh();
+}
+
+// Wire the new admin menu item.
+(function wire2faAdminMenu() {
+  function go() {
+    const btn = document.getElementById('admin-2fa');
+    if (btn && !btn._cc2faWired) {
+      btn.onclick = show2faModal;
+      btn._cc2faWired = true;
+    }
+  }
+  if (document.readyState !== 'loading') go();
+  else document.addEventListener('DOMContentLoaded', go);
+  let tries = 0;
+  const iv = setInterval(() => { go(); if (++tries > 12) clearInterval(iv); }, 250);
+})();
+

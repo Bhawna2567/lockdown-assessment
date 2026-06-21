@@ -81,6 +81,10 @@ echo "Committing..."
 git commit -m "Deploy: Re-entry grant + resume answers + resume timer + split-screen passage"
 
 echo
+
+echo "Running npm audit (warning-only, never blocks deploy)..."
+npm audit --audit-level=high --omit=dev 2>&1 | tail -20 || true
+echo
 echo "Pushing to GitHub..."
 git push origin HEAD
 

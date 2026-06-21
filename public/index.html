@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1781861456" />
+  <link rel="stylesheet" href="/css/styles.css?v=1782062512" />
   <script>
     // Register service worker so the app is installable on Chrome / Edge / Android.
     // Service workers only run over HTTPS or localhost, which Render provides.
@@ -49,10 +49,16 @@
         </div>
         <div class="field">
           <label>Password</label>
-          <input type="password" name="password" required />
+          <input type="password" name="password" required minlength="8" pattern=".*[0-9].*" title="Minimum 8 characters and include at least one number." />
+          <div class="muted" style="font-size:12px; margin-top:4px;">Minimum 8 characters and at least one number.</div>
         </div>
         <div style="text-align: right; margin: -8px 0 12px;">
           <a href="#" id="forgot-link" style="font-size: 13px; color: #4f46e5; text-decoration: underline;">Forgot password?</a>
+        </div>
+        <div class="field" id="cc-2fa-field" style="display:none;">
+          <label>🔐 2FA code (6 digits)</label>
+          <input type="text" name="otp" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="123456" />
+          <div class="muted" style="font-size:12px; margin-top:4px;">Open your authenticator app (Google Authenticator, Authy, …) and enter the 6-digit code.</div>
         </div>
         <div class="row" style="align-items:center; gap:6px; margin-bottom:10px;">
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; cursor:pointer;">
@@ -430,5 +436,38 @@ window.addEventListener('beforeinstallprompt', (e) => {
 })();
 </script>
 
+<script>
+// CC: handle the 2FA challenge — when server returns { need2fa: true }, reveal
+// the 2FA field instead of showing an error.
+(function setup2faChallenge() {
+  const form = document.getElementById('login-form');
+  const errBox = document.getElementById('err');
+  const field = document.getElementById('cc-2fa-field');
+  if (!form || !field) return;
+  // Wrap the existing submit handler. We intercept the response in fetch().
+  const origFetch = window.fetch;
+  window.fetch = function (url, init) {
+    const p = origFetch.apply(this, arguments);
+    if (typeof url === 'string' && url.indexOf('/api/login') !== -1) {
+      return p.then(async (r) => {
+        const clone = r.clone();
+        try {
+          const data = await clone.json();
+          if (data && data.need2fa) {
+            field.style.display = '';
+            field.querySelector('input').focus();
+            if (errBox) {
+              errBox.style.display = 'block';
+              errBox.textContent = data.error || '2FA code required.';
+            }
+          }
+        } catch {}
+        return r;
+      });
+    }
+    return p;
+  };
+})();
+</script>
 </body>
 </html>
