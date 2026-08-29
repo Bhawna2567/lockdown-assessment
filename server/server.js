@@ -1341,6 +1341,7 @@ app.delete('/api/assessments/:id', requireTeacher, (req, res) => {
   const idx = all.findIndex((a) => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+    try { _ccArchiveAssessment(all[idx]); } catch(e){ console.error('archive failed', e); }
   all.splice(idx, 1);
   writeAll('assessments.json', all);
   res.json({ ok: true });
@@ -5108,6 +5109,162 @@ app.get('/take/:id', (req, res) => {
 
 // Static ----------
 app.use(express.static(path.join(__dirname, '..', 'public')));
+
+
+// ── Soft-delete + backup helpers (self-contained) ─────────────────────────
+const _ccPath = require('path');
+const _ccFs   = require('fs');
+// Match Render's persistent disk path first, then fall back to ./data.
+const _ccDataDir = (function() {
+  const candidates = [
+    process.env.DATA_DIR,
+    '/opt/render/project/src/data',
+    _ccPath.join(__dirname, '..', 'data'),
+    _ccPath.join(__dirname, 'data'),
+    _ccPath.join(process.cwd(), 'data'),
+  ].filter(Boolean);
+  for (const c of candidates) { try { if (_ccFs.existsSync(c)) return c; } catch(e){} }
+  return candidates[candidates.length - 1];
+})();
+const _ccDeletedRoot = _ccPath.join(_ccDataDir, 'deleted', 'assessments');
+const _ccBackupRoot  = _ccPath.join(_ccDataDir, 'backups');
+function _ccEnsureDir(p) { try { _ccFs.mkdirSync(p, { recursive: true }); } catch(e){} }
+function _ccReadAssessments() {
+  try {
+    const f = _ccPath.join(_ccDataDir, 'assessments.json');
+    if (!_ccFs.existsSync(f)) return [];
+    return JSON.parse(_ccFs.readFileSync(f, 'utf8'));
+  } catch(e){ console.error('_ccReadAssessments', e); return []; }
+}
+function _ccWriteAssessments(arr) {
+  const f = _ccPath.join(_ccDataDir, 'assessments.json');
+  _ccFs.writeFileSync(f, JSON.stringify(arr, null, 2));
+}
+function _ccArchiveAssessment(assessment) {
+  try {
+    const day = new Date().toISOString().slice(0, 10);
+    const dir = _ccPath.join(_ccDeletedRoot, day);
+    _ccEnsureDir(dir);
+    const id = String(assessment && assessment.id || Date.now());
+    const stamp = Date.now();
+    const file = _ccPath.join(dir, id + '__' + stamp + '.json');
+    _ccFs.writeFileSync(file, JSON.stringify({
+      deletedAt: new Date().toISOString(),
+      assessment,
+    }, null, 2));
+    console.log('[soft-delete] archived', id, '→', file);
+    return file;
+  } catch(e){ console.error('[soft-delete] archive failed', e); return null; }
+}
+function _ccListDeletedAssessments() {
+  const out = [];
+  try {
+    if (!_ccFs.existsSync(_ccDeletedRoot)) return out;
+    const days = _ccFs.readdirSync(_ccDeletedRoot).sort().reverse();
+    for (const day of days) {
+      const dayDir = _ccPath.join(_ccDeletedRoot, day);
+      try { if (!_ccFs.statSync(dayDir).isDirectory()) continue; } catch(e){ continue; }
+      for (const f of _ccFs.readdirSync(dayDir)) {
+        if (!f.endsWith('.json')) continue;
+        try {
+          const raw = JSON.parse(_ccFs.readFileSync(_ccPath.join(dayDir, f), 'utf8'));
+          const a = raw.assessment || {};
+          out.push({
+            file: day + '/' + f,
+            deletedAt: raw.deletedAt,
+            id: a.id,
+            title: a.title || '(untitled)',
+            classId: a.classId || null,
+            teacherId: a.teacherId || null,
+            subject: a.subject || null,
+            createdAt: a.createdAt || null,
+            questions: Array.isArray(a.sections)
+              ? a.sections.reduce((n, s) => n + (Array.isArray(s.questions) ? s.questions.length : 0), 0)
+              : (Array.isArray(a.questions) ? a.questions.length : 0),
+          });
+        } catch(e){}
+      }
+    }
+  } catch(e){ console.error('[soft-delete] list failed', e); }
+  return out;
+}
+function _ccRestoreDeletedAssessment(fileRel) {
+  const full = _ccPath.join(_ccDeletedRoot, fileRel);
+  if (!full.startsWith(_ccDeletedRoot)) throw new Error('bad path');
+  const raw = JSON.parse(_ccFs.readFileSync(full, 'utf8'));
+  const a = raw.assessment;
+  if (!a || !a.id) throw new Error('archive has no assessment');
+  const all = _ccReadAssessments();
+  if (all.some(x => x.id === a.id)) throw new Error('an assessment with that id already exists');
+  all.push(a);
+  _ccWriteAssessments(all);
+  try { _ccFs.unlinkSync(full); } catch(e){}
+  return a;
+}
+function _ccRunDailyBackup() {
+  try {
+    _ccEnsureDir(_ccBackupRoot);
+    const day = new Date().toISOString().slice(0, 10);
+    const target = _ccPath.join(_ccBackupRoot, day);
+    if (_ccFs.existsSync(target)) return;
+    _ccEnsureDir(target);
+    for (const f of _ccFs.readdirSync(_ccDataDir)) {
+      if (!f.endsWith('.json')) continue;
+      const src = _ccPath.join(_ccDataDir, f);
+      try { if (_ccFs.statSync(src).isFile()) _ccFs.copyFileSync(src, _ccPath.join(target, f)); } catch(e){}
+    }
+    // Prune older than 30 days.
+    const keep = 30;
+    const days = _ccFs.readdirSync(_ccBackupRoot)
+      .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+    while (days.length > keep) {
+      const oldest = days.shift();
+      try { _ccFs.rmSync(_ccPath.join(_ccBackupRoot, oldest), { recursive: true, force: true }); } catch(e){}
+    }
+    // Prune deleted archives older than 30 days too.
+    if (_ccFs.existsSync(_ccDeletedRoot)) {
+      const cutoff = Date.now() - keep * 24 * 60 * 60 * 1000;
+      for (const d of _ccFs.readdirSync(_ccDeletedRoot)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+        const ts = Date.parse(d + 'T00:00:00Z');
+        if (isFinite(ts) && ts < cutoff) {
+          try { _ccFs.rmSync(_ccPath.join(_ccDeletedRoot, d), { recursive: true, force: true }); } catch(e){}
+        }
+      }
+    }
+    console.log('[backup] ' + day + ' — data/*.json copied to ' + target);
+  } catch(e){ console.error('[backup] failed', e); }
+}
+setTimeout(_ccRunDailyBackup, 30 * 1000);
+setInterval(_ccRunDailyBackup, 24 * 60 * 60 * 1000);
+// Admin-only middleware (defined locally in case the file has a different one).
+function _ccRequireAdmin(req, res, next) {
+  try {
+    const u = req.session && req.session.user;
+    if (!u) return res.status(401).json({ error: 'Not signed in' });
+    const admins = (typeof ADMIN_EMAILS !== 'undefined' && Array.isArray(ADMIN_EMAILS))
+      ? ADMIN_EMAILS.map(x => String(x).toLowerCase())
+      : ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
+    if (!admins.includes(String(u.email || '').toLowerCase())) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
+    next();
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+}
+// ── Admin endpoints — list + restore deleted assessments ──────────────────
+app.get('/api/admin/deleted-assessments', _ccRequireAdmin, (req, res) => {
+  try { res.json(_ccListDeletedAssessments()); }
+  catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+app.post('/api/admin/deleted-assessments/restore', _ccRequireAdmin, (req, res) => {
+  try {
+    const file = String((req.body && req.body.file) || '');
+    if (!file) return res.status(400).json({ error: 'file required' });
+    const a = _ccRestoreDeletedAssessment(file);
+    res.json({ ok: true, assessment: { id: a.id, title: a.title } });
+  } catch(e){ res.status(400).json({ error: String(e.message||e) }); }
+});
+// ──────────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
