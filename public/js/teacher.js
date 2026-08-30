@@ -6244,7 +6244,7 @@ function _ccInstallPdfImportButton() {
     inp.type = 'file'; inp.accept = 'application/pdf';
     inp.onchange = async function () {
       const f = inp.files && inp.files[0]; if (!f) return;
-      btn.disabled = true; btn.textContent = 'Reading PDF…';
+      btn.disabled = true; btn.textContent = 'Reading PDF (may take a few minutes for large files)…';
       try {
         const qs = await ccImportPdfWithVisuals(f);
         alert('Extracted ' + qs.length + ' questions from PDF. Opening builder…');

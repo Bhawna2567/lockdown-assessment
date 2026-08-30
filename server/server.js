@@ -5428,49 +5428,98 @@ app.post('/api/ai/regenerate-visual', async (req, res) => {
 // ── PDF import with diagram extraction (via Claude PDF vision) ───────────
 if (typeof upload !== 'undefined' && upload && typeof upload.single === 'function') {
   app.post('/api/import/pdf-with-visuals', upload.single('pdf'), async (req, res) => {
+    const { PDFDocument } = require('pdf-lib');
     try {
       if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
       if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-      // Read the uploaded PDF as base64.
       const buf = _ccFsV.readFileSync(req.file.path);
-      const b64 = buf.toString('base64');
-      // Clean up temp file eagerly.
       try { _ccFsV.unlinkSync(req.file.path); } catch(e){}
-      if (buf.length > 32 * 1024 * 1024) return res.status(413).json({ error: 'PDF too large (max 32 MB)' });
+      if (buf.length > 64 * 1024 * 1024) return res.status(413).json({ error: 'PDF too large (max 64 MB)' });
+
+      // Load the PDF to count pages.
+      const srcDoc = await PDFDocument.load(buf);
+      const totalPages = srcDoc.getPageCount();
+      console.log(`[pdf-import] uploaded ${req.file.originalname || 'pdf'} — ${totalPages} pages`);
+
+      // Chunk sizing:
+      //   ≤8 pages   → single call
+      //   ≤40 pages  → 8 pages per chunk
+      //   >40 pages  → 5 pages per chunk (dense material safer)
+      const chunkSize = totalPages <= 8 ? totalPages : (totalPages <= 40 ? 8 : 5);
+      const ranges = [];
+      for (let i = 0; i < totalPages; i += chunkSize) {
+        ranges.push([i, Math.min(i + chunkSize, totalPages)]);
+      }
+      console.log(`[pdf-import] splitting into ${ranges.length} chunk(s) of up to ${chunkSize} pages`);
 
       const sys = `You are a classroom-assessment converter. Read the attached PDF worksheet and output a JSON array of question objects that faithfully match the PDF.
 
 CRITICAL — MATH & SCIENCE PDF HANDLING:
-Many math/science PDFs embed equations using custom fonts. When you extract the raw text stream you will see garbage like 팽, 픕, 픰, 픰, PUA glyphs, or random CJK-looking characters INSIDE what is obviously an English document.
+Many math/science PDFs embed equations using custom fonts. When you extract the raw text stream you will see garbage like 팽, 픕, 픰, PUA glyphs, or random CJK-looking characters INSIDE what is obviously an English document.
   - If ANY line contains such garbage, do NOT copy the raw text. Read the page VISUALLY (as if you were looking at the printed page) and reconstruct the equation from what you see.
   - Emit every equation as LaTeX in the question's visual field:
         "visual": { "type": "latex", "content": "\\frac{d^2y}{dx^2} + \\frac{dy}{dx}...", "altText": "..." }
-  - If the multiple-choice OPTIONS are themselves equations, put each option as inline LaTeX using $...$ delimiters (client MathJax will render them). Example:
-        "options": ["$y\\frac{d^2y}{dx^2} + (\\frac{dy}{dx})^2 = 0$", "$y\\frac{d^2y}{dx^2} - (\\frac{dy}{dx})^2 = 0$", ...]
-  - NEVER include CJK / Korean / Chinese / Japanese characters in the output unless the source PDF is actually in one of those languages. If you see them in a Math/Science/English PDF, that's the PUA font issue — reinterpret via vision.
+  - If the multiple-choice OPTIONS are themselves equations, put each option as inline LaTeX using $...$ delimiters. Example:
+        "options": ["$y\\frac{d^2y}{dx^2} + (\\frac{dy}{dx})^2 = 0$", ...]
+  - NEVER include CJK / Korean / Chinese / Japanese characters in the output unless the source PDF is actually in one of those languages.
 
 Each question object must have:
-  "text":     the prose part of the question (leave equations out — they go in visual/options)
+  "text":     the prose part (equations go in visual/options)
   "type":     "multiple_choice" | "short_answer" | "essay" | "true_false"
-  "options":  array of choice strings (only if multiple_choice). Wrap any math in $...$.
+  "options":  array of choice strings (only if multiple_choice). Wrap math in $...$.
   "answer":   the correct answer as a string (or the option index for MCQ)
   "points":   integer, default 1
-  "visual":   (optional) — see rules below
+  "visual":   (optional) — { type: "svg" | "latex" | "image_description", content, altText }
+
 ${_CC_VISUAL_INSTRUCTION}
 
 Return ONLY the JSON array. No prose, no fenced code block wrappers.`;
-      const userBlocks = [
-        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
-        { type: 'text', text: 'Convert this worksheet into the JSON array of questions per the system rules. Preserve every diagram as an SVG in the visual field of the correct question.' },
-      ];
-      const raw = await _ccAnthropic(null, sys, userBlocks, 16000);
-      const parsed = _ccExtractJson(raw);
-      if (!Array.isArray(parsed)) return res.status(422).json({ error: 'AI did not return an array', raw });
-      _ccNormalizeQuestionVisuals(parsed);
-      res.json({ questions: parsed, count: parsed.length });
-    } catch(e){ res.status(500).json({ error: String(e.message || e) }); }
+
+      const allQuestions = [];
+      for (let i = 0; i < ranges.length; i++) {
+        const [from, to] = ranges[i];
+        console.log(`[pdf-import] chunk ${i+1}/${ranges.length} — pages ${from+1}..${to}`);
+        // Build a sub-PDF containing only pages [from, to).
+        const chunkDoc = await PDFDocument.create();
+        const pages = await chunkDoc.copyPages(srcDoc, Array.from({length: to-from}, (_, k) => from + k));
+        pages.forEach(p => chunkDoc.addPage(p));
+        const chunkBytes = await chunkDoc.save();
+        const chunkB64 = Buffer.from(chunkBytes).toString('base64');
+
+        const userBlocks = [
+          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: chunkB64 } },
+          { type: 'text', text: `This is pages ${from+1} through ${to} of a larger PDF. Convert every question you see into the JSON array per the system rules. Preserve diagrams as SVG in visual fields and equations as LaTeX.` },
+        ];
+        try {
+          const raw = await _ccAnthropic(null, sys, userBlocks, 16000);
+          const parsed = _ccExtractJson(raw);
+          if (Array.isArray(parsed)) {
+            _ccNormalizeQuestionVisuals(parsed);
+            // Tag each question with the source page range for teacher reference.
+            parsed.forEach(q => { q._pageRange = `${from+1}-${to}`; });
+            allQuestions.push(...parsed);
+            console.log(`[pdf-import] chunk ${i+1} → ${parsed.length} questions (total so far: ${allQuestions.length})`);
+          } else {
+            console.warn(`[pdf-import] chunk ${i+1} returned non-array; skipping`);
+          }
+        } catch (chunkErr) {
+          console.error(`[pdf-import] chunk ${i+1} failed:`, chunkErr.message || chunkErr);
+          // Continue with other chunks rather than failing the whole import.
+        }
+      }
+      if (!allQuestions.length) return res.status(422).json({ error: 'No questions could be extracted from this PDF.' });
+      res.json({
+        questions: allQuestions,
+        count: allQuestions.length,
+        totalPages,
+        chunks: ranges.length,
+      });
+    } catch(e){
+      console.error('[pdf-import] fatal', e);
+      res.status(500).json({ error: String(e.message || e) });
+    }
   });
-  console.log('[ai-visuals] POST /api/import/pdf-with-visuals wired.');
+  console.log('[ai-visuals] POST /api/import/pdf-with-visuals wired (with chunking).');
 } else {
   console.warn('[ai-visuals] multer `upload` not found — PDF import endpoint skipped.');
 }
