@@ -6248,6 +6248,10 @@ function _ccInstallPdfImportButton() {
       try {
         // Call the endpoint directly so we can read the full response envelope.
         const fd = new FormData(); fd.append('pdf', f);
+        // Include the currently-selected classId so the draft lands in the right class.
+        const classSel = document.getElementById('class-select') || document.querySelector('select[name="class"]') || document.querySelector('.class-dropdown');
+        const classId = classSel ? classSel.value : '';
+        if (classId) fd.append('classId', classId);
         const resp = await fetch('/api/import/pdf-with-visuals', { method: 'POST', body: fd, credentials: 'include' });
         const j = await resp.json().catch(function(){ return {}; });
         if (!resp.ok) throw new Error(j.error || ('HTTP ' + resp.status));

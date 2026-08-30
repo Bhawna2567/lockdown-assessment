@@ -5431,41 +5431,93 @@ if (typeof upload !== 'undefined' && upload && typeof upload.single === 'functio
 // Create a draft assessment record from imported questions, using the shape
 // of the first existing assessment as a template. Backward-compatible with
 // whatever schema the app already uses.
-function _ccCreateDraftFromImport(teacherUser, questions, sourceLabel) {
+
+// Map an imported question (from Claude) to whatever field names the app
+// actually uses in data/assessments.json. We inspect an existing question
+// as a schema template and clone its keys.
+function _ccMapQuestionToAppSchema(q, templateQ) {
+  const out = {};
+  // Common alias set — populate every plausible key so any UI reads it.
+  const text     = q.text || q.prompt || q.question || '';
+  const type     = q.type || q.kind || q.questionType || 'multiple_choice';
+  const options  = Array.isArray(q.options) ? q.options : [];
+  const answer   = (q.answer !== undefined) ? q.answer : (q.correctAnswer !== undefined ? q.correctAnswer : '');
+  const points   = Number.isFinite(q.points) ? q.points : 1;
+  const visual   = q.visual || null;
+  // Start from template keys if available, so we preserve any custom
+  // fields the app uses.
+  if (templateQ && typeof templateQ === 'object') {
+    for (const k of Object.keys(templateQ)) { out[k] = null; }
+  }
+  // Set every common alias.
+  out.id           = 'q-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  out.text         = text;
+  out.prompt       = text;
+  out.question     = text;
+  out.type         = type;
+  out.kind         = type;
+  out.questionType = type;
+  out.options      = options.map((o, i) => (typeof o === 'string'
+    ? { id: 'opt-' + i, text: o, label: o, isCorrect: (String(answer) === String(i) || String(answer) === o) }
+    : o));
+  out.answer         = answer;
+  out.correctAnswer  = answer;
+  out.correctIndex   = (typeof answer === 'number') ? answer : (options.indexOf(answer) >= 0 ? options.indexOf(answer) : null);
+  out.points         = points;
+  out.marks          = points;
+  out.visual         = visual;
+  return out;
+}
+
+function _ccCreateDraftFromImport(teacherUser, questions, sourceLabel, targetClassId) {
   const path = require('path');
   const fs   = require('fs');
   const dataDir = (typeof DATA_DIR !== 'undefined') ? DATA_DIR : path.join(__dirname, '..', 'data');
   const file = path.join(dataDir, 'assessments.json');
   let all = [];
   try { all = JSON.parse(fs.readFileSync(file, 'utf8')); } catch(e){ all = []; }
-  // Use the first assessment as a schema template (all keys except questions/sections).
-  const template = (all.find(a => a && a.teacherId === (teacherUser && teacherUser.id)) || all[0] || {});
+  // Template: prefer the teacher's own assessments, in the target class if given.
+  const teacherAssessments = all.filter(a => a && a.teacherId === (teacherUser && teacherUser.id));
+  const templateAssessment = teacherAssessments.find(a => a.classId === targetClassId)
+                          || teacherAssessments[0]
+                          || all[0]
+                          || {};
+  // Pull one existing question for its shape.
+  let templateQuestion = null;
+  const templateSections = templateAssessment.sections || [];
+  for (const sec of templateSections) {
+    if (sec && Array.isArray(sec.questions) && sec.questions.length) { templateQuestion = sec.questions[0]; break; }
+  }
+  if (!templateQuestion && Array.isArray(templateAssessment.questions) && templateAssessment.questions.length) {
+    templateQuestion = templateAssessment.questions[0];
+  }
+  // Map every imported question to the app's schema.
+  const mapped = questions.map(q => _ccMapQuestionToAppSchema(q, templateQuestion));
   const nowIso = new Date().toISOString();
   const nowSlug = nowIso.slice(0, 10);
   const id = (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
-  const record = Object.assign({}, template, {
+  const record = Object.assign({}, templateAssessment, {
     id,
     title: (sourceLabel || 'Imported PDF') + ' — ' + nowSlug,
     teacherId: teacherUser && teacherUser.id,
     teacherEmail: teacherUser && teacherUser.email,
+    classId: targetClassId || templateAssessment.classId || null,
     createdAt: nowIso,
     updatedAt: nowIso,
     status: 'draft',
     published: false,
-    // Try both shapes: sections-of-questions AND flat questions.
-    sections: [{ id: 'sec-' + id, title: 'Section 1', questions: questions }],
-    questions: questions,
-    // Clear IDs / timing from template so this is a fresh assessment.
+    sections: [{ id: 'sec-' + id, title: 'Section 1', questions: mapped }],
+    questions: mapped,
     scheduledDate: null,
     startedAt: null,
     endedAt: null,
   });
-  // Remove any results-shaped fields that might have been copied from template.
   delete record.results;
   delete record.submissions;
   delete record.attemptWindow;
   all.push(record);
   fs.writeFileSync(file, JSON.stringify(all, null, 2));
+  console.log('[pdf-import] draft created id=' + id + ' class=' + (targetClassId || 'default') + ' questions=' + mapped.length);
   return record;
 }
 
@@ -5552,7 +5604,7 @@ Return ONLY the JSON array. No prose, no fenced code block wrappers.`;
       if (!allQuestions.length) return res.status(422).json({ error: 'No questions could be extracted from this PDF.' });
       let created = null;
       try {
-        created = _ccCreateDraftFromImport(req.session.user, allQuestions, (req.file && req.file.originalname) || 'PDF');
+        created = _ccCreateDraftFromImport(req.session.user, allQuestions, (req.file && req.file.originalname) || 'PDF', (req.body && req.body.classId) || null);
       } catch(cErr){ console.error('[pdf-import] draft creation failed', cErr); }
       res.json({
         questions: allQuestions,
