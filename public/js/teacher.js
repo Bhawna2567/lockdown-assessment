@@ -6199,3 +6199,128 @@ async function show2faModal() {
   const iv = setInterval(() => { go(); if (++tries > 12) clearInterval(iv); }, 250);
 })();
 
+
+// ── CC AI Visuals: PDF import + regenerate visual ─────────────────────────
+async function ccImportPdfWithVisuals(file) {
+  if (!file) return null;
+  const fd = new FormData();
+  fd.append('pdf', file);
+  const r = await fetch('/api/import/pdf-with-visuals', { method: 'POST', body: fd, credentials: 'include' });
+  const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j.questions || [];
+}
+async function ccRegenerateVisual(questionText, subject, hint) {
+  const r = await fetch('/api/ai/regenerate-visual', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ questionText: questionText, subject: subject || '', hint: hint || '' }),
+  });
+  const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j.visual || null;
+}
+async function ccGenerateImage(description) {
+  const r = await fetch('/api/ai/generate-image', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ description: description }),
+  });
+  const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j.visual || null;
+}
+
+// Attach a "📄 Import PDF (with diagrams)" button in the Tools / Quick Import area.
+function _ccInstallPdfImportButton() {
+  if (document.getElementById('cc-pdf-visuals-btn')) return;
+  const parent = document.querySelector('.tools-dropdown, .topbar, header, .dashboard-topbar') || document.body;
+  const btn = document.createElement('button');
+  btn.id = 'cc-pdf-visuals-btn';
+  btn.textContent = '📄 Import PDF (with diagrams)';
+  btn.style.cssText = 'margin:4px; padding:8px 14px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer;';
+  btn.onclick = function () {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'application/pdf';
+    inp.onchange = async function () {
+      const f = inp.files && inp.files[0]; if (!f) return;
+      btn.disabled = true; btn.textContent = 'Reading PDF…';
+      try {
+        const qs = await ccImportPdfWithVisuals(f);
+        alert('Extracted ' + qs.length + ' questions from PDF. Opening builder…');
+        // Hand off to the existing builder if one exists; else stash to window.
+        if (typeof openBuilderWithQuestions === 'function') openBuilderWithQuestions(qs);
+        else if (typeof openBuilder === 'function') { window._ccPendingImport = qs; openBuilder(); }
+        else { window._ccPendingImport = qs; console.log('Imported questions:', qs); }
+      } catch (e) { alert('PDF import failed: ' + (e.message || e)); }
+      finally { btn.disabled = false; btn.textContent = '📄 Import PDF (with diagrams)'; }
+    };
+    inp.click();
+  };
+  parent.appendChild(btn);
+}
+document.addEventListener('DOMContentLoaded', _ccInstallPdfImportButton);
+setTimeout(_ccInstallPdfImportButton, 500);
+
+// Render existing visuals + add a regenerate button per question in the builder.
+function _ccDecorateBuilderQuestions() {
+  document.querySelectorAll('[data-question-index]').forEach(function (el) {
+    if (el.querySelector('.cc-visual-host')) return;
+    const idx = Number(el.getAttribute('data-question-index') || 0);
+    const q   = (window._ccCurrentAssessment && window._ccCurrentAssessment.questions || [])[idx];
+    if (!q) return;
+    const host = document.createElement('div');
+    host.className = 'cc-visual-host';
+    host.setAttribute('data-visual-host', '1');
+    if (q.visual) host.setAttribute('data-visual-json', JSON.stringify(q.visual));
+    el.appendChild(host);
+    if (q.visual && window.ccRenderVisual) window.ccRenderVisual(q.visual, host);
+    // Regenerate button.
+    const btn = document.createElement('button');
+    btn.textContent = q.visual ? '🎨 Regenerate visual' : '🎨 Generate visual';
+    btn.style.cssText = 'margin-top:6px; padding:6px 10px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:4px; cursor:pointer; font-size:12px;';
+    btn.onclick = async function () {
+      btn.disabled = true; btn.textContent = 'Generating…';
+      try {
+        const v = await ccRegenerateVisual(q.text || '', (window._ccCurrentAssessment && window._ccCurrentAssessment.subject) || '');
+        q.visual = v;
+        host.setAttribute('data-visual-json', JSON.stringify(v));
+        if (window.ccRenderVisual) window.ccRenderVisual(v, host);
+      } catch (e) { alert('Visual generation failed: ' + (e.message || e)); }
+      finally { btn.disabled = false; btn.textContent = '🎨 Regenerate visual'; }
+    };
+    el.appendChild(btn);
+  });
+}
+// Rerun decoration whenever the DOM changes (very cheap MutationObserver).
+if (window.MutationObserver) {
+  new MutationObserver(function(){ _ccDecorateBuilderQuestions(); }).observe(document.body, { childList: true, subtree: true });
+}
+
+// ── Admin → Image API config panel ──────────────────────────────────────
+async function ccOpenImageApiPanel() {
+  const cur = await fetch('/api/admin/image-config', { credentials:'include' }).then(function(r){ return r.json(); }).catch(function(){ return {}; });
+  const provider = prompt('Image API provider (openai or leave blank to clear):', cur.provider || 'openai');
+  if (provider === null) return;
+  const apiKey = prompt('API key (sk-...) — leave blank to keep existing:', '');
+  const body = { provider: provider || '', apiKey: apiKey || '' };
+  if (!apiKey && cur.hasKey) delete body.apiKey; // keep existing
+  const r = await fetch('/api/admin/image-config', { method:'PUT', headers:{'content-type':'application/json'}, credentials:'include', body: JSON.stringify(body) });
+  const j = await r.json().catch(function(){ return {}; });
+  if (r.ok) alert('Image API config saved.');
+  else alert('Failed: ' + (j.error || r.status));
+}
+// Attach to Admin dropdown if present.
+document.addEventListener('DOMContentLoaded', function () {
+  const menu = document.querySelector('.admin-dropdown-menu, #admin-dropdown, .admin-menu');
+  if (!menu || document.getElementById('cc-image-api-item')) return;
+  const item = document.createElement('a');
+  item.id = 'cc-image-api-item';
+  item.href = '#';
+  item.textContent = '🖼 Image API';
+  item.style.cssText = 'display:block; padding:8px 12px; color:#111; text-decoration:none;';
+  item.onclick = function(e){ e.preventDefault(); ccOpenImageApiPanel(); };
+  menu.appendChild(item);
+});
+// ────────────────────────────────────────────────────────────────────────
+

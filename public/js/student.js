@@ -2796,3 +2796,28 @@ function ccCollectMatchAnswer(q) {
   };
 })();
 
+
+// ── CC AI Visuals: render q.visual on student view ────────────────────
+function _ccStudentDecorateVisuals() {
+  // Look for any question card that has a data-question-id and its
+  // matching object in the currently-active assessment.
+  const list = (window._ccStudentQuestions || (window.currentAssessment && window.currentAssessment.questions) || []);
+  document.querySelectorAll('[data-question-id]').forEach(function (el) {
+    if (el.querySelector('.cc-visual-host')) return;
+    const id = el.getAttribute('data-question-id');
+    const q = list.find(function(x){ return String(x.id) === String(id); });
+    if (!q || !q.visual) return;
+    const host = document.createElement('div');
+    host.className = 'cc-visual-host';
+    host.setAttribute('data-visual-host', '1');
+    host.setAttribute('data-visual-json', JSON.stringify(q.visual));
+    el.insertBefore(host, el.firstChild.nextSibling || null);
+    if (window.ccRenderVisual) window.ccRenderVisual(q.visual, host);
+  });
+}
+if (window.MutationObserver) {
+  new MutationObserver(function(){ _ccStudentDecorateVisuals(); }).observe(document.body, { childList: true, subtree: true });
+}
+document.addEventListener('DOMContentLoaded', _ccStudentDecorateVisuals);
+// ─────────────────────────────────────────────────────────────────────
+

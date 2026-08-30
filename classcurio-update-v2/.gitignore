@@ -1,0 +1,31 @@
+# Don't commit installed dependencies — Render reinstalls them on deploy.
+node_modules/
+
+# Don't commit student data, accounts, or AI grading config.
+data/
+
+# Don't commit Electron build output (huge .app / .exe / .dmg files).
+dist/
+out/
+build/
+release/
+
+# Don't commit local logs.
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS noise.
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor noise.
+.vscode/
+.idea/
+*.swp
+
+# Local secrets — never commit API keys.
+.env
+.env.local
+config.json

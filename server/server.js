@@ -5266,6 +5266,290 @@ app.post('/api/admin/deleted-assessments/restore', _ccRequireAdmin, (req, res) =
 });
 // ──────────────────────────────────────────────────────────────────────────
 
+
+// ── AI Visuals + PDF import helpers ──────────────────────────────────────
+const _ccHttps = require('https');
+const _ccFsV   = require('fs');
+const _ccPathV = require('path');
+
+function _ccLoadConfig() {
+  try {
+    const p = _ccPathV.join((typeof DATA_DIR !== 'undefined' ? DATA_DIR : _ccPathV.join(__dirname, '..', 'data')), 'config.json');
+    return JSON.parse(_ccFsV.readFileSync(p, 'utf8'));
+  } catch(e){ return {}; }
+}
+function _ccSaveConfig(cfg) {
+  const p = _ccPathV.join((typeof DATA_DIR !== 'undefined' ? DATA_DIR : _ccPathV.join(__dirname, '..', 'data')), 'config.json');
+  _ccFsV.writeFileSync(p, JSON.stringify(cfg, null, 2));
+}
+function _ccPickApiKey() {
+  const cfg = _ccLoadConfig();
+  return cfg.anthropicApiKey || cfg.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY || '';
+}
+
+// System instruction appended to every AI-generation prompt so questions
+// can carry a `visual` field.
+const _CC_VISUAL_INSTRUCTION = `
+
+VISUAL RENDERING RULES (very important):
+For every question that would benefit from a diagram, graph, figure, equation, or image, include a field named "visual" on that question with this exact shape:
+
+  "visual": {
+    "type": "svg" | "latex" | "image_description",
+    "content": "<actual SVG code>  OR  <LaTeX expression>  OR  <plain-English description>",
+    "altText": "short accessibility description"
+  }
+
+Choose the type by content:
+  - Math geometry, physics free-body diagrams, chemistry structures, graphs, number lines, flowcharts, coordinate systems, circuits, biology cell/anatomy sketches → "svg". Write clean SVG code (viewBox 0 0 400 300, black stroke on white background, labels in Arial 14px). Include labels directly in the SVG.
+  - Any mathematical equation, chemical formula, or expression that reads better as typeset math → "latex". Content is the raw LaTeX (no \\( or $$ wrappers).
+  - Photographs, artwork, maps, historical scenes, real-world objects → "image_description". Content is a vivid 1–2 sentence description that a text-to-image model could render.
+
+If a question does not need a visual, omit the "visual" field entirely. Do NOT invent visuals for text-only questions.
+`;
+
+// Call Anthropic Messages API. Content is an array of content blocks (text and/or document).
+async function _ccAnthropic(model, systemText, userBlocks, maxTokens) {
+  const key = _ccPickApiKey();
+  if (!key) throw new Error('Anthropic API key not configured (data/config.json)');
+  const body = JSON.stringify({
+    model: model || 'claude-sonnet-4-5-20250929',
+    max_tokens: maxTokens || 8192,
+    system: systemText,
+    messages: [{ role: 'user', content: userBlocks }],
+  });
+  return await new Promise((resolve, reject) => {
+    const req = _ccHttps.request({
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-beta': 'pdfs-2024-09-25',
+        'content-length': Buffer.byteLength(body),
+      },
+      timeout: 180000,
+    }, (res) => {
+      let buf = '';
+      res.on('data', (c) => buf += c);
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(buf);
+          if (j.error) return reject(new Error(j.error.message || 'Anthropic error'));
+          const text = (j.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+          resolve(text);
+        } catch(e){ reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(new Error('Anthropic request timed out')); });
+    req.write(body); req.end();
+  });
+}
+
+// Extract the first JSON array or object from a Claude response.
+function _ccExtractJson(text) {
+  if (!text) return null;
+  // Prefer a fenced block first.
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const src = fence ? fence[1] : text;
+  // Find first { or [ and matching close.
+  let start = -1, depth = 0, open = '', close = '';
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (start === -1 && (c === '{' || c === '[')) {
+      start = i; open = c; close = (c === '{' ? '}' : ']'); depth = 1;
+    } else if (start !== -1) {
+      if (c === open) depth++;
+      else if (c === close) { depth--; if (depth === 0) {
+        try { return JSON.parse(src.slice(start, i + 1)); } catch(e){ return null; }
+      } }
+    }
+  }
+  return null;
+}
+
+// Basic SVG sanitizer — strip <script> and on* handlers.
+function _ccSanitizeSvg(svg) {
+  if (typeof svg !== 'string') return '';
+  let s = svg.replace(/<script[\s\S]*?<\/script>/gi, '');
+  s = s.replace(/\son\w+\s*=\s*"[^"]*"/gi, '');
+  s = s.replace(/\son\w+\s*=\s*'[^']*'/gi, '');
+  s = s.replace(/javascript:/gi, '');
+  s = s.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '');
+  return s;
+}
+
+// Normalize a visual object coming back from Claude.
+function _ccNormalizeVisual(v) {
+  if (!v || typeof v !== 'object') return null;
+  const type = String(v.type || '').toLowerCase();
+  const content = String(v.content || '');
+  const altText = String(v.altText || v.alt || '');
+  if (!content) return null;
+  if (type === 'svg')                return { type: 'svg',               content: _ccSanitizeSvg(content), altText };
+  if (type === 'latex')              return { type: 'latex',             content, altText };
+  if (type === 'image')              return { type: 'image',             content, altText };
+  if (type === 'image_description')  return { type: 'image_description', content, altText };
+  return null;
+}
+function _ccNormalizeQuestionVisuals(questions) {
+  if (!Array.isArray(questions)) return questions;
+  for (const q of questions) {
+    if (q && q.visual) {
+      const n = _ccNormalizeVisual(q.visual);
+      if (n) q.visual = n; else delete q.visual;
+    }
+    // Nested for section-shaped payloads
+    if (q && Array.isArray(q.questions)) _ccNormalizeQuestionVisuals(q.questions);
+  }
+  return questions;
+}
+
+// ── Regenerate a visual for a single question ────────────────────────────
+app.post('/api/ai/regenerate-visual', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const { questionText, subject, hint } = req.body || {};
+    if (!questionText) return res.status(400).json({ error: 'questionText required' });
+    const sys = 'You are an accessible-diagram generator for a classroom assessment tool.' + _CC_VISUAL_INSTRUCTION +
+      '\n\nRespond with ONLY the visual JSON object. No prose. Example:\n{"type":"svg","content":"<svg ...>...</svg>","altText":"..."}';
+    const user = `Subject: ${subject || 'general'}\nQuestion: ${questionText}\n${hint ? 'Hint: ' + hint : ''}\n\nReturn the best visual for this question.`;
+    const raw = await _ccAnthropic(null, sys, [{ type: 'text', text: user }], 4096);
+    const parsed = _ccExtractJson(raw);
+    const norm = _ccNormalizeVisual(parsed);
+    if (!norm) return res.status(422).json({ error: 'AI did not return a usable visual', raw });
+    res.json({ visual: norm });
+  } catch(e){ res.status(500).json({ error: String(e.message || e) }); }
+});
+
+// ── PDF import with diagram extraction (via Claude PDF vision) ───────────
+if (typeof upload !== 'undefined' && upload && typeof upload.single === 'function') {
+  app.post('/api/import/pdf-with-visuals', upload.single('pdf'), async (req, res) => {
+    try {
+      if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      // Read the uploaded PDF as base64.
+      const buf = _ccFsV.readFileSync(req.file.path);
+      const b64 = buf.toString('base64');
+      // Clean up temp file eagerly.
+      try { _ccFsV.unlinkSync(req.file.path); } catch(e){}
+      if (buf.length > 32 * 1024 * 1024) return res.status(413).json({ error: 'PDF too large (max 32 MB)' });
+
+      const sys = `You are a classroom-assessment converter. Read the attached PDF worksheet and output a JSON array of question objects that faithfully match the PDF.
+
+Each question object must have:
+  "text":     the question text, verbatim from the PDF (fix obvious OCR mistakes)
+  "type":     "multiple_choice" | "short_answer" | "essay" | "true_false"
+  "options":  array of choice strings (only if multiple_choice)
+  "answer":   the correct answer as a string (or the option index for MCQ)
+  "points":   integer, default 1
+  "visual":   (optional) — see rules below
+
+${_CC_VISUAL_INSTRUCTION}
+
+Return ONLY the JSON array. No prose, no fenced code block wrappers.`;
+      const userBlocks = [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
+        { type: 'text', text: 'Convert this worksheet into the JSON array of questions per the system rules. Preserve every diagram as an SVG in the visual field of the correct question.' },
+      ];
+      const raw = await _ccAnthropic(null, sys, userBlocks, 16000);
+      const parsed = _ccExtractJson(raw);
+      if (!Array.isArray(parsed)) return res.status(422).json({ error: 'AI did not return an array', raw });
+      _ccNormalizeQuestionVisuals(parsed);
+      res.json({ questions: parsed, count: parsed.length });
+    } catch(e){ res.status(500).json({ error: String(e.message || e) }); }
+  });
+  console.log('[ai-visuals] POST /api/import/pdf-with-visuals wired.');
+} else {
+  console.warn('[ai-visuals] multer `upload` not found — PDF import endpoint skipped.');
+}
+
+// ── Admin: image-API config (Phase 2 hook) ───────────────────────────────
+app.get('/api/admin/image-config', (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const admins = (typeof ADMIN_EMAILS !== 'undefined' && Array.isArray(ADMIN_EMAILS))
+      ? ADMIN_EMAILS.map(x => String(x).toLowerCase())
+      : ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
+    if (!admins.includes(String(req.session.user.email || '').toLowerCase())) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
+    const cfg = _ccLoadConfig();
+    const ic = cfg.imageApi || {};
+    res.json({
+      provider: ic.provider || '',
+      hasKey:   !!ic.apiKey,
+      keyPreview: ic.apiKey ? (String(ic.apiKey).slice(0, 4) + '…' + String(ic.apiKey).slice(-4)) : '',
+    });
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+app.put('/api/admin/image-config', (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const admins = (typeof ADMIN_EMAILS !== 'undefined' && Array.isArray(ADMIN_EMAILS))
+      ? ADMIN_EMAILS.map(x => String(x).toLowerCase())
+      : ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
+    if (!admins.includes(String(req.session.user.email || '').toLowerCase())) {
+      return res.status(403).json({ error: 'Admin only' });
+    }
+    const { provider, apiKey } = req.body || {};
+    const cfg = _ccLoadConfig();
+    cfg.imageApi = { provider: String(provider || ''), apiKey: String(apiKey || '') };
+    _ccSaveConfig(cfg);
+    res.json({ ok: true });
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+
+// ── Generate a real image from a description (Phase 2) ───────────────────
+async function _ccGenerateImageOpenAI(description, apiKey) {
+  const body = JSON.stringify({ model: 'dall-e-3', prompt: description, size: '1024x1024', response_format: 'b64_json', n: 1 });
+  return await new Promise((resolve, reject) => {
+    const req = _ccHttps.request({
+      hostname: 'api.openai.com',
+      path: '/v1/images/generations',
+      method: 'POST',
+      headers: { 'authorization': 'Bearer ' + apiKey, 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) },
+      timeout: 120000,
+    }, (res) => {
+      let buf = ''; res.on('data', c => buf += c);
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(buf);
+          if (j.error) return reject(new Error(j.error.message || 'OpenAI error'));
+          const b64 = j.data && j.data[0] && j.data[0].b64_json;
+          if (!b64) return reject(new Error('No image returned'));
+          resolve('data:image/png;base64,' + b64);
+        } catch(e){ reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body); req.end();
+  });
+}
+app.post('/api/ai/generate-image', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const description = String((req.body && req.body.description) || '').trim();
+    if (!description) return res.status(400).json({ error: 'description required' });
+    const cfg = _ccLoadConfig();
+    const ic = cfg.imageApi || {};
+    if (!ic.apiKey || !ic.provider) {
+      return res.status(501).json({ error: 'Image API not configured. Ask an admin to add a key in Admin → Image API.' });
+    }
+    let dataUrl = null;
+    if (ic.provider === 'openai' || ic.provider === 'dall-e') {
+      dataUrl = await _ccGenerateImageOpenAI(description, ic.apiKey);
+    } else {
+      return res.status(501).json({ error: 'Provider not yet supported: ' + ic.provider });
+    }
+    res.json({ visual: { type: 'image', content: dataUrl, altText: description.slice(0, 200) } });
+  } catch(e){ res.status(500).json({ error: String(e.message || e) }); }
+});
+// ─────────────────────────────────────────────────────────────────────────
+
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
 });
