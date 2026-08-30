@@ -6246,12 +6246,15 @@ function _ccInstallPdfImportButton() {
       const f = inp.files && inp.files[0]; if (!f) return;
       btn.disabled = true; btn.textContent = 'Reading PDF (may take a few minutes for large files)…';
       try {
-        const qs = await ccImportPdfWithVisuals(f);
-        alert('Extracted ' + qs.length + ' questions from PDF. Opening builder…');
-        // Hand off to the existing builder if one exists; else stash to window.
-        if (typeof openBuilderWithQuestions === 'function') openBuilderWithQuestions(qs);
-        else if (typeof openBuilder === 'function') { window._ccPendingImport = qs; openBuilder(); }
-        else { window._ccPendingImport = qs; console.log('Imported questions:', qs); }
+        // Call the endpoint directly so we can read the full response envelope.
+        const fd = new FormData(); fd.append('pdf', f);
+        const resp = await fetch('/api/import/pdf-with-visuals', { method: 'POST', body: fd, credentials: 'include' });
+        const j = await resp.json().catch(function(){ return {}; });
+        if (!resp.ok) throw new Error(j.error || ('HTTP ' + resp.status));
+        const n = (j.questions || []).length;
+        const title = j.assessmentTitle || 'PDF Import';
+        alert('Extracted ' + n + ' questions and saved as a new draft assessment: "' + title + '".\n\nReloading the dashboard so you can open it.');
+        window.location.reload();
       } catch (e) { alert('PDF import failed: ' + (e.message || e)); }
       finally { btn.disabled = false; btn.textContent = '📄 Import PDF (with diagrams)'; }
     };

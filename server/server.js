@@ -5427,7 +5427,49 @@ app.post('/api/ai/regenerate-visual', async (req, res) => {
 
 // ── PDF import with diagram extraction (via Claude PDF vision) ───────────
 if (typeof upload !== 'undefined' && upload && typeof upload.single === 'function') {
-  app.post('/api/import/pdf-with-visuals', upload.single('pdf'), async (req, res) => {
+  
+// Create a draft assessment record from imported questions, using the shape
+// of the first existing assessment as a template. Backward-compatible with
+// whatever schema the app already uses.
+function _ccCreateDraftFromImport(teacherUser, questions, sourceLabel) {
+  const path = require('path');
+  const fs   = require('fs');
+  const dataDir = (typeof DATA_DIR !== 'undefined') ? DATA_DIR : path.join(__dirname, '..', 'data');
+  const file = path.join(dataDir, 'assessments.json');
+  let all = [];
+  try { all = JSON.parse(fs.readFileSync(file, 'utf8')); } catch(e){ all = []; }
+  // Use the first assessment as a schema template (all keys except questions/sections).
+  const template = (all.find(a => a && a.teacherId === (teacherUser && teacherUser.id)) || all[0] || {});
+  const nowIso = new Date().toISOString();
+  const nowSlug = nowIso.slice(0, 10);
+  const id = (Date.now().toString(36) + Math.random().toString(36).slice(2, 8));
+  const record = Object.assign({}, template, {
+    id,
+    title: (sourceLabel || 'Imported PDF') + ' — ' + nowSlug,
+    teacherId: teacherUser && teacherUser.id,
+    teacherEmail: teacherUser && teacherUser.email,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    status: 'draft',
+    published: false,
+    // Try both shapes: sections-of-questions AND flat questions.
+    sections: [{ id: 'sec-' + id, title: 'Section 1', questions: questions }],
+    questions: questions,
+    // Clear IDs / timing from template so this is a fresh assessment.
+    scheduledDate: null,
+    startedAt: null,
+    endedAt: null,
+  });
+  // Remove any results-shaped fields that might have been copied from template.
+  delete record.results;
+  delete record.submissions;
+  delete record.attemptWindow;
+  all.push(record);
+  fs.writeFileSync(file, JSON.stringify(all, null, 2));
+  return record;
+}
+
+app.post('/api/import/pdf-with-visuals', upload.single('pdf'), async (req, res) => {
     const { PDFDocument } = require('pdf-lib');
     try {
       if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
@@ -5508,11 +5550,17 @@ Return ONLY the JSON array. No prose, no fenced code block wrappers.`;
         }
       }
       if (!allQuestions.length) return res.status(422).json({ error: 'No questions could be extracted from this PDF.' });
+      let created = null;
+      try {
+        created = _ccCreateDraftFromImport(req.session.user, allQuestions, (req.file && req.file.originalname) || 'PDF');
+      } catch(cErr){ console.error('[pdf-import] draft creation failed', cErr); }
       res.json({
         questions: allQuestions,
         count: allQuestions.length,
         totalPages,
         chunks: ranges.length,
+        assessmentId: created && created.id,
+        assessmentTitle: created && created.title,
       });
     } catch(e){
       console.error('[pdf-import] fatal', e);
