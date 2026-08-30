@@ -5440,14 +5440,22 @@ if (typeof upload !== 'undefined' && upload && typeof upload.single === 'functio
 
       const sys = `You are a classroom-assessment converter. Read the attached PDF worksheet and output a JSON array of question objects that faithfully match the PDF.
 
+CRITICAL — MATH & SCIENCE PDF HANDLING:
+Many math/science PDFs embed equations using custom fonts. When you extract the raw text stream you will see garbage like 팽, 픕, 픰, 픰, PUA glyphs, or random CJK-looking characters INSIDE what is obviously an English document.
+  - If ANY line contains such garbage, do NOT copy the raw text. Read the page VISUALLY (as if you were looking at the printed page) and reconstruct the equation from what you see.
+  - Emit every equation as LaTeX in the question's visual field:
+        "visual": { "type": "latex", "content": "\\frac{d^2y}{dx^2} + \\frac{dy}{dx}...", "altText": "..." }
+  - If the multiple-choice OPTIONS are themselves equations, put each option as inline LaTeX using $...$ delimiters (client MathJax will render them). Example:
+        "options": ["$y\\frac{d^2y}{dx^2} + (\\frac{dy}{dx})^2 = 0$", "$y\\frac{d^2y}{dx^2} - (\\frac{dy}{dx})^2 = 0$", ...]
+  - NEVER include CJK / Korean / Chinese / Japanese characters in the output unless the source PDF is actually in one of those languages. If you see them in a Math/Science/English PDF, that's the PUA font issue — reinterpret via vision.
+
 Each question object must have:
-  "text":     the question text, verbatim from the PDF (fix obvious OCR mistakes)
+  "text":     the prose part of the question (leave equations out — they go in visual/options)
   "type":     "multiple_choice" | "short_answer" | "essay" | "true_false"
-  "options":  array of choice strings (only if multiple_choice)
+  "options":  array of choice strings (only if multiple_choice). Wrap any math in $...$.
   "answer":   the correct answer as a string (or the option index for MCQ)
   "points":   integer, default 1
   "visual":   (optional) — see rules below
-
 ${_CC_VISUAL_INSTRUCTION}
 
 Return ONLY the JSON array. No prose, no fenced code block wrappers.`;

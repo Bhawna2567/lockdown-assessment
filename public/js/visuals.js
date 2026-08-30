@@ -70,5 +70,21 @@
       } catch(e){}
     });
   };
-  document.addEventListener('DOMContentLoaded', function(){ window.ccRenderAllVisuals(); });
+  document.addEventListener('DOMContentLoaded', function(){ window.ccRenderAllVisuals(); window.ccTypesetAll && window.ccTypesetAll(); });
+
+  // Re-typeset MathJax across the whole page whenever new content appears.
+  // This catches MCQ options that contain $...$ LaTeX.
+  window.ccTypesetAll = function () {
+    if (window.MathJax && window.MathJax.typesetPromise) {
+      try { window.MathJax.typesetPromise().catch(function(){}); } catch(e){}
+    }
+  };
+  if (window.MutationObserver) {
+    var _ccMj = null;
+    new MutationObserver(function () {
+      clearTimeout(_ccMj);
+      _ccMj = setTimeout(function () { window.ccTypesetAll(); }, 250);
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  }
+
 })();
