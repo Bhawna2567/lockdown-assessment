@@ -5793,18 +5793,42 @@ function _ccMpQuestions(assessment) {
 }
 
 // Given a submission and question index, find the student's answer.
-function _ccMpStudentAnswer(sub, qIdx, question) {
-  if (!sub) return '';
+// Find the raw answer object for a given question.
+function _ccMpFindAnswerObj(sub, qIdx, question) {
+  if (!sub) return null;
   const answers = sub.answers || sub.responses || sub.answersByQuestion || sub.answerMap || sub.grade || null;
+  if (!answers) return null;
   if (Array.isArray(answers)) {
-    const a = answers[qIdx];
-    if (a && typeof a === 'object') return a.answer || a.response || a.value || a.text || JSON.stringify(a);
-    return a === undefined ? '' : String(a);
+    // Prefer matching by questionId if present in each entry.
+    if (question && question.id) {
+      const found = answers.find(a => a && (a.questionId === question.id || a.qid === question.id || a.id === question.id));
+      if (found) return found;
+    }
+    return answers[qIdx] !== undefined ? answers[qIdx] : null;
   }
-  if (answers && typeof answers === 'object' && question) {
-    return answers[question.id] || answers[qIdx] || answers['q' + qIdx] || '';
+  if (typeof answers === 'object' && question) {
+    return answers[question.id] || answers[qIdx] || answers['q' + qIdx] || null;
   }
-  return '';
+  return null;
+}
+
+function _ccMpStudentAnswer(sub, qIdx, question) {
+  const a = _ccMpFindAnswerObj(sub, qIdx, question);
+  if (a === null || a === undefined) return '';
+  // Primitive answer
+  if (typeof a !== 'object') return String(a);
+  // Object answer — try to resolve to a display string.
+  // Shape 1: { given: N, correct: bool, questionId }
+  if ('given' in a) {
+    const opts = _ccMpQuestionOptions(question);
+    const idx0 = Number(a.given);
+    // Try both 0-based and 1-based interpretations.
+    const opt = opts[idx0] || opts[idx0 - 1];
+    if (opt) return String.fromCharCode(65 + Math.min(opts.indexOf(opt), 25)) + ') ' + opt;
+    return String(a.given);
+  }
+  // Shape 2: { answer: '...' }
+  return a.answer || a.response || a.value || a.text || JSON.stringify(a);
 }
 function _ccMpCorrectAnswer(question) {
   if (!question) return '';
@@ -5822,8 +5846,14 @@ function _ccMpCorrectAnswer(question) {
   return String(corr);
 }
 function _ccMpPointsEarned(sub, qIdx, question) {
-  if (!sub) return null;
-  const scores = sub.scores || sub.marks || sub.pointsPerQuestion || null;
+  // Prefer the answer object's `correct` flag.
+  const a = _ccMpFindAnswerObj(sub, qIdx, question);
+  if (a && typeof a === 'object' && 'correct' in a) {
+    const max = _ccMpQuestionPoints(question);
+    return a.correct ? max : 0;
+  }
+  // Fallback: separate scores array/map.
+  const scores = sub && (sub.scores || sub.marks || sub.pointsPerQuestion) || null;
   if (Array.isArray(scores)) return Number(scores[qIdx]) || 0;
   if (scores && typeof scores === 'object' && question) return Number(scores[question.id] || scores[qIdx] || 0);
   return null;
@@ -5874,8 +5904,14 @@ function _ccMpBuildPdf(assessment, submission, outStream) {
   const submittedAt = submission.submittedAt || submission.endedAt || submission.finishedAt || submission.createdAt || '';
   if (submittedAt) doc.fontSize(10).fillColor('#666').text('Submitted: ' + new Date(submittedAt).toLocaleString());
   // Score line
-  const total = Number(submission.totalScore || submission.score || 0);
-  const max   = Number(submission.maxScore   || submission.outOf  || _ccMpQuestions(assessment).reduce((n,q) => n + _ccMpQuestionPoints(q), 0));
+  // Compute the total from per-question correctness if submission doesn't carry one.
+  const _qsForScore = (typeof _qs !== 'undefined' && _qs) ? _qs : _ccMpQuestions(assessment);
+  const _computedTotal = _qsForScore.reduce((n, q, i) => {
+    const p = _ccMpPointsEarned(submission, i, q);
+    return n + (p === null ? 0 : Number(p));
+  }, 0);
+  const total = Number(submission.totalScore || submission.score || _computedTotal || 0);
+  const max   = Number(submission.maxScore || submission.outOf || _qsForScore.reduce((n,q) => n + _ccMpQuestionPoints(q), 0));
   const pct   = max ? Math.round((total / max) * 100) : 0;
   doc.moveDown(0.3);
   doc.fontSize(13).fillColor('#000').text('Score: ' + total + ' / ' + max + '   (' + pct + '%)');
