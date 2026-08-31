@@ -6337,29 +6337,67 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-// ── Marked PDFs: inject a download button on each assessment card ─────────
-function _ccInstallMarkedPdfsButton() {
-  // Look for any assessment card that has a data-assessment-id but no
-  // marked-pdfs button yet.
-  document.querySelectorAll('[data-assessment-id]').forEach(function (card) {
-    if (card.querySelector('.cc-marked-pdfs-btn')) return;
-    const aid = card.getAttribute('data-assessment-id');
-    if (!aid) return;
+// ── Marked PDFs: attach a "📥 Marked PDFs" next to every "Results" button ─
+function _ccExtractAssessmentIdFromResultsBtn(el) {
+  if (!el) return '';
+  // 1) href
+  const href = el.getAttribute && (el.getAttribute('href') || '');
+  if (href) {
+    const m = href.match(/(?:assessment|aid|id)=([A-Za-z0-9_-]+)/) || href.match(/results\/([A-Za-z0-9_-]+)/);
+    if (m) return m[1];
+  }
+  // 2) data attributes on the button
+  for (const a of (el.attributes || [])) {
+    if (/(assessment|aid|-id$)/.test(a.name) && a.value) return a.value;
+  }
+  // 3) walk up looking for a container with a data-* id
+  let p = el.parentElement;
+  for (let n = 0; n < 6 && p; n++, p = p.parentElement) {
+    for (const a of (p.attributes || [])) {
+      if (/(assessment|aid|-id$)/.test(a.name) && a.value && !/section|option|question/i.test(a.name)) return a.value;
+    }
+  }
+  // 4) parse onclick
+  const oc = el.getAttribute && (el.getAttribute('onclick') || '');
+  if (oc) {
+    const m = oc.match(/['"]([A-Za-z0-9_-]{6,})['"]/);
+    if (m) return m[1];
+  }
+  return '';
+}
+
+function _ccInstallMarkedPdfsButtons() {
+  // Find every element whose text says "Results" and is a button-like element.
+  const cands = Array.from(document.querySelectorAll('button, a'));
+  cands.forEach(function (el) {
+    const txt = (el.textContent || '').trim();
+    if (txt !== 'Results' && !/^Results\b/.test(txt)) return;
+    // Already added?
+    if (el.parentElement && el.parentElement.querySelector('.cc-marked-pdfs-btn')) return;
+    const aid = _ccExtractAssessmentIdFromResultsBtn(el);
     const btn = document.createElement('a');
     btn.className = 'cc-marked-pdfs-btn';
-    btn.href = '/api/teacher/assessments/' + encodeURIComponent(aid) + '/marked-pdfs.zip';
     btn.textContent = '📥 Marked PDFs';
     btn.title = 'Download every student\'s marked assessment as a ZIP of PDFs';
-    btn.style.cssText = 'display:inline-block; margin:4px; padding:6px 10px; background:#0369A1; color:#fff; text-decoration:none; border-radius:5px; font-size:12px;';
-    // Attach next to the existing "Results" or "PDF" buttons if we can find them.
-    const actionRow = card.querySelector('.actions, .assessment-actions, .action-row') || card;
-    actionRow.appendChild(btn);
+    btn.style.cssText = 'display:inline-flex; align-items:center; margin:0 4px; padding:8px 14px; background:#0369A1; color:#fff; text-decoration:none; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; border:none;';
+    if (aid) {
+      btn.href = '/api/teacher/assessments/' + encodeURIComponent(aid) + '/marked-pdfs.zip';
+    } else {
+      btn.href = '#';
+      btn.onclick = function(e){ e.preventDefault(); alert('Cannot detect assessment ID from this card. Try opening Results first, then reload.'); };
+    }
+    // Insert right after the Results button.
+    if (el.parentElement) el.parentElement.insertBefore(btn, el.nextSibling);
   });
 }
-document.addEventListener('DOMContentLoaded', _ccInstallMarkedPdfsButton);
+
+document.addEventListener('DOMContentLoaded', _ccInstallMarkedPdfsButtons);
 if (window.MutationObserver) {
-  new MutationObserver(function(){ _ccInstallMarkedPdfsButton(); })
+  new MutationObserver(function(){ _ccInstallMarkedPdfsButtons(); })
     .observe(document.body, { childList: true, subtree: true });
 }
+// Run again shortly after load in case cards render asynchronously.
+setTimeout(_ccInstallMarkedPdfsButtons, 500);
+setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 // ──────────────────────────────────────────────────────────────────────────
 
