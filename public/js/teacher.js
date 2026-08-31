@@ -6380,12 +6380,38 @@ function _ccInstallMarkedPdfsButtons() {
     btn.textContent = '📥 Marked PDFs';
     btn.title = 'Download every student\'s marked assessment as a ZIP of PDFs';
     btn.style.cssText = 'display:inline-flex; align-items:center; margin:0 4px; padding:8px 14px; background:#0369A1; color:#fff; text-decoration:none; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; border:none;';
-    if (aid) {
-      btn.href = '/api/teacher/assessments/' + encodeURIComponent(aid) + '/marked-pdfs.zip';
-    } else {
-      btn.href = '#';
-      btn.onclick = function(e){ e.preventDefault(); alert('Cannot detect assessment ID from this card. Try opening Results first, then reload.'); };
-    }
+    btn.href = '#';
+    btn.onclick = async function (e) {
+      e.preventDefault();
+      if (!aid) { alert('Cannot detect assessment ID from this card. Try opening Results first, then reload.'); return; }
+      const orig = btn.textContent;
+      btn.textContent = 'Preparing…';
+      btn.style.opacity = '0.7';
+      try {
+        const r = await fetch('/api/teacher/assessments/' + encodeURIComponent(aid) + '/marked-pdfs.zip', { credentials: 'include' });
+        if (!r.ok) {
+          let msg = 'Download failed (HTTP ' + r.status + ')';
+          try { const j = await r.json(); if (j && j.error) msg = j.error; } catch(_){}
+          alert(msg);
+          return;
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        // Try to read filename from Content-Disposition
+        const cd = r.headers.get('Content-Disposition') || '';
+        const m = cd.match(/filename="?([^";]+)"?/i);
+        a.download = m ? m[1] : 'marked-pdfs.zip';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+      } catch (err) {
+        alert('Download failed: ' + (err.message || err));
+      } finally {
+        btn.textContent = orig;
+        btn.style.opacity = '';
+      }
+    };
     // Insert right after the Results button.
     if (el.parentElement) el.parentElement.insertBefore(btn, el.nextSibling);
   });
