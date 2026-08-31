@@ -5740,10 +5740,56 @@ function _ccMpLoadSubmissions(assessmentId) {
 // Extract questions from an assessment record (sections or flat).
 function _ccMpQuestions(assessment) {
   if (!assessment) return [];
-  if (Array.isArray(assessment.sections) && assessment.sections.length) {
-    return [].concat(...assessment.sections.map(s => (Array.isArray(s.questions) ? s.questions : [])));
+  // Deep scan the assessment record for any array of objects that look like questions.
+  function looksLikeQuestion(o) {
+    if (!o || typeof o !== 'object') return false;
+    const hasText = ('text' in o) || ('prompt' in o) || ('question' in o) || ('title' in o) || ('body' in o) || ('statement' in o);
+    return hasText;
   }
-  return Array.isArray(assessment.questions) ? assessment.questions : [];
+  function looksLikeQuestionArray(arr) {
+    if (!Array.isArray(arr) || !arr.length) return false;
+    const sample = arr.slice(0, Math.min(3, arr.length));
+    const hits = sample.filter(looksLikeQuestion).length;
+    return hits >= Math.ceil(sample.length / 2);
+  }
+  // 1. Common shallow keys.
+  const shallowKeys = ['questions', 'items', 'tasks', 'exercises', 'problems', 'parts', 'q', 'items'];
+  for (const k of shallowKeys) {
+    if (looksLikeQuestionArray(assessment[k])) return assessment[k];
+  }
+  // 2. sections/parts of the form [{questions|items|...: [...]}]
+  const sectionKeys = ['sections', 'parts', 'groups', 'stages', 'blocks'];
+  for (const sk of sectionKeys) {
+    if (Array.isArray(assessment[sk])) {
+      const inner = [];
+      for (const sec of assessment[sk]) {
+        for (const k of shallowKeys) {
+          if (looksLikeQuestionArray(sec && sec[k])) inner.push(...sec[k]);
+        }
+      }
+      if (inner.length) return inner;
+    }
+  }
+  // 3. Recursive fallback: walk every array in the record and return the
+  //    first one that looks like a question list.
+  function walk(node, depth) {
+    if (!node || depth > 5) return null;
+    if (Array.isArray(node)) {
+      if (looksLikeQuestionArray(node)) return node;
+      for (const v of node) { const r = walk(v, depth + 1); if (r) return r; }
+      return null;
+    }
+    if (typeof node === 'object') {
+      for (const k of Object.keys(node)) {
+        // Skip known non-question arrays.
+        if (/(students|attendance|results|submissions|answers|scores|options|choices)/i.test(k)) continue;
+        const r = walk(node[k], depth + 1); if (r) return r;
+      }
+    }
+    return null;
+  }
+  const found = walk(assessment, 0);
+  return found || [];
 }
 
 // Given a submission and question index, find the student's answer.
@@ -5803,15 +5849,25 @@ function _ccMpStudentName(sub) {
 
 // Generate the PDF for one submission and pipe it into `outStream`.
 function _ccMpBuildPdf(assessment, submission, outStream) {
+  const _qs = _ccMpQuestions(assessment);
+  console.log('[marked-pdf] student=' + _ccMpStudentName(submission) + ' questions_detected=' + _qs.length + ' assessment_keys=' + Object.keys(assessment || {}).slice(0, 20).join(','));
   const doc = new _ccPdfKit({ size: 'A4', margin: 50 });
   doc.pipe(outStream);
   // Header
   doc.fontSize(20).text(assessment.title || 'Assessment', { align: 'left' });
   doc.moveDown(0.3);
+  let _ccClassName = assessment.classId || '';
+  try {
+    const classes = _ccMpReadJson('classes.json', []);
+    if (Array.isArray(classes)) {
+      const c = classes.find(cl => String(cl.id) === String(assessment.classId));
+      if (c) _ccClassName = c.name || c.title || _ccClassName;
+    }
+  } catch(e){}
   doc.fontSize(11).fillColor('#555').text(
     (assessment.subject ? 'Subject: ' + assessment.subject : '')
     + (assessment.grade ? '   Grade: ' + assessment.grade : '')
-    + (assessment.classId ? '   Class: ' + assessment.classId : ''),
+    + (_ccClassName ? '   Class: ' + _ccClassName : ''),
   );
   doc.moveDown(0.3);
   doc.fillColor('#000').fontSize(12).text('Student: ' + _ccMpStudentName(submission));
@@ -5827,7 +5883,7 @@ function _ccMpBuildPdf(assessment, submission, outStream) {
   doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#DDD').stroke();
   doc.moveDown(0.6);
   // Questions
-  const qs = _ccMpQuestions(assessment);
+  const qs = (typeof _qs !== 'undefined' && _qs) ? _qs : _ccMpQuestions(assessment);
   qs.forEach((q, i) => {
     if (doc.y > 720) doc.addPage();
     doc.fontSize(12).fillColor('#000').text('Q' + (i + 1) + '.', 50, doc.y, { continued: true });
