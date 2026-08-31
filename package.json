@@ -29,7 +29,9 @@
     "helmet": "^7.1.0",
     "express-rate-limit": "^7.1.0",
     "otplib": "^12.0.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.15.0",
+    "archiver": "^7.0.1"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

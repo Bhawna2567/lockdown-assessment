@@ -5707,6 +5707,214 @@ app.post('/api/ai/generate-image', async (req, res) => {
 });
 // ─────────────────────────────────────────────────────────────────────────
 
+
+// ── Marked-PDFs generator ────────────────────────────────────────────────
+const _ccPdfKit    = require('pdfkit');
+const _ccArchiver  = require('archiver');
+const _ccFsMp      = require('fs');
+const _ccPathMp    = require('path');
+
+function _ccMpDataDir() {
+  return (typeof DATA_DIR !== 'undefined') ? DATA_DIR : _ccPathMp.join(__dirname, '..', 'data');
+}
+function _ccMpReadJson(name, fallback) {
+  try { return JSON.parse(_ccFsMp.readFileSync(_ccPathMp.join(_ccMpDataDir(), name), 'utf8')); }
+  catch(e){ return fallback; }
+}
+
+// Find every submission across all data files that matches an assessment.
+function _ccMpLoadSubmissions(assessmentId) {
+  const files = ['submissions.json', 'results.json', 'attempts.json', 'responses.json'];
+  const out = [];
+  for (const f of files) {
+    const arr = _ccMpReadJson(f, []);
+    if (!Array.isArray(arr)) continue;
+    for (const s of arr) {
+      const aid = s && (s.assessmentId || s.assessment_id || s.aid || (s.assessment && s.assessment.id));
+      if (String(aid) === String(assessmentId)) out.push(s);
+    }
+  }
+  return out;
+}
+
+// Extract questions from an assessment record (sections or flat).
+function _ccMpQuestions(assessment) {
+  if (!assessment) return [];
+  if (Array.isArray(assessment.sections) && assessment.sections.length) {
+    return [].concat(...assessment.sections.map(s => (Array.isArray(s.questions) ? s.questions : [])));
+  }
+  return Array.isArray(assessment.questions) ? assessment.questions : [];
+}
+
+// Given a submission and question index, find the student's answer.
+function _ccMpStudentAnswer(sub, qIdx, question) {
+  if (!sub) return '';
+  const answers = sub.answers || sub.responses || sub.answersByQuestion || sub.answerMap || sub.grade || null;
+  if (Array.isArray(answers)) {
+    const a = answers[qIdx];
+    if (a && typeof a === 'object') return a.answer || a.response || a.value || a.text || JSON.stringify(a);
+    return a === undefined ? '' : String(a);
+  }
+  if (answers && typeof answers === 'object' && question) {
+    return answers[question.id] || answers[qIdx] || answers['q' + qIdx] || '';
+  }
+  return '';
+}
+function _ccMpCorrectAnswer(question) {
+  if (!question) return '';
+  const opts = question.options || question.choices || [];
+  const corr = question.answer !== undefined ? question.answer
+              : question.correctAnswer !== undefined ? question.correctAnswer
+              : question.correct !== undefined ? question.correct
+              : '';
+  if (Array.isArray(opts) && opts.length && (typeof corr === 'number' || /^\d+$/.test(String(corr)))) {
+    const idx = Number(corr);
+    const o = opts[idx];
+    if (o && typeof o === 'object') return o.text || o.label || String(o);
+    return String(o !== undefined ? o : corr);
+  }
+  return String(corr);
+}
+function _ccMpPointsEarned(sub, qIdx, question) {
+  if (!sub) return null;
+  const scores = sub.scores || sub.marks || sub.pointsPerQuestion || null;
+  if (Array.isArray(scores)) return Number(scores[qIdx]) || 0;
+  if (scores && typeof scores === 'object' && question) return Number(scores[question.id] || scores[qIdx] || 0);
+  return null;
+}
+function _ccMpQuestionText(q) {
+  if (!q) return '';
+  return String(q.text || q.prompt || q.question || q.title || '').slice(0, 4000);
+}
+function _ccMpQuestionOptions(q) {
+  const opts = q && (q.options || q.choices) || [];
+  return opts.map(o => (o && typeof o === 'object') ? (o.text || o.label || JSON.stringify(o)) : String(o));
+}
+function _ccMpQuestionPoints(q) {
+  return Number(q && (q.points || q.marks) || 1);
+}
+
+function _ccMpStudentName(sub) {
+  if (!sub) return 'Student';
+  return sub.studentName || sub.name || sub.student || sub.userName
+      || (sub.user && (sub.user.name || sub.user.email))
+      || sub.studentEmail || sub.email || 'Student';
+}
+
+// Generate the PDF for one submission and pipe it into `outStream`.
+function _ccMpBuildPdf(assessment, submission, outStream) {
+  const doc = new _ccPdfKit({ size: 'A4', margin: 50 });
+  doc.pipe(outStream);
+  // Header
+  doc.fontSize(20).text(assessment.title || 'Assessment', { align: 'left' });
+  doc.moveDown(0.3);
+  doc.fontSize(11).fillColor('#555').text(
+    (assessment.subject ? 'Subject: ' + assessment.subject : '')
+    + (assessment.grade ? '   Grade: ' + assessment.grade : '')
+    + (assessment.classId ? '   Class: ' + assessment.classId : ''),
+  );
+  doc.moveDown(0.3);
+  doc.fillColor('#000').fontSize(12).text('Student: ' + _ccMpStudentName(submission));
+  const submittedAt = submission.submittedAt || submission.endedAt || submission.finishedAt || submission.createdAt || '';
+  if (submittedAt) doc.fontSize(10).fillColor('#666').text('Submitted: ' + new Date(submittedAt).toLocaleString());
+  // Score line
+  const total = Number(submission.totalScore || submission.score || 0);
+  const max   = Number(submission.maxScore   || submission.outOf  || _ccMpQuestions(assessment).reduce((n,q) => n + _ccMpQuestionPoints(q), 0));
+  const pct   = max ? Math.round((total / max) * 100) : 0;
+  doc.moveDown(0.3);
+  doc.fontSize(13).fillColor('#000').text('Score: ' + total + ' / ' + max + '   (' + pct + '%)');
+  doc.moveDown(0.6);
+  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#DDD').stroke();
+  doc.moveDown(0.6);
+  // Questions
+  const qs = _ccMpQuestions(assessment);
+  qs.forEach((q, i) => {
+    if (doc.y > 720) doc.addPage();
+    doc.fontSize(12).fillColor('#000').text('Q' + (i + 1) + '.', 50, doc.y, { continued: true });
+    doc.fontSize(12).fillColor('#000').text(' ' + _ccMpQuestionText(q));
+    const opts = _ccMpQuestionOptions(q);
+    if (opts.length) {
+      opts.forEach((o, oi) => {
+        doc.fontSize(10).fillColor('#333').text('   ' + String.fromCharCode(65 + oi) + ') ' + o);
+      });
+    }
+    const studentAns  = _ccMpStudentAnswer(submission, i, q);
+    const correctAns  = _ccMpCorrectAnswer(q);
+    const points      = _ccMpPointsEarned(submission, i, q);
+    const maxPoints   = _ccMpQuestionPoints(q);
+    doc.moveDown(0.2);
+    doc.fontSize(11).fillColor('#0369A1').text('Student answer: ' + (studentAns || '(no answer)'));
+    doc.fontSize(11).fillColor('#059669').text('Correct answer: ' + (correctAns || '(not set)'));
+    if (points !== null) {
+      const isFull = points >= maxPoints;
+      doc.fontSize(11).fillColor(isFull ? '#059669' : (points > 0 ? '#B45309' : '#B91C1C'))
+         .text('Points: ' + points + ' / ' + maxPoints + (isFull ? '  ✓' : (points > 0 ? '  ~' : '  ✗')));
+    }
+    doc.moveDown(0.6);
+  });
+  // Footer
+  doc.moveDown(1.5);
+  doc.fontSize(10).fillColor('#666').text('Teacher signature: ______________________________', 50, doc.page.height - 80);
+  doc.end();
+}
+
+function _ccMpSlug(s) { return String(s || 'student').replace(/[^A-Za-z0-9_-]+/g, '_').slice(0, 60); }
+
+// ZIP endpoint — one PDF per submission.
+app.get('/api/teacher/assessments/:aid/marked-pdfs.zip', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const aid = req.params.aid;
+    const assessments = _ccMpReadJson('assessments.json', []);
+    const assessment = assessments.find(a => String(a.id) === String(aid));
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+    // Simple auth: teacher must own the assessment OR be an admin.
+    const admins = (typeof ADMIN_EMAILS !== 'undefined' && Array.isArray(ADMIN_EMAILS))
+      ? ADMIN_EMAILS.map(x => String(x).toLowerCase())
+      : ['bsharma2567@gmail.com', 'bhawna.sharma@moe.sch.ae'];
+    const isAdmin = admins.includes(String(req.session.user.email || '').toLowerCase());
+    const isOwner = String(assessment.teacherId || '') === String(req.session.user.id || '');
+    if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Not your assessment' });
+    const subs = _ccMpLoadSubmissions(aid);
+    if (!subs.length) return res.status(404).json({ error: 'No submissions to export' });
+    const fname = _ccMpSlug(assessment.title || 'assessment') + '_marked_pdfs.zip';
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
+    const archive = _ccArchiver('zip', { zlib: { level: 6 } });
+    archive.on('warning', e => console.warn('[marked-pdfs] archive warning', e));
+    archive.on('error', e => { console.error('[marked-pdfs] archive error', e); try { res.status(500).end(); } catch(_){} });
+    archive.pipe(res);
+    for (let i = 0; i < subs.length; i++) {
+      const sub = subs[i];
+      const pdfName = _ccMpSlug(_ccMpStudentName(sub)) + '.pdf';
+      const passThrough = new (require('stream').PassThrough)();
+      archive.append(passThrough, { name: pdfName });
+      _ccMpBuildPdf(assessment, sub, passThrough);
+    }
+    await archive.finalize();
+    console.log('[marked-pdfs] delivered ZIP for assessment=' + aid + ' students=' + subs.length);
+  } catch(e){ console.error('[marked-pdfs] fatal', e); try { res.status(500).json({ error: String(e.message||e) }); } catch(_){} }
+});
+
+// Single-student PDF endpoint.
+app.get('/api/teacher/assessments/:aid/marked-pdf/:sid', async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const { aid, sid } = req.params;
+    const assessments = _ccMpReadJson('assessments.json', []);
+    const assessment = assessments.find(a => String(a.id) === String(aid));
+    if (!assessment) return res.status(404).json({ error: 'Assessment not found' });
+    const subs = _ccMpLoadSubmissions(aid);
+    const sub = subs.find(s => String(s.id || s.studentId || s.email || s.studentEmail) === String(sid));
+    if (!sub) return res.status(404).json({ error: 'Submission not found' });
+    const fname = _ccMpSlug(_ccMpStudentName(sub)) + '_' + _ccMpSlug(assessment.title || 'assessment') + '.pdf';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
+    _ccMpBuildPdf(assessment, sub, res);
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+// ─────────────────────────────────────────────────────────────────────────
+
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
 });

@@ -6335,3 +6335,31 @@ document.addEventListener('DOMContentLoaded', function () {
   var b = document.getElementById('cc-pdf-visuals-btn');
   if (b) b.remove();
 });
+
+
+// ── Marked PDFs: inject a download button on each assessment card ─────────
+function _ccInstallMarkedPdfsButton() {
+  // Look for any assessment card that has a data-assessment-id but no
+  // marked-pdfs button yet.
+  document.querySelectorAll('[data-assessment-id]').forEach(function (card) {
+    if (card.querySelector('.cc-marked-pdfs-btn')) return;
+    const aid = card.getAttribute('data-assessment-id');
+    if (!aid) return;
+    const btn = document.createElement('a');
+    btn.className = 'cc-marked-pdfs-btn';
+    btn.href = '/api/teacher/assessments/' + encodeURIComponent(aid) + '/marked-pdfs.zip';
+    btn.textContent = '📥 Marked PDFs';
+    btn.title = 'Download every student\'s marked assessment as a ZIP of PDFs';
+    btn.style.cssText = 'display:inline-block; margin:4px; padding:6px 10px; background:#0369A1; color:#fff; text-decoration:none; border-radius:5px; font-size:12px;';
+    // Attach next to the existing "Results" or "PDF" buttons if we can find them.
+    const actionRow = card.querySelector('.actions, .assessment-actions, .action-row') || card;
+    actionRow.appendChild(btn);
+  });
+}
+document.addEventListener('DOMContentLoaded', _ccInstallMarkedPdfsButton);
+if (window.MutationObserver) {
+  new MutationObserver(function(){ _ccInstallMarkedPdfsButton(); })
+    .observe(document.body, { childList: true, subtree: true });
+}
+// ──────────────────────────────────────────────────────────────────────────
+
