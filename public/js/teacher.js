@@ -6266,8 +6266,8 @@ function _ccInstallPdfImportButton() {
   };
   parent.appendChild(btn);
 }
-document.addEventListener('DOMContentLoaded', _ccInstallPdfImportButton);
-setTimeout(_ccInstallPdfImportButton, 500);
+// [disabled] document.addEventListener('DOMContentLoaded', _ccInstallPdfImportButton);
+// [disabled] setTimeout(_ccInstallPdfImportButton, 500);
 
 // Render existing visuals + add a regenerate button per question in the builder.
 function _ccDecorateBuilderQuestions() {
@@ -6330,4 +6330,8 @@ document.addEventListener('DOMContentLoaded', function () {
   menu.appendChild(item);
 });
 // ────────────────────────────────────────────────────────────────────────
-
+// Remove the button from the DOM in case it was rendered before this deploy.
+document.addEventListener('DOMContentLoaded', function () {
+  var b = document.getElementById('cc-pdf-visuals-btn');
+  if (b) b.remove();
+});
