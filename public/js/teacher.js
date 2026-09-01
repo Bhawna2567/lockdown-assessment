@@ -7195,3 +7195,342 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ────────────────────────────────────────────────────────────────────
 
+
+// ── Dashboard Pro Features ────────────────────────────────────────────
+(function () {
+  // ── #2 Toast notifications ─────────────────────────────────────────
+  function ensureToastRoot() {
+    let root = document.getElementById('cc-toast-root');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'cc-toast-root';
+      root.style.cssText = 'position:fixed; top:20px; right:20px; z-index:999999; display:flex; flex-direction:column; gap:10px; pointer-events:none;';
+      document.body.appendChild(root);
+    }
+    return root;
+  }
+  window.ccToast = function (msg, opts) {
+    opts = opts || {};
+    const root = ensureToastRoot();
+    const t = document.createElement('div');
+    const bg = opts.type === 'error' ? '#B91C1C' : opts.type === 'success' ? '#059669' : '#1F2937';
+    t.style.cssText = 'pointer-events:auto; padding:12px 16px; background:' + bg + '; color:#fff; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.2); font-size:14px; min-width:200px; max-width:360px; opacity:0; transform:translateX(20px); transition:opacity 0.2s, transform 0.2s;';
+    t.textContent = String(msg);
+    root.appendChild(t);
+    setTimeout(function(){ t.style.opacity='1'; t.style.transform='translateX(0)'; }, 10);
+    setTimeout(function(){
+      t.style.opacity='0'; t.style.transform='translateX(20px)';
+      setTimeout(function(){ t.remove(); }, 300);
+    }, opts.duration || 4000);
+  };
+  // Monkey-patch alert() to route through toasts (short messages only).
+  const _origAlert = window.alert;
+  window.alert = function (msg) {
+    const s = String(msg || '');
+    if (s.length < 200) { window.ccToast(s, { type: /fail|error|couldn|not able/i.test(s) ? 'error' : 'info' }); }
+    else { _origAlert.call(window, msg); }
+  };
+
+  // ── #1 Command palette (⌘K) ────────────────────────────────────────
+  let paletteOpen = false;
+  async function openPalette() {
+    if (paletteOpen) return;
+    paletteOpen = true;
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999998; display:flex; align-items:flex-start; justify-content:center; padding-top:120px;';
+    const panel = document.createElement('div');
+    panel.style.cssText = 'background:#fff; border-radius:12px; box-shadow:0 30px 80px rgba(0,0,0,0.4); width:640px; max-width:90%; max-height:70vh; display:flex; flex-direction:column; overflow:hidden;';
+    const input = document.createElement('input');
+    input.type = 'search';
+    input.placeholder = '🔍 Type to search — assessments, classes, tools…';
+    input.style.cssText = 'padding:16px 20px; border:none; border-bottom:1px solid #E5E7EB; font-size:16px; outline:none;';
+    const results = document.createElement('div');
+    results.style.cssText = 'overflow:auto; padding:6px;';
+    panel.appendChild(input); panel.appendChild(results);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+    input.focus();
+
+    // Gather searchable items from the current page.
+    function collect() {
+      const items = [];
+      // Cards on the current dashboard: any element containing "Delete" button + a title.
+      document.querySelectorAll('*').forEach(function () {});
+      // Simpler heuristic: find any card containing "Share with students".
+      document.querySelectorAll('*').forEach(function (el) {
+        if (el.children.length > 20) return;
+        const btns = el.querySelectorAll('button, a');
+        const hasShare = Array.from(btns).some(b => /Share with students/i.test((b.textContent||'').trim()));
+        const hasDelete = Array.from(btns).some(b => /Delete/i.test((b.textContent||'').trim()));
+        if (!hasShare && !hasDelete) return;
+        // Extract card title = first non-button significant text.
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('button, a').forEach(x => x.remove());
+        const title = (clone.textContent || '').trim().split('\n')[0].slice(0, 120);
+        if (title && title.length > 6) items.push({ kind: 'Assessment', label: title, el });
+      });
+      // Classes from dropdown.
+      const classSel = document.querySelector('select');
+      if (classSel) Array.from(classSel.options).forEach(o => {
+        if (o.value) items.push({ kind: 'Class', label: 'Class: ' + o.textContent, action: function(){ classSel.value = o.value; classSel.dispatchEvent(new Event('change', { bubbles: true })); } });
+      });
+      // Tools.
+      const tools = ['Settings', 'Students', 'Grade essays', 'Quick Import', 'Manage classes', 'Mark writing with AI', 'My marking folders'];
+      tools.forEach(t => items.push({ kind: 'Tool', label: t }));
+      // Deduplicate by label.
+      const seen = new Set();
+      return items.filter(i => { const k = i.kind + '::' + i.label; if (seen.has(k)) return false; seen.add(k); return true; });
+    }
+
+    const all = collect();
+    let filtered = all.slice(0, 30);
+    let selected = 0;
+
+    function render() {
+      results.innerHTML = '';
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:20px; color:#9CA3AF; text-align:center;';
+        empty.textContent = 'No matches.';
+        results.appendChild(empty);
+        return;
+      }
+      filtered.forEach(function (item, i) {
+        const row = document.createElement('div');
+        row.style.cssText = 'padding:10px 14px; border-radius:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; background:' + (i === selected ? '#EEF2FF' : 'transparent') + ';';
+        const left = document.createElement('div');
+        left.textContent = item.label;
+        left.style.cssText = 'font-size:14px; color:#111827;';
+        const right = document.createElement('div');
+        right.textContent = item.kind;
+        right.style.cssText = 'font-size:11px; color:#6B7280; text-transform:uppercase; letter-spacing:0.05em;';
+        row.appendChild(left); row.appendChild(right);
+        row.onclick = function () { activate(item); };
+        row.onmouseenter = function () { selected = i; render(); };
+        results.appendChild(row);
+      });
+    }
+    function activate(item) {
+      close();
+      if (item.action) return item.action();
+      if (item.el) {
+        item.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        item.el.style.transition = 'box-shadow 0.4s';
+        item.el.style.boxShadow = '0 0 0 3px #4338CA';
+        setTimeout(function(){ item.el.style.boxShadow = ''; }, 1500);
+        return;
+      }
+      // Tools: try to click the matching menu item.
+      const tools = Array.from(document.querySelectorAll('button, a'));
+      const match = tools.find(x => (x.textContent||'').includes(item.label));
+      if (match) match.click();
+      else window.ccToast('Not found on this page: ' + item.label);
+    }
+    function close() {
+      paletteOpen = false;
+      overlay.remove();
+    }
+    input.addEventListener('input', function () {
+      const q = input.value.toLowerCase();
+      filtered = all.filter(i => i.label.toLowerCase().includes(q)).slice(0, 30);
+      selected = 0;
+      render();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); selected = Math.min(selected + 1, filtered.length - 1); render(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); selected = Math.max(selected - 1, 0); render(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (filtered[selected]) activate(filtered[selected]); }
+    });
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+    render();
+  }
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openPalette(); }
+  });
+
+  // ── #3 Sticky header when scrolled ─────────────────────────────────
+  function installStickyHeader() {
+    if (document.getElementById('cc-sticky-hdr')) return;
+    const bar = document.createElement('div');
+    bar.id = 'cc-sticky-hdr';
+    bar.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:9990; background:rgba(255,255,255,0.98); backdrop-filter:blur(6px); border-bottom:1px solid #E5E7EB; padding:10px 20px; display:none; align-items:center; gap:12px; box-shadow:0 4px 12px rgba(0,0,0,0.05);';
+    bar.innerHTML = '<div style="font-weight:700; color:#4338CA;">ClassCurio</div>' +
+      '<input id="cc-sticky-search" type="search" placeholder="🔍 Search (⌘K for palette)" style="flex:1; max-width:400px; padding:6px 10px; border:1px solid #D1D5DB; border-radius:6px;">' +
+      '<button id="cc-sticky-new" style="padding:6px 12px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;">+ New</button>';
+    document.body.appendChild(bar);
+    // Mirror the sticky search into the main search.
+    bar.querySelector('#cc-sticky-search').addEventListener('input', function (e) {
+      const main = document.getElementById('cc-search-input');
+      if (main) { main.value = e.target.value; main.dispatchEvent(new Event('input', { bubbles: true })); }
+    });
+    // New button clicks the real New Assessment.
+    bar.querySelector('#cc-sticky-new').addEventListener('click', function () {
+      const btn = Array.from(document.querySelectorAll('button, a')).find(b => /\+?\s*New assessment/i.test((b.textContent||'').trim()));
+      if (btn) btn.click();
+    });
+    window.addEventListener('scroll', function () {
+      const show = window.scrollY > 300;
+      bar.style.display = show ? 'flex' : 'none';
+    });
+  }
+
+  // ── #4 Bulk actions ────────────────────────────────────────────────
+  const selectedCards = new Set();
+  function installBulkActions() {
+    // Add a checkbox to each card. Card = row containing Delete button (via row.parentElement climbing).
+    document.querySelectorAll('button, a').forEach(function (btn) {
+      const t = (btn.textContent||'').trim();
+      if (!/^Share with students/i.test(t)) return;
+      // Climb to find the enclosing card (roughly).
+      let card = btn.parentElement;
+      for (let n = 0; n < 5 && card; n++, card = card.parentElement) {
+        if (card.getBoundingClientRect().width > 600 && card.querySelector('h1, h2, h3, strong, b, .title')) break;
+      }
+      if (!card || card.dataset.ccBulk === '1') return;
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'cc-bulk-check';
+      cb.style.cssText = 'position:absolute; top:12px; left:12px; width:18px; height:18px; cursor:pointer; z-index:5;';
+      card.style.position = card.style.position || 'relative';
+      card.insertBefore(cb, card.firstChild);
+      cb.addEventListener('change', function () {
+        if (cb.checked) selectedCards.add(card);
+        else selectedCards.delete(card);
+        updateBulkBar();
+      });
+      card.dataset.ccBulk = '1';
+    });
+  }
+  function updateBulkBar() {
+    let bar = document.getElementById('cc-bulk-bar');
+    if (selectedCards.size === 0) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'cc-bulk-bar';
+      bar.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:9997; background:#1F2937; color:#fff; padding:12px 20px; border-radius:999px; box-shadow:0 10px 30px rgba(0,0,0,0.3); display:flex; align-items:center; gap:12px;';
+      document.body.appendChild(bar);
+    }
+    bar.innerHTML = '';
+    const count = document.createElement('span');
+    count.textContent = selectedCards.size + ' selected';
+    bar.appendChild(count);
+    function actionBtn(label, color, action) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.style.cssText = 'padding:6px 12px; background:' + color + '; color:#fff; border:none; border-radius:6px; cursor:pointer;';
+      b.onclick = action;
+      return b;
+    }
+    bar.appendChild(actionBtn('Delete', '#B91C1C', function () {
+      if (!confirm('Delete ' + selectedCards.size + ' assessments?')) return;
+      selectedCards.forEach(card => {
+        // Click the card's Delete button.
+        const deleteBtn = Array.from(card.querySelectorAll('button, a')).find(b => /^Delete/i.test((b.textContent||'').replace(/^[^A-Za-z]+/,'').trim()));
+        if (deleteBtn) deleteBtn.click();
+      });
+      selectedCards.clear(); updateBulkBar();
+    }));
+    bar.appendChild(actionBtn('Duplicate', '#4338CA', function () {
+      selectedCards.forEach(card => {
+        const dup = Array.from(card.querySelectorAll('button, a')).find(b => /Duplicate/i.test((b.textContent||'').trim()));
+        if (dup) dup.click();
+      });
+      selectedCards.clear(); updateBulkBar();
+    }));
+    bar.appendChild(actionBtn('Clear', '#6B7280', function () {
+      document.querySelectorAll('.cc-bulk-check:checked').forEach(cb => { cb.checked = false; });
+      selectedCards.clear(); updateBulkBar();
+    }));
+  }
+
+  // ── #5 Group cards by term (only when more than 5 cards) ───────────
+  function installGrouping() {
+    // Skip for now: safe DOM reorganization is fragile; provide a "Group by
+    // term" toggle instead.
+    if (document.getElementById('cc-group-toggle')) return;
+    const filtersToggle = document.getElementById('cc-filters-toggle');
+    if (!filtersToggle) return;
+    const grpBtn = document.createElement('button');
+    grpBtn.id = 'cc-group-toggle';
+    grpBtn.type = 'button';
+    grpBtn.textContent = '📚 Group by Term';
+    grpBtn.style.cssText = 'margin:8px 4px; padding:8px 14px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;';
+    filtersToggle.insertAdjacentElement('afterend', grpBtn);
+    let grouped = false;
+    grpBtn.onclick = function () {
+      grouped = !grouped;
+      grpBtn.textContent = grouped ? '📚 Ungroup' : '📚 Group by Term';
+      // Find all card elements.
+      const cards = [];
+      document.querySelectorAll('input.cc-bulk-check').forEach(cb => cards.push(cb.parentElement));
+      if (!cards.length) return;
+      const parent = cards[0].parentElement;
+      // Remove existing group headers.
+      parent.querySelectorAll('.cc-group-hdr').forEach(h => h.remove());
+      if (!grouped) return;
+      // Group.
+      const groups = {};
+      cards.forEach(card => {
+        const txt = card.textContent || '';
+        const m = txt.match(/Term\s+(\d+)/i);
+        const key = m ? 'Term ' + m[1] : 'Other';
+        (groups[key] = groups[key] || []).push(card);
+      });
+      Object.keys(groups).sort().forEach(k => {
+        const h = document.createElement('div');
+        h.className = 'cc-group-hdr';
+        h.textContent = '▾ ' + k + ' (' + groups[k].length + ')';
+        h.style.cssText = 'margin:16px 0 8px; padding:8px 12px; background:#EEF2FF; color:#4338CA; font-weight:700; border-radius:6px;';
+        parent.appendChild(h);
+        groups[k].forEach(card => parent.appendChild(card));
+      });
+    };
+  }
+
+  // ── #6 Analytics summary strip ─────────────────────────────────────
+  function installAnalytics() {
+    if (document.getElementById('cc-analytics')) return;
+    const search = document.getElementById('cc-search-input');
+    if (!search) return;
+    const strip = document.createElement('div');
+    strip.id = 'cc-analytics';
+    strip.style.cssText = 'margin:8px 0 16px; display:flex; gap:20px; padding:12px 16px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; font-size:13px; color:#374151;';
+    function refresh() {
+      const cards = document.querySelectorAll('input.cc-bulk-check').length;
+      const published = document.querySelectorAll('[data-cc-chip="1"]').length;
+      // Grade essays count from tools dropdown.
+      let essays = 0;
+      const gr = Array.from(document.querySelectorAll('*')).find(el => /Grade essays/i.test((el.textContent||'').trim()) && el.children.length < 5);
+      if (gr) { const m = (gr.textContent||'').match(/\b(\d+)\b/); if (m) essays = Number(m[1]); }
+      strip.innerHTML =
+        '<div>📊 <b>' + cards + '</b> assessments</div>' +
+        '<div>✅ <b>' + published + '</b> published</div>' +
+        '<div>📝 <b>' + essays + '</b> essays to grade</div>' +
+        '<div style="margin-left:auto; color:#9CA3AF;">⌘K to search</div>';
+    }
+    search.parentElement.insertBefore(strip, search.parentElement.firstChild);
+    refresh();
+    setInterval(refresh, 2000);
+  }
+
+  function run() {
+    installStickyHeader();
+    installBulkActions();
+    installGrouping();
+    installAnalytics();
+  }
+  document.addEventListener('DOMContentLoaded', run);
+  setTimeout(run, 500);
+  setTimeout(run, 1500);
+  if (window.MutationObserver) {
+    let t = null;
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(run, 300); })
+      .observe(document.body, { childList: true, subtree: true });
+  }
+
+  window.ccToast('Pro features loaded — press ⌘K to search', { type: 'success', duration: 3000 });
+})();
+// ─────────────────────────────────────────────────────────────────────
+
