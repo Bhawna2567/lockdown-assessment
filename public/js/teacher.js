@@ -6427,3 +6427,134 @@ setTimeout(_ccInstallMarkedPdfsButtons, 500);
 setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 // ──────────────────────────────────────────────────────────────────────────
 
+
+// ── AI Mark Writing (floating button + modal) ─────────────────────────
+(function () {
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const k of Object.keys(attrs)) {
+      if (k === 'style') n.style.cssText = attrs[k];
+      else if (k === 'onclick') n.onclick = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    for (const kid of kids) if (kid !== null && kid !== undefined) n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+    return n;
+  }
+
+  async function openMarkModal() {
+    // Fetch this teacher's assessments.
+    let asmts = [];
+    try {
+      const r = await fetch('/api/teacher/my-assessments-brief', { credentials: 'include' });
+      if (r.ok) asmts = await r.json();
+    } catch(e){}
+
+    // Build modal.
+    const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
+    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:720px; width:90%; max-height:90vh; overflow:auto; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.3);' });
+    modal.appendChild(el('h2', { style: 'margin:0 0 8px; color:#1A1E33;' }, '🖊️ Mark writing with AI'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Upload a photo or PDF of a student\'s writing. AI will mark it against the rubric attached to the chosen assessment.'));
+
+    const asmtLabel = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Assessment');
+    const asmtSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    asmtSel.appendChild(el('option', { value: '' }, '— No assessment (use default rubric) —'));
+    asmts.forEach(function(a){ asmtSel.appendChild(el('option', { value: a.id }, a.title + (a.writingRubric ? ' — ' + a.writingRubric : ''))); });
+
+    const nameLabel = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Student name (optional)');
+    const nameInp = el('input', { type: 'text', style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+
+    const fileLabel = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Upload writing (image or PDF)');
+    const fileInp = el('input', { type: 'file', accept: 'image/*,application/pdf', style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+
+    const status = el('div', { style: 'margin-top:16px; padding:12px; background:#F3F4F6; border-radius:6px; color:#374151; font-size:13px; display:none;' });
+    const result = el('div', { style: 'margin-top:16px; display:none;' });
+
+    const submitBtn = el('button', { style: 'margin-top:20px; padding:10px 20px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, 'Mark with AI');
+    const closeBtn = el('button', { style: 'margin-top:20px; margin-left:8px; padding:10px 20px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
+    closeBtn.onclick = function(){ overlay.remove(); };
+
+    submitBtn.onclick = async function () {
+      const f = fileInp.files && fileInp.files[0];
+      if (!f) { alert('Please choose an image or PDF first.'); return; }
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Marking (30–60s)…';
+      status.style.display = 'block';
+      status.textContent = 'Sending writing to AI…';
+      result.style.display = 'none';
+      const fd = new FormData();
+      fd.append('writing', f);
+      if (asmtSel.value) fd.append('assessmentId', asmtSel.value);
+      if (nameInp.value) fd.append('studentName', nameInp.value);
+      try {
+        const r = await fetch('/api/teacher/ai-mark-writing', { method: 'POST', body: fd, credentials: 'include' });
+        const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        renderResult(result, j.marking, j.studentName);
+        status.style.display = 'none';
+        result.style.display = 'block';
+      } catch (e) {
+        status.textContent = 'Failed: ' + (e.message || e);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Mark another';
+      }
+    };
+
+    function renderResult(host, m, studentName) {
+      host.innerHTML = '';
+      host.appendChild(el('h3', { style: 'margin:0 0 8px;' }, 'Marking result' + (studentName ? ' — ' + studentName : '')));
+      host.appendChild(el('div', { style: 'padding:12px; background:#EEF2FF; border-radius:6px; margin-bottom:12px;' },
+        el('div', { style: 'font-size:18px; font-weight:700;' }, 'Score: ' + m.totalScore + ' / ' + m.maxScore + '   (' + Math.round((m.totalScore/m.maxScore)*100) + '%)'),
+        el('div', { style: 'margin-top:4px; color:#4338CA;' }, 'Band: ' + (m.band || '—')),
+      ));
+      if (Array.isArray(m.criteria)) m.criteria.forEach(function(c){
+        host.appendChild(el('div', { style: 'padding:10px; border-left:3px solid #4338CA; margin:8px 0; background:#F9FAFB;' },
+          el('div', { style: 'font-weight:600;' }, c.name + ' — ' + c.score + '/' + c.max),
+          el('div', { style: 'color:#374151; margin-top:4px; font-size:14px;' }, c.comment || ''),
+        ));
+      });
+      if (m.overallComment) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#FEF7E6; border-left:3px solid #F59E0B; border-radius:4px;' },
+        el('div', { style: 'font-weight:600;' }, 'Overall'),
+        el('div', {}, m.overallComment),
+      ));
+      if (m.feedback) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#ECFDF5; border-left:3px solid #059669; border-radius:4px;' },
+        el('div', { style: 'font-weight:600;' }, 'Suggested feedback for student'),
+        el('div', {}, m.feedback),
+      ));
+      if (m.transcript) {
+        const tr = el('details', { style: 'margin-top:12px;' });
+        tr.appendChild(el('summary', { style: 'cursor:pointer; color:#0369A1;' }, 'View AI transcription'));
+        tr.appendChild(el('div', { style: 'padding:10px; background:#F9FAFB; border-radius:4px; white-space:pre-wrap; font-family:Georgia,serif;' }, m.transcript));
+        host.appendChild(tr);
+      }
+      const copy = el('button', { style: 'margin-top:12px; padding:8px 14px; background:#0369A1; color:#fff; border:none; border-radius:5px; cursor:pointer;' }, '📋 Copy feedback to clipboard');
+      copy.onclick = function(){
+        try { navigator.clipboard.writeText(m.feedback || m.overallComment || ''); copy.textContent = '✓ Copied'; setTimeout(function(){ copy.textContent = '📋 Copy feedback to clipboard'; }, 2000); } catch(e){}
+      };
+      host.appendChild(copy);
+    }
+
+    modal.appendChild(asmtLabel); modal.appendChild(asmtSel);
+    modal.appendChild(nameLabel); modal.appendChild(nameInp);
+    modal.appendChild(fileLabel); modal.appendChild(fileInp);
+    modal.appendChild(submitBtn); modal.appendChild(closeBtn);
+    modal.appendChild(status);
+    modal.appendChild(result);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
+
+  function installFloatingBtn() {
+    if (document.getElementById('cc-ai-mark-btn')) return;
+    const btn = el('button', {
+      id: 'cc-ai-mark-btn',
+      style: 'position:fixed; bottom:24px; right:24px; z-index:9998; padding:14px 20px; background:#059669; color:#fff; border:none; border-radius:999px; box-shadow:0 8px 24px rgba(5,150,105,0.4); cursor:pointer; font-weight:600; font-size:14px;',
+      onclick: openMarkModal,
+    }, '🖊️ AI Mark Writing');
+    document.body.appendChild(btn);
+  }
+  document.addEventListener('DOMContentLoaded', installFloatingBtn);
+  setTimeout(installFloatingBtn, 500);
+})();
+// ─────────────────────────────────────────────────────────────────────
+

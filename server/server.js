@@ -6007,6 +6007,123 @@ app.get('/api/teacher/assessments/:aid/marked-pdf/:sid', async (req, res) => {
 });
 // ─────────────────────────────────────────────────────────────────────────
 
+
+// ── AI Mark Writing ──────────────────────────────────────────────────
+// Convert an assessment's `writingRubric` field (usually a slug like
+// "stage-7-8") to a detailed rubric string Claude can use.
+function _ccAmwRubricText(assessment) {
+  const r = assessment && assessment.writingRubric;
+  if (!r) {
+    return 'No rubric specified. Use a 4-criteria general writing rubric: (1) Content & Ideas (0-3), (2) Organisation (0-3), (3) Language & Vocabulary (0-3), (4) Grammar & Mechanics (0-3). Total /12.';
+  }
+  const s = String(r).toLowerCase();
+  // Well-known rubric slugs.
+  if (s.includes('7') || s.includes('8')) {
+    return 'Rubric: Stage 7-8 writing rubric. 4 criteria, each scored 0-3 (total /12).\n' +
+      '  1. Content & Ideas — relevance, development, engagement.\n' +
+      '  2. Organisation & Cohesion — structure, paragraphing, connectives.\n' +
+      '  3. Language Choice — vocabulary range, register, precision.\n' +
+      '  4. Grammar & Punctuation — accuracy, sentence variety, spelling.';
+  }
+  if (s.includes('3') || s.includes('5') || s.includes('9')) {
+    return 'Rubric: Stage 3-9 writing rubric. 5 criteria banded 0/1/2/3-4/5-6/7-8 (total /40).\n' +
+      '  1. Content & Purpose — relevance, ideas, task fulfilment.\n' +
+      '  2. Organisation & Structure — logical order, paragraphs, cohesion.\n' +
+      '  3. Vocabulary — range, appropriateness.\n' +
+      '  4. Grammar & Syntax — sentence structure accuracy.\n' +
+      '  5. Punctuation & Spelling — mechanics.';
+  }
+  // Fallback: use the string as-is.
+  return 'Rubric: ' + String(r);
+}
+
+// Endpoint: mark a student's writing from an uploaded image or PDF.
+if (typeof upload !== 'undefined' && upload && typeof upload.single === 'function') {
+  app.post('/api/teacher/ai-mark-writing', upload.single('writing'), async (req, res) => {
+    try {
+      if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      const { assessmentId, questionId, studentName } = req.body || {};
+      // Load the assessment for its rubric.
+      let assessment = null;
+      try {
+        const all = JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'assessments.json'), 'utf8'));
+        assessment = all.find(a => String(a.id) === String(assessmentId));
+      } catch(e){}
+      const rubric = _ccAmwRubricText(assessment || {});
+      const title  = (assessment && assessment.title) || 'Writing task';
+      const subject = (assessment && assessment.subject) || 'English';
+
+      // Read file, detect type.
+      const buf = _ccFsV.readFileSync(req.file.path);
+      try { _ccFsV.unlinkSync(req.file.path); } catch(e){}
+      const mimeGuess = (req.file.mimetype || '').toLowerCase();
+      const isPdf = mimeGuess.includes('pdf') || (req.file.originalname || '').toLowerCase().endsWith('.pdf');
+      const isImg = mimeGuess.startsWith('image/');
+      if (!isPdf && !isImg) return res.status(400).json({ error: 'Only images (JPG/PNG) and PDFs are accepted.' });
+
+      const b64 = buf.toString('base64');
+      const attachment = isPdf
+        ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
+        : { type: 'image',    source: { type: 'base64', media_type: mimeGuess || 'image/png', data: b64 } };
+
+      const sys = `You are an experienced classroom teacher marking a student's writing against a specific rubric.
+
+TASK CONTEXT:
+  - Assessment title: ${title}
+  - Subject: ${subject}
+  - Student: ${studentName || '(unnamed)'}
+
+${rubric}
+
+INSTRUCTIONS:
+  1. Read the student's writing carefully (attached).
+  2. Score each criterion in the rubric.
+  3. For each criterion, write a one-line comment explaining the score.
+  4. Provide an overall band/level, a total, and 2-4 sentences of constructive feedback the teacher can share with the student.
+  5. Return ONLY JSON in this exact shape:
+
+{
+  "criteria": [
+    { "name": "Content & Ideas", "score": 2, "max": 3, "comment": "..." },
+    ...
+  ],
+  "totalScore": 8,
+  "maxScore": 12,
+  "band": "Merit / Level 4 / 7 / etc",
+  "overallComment": "1-2 sentence summary judgement",
+  "feedback": "2-4 sentences of feedback the teacher can share with the student verbatim",
+  "transcript": "The student's writing transcribed verbatim (for the teacher's records)"
+}
+
+No prose outside the JSON.`;
+
+      const raw = await _ccAnthropic(null, sys, [attachment, { type: 'text', text: 'Mark this writing.' }], 4096);
+      const parsed = _ccExtractJson(raw);
+      if (!parsed || !parsed.criteria) return res.status(422).json({ error: 'AI did not return a usable marking', raw });
+      res.json({ marking: parsed, assessment: { id: assessment && assessment.id, title }, studentName });
+    } catch(e){
+      console.error('[ai-mark-writing] fatal', e);
+      res.status(500).json({ error: String(e.message || e) });
+    }
+  });
+  console.log('[ai-mark-writing] POST /api/teacher/ai-mark-writing wired.');
+}
+
+// Endpoint: list this teacher's assessments (minimal, for the marking modal).
+app.get('/api/teacher/my-assessments-brief', (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const all = _ccMpReadJson('assessments.json', []);
+    const uid = req.session.user.id;
+    const brief = all
+      .filter(a => a && (a.teacherId === uid || !a.teacherId))
+      .map(a => ({ id: a.id, title: a.title, subject: a.subject || '', writingRubric: a.writingRubric || '' }));
+    res.json(brief);
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+// ─────────────────────────────────────────────────────────────────────
+
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
 });
