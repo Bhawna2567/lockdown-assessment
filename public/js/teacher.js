@@ -6861,3 +6861,89 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Dashboard cleanup: search box + collapsible filters ───────────────
+(function () {
+  // 1. Insert a search input above the assessments list.
+  function installSearch() {
+    if (document.getElementById('cc-search-input')) return;
+    // Find the "Your assessments" heading.
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3'));
+    const heading = headings.find(h => /Your assessments/i.test(h.textContent || ''));
+    if (!heading) return;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin:12px 0; position:relative;';
+    const inp = document.createElement('input');
+    inp.id = 'cc-search-input';
+    inp.type = 'search';
+    inp.placeholder = '🔍 Search assessments by title…';
+    inp.style.cssText = 'width:100%; max-width:520px; padding:10px 14px; border:1px solid #D1D5DB; border-radius:8px; font-size:14px; background:#fff;';
+    wrap.appendChild(inp);
+    heading.insertAdjacentElement('afterend', wrap);
+
+    inp.addEventListener('input', function () {
+      const q = inp.value.trim().toLowerCase();
+      // Cards = rows with a Delete button; their card container is a few levels up.
+      const cards = new Set();
+      document.querySelectorAll('.cc-more-btn, button').forEach(function (btn) {
+        const t = String(btn.textContent || '').replace(/^[^A-Za-z]+/, '').trim();
+        if (!(/^Delete/i.test(t) || btn.classList.contains('cc-more-btn'))) return;
+        // Climb up until we hit a card boundary — heuristic: element wider than 500px.
+        let p = btn.parentElement;
+        for (let n = 0; n < 6 && p; n++, p = p.parentElement) {
+          const w = p.getBoundingClientRect().width;
+          if (w > 500 && p.tagName !== 'DIV' || w > 600) { cards.add(p); break; }
+          if (n === 5) cards.add(p);
+        }
+      });
+      cards.forEach(function (card) {
+        const txt = (card.textContent || '').toLowerCase();
+        card.style.display = (!q || txt.includes(q)) ? '' : 'none';
+      });
+    });
+  }
+
+  // 2. Collapse the Term/Grade/Academic Year filter row.
+  function installFilterCollapse() {
+    if (document.getElementById('cc-filters-toggle')) return;
+    // Find labels that look like our filter labels.
+    const labels = Array.from(document.querySelectorAll('label, div, span'));
+    const termLabel = labels.find(l => /^TERM$/i.test((l.textContent || '').trim()));
+    if (!termLabel) return;
+    // Walk up until we find a row that contains TERM + GRADE + ACADEMIC YEAR labels.
+    let row = termLabel;
+    for (let n = 0; n < 6 && row; n++, row = row.parentElement) {
+      const t = (row.textContent || '').toUpperCase();
+      if (t.includes('TERM') && t.includes('GRADE') && t.includes('ACADEMIC YEAR')) break;
+    }
+    if (!row) return;
+    // Build a toggle pill and insert it before the row.
+    const toggle = document.createElement('button');
+    toggle.id = 'cc-filters-toggle';
+    toggle.type = 'button';
+    toggle.textContent = '⚙️ Filters ▾';
+    toggle.style.cssText = 'margin:8px 0; padding:8px 14px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:999px; cursor:pointer; font-size:13px; font-weight:600;';
+    row.style.display = 'none';
+    row.parentElement.insertBefore(toggle, row);
+    toggle.addEventListener('click', function () {
+      const open = row.style.display !== 'none';
+      row.style.display = open ? 'none' : '';
+      toggle.textContent = open ? '⚙️ Filters ▾' : '⚙️ Filters ▴';
+    });
+  }
+
+  function run() {
+    installSearch();
+    installFilterCollapse();
+  }
+  document.addEventListener('DOMContentLoaded', run);
+  setTimeout(run, 500);
+  setTimeout(run, 1500);
+  if (window.MutationObserver) {
+    let t = null;
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(run, 300); })
+      .observe(document.body, { childList: true, subtree: true });
+  }
+})();
+// ─────────────────────────────────────────────────────────────────────
+
