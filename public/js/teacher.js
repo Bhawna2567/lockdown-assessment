@@ -6947,3 +6947,208 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Dashboard cleanup #3-#6 ──────────────────────────────────────────
+(function () {
+  // ── #3 Combined FAB ────────────────────────────────────────────────
+  function installFab() {
+    if (document.getElementById('cc-fab')) return;
+    // Remove the old individual floating buttons if they exist.
+    const oldBtns = ['cc-ai-mark-btn', 'cc-folders-btn'];
+    oldBtns.forEach(id => { const b = document.getElementById(id); if (b) b.remove(); });
+
+    const fabWrap = document.createElement('div');
+    fabWrap.id = 'cc-fab';
+    fabWrap.style.cssText = 'position:fixed; bottom:24px; right:24px; z-index:9998;';
+
+    const menu = document.createElement('div');
+    menu.style.cssText = 'position:absolute; bottom:66px; right:0; display:none; flex-direction:column; gap:8px; align-items:flex-end;';
+
+    function menuItem(label, bg, onClick) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      btn.style.cssText = 'padding:12px 18px; background:' + bg + '; color:#fff; border:none; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,0.15); cursor:pointer; font-weight:600; font-size:14px; white-space:nowrap;';
+      btn.onclick = function () { menu.style.display = 'none'; onClick(); };
+      return btn;
+    }
+    // Wire to existing functions.
+    menu.appendChild(menuItem('🖊️ Mark writing with AI', '#059669', function(){ if (typeof openMarkModal === 'function') openMarkModal(); else document.querySelector('#cc-ai-mark-btn')?.click(); }));
+    menu.appendChild(menuItem('📁 My marking folders',    '#4338CA', function(){ if (typeof openFolderBrowser === 'function') openFolderBrowser(); else document.querySelector('#cc-folders-btn')?.click(); }));
+
+    const fab = document.createElement('button');
+    fab.type = 'button';
+    fab.setAttribute('aria-label', 'Quick actions');
+    fab.textContent = '+';
+    fab.style.cssText = 'width:56px; height:56px; border-radius:50%; background:#4338CA; color:#fff; border:none; font-size:28px; font-weight:300; cursor:pointer; box-shadow:0 8px 24px rgba(67,56,202,0.4); transition:transform 0.15s;';
+    fab.onclick = function (e) {
+      e.stopPropagation();
+      const open = menu.style.display === 'flex';
+      menu.style.display = open ? 'none' : 'flex';
+      fab.style.transform = open ? 'rotate(0deg)' : 'rotate(45deg)';
+    };
+    document.addEventListener('click', function (e) {
+      if (!fabWrap.contains(e.target)) { menu.style.display = 'none'; fab.style.transform = 'rotate(0deg)'; }
+    });
+
+    fabWrap.appendChild(menu); fabWrap.appendChild(fab);
+    document.body.appendChild(fabWrap);
+  }
+
+  // ── #4 Shrink welcome banner ───────────────────────────────────────
+  function installBannerShrink() {
+    if (localStorage.getItem('cc-banner-hidden') === '1') {
+      const hideBanner = function () {
+        document.querySelectorAll('*').forEach(function (el) {
+          const t = (el.textContent || '').trim();
+          if (/^Welcome to your ClassCurio dashboard/i.test(t) && el.children.length < 20 && el.getBoundingClientRect().height > 100) {
+            let banner = el;
+            for (let n = 0; n < 4 && banner.parentElement; n++) {
+              const p = banner.parentElement;
+              if (p.getBoundingClientRect().height > 400) { banner = p; break; }
+              banner = p;
+            }
+            banner.style.display = 'none';
+          }
+        });
+      };
+      setTimeout(hideBanner, 200);
+      setTimeout(hideBanner, 800);
+      return;
+    }
+    if (document.getElementById('cc-banner-shrink')) return;
+    // Find the banner root — an element with the welcome text that is tall.
+    let banner = null;
+    document.querySelectorAll('*').forEach(function (el) {
+      if (banner) return;
+      const t = (el.textContent || '').trim();
+      if (/^Welcome to your ClassCurio dashboard/i.test(t) && el.children.length < 20) {
+        let p = el;
+        for (let n = 0; n < 5 && p.parentElement; n++, p = p.parentElement) {
+          const r = p.getBoundingClientRect();
+          if (r.height > 300) { banner = p; break; }
+        }
+      }
+    });
+    if (!banner) return;
+    // Add an "X" hide button.
+    const x = document.createElement('button');
+    x.id = 'cc-banner-shrink';
+    x.type = 'button';
+    x.textContent = '✕';
+    x.title = 'Hide this banner (permanent)';
+    x.style.cssText = 'position:absolute; top:10px; right:16px; background:rgba(255,255,255,0.2); color:#fff; border:none; border-radius:50%; width:32px; height:32px; font-size:16px; cursor:pointer; z-index:5;';
+    x.onclick = function () {
+      localStorage.setItem('cc-banner-hidden', '1');
+      banner.style.display = 'none';
+    };
+    banner.style.position = 'relative';
+    banner.appendChild(x);
+    // Also shrink the height.
+    banner.style.maxHeight = '120px';
+    banner.style.overflow = 'hidden';
+  }
+
+  // ── #5 Categorize the Tools dropdown ───────────────────────────────
+  function installToolsCategorization() {
+    // The Tools dropdown menu — find any container with many items whose
+    // trigger button includes the text "Tools".
+    const triggers = Array.from(document.querySelectorAll('button, a')).filter(function (b) {
+      return /Tools/i.test((b.textContent || '').trim());
+    });
+    if (!triggers.length) return;
+    // We look for the menu after clicking. Instead, we listen for click
+    // on any Tools button and re-order the menu items on next paint.
+    triggers.forEach(function (t) {
+      if (t.dataset.ccCatWired === '1') return;
+      t.dataset.ccCatWired = '1';
+      t.addEventListener('click', function () {
+        setTimeout(reorganize, 100);
+        setTimeout(reorganize, 400);
+      });
+    });
+    function reorganize() {
+      // Any visible dropdown/menu with >20 items is our target.
+      const candidates = Array.from(document.querySelectorAll('ul, div')).filter(function (el) {
+        const r = el.getBoundingClientRect();
+        if (r.width < 100 || r.height < 100) return false;
+        if (el.dataset.ccCategorized === '1') return false;
+        // Item count.
+        const items = el.children.length;
+        return items >= 20 && r.height > 300;
+      });
+      candidates.forEach(function (menu) {
+        // Categorize each direct child by its text.
+        const groups = { 'AI tools': [], 'Data & Reports': [], 'Admin': [], 'Assessment tools': [] };
+        const originalChildren = Array.from(menu.children);
+        originalChildren.forEach(function (item) {
+          const t = (item.textContent || '').toLowerCase();
+          let g = 'Assessment tools';
+          if (/\b(ai|auto|generate|regenerate|mark writing|extract)\b/.test(t)) g = 'AI tools';
+          else if (/\b(report|export|analytics|results|stats|insights|dashboard|leaderboard)\b/.test(t)) g = 'Data & Reports';
+          else if (/\b(admin|user|permission|backup|restore|role|invite|two-?factor|2fa|lockout|reports)\b/.test(t)) g = 'Admin';
+          groups[g].push(item);
+        });
+        // Rebuild the menu with headers.
+        menu.innerHTML = '';
+        Object.keys(groups).forEach(function (gname) {
+          if (!groups[gname].length) return;
+          const hdr = document.createElement('div');
+          hdr.textContent = gname;
+          hdr.style.cssText = 'padding:8px 12px 4px; font-size:11px; font-weight:700; color:#6B7280; text-transform:uppercase; letter-spacing:0.05em; border-top:1px solid #F3F4F6;';
+          menu.appendChild(hdr);
+          groups[gname].forEach(function (item) { menu.appendChild(item); });
+        });
+        menu.dataset.ccCategorized = '1';
+      });
+    }
+  }
+
+  // ── #6 Colored status chips ────────────────────────────────────────
+  function installStatusChips() {
+    const badges = Array.from(document.querySelectorAll('span, div, small'))
+      .filter(function (el) {
+        const t = (el.textContent || '').trim();
+        return (t === 'Published' || t === 'Draft' || t === 'Scheduled' || t === 'Archived') && el.children.length === 0;
+      });
+    badges.forEach(function (b) {
+      if (b.dataset.ccChip === '1') return;
+      const t = b.textContent.trim();
+      const map = {
+        'Published': { bg: '#DCFCE7', fg: '#166534', icon: '✅' },
+        'Scheduled': { bg: '#FEF3C7', fg: '#92400E', icon: '⏰' },
+        'Draft':     { bg: '#E5E7EB', fg: '#374151', icon: '📝' },
+        'Archived':  { bg: '#FEE2E2', fg: '#991B1B', icon: '📦' },
+      };
+      const s = map[t]; if (!s) return;
+      b.style.background = s.bg;
+      b.style.color = s.fg;
+      b.style.padding = '3px 10px';
+      b.style.borderRadius = '999px';
+      b.style.fontSize = '12px';
+      b.style.fontWeight = '600';
+      b.style.display = 'inline-flex';
+      b.style.alignItems = 'center';
+      b.style.gap = '4px';
+      b.textContent = s.icon + ' ' + t;
+      b.dataset.ccChip = '1';
+    });
+  }
+
+  function run() {
+    installFab();
+    installBannerShrink();
+    installToolsCategorization();
+    installStatusChips();
+  }
+  document.addEventListener('DOMContentLoaded', run);
+  setTimeout(run, 400);
+  setTimeout(run, 1200);
+  if (window.MutationObserver) {
+    let t = null;
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(run, 300); })
+      .observe(document.body, { childList: true, subtree: true });
+  }
+})();
+// ─────────────────────────────────────────────────────────────────────
+
