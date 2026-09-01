@@ -6482,13 +6482,35 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     folders.forEach(function(f){ folderSel.appendChild(el('option', { value: f.id }, '📁 ' + f.name)); });
     const newFolderBtn = el('button', { style: 'padding:8px 14px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, '+ New folder');
     newFolderBtn.onclick = async function () {
-      const name = prompt('New folder name:');
-      if (!name) return;
-      try {
-        const f = await fetchJson('/api/teacher/folders', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name }) });
-        folderSel.appendChild(el('option', { value: f.id, selected: 'selected' }, '📁 ' + f.name));
-        folderSel.value = f.id;
-      } catch (e) { alert('Failed: ' + e.message); }
+      // Fetch classes, present a picker.
+      let classes = [];
+      try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch(e){}
+      if (!classes.length) { alert('You have no classes yet. Create a class from Manage classes first.'); return; }
+      const pickOverlay = overlayHost();
+      const pickModal = el('div', { style: 'background:#fff; border-radius:12px; max-width:400px; width:90%; padding:20px;' });
+      pickModal.appendChild(el('h3', { style: 'margin:0 0 12px;' }, 'Create writing folder for…'));
+      const clsSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+      classes.forEach(function(c){ clsSel.appendChild(el('option', { value: c.id }, c.name)); });
+      pickModal.appendChild(clsSel);
+      const okBtn = el('button', { style: 'margin-top:16px; padding:8px 16px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer;' }, 'Create');
+      const cancelBtn = el('button', { style: 'margin-top:16px; margin-left:8px; padding:8px 16px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Cancel');
+      cancelBtn.onclick = function(){ pickOverlay.remove(); };
+      okBtn.onclick = async function () {
+        const cls = classes.find(x => x.id === clsSel.value);
+        try {
+          const f = await fetchJson('/api/teacher/folders', {
+            method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ classId: cls.id, className: cls.name }),
+          });
+          // Ensure the option is in the dropdown; select it.
+          let existing = Array.from(folderSel.options).find(o => o.value === f.id);
+          if (!existing) folderSel.appendChild(el('option', { value: f.id }, '📁 ' + f.name));
+          folderSel.value = f.id;
+          pickOverlay.remove();
+        } catch (e) { alert('Failed: ' + e.message); }
+      };
+      pickModal.appendChild(okBtn); pickModal.appendChild(cancelBtn);
+      pickOverlay.appendChild(pickModal); document.body.appendChild(pickOverlay);
     };
     folderRow.appendChild(folderSel); folderRow.appendChild(newFolderBtn);
 
@@ -6637,13 +6659,22 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     if (!folders.length) list.appendChild(el('div', { style: 'color:#6B7280;' }, 'No folders yet. Create one from the "Mark writing" modal.'));
     for (const f of folders) {
       const card = el('div', { style: 'padding:12px; border:1px solid #E5E7EB; border-radius:8px;' });
+      const actions = el('div', { style: 'display:flex; gap:6px;' });
+      const openBtn = el('button', { style: 'padding:4px 10px; background:#EEF2FF; color:#4338CA; border:none; border-radius:4px; cursor:pointer; font-size:12px;' }, 'Open');
+      const delBtn  = el('button', { style: 'padding:4px 10px; background:#FEE2E2; color:#B91C1C; border:none; border-radius:4px; cursor:pointer; font-size:12px;' }, 'Delete');
+      delBtn.onclick = async function () {
+        if (!confirm('Delete folder "' + f.name + '" and all saved markings inside?')) return;
+        try { await fetchJson('/api/teacher/folders/' + f.id, { method: 'DELETE' }); card.remove(); }
+        catch (e) { alert('Delete failed: ' + e.message); }
+      };
+      actions.appendChild(openBtn); actions.appendChild(delBtn);
       const header = el('div', { style: 'display:flex; justify-content:space-between; align-items:center;' },
         el('div', { style: 'font-weight:600;' }, '📁 ' + f.name),
-        el('button', { style: 'padding:4px 10px; background:#EEF2FF; color:#4338CA; border:none; border-radius:4px; cursor:pointer; font-size:12px;' }, 'Open'),
+        actions,
       );
       const detail = el('div', { style: 'margin-top:8px; display:none;' });
-      header.lastChild.onclick = async function () {
-        if (detail.style.display === 'block') { detail.style.display = 'none'; header.lastChild.textContent = 'Open'; return; }
+      openBtn.onclick = async function () {
+        if (detail.style.display === 'block') { detail.style.display = 'none'; openBtn.textContent = 'Open'; return; }
         try {
           const j = await fetchJson('/api/teacher/folders/' + f.id);
           detail.innerHTML = '';
@@ -6654,7 +6685,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
               el('a', { href: '/api/teacher/markings/' + m.id + '/download', style: 'color:#4338CA; text-decoration:none; font-size:13px;' }, 'Download'),
             ));
           });
-          detail.style.display = 'block'; header.lastChild.textContent = 'Close';
+          detail.style.display = 'block'; openBtn.textContent = 'Close';
         } catch (e) { alert('Load failed: ' + e.message); }
       };
       card.appendChild(header); card.appendChild(detail);

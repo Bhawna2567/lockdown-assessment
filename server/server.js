@@ -6219,6 +6219,45 @@ _ccEnsureFolderDirs();
 function _ccLoadFolders(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'folders.json'), 'utf8')); } catch(e){ return []; } }
 function _ccSaveFolders(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'folders.json'), JSON.stringify(arr, null, 2)); }
 function _ccLoadMarkings(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), 'utf8')); } catch(e){ return []; } }
+
+
+// Ensure folders unique per (teacher, class). Migrate existing dupes on start.
+(function _ccMigrateFolders() {
+  try {
+    const p = _ccPathV.join(_ccDataDir, 'folders.json');
+    if (!_ccFsV.existsSync(p)) return;
+    let all = JSON.parse(_ccFsV.readFileSync(p, 'utf8'));
+    if (!Array.isArray(all)) return;
+    const kept = [];
+    const seen = new Set();
+    const idRemap = {};
+    for (const f of all) {
+      const key = (f.teacherId || '') + '::' + (f.classId || f.name || f.id);
+      if (seen.has(key)) {
+        // Remap markings from this folder to the first one with the same key.
+        const survivor = kept.find(k => ((k.teacherId||'')+'::'+(k.classId||k.name||k.id)) === key);
+        if (survivor) idRemap[f.id] = survivor.id;
+        continue;
+      }
+      seen.add(key);
+      kept.push(f);
+    }
+    if (kept.length !== all.length) {
+      _ccFsV.writeFileSync(p, JSON.stringify(kept, null, 2));
+      console.log('[folders-migration] deduped ' + (all.length - kept.length) + ' duplicate folder(s).');
+      // Remap marking records too.
+      const mp = _ccPathV.join(_ccDataDir, 'markings.json');
+      if (_ccFsV.existsSync(mp)) {
+        let mks = JSON.parse(_ccFsV.readFileSync(mp, 'utf8'));
+        if (Array.isArray(mks)) {
+          let changed = 0;
+          mks.forEach(m => { if (idRemap[m.folderId]) { m.folderId = idRemap[m.folderId]; changed++; } });
+          if (changed) _ccFsV.writeFileSync(mp, JSON.stringify(mks, null, 2));
+        }
+      }
+    }
+  } catch(e){ console.error('[folders-migration] failed', e); }
+})();
 function _ccSaveMarkings(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), JSON.stringify(arr, null, 2)); }
 
 app.get('/api/teacher/folders', (req, res) => {
@@ -6229,11 +6268,19 @@ app.get('/api/teacher/folders', (req, res) => {
 });
 app.post('/api/teacher/folders', express.json(), (req, res) => {
   if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
-  const name = String((req.body && req.body.name) || '').trim();
-  if (!name) return res.status(400).json({ error: 'name required' });
+  const uid = req.session.user.id;
+  const { classId, className, name } = req.body || {};
+  if (!classId && !name) return res.status(400).json({ error: 'classId or name required' });
+  const derivedName = name || ('Writing — ' + (className || 'Class'));
   const folders = _ccLoadFolders();
+  // Dedupe: return existing if one already exists for this (teacher, class).
+  const existing = folders.find(f => f && f.teacherId === uid && (
+    (classId && f.classId === classId) ||
+    (!classId && f.name === derivedName)
+  ));
+  if (existing) return res.json(existing);
   const id = 'fld-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const f = { id, name, teacherId: req.session.user.id, createdAt: new Date().toISOString() };
+  const f = { id, name: derivedName, classId: classId || null, className: className || null, teacherId: uid, createdAt: new Date().toISOString() };
   folders.push(f); _ccSaveFolders(folders);
   res.json(f);
 });
@@ -6273,6 +6320,34 @@ app.get('/api/teacher/markings/:id/download', (req, res) => {
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="' + _ccMpSlug(rec.studentName) + '_marked_writing.pdf"');
   _ccFsV.createReadStream(p).pipe(res);
+});
+
+
+app.delete('/api/teacher/folders/:id', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const folders = _ccLoadFolders();
+  const idx = folders.findIndex(f => f.id === req.params.id && f.teacherId === uid);
+  if (idx === -1) return res.status(404).json({ error: 'Folder not found' });
+  folders.splice(idx, 1); _ccSaveFolders(folders);
+  // Remove markings belonging to this folder (and their files).
+  const mks = _ccLoadMarkings();
+  const gone = mks.filter(m => m.folderId === req.params.id);
+  gone.forEach(m => { try { _ccFsV.unlinkSync(_ccPathV.join(_ccFolderDir, m.filename)); } catch(e){} });
+  _ccSaveMarkings(mks.filter(m => m.folderId !== req.params.id));
+  res.json({ ok: true, removedMarkings: gone.length });
+});
+
+
+app.get('/api/teacher/my-classes-brief', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  try {
+    const uid = req.session.user.id;
+    let cls = [];
+    try { cls = JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'classes.json'), 'utf8')); } catch(e){ cls = []; }
+    const mine = Array.isArray(cls) ? cls.filter(c => c && (c.teacherId === uid || !c.teacherId)) : [];
+    res.json(mine.map(c => ({ id: c.id, name: c.name || c.title || 'Class' })));
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 });
 console.log('[ai-mark-writing v2] endpoints ready.');
 // ─────────────────────────────────────────────────────────────────────
