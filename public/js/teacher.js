@@ -7169,3 +7169,29 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ────────────────────────────────────────────────────────────────────
 
+
+// ── Hide the outer "count" badge on the Tools button ─────────────────
+(function () {
+  function hideBadge() {
+    document.querySelectorAll('button, a').forEach(function (btn) {
+      const t = (btn.textContent || '').trim();
+      if (!/Tools/i.test(t)) return;
+      // Find red/badge-styled child (round pill with a number).
+      const kids = btn.querySelectorAll('span, small, div');
+      kids.forEach(function (k) {
+        const kt = (k.textContent || '').trim();
+        if (/^\d+$/.test(kt)) {
+          k.style.display = 'none';
+          k.setAttribute('aria-hidden', 'true');
+        }
+      });
+    });
+  }
+  hideBadge();
+  setInterval(hideBadge, 500);
+  if (window.MutationObserver) {
+    new MutationObserver(hideBadge).observe(document.body, { childList: true, subtree: true });
+  }
+})();
+// ────────────────────────────────────────────────────────────────────
+
