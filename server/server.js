@@ -6008,120 +6008,273 @@ app.get('/api/teacher/assessments/:aid/marked-pdf/:sid', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────
 
 
-// ── AI Mark Writing ──────────────────────────────────────────────────
-// Convert an assessment's `writingRubric` field (usually a slug like
-// "stage-7-8") to a detailed rubric string Claude can use.
-function _ccAmwRubricText(assessment) {
-  const r = assessment && assessment.writingRubric;
-  if (!r) {
-    return 'No rubric specified. Use a 4-criteria general writing rubric: (1) Content & Ideas (0-3), (2) Organisation (0-3), (3) Language & Vocabulary (0-3), (4) Grammar & Mechanics (0-3). Total /12.';
-  }
-  const s = String(r).toLowerCase();
-  // Well-known rubric slugs.
-  if (s.includes('7') || s.includes('8')) {
-    return 'Rubric: Stage 7-8 writing rubric. 4 criteria, each scored 0-3 (total /12).\n' +
-      '  1. Content & Ideas — relevance, development, engagement.\n' +
-      '  2. Organisation & Cohesion — structure, paragraphing, connectives.\n' +
-      '  3. Language Choice — vocabulary range, register, precision.\n' +
-      '  4. Grammar & Punctuation — accuracy, sentence variety, spelling.';
-  }
-  if (s.includes('3') || s.includes('5') || s.includes('9')) {
-    return 'Rubric: Stage 3-9 writing rubric. 5 criteria banded 0/1/2/3-4/5-6/7-8 (total /40).\n' +
-      '  1. Content & Purpose — relevance, ideas, task fulfilment.\n' +
-      '  2. Organisation & Structure — logical order, paragraphs, cohesion.\n' +
-      '  3. Vocabulary — range, appropriateness.\n' +
-      '  4. Grammar & Syntax — sentence structure accuracy.\n' +
-      '  5. Punctuation & Spelling — mechanics.';
-  }
-  // Fallback: use the string as-is.
-  return 'Rubric: ' + String(r);
-}
 
-// Endpoint: mark a student's writing from an uploaded image or PDF.
-if (typeof upload !== 'undefined' && upload && typeof upload.single === 'function') {
-  app.post('/api/teacher/ai-mark-writing', upload.single('writing'), async (req, res) => {
-    try {
-      if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
-      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-      const { assessmentId, questionId, studentName } = req.body || {};
-      // Load the assessment for its rubric.
-      let assessment = null;
-      try {
-        const all = JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'assessments.json'), 'utf8'));
-        assessment = all.find(a => String(a.id) === String(assessmentId));
-      } catch(e){}
-      const rubric = _ccAmwRubricText(assessment || {});
-      const title  = (assessment && assessment.title) || 'Writing task';
-      const subject = (assessment && assessment.subject) || 'English';
 
-      // Read file, detect type.
-      const buf = _ccFsV.readFileSync(req.file.path);
-      try { _ccFsV.unlinkSync(req.file.path); } catch(e){}
-      const mimeGuess = (req.file.mimetype || '').toLowerCase();
-      const isPdf = mimeGuess.includes('pdf') || (req.file.originalname || '').toLowerCase().endsWith('.pdf');
-      const isImg = mimeGuess.startsWith('image/');
-      if (!isPdf && !isImg) return res.status(400).json({ error: 'Only images (JPG/PNG) and PDFs are accepted.' });
+// ── AI Mark Writing v2 — rubric-driven, PDF export, folder system ───────
+const _ccAmwRubrics = {
+  'stage-7-8': {
+    label: 'Stage 7-8 (4 criteria, /12)',
+    prompt: 'Rubric: Stage 7-8 writing rubric. 4 criteria, each scored 0-3 (total /12).\n  1. Content & Ideas — relevance, development, engagement.\n  2. Organisation & Cohesion — structure, paragraphing, connectives.\n  3. Language Choice — vocabulary range, register, precision.\n  4. Grammar & Punctuation — accuracy, sentence variety, spelling.'
+  },
+  'stage-3-9': {
+    label: 'Stage 3-9 (5 criteria, /40, banded)',
+    prompt: 'Rubric: Stage 3-9 writing rubric. 5 criteria banded 0/1/2/3-4/5-6/7-8 (total /40).\n  1. Content & Purpose — relevance, ideas, task fulfilment.\n  2. Organisation & Structure — logical order, paragraphs, cohesion.\n  3. Vocabulary — range, appropriateness.\n  4. Grammar & Syntax — sentence structure accuracy.\n  5. Punctuation & Spelling — mechanics.'
+  },
+  'ielts': {
+    label: 'IELTS Writing (4 criteria, /9 each)',
+    prompt: 'Rubric: IELTS Writing band descriptors. 4 criteria, each scored 0-9 (average = overall band).\n  1. Task Achievement / Response — position, main points, support.\n  2. Coherence & Cohesion — organisation, cohesive devices, paragraphing.\n  3. Lexical Resource — vocabulary range, accuracy, appropriateness.\n  4. Grammatical Range & Accuracy — sentence types, grammar accuracy.'
+  },
+  'toefl': {
+    label: 'TOEFL Writing (5 criteria, /5 each)',
+    prompt: 'Rubric: TOEFL Writing. 5 criteria, each scored 0-5.\n  1. Development — ideas, examples, elaboration.\n  2. Organisation — logical flow, coherence.\n  3. Language Use — grammar, syntax.\n  4. Vocabulary — word choice, precision.\n  5. Mechanics — spelling, punctuation.'
+  },
+  'general-4': {
+    label: 'General 4-criteria (/16)',
+    prompt: 'Rubric: General 4-criteria writing rubric, each scored 0-4 (total /16).\n  1. Content & Ideas\n  2. Organisation\n  3. Language & Vocabulary\n  4. Grammar & Mechanics'
+  },
+  'general-6': {
+    label: 'General 6-criteria (/36)',
+    prompt: 'Rubric: General 6-criteria writing rubric, each scored 0-6 (total /36).\n  1. Ideas & Content\n  2. Organisation\n  3. Voice\n  4. Word Choice\n  5. Sentence Fluency\n  6. Conventions (grammar, spelling, punctuation)'
+  },
+};
 
-      const b64 = buf.toString('base64');
-      const attachment = isPdf
-        ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
-        : { type: 'image',    source: { type: 'base64', media_type: mimeGuess || 'image/png', data: b64 } };
+app.get('/api/teacher/writing-rubrics', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const list = Object.entries(_ccAmwRubrics).map(([slug, r]) => ({ slug, label: r.label }));
+  res.json(list);
+});
 
-      const sys = `You are an experienced classroom teacher marking a student's writing against a specific rubric.
+async function _ccAmwMarkWriting(fileBuf, mimeType, isPdf, rubricSlug, customRubric, studentName) {
+  const rubricText = customRubric
+    ? ('Rubric (custom, provided by the teacher):\n' + String(customRubric).slice(0, 4000))
+    : ((_ccAmwRubrics[rubricSlug] || _ccAmwRubrics['general-4']).prompt);
+  const b64 = fileBuf.toString('base64');
+  const attachment = isPdf
+    ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } }
+    : { type: 'image',    source: { type: 'base64', media_type: mimeType || 'image/png', data: b64 } };
+  const sys = `You are an experienced classroom teacher marking a student's writing.
 
-TASK CONTEXT:
-  - Assessment title: ${title}
-  - Subject: ${subject}
-  - Student: ${studentName || '(unnamed)'}
+Student: ${studentName || '(unnamed)'}
 
-${rubric}
+${rubricText}
 
 INSTRUCTIONS:
-  1. Read the student's writing carefully (attached).
-  2. Score each criterion in the rubric.
-  3. For each criterion, write a one-line comment explaining the score.
-  4. Provide an overall band/level, a total, and 2-4 sentences of constructive feedback the teacher can share with the student.
+  1. TRANSCRIBE the student's writing verbatim (fix nothing — copy what they wrote, including errors).
+  2. Identify every mistake (grammar, spelling, punctuation, word choice, sentence structure, clarity).
+  3. Score each rubric criterion with a one-line comment.
+  4. Provide an overall band/level, a total, a one-sentence overall judgement, and 2-4 sentences of constructive feedback for the student.
   5. Return ONLY JSON in this exact shape:
 
 {
+  "transcript": "the verbatim writing",
+  "mistakes": [
+    { "text": "wrong bit", "correction": "corrected bit", "type": "grammar|spelling|punctuation|word_choice|structure|clarity", "explanation": "one-line reason" }
+  ],
   "criteria": [
-    { "name": "Content & Ideas", "score": 2, "max": 3, "comment": "..." },
-    ...
+    { "name": "Content & Ideas", "score": 2, "max": 3, "comment": "..." }
   ],
   "totalScore": 8,
   "maxScore": 12,
   "band": "Merit / Level 4 / 7 / etc",
-  "overallComment": "1-2 sentence summary judgement",
-  "feedback": "2-4 sentences of feedback the teacher can share with the student verbatim",
-  "transcript": "The student's writing transcribed verbatim (for the teacher's records)"
+  "overallComment": "one-sentence summary",
+  "feedback": "2-4 sentences of feedback the teacher can share with the student verbatim"
+}`;
+  const raw = await _ccAnthropic(null, sys, [attachment, { type: 'text', text: 'Mark this writing.' }], 6000);
+  const parsed = _ccExtractJson(raw);
+  if (!parsed || !parsed.criteria) throw new Error('AI did not return a usable marking');
+  return parsed;
 }
 
-No prose outside the JSON.`;
+// Helper: build the marked PDF and pipe to outStream.
+function _ccAmwBuildMarkedPdf(marking, meta, outStream) {
+  const doc = new _ccPdfKit({ size: 'A4', margin: 50 });
+  doc.pipe(outStream);
+  doc.fontSize(20).fillColor('#1A1E33').text('Marked Writing', { align: 'left' });
+  doc.moveDown(0.2);
+  doc.fontSize(11).fillColor('#666').text(
+    (meta.studentName ? 'Student: ' + meta.studentName : 'Student: (unnamed)')
+    + '   Rubric: ' + (meta.rubricLabel || '—')
+    + '   Marked: ' + new Date().toLocaleString()
+  );
+  doc.moveDown(0.5);
+  doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor('#DDD').stroke();
+  doc.moveDown(0.6);
 
-      const raw = await _ccAnthropic(null, sys, [attachment, { type: 'text', text: 'Mark this writing.' }], 4096);
-      const parsed = _ccExtractJson(raw);
-      if (!parsed || !parsed.criteria) return res.status(422).json({ error: 'AI did not return a usable marking', raw });
-      res.json({ marking: parsed, assessment: { id: assessment && assessment.id, title }, studentName });
-    } catch(e){
-      console.error('[ai-mark-writing] fatal', e);
-      res.status(500).json({ error: String(e.message || e) });
-    }
-  });
-  console.log('[ai-mark-writing] POST /api/teacher/ai-mark-writing wired.');
+  // Score panel.
+  const total = marking.totalScore || 0;
+  const max   = marking.maxScore   || 0;
+  const pct   = max ? Math.round((total/max)*100) : 0;
+  doc.rect(50, doc.y, 495, 55).fillOpacity(1).fill('#EEF2FF').fillOpacity(1);
+  doc.fillColor('#1A1E33').fontSize(16).text('Score: ' + total + ' / ' + max + '   (' + pct + '%)', 60, doc.y - 45);
+  doc.fillColor('#4338CA').fontSize(12).text('Band: ' + (marking.band || '—'), 60, doc.y + 2);
+  doc.moveDown(2);
+
+  // Overall comment.
+  if (marking.overallComment) {
+    doc.fillColor('#000').fontSize(12).text('Overall: ', { continued: true }).fillColor('#374151').text(marking.overallComment);
+    doc.moveDown(0.6);
+  }
+
+  // Student's writing (transcribed) with mistakes bracketed in red.
+  if (marking.transcript) {
+    doc.fillColor('#1A1E33').fontSize(13).text('Student\'s writing (as read)', { underline: true });
+    doc.moveDown(0.3);
+    let text = String(marking.transcript);
+    // Simple highlighting: wrap each mistake.text in [[...]] markers, then render.
+    (marking.mistakes || []).forEach(m => {
+      if (m && m.text && text.includes(m.text)) text = text.split(m.text).join('[[' + m.text + ']]');
+    });
+    // Split and render.
+    const parts = text.split(/(\[\[[^\]]+\]\])/g);
+    parts.forEach((p, i) => {
+      const isMistake = p.startsWith('[[') && p.endsWith(']]');
+      const clean = isMistake ? p.slice(2, -2) : p;
+      doc.fontSize(11).fillColor(isMistake ? '#B91C1C' : '#111827').text(clean, { continued: (i < parts.length - 1) });
+    });
+    doc.moveDown(1);
+  }
+
+  // Corrections list.
+  if (Array.isArray(marking.mistakes) && marking.mistakes.length) {
+    if (doc.y > 700) doc.addPage();
+    doc.fillColor('#1A1E33').fontSize(13).text('Corrections & suggestions', { underline: true });
+    doc.moveDown(0.3);
+    marking.mistakes.forEach((m, i) => {
+      if (doc.y > 750) doc.addPage();
+      doc.fillColor('#111827').fontSize(11).text((i + 1) + '. "', { continued: true })
+         .fillColor('#B91C1C').text(m.text || '', { continued: true })
+         .fillColor('#111827').text('" → "', { continued: true })
+         .fillColor('#059669').text(m.correction || '', { continued: true })
+         .fillColor('#111827').text('"   (' + (m.type || 'note') + ')');
+      if (m.explanation) doc.fontSize(10).fillColor('#6B7280').text('    ' + m.explanation);
+      doc.moveDown(0.3);
+    });
+    doc.moveDown(0.5);
+  }
+
+  // Rubric scoring.
+  if (Array.isArray(marking.criteria) && marking.criteria.length) {
+    if (doc.y > 700) doc.addPage();
+    doc.fillColor('#1A1E33').fontSize(13).text('Rubric scoring', { underline: true });
+    doc.moveDown(0.3);
+    marking.criteria.forEach(c => {
+      if (doc.y > 750) doc.addPage();
+      doc.fillColor('#111827').fontSize(11).text(c.name + '  ', { continued: true })
+         .fillColor('#4338CA').text(c.score + ' / ' + c.max);
+      if (c.comment) doc.fontSize(10).fillColor('#6B7280').text('    ' + c.comment);
+      doc.moveDown(0.3);
+    });
+    doc.moveDown(0.5);
+  }
+
+  // Feedback panel.
+  if (marking.feedback) {
+    if (doc.y > 680) doc.addPage();
+    doc.rect(50, doc.y, 495, 3).fill('#059669');
+    doc.moveDown(0.4);
+    doc.fillColor('#1A1E33').fontSize(13).text('Feedback for the student');
+    doc.moveDown(0.3);
+    doc.fontSize(11).fillColor('#111827').text(marking.feedback, { align: 'left' });
+  }
+  // Footer.
+  doc.fontSize(9).fillColor('#9CA3AF').text('Generated by ClassCurio AI Mark Writing', 50, doc.page.height - 50, { align: 'center', width: 495 });
+  doc.end();
 }
 
-// Endpoint: list this teacher's assessments (minimal, for the marking modal).
-app.get('/api/teacher/my-assessments-brief', (req, res) => {
+// New endpoint: preview marking as JSON.
+app.post('/api/teacher/ai-mark-writing', upload.single('writing'), async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
-    const all = _ccMpReadJson('assessments.json', []);
-    const uid = req.session.user.id;
-    const brief = all
-      .filter(a => a && (a.teacherId === uid || !a.teacherId))
-      .map(a => ({ id: a.id, title: a.title, subject: a.subject || '', writingRubric: a.writingRubric || '' }));
-    res.json(brief);
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const { rubricSlug, customRubric, studentName } = req.body || {};
+    const buf = _ccFsV.readFileSync(req.file.path);
+    try { _ccFsV.unlinkSync(req.file.path); } catch(e){}
+    const mime = (req.file.mimetype || '').toLowerCase();
+    const isPdf = mime.includes('pdf') || (req.file.originalname || '').toLowerCase().endsWith('.pdf');
+    const isImg = mime.startsWith('image/');
+    if (!isPdf && !isImg) return res.status(400).json({ error: 'Only images or PDFs.' });
+    const marking = await _ccAmwMarkWriting(buf, mime, isPdf, rubricSlug || '', customRubric || '', studentName || '');
+    res.json({ marking, rubricLabel: (_ccAmwRubrics[rubricSlug] || {}).label || 'Custom', studentName });
   } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 });
+
+// Generate PDF from an already-computed marking (sent back from client after preview).
+app.post('/api/teacher/ai-mark-writing/pdf', express.json({ limit: '10mb' }), (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const { marking, rubricLabel, studentName } = req.body || {};
+    if (!marking) return res.status(400).json({ error: 'marking required' });
+    const fname = _ccMpSlug(studentName || 'student') + '_marked_writing.pdf';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
+    _ccAmwBuildMarkedPdf(marking, { studentName, rubricLabel }, res);
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+
+// ── Folders for saved markings ────────────────────────────────────────
+const _ccFolderDir = _ccPathV.join(_ccDataDir, 'marking-uploads');
+function _ccEnsureFolderDirs(){ try { _ccFsV.mkdirSync(_ccFolderDir, { recursive: true }); } catch(e){} }
+_ccEnsureFolderDirs();
+
+function _ccLoadFolders(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'folders.json'), 'utf8')); } catch(e){ return []; } }
+function _ccSaveFolders(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'folders.json'), JSON.stringify(arr, null, 2)); }
+function _ccLoadMarkings(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), 'utf8')); } catch(e){ return []; } }
+function _ccSaveMarkings(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), JSON.stringify(arr, null, 2)); }
+
+app.get('/api/teacher/folders', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const folders = _ccLoadFolders().filter(f => f && f.teacherId === uid);
+  res.json(folders);
+});
+app.post('/api/teacher/folders', express.json(), (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const name = String((req.body && req.body.name) || '').trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const folders = _ccLoadFolders();
+  const id = 'fld-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const f = { id, name, teacherId: req.session.user.id, createdAt: new Date().toISOString() };
+  folders.push(f); _ccSaveFolders(folders);
+  res.json(f);
+});
+app.get('/api/teacher/folders/:id', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const folder = _ccLoadFolders().find(f => f.id === req.params.id && f.teacherId === uid);
+  if (!folder) return res.status(404).json({ error: 'Folder not found' });
+  const markings = _ccLoadMarkings().filter(m => m.folderId === folder.id);
+  res.json({ folder, markings });
+});
+app.post('/api/teacher/folders/:id/save-marking', upload.single('pdf'), express.json(), (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const uid = req.session.user.id;
+    const folder = _ccLoadFolders().find(f => f.id === req.params.id && f.teacherId === uid);
+    if (!folder) return res.status(404).json({ error: 'Folder not found' });
+    if (!req.file) return res.status(400).json({ error: 'No PDF uploaded' });
+    _ccEnsureFolderDirs();
+    const id = 'mk-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const targetName = id + '.pdf';
+    const targetPath = _ccPathV.join(_ccFolderDir, targetName);
+    _ccFsV.renameSync(req.file.path, targetPath);
+    const studentName = (req.body && req.body.studentName) || 'Student';
+    const rec = { id, folderId: folder.id, teacherId: uid, studentName, filename: targetName, createdAt: new Date().toISOString() };
+    const all = _ccLoadMarkings(); all.push(rec); _ccSaveMarkings(all);
+    res.json(rec);
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+app.get('/api/teacher/markings/:id/download', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const rec = _ccLoadMarkings().find(m => m.id === req.params.id && m.teacherId === uid);
+  if (!rec) return res.status(404).json({ error: 'Marking not found' });
+  const p = _ccPathV.join(_ccFolderDir, rec.filename);
+  if (!_ccFsV.existsSync(p)) return res.status(404).json({ error: 'File missing' });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="' + _ccMpSlug(rec.studentName) + '_marked_writing.pdf"');
+  _ccFsV.createReadStream(p).pipe(res);
+});
+console.log('[ai-mark-writing v2] endpoints ready.');
 // ─────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {

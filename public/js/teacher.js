@@ -6428,7 +6428,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 // ──────────────────────────────────────────────────────────────────────────
 
 
-// ── AI Mark Writing (floating button + modal) ─────────────────────────
+// ── AI Mark Writing v2 — rubric dropdown, PDF download, folders ───────
 (function () {
   function el(tag, attrs, ...kids) {
     const n = document.createElement(tag);
@@ -6440,63 +6440,93 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     for (const kid of kids) if (kid !== null && kid !== undefined) n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
     return n;
   }
-
-  async function openMarkModal() {
-    // Fetch this teacher's assessments.
-    let asmts = [];
-    try {
-      const r = await fetch('/api/teacher/my-assessments-brief', { credentials: 'include' });
-      if (r.ok) asmts = await r.json();
-    } catch(e){}
-
-    // Build modal.
+  function overlayHost() {
     const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
-    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:720px; width:90%; max-height:90vh; overflow:auto; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.3);' });
-    modal.appendChild(el('h2', { style: 'margin:0 0 8px; color:#1A1E33;' }, '🖊️ Mark writing with AI'));
-    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Upload a photo or PDF of a student\'s writing. AI will mark it against the rubric attached to the chosen assessment.'));
+    return overlay;
+  }
+  async function fetchJson(url, init){
+    const r = await fetch(url, Object.assign({ credentials: 'include' }, init || {}));
+    const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    return j;
+  }
 
-    const asmtLabel = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Assessment');
-    const asmtSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
-    asmtSel.appendChild(el('option', { value: '' }, '— No assessment (use default rubric) —'));
-    asmts.forEach(function(a){ asmtSel.appendChild(el('option', { value: a.id }, a.title + (a.writingRubric ? ' — ' + a.writingRubric : ''))); });
+  // ── Mark modal ─────────────────────────────────────────────────────
+  async function openMarkModal() {
+    let rubrics = []; let folders = [];
+    try { rubrics = await fetchJson('/api/teacher/writing-rubrics'); } catch(e){}
+    try { folders = await fetchJson('/api/teacher/folders'); } catch(e){}
 
-    const nameLabel = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Student name (optional)');
+    const overlay = overlayHost();
+    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:760px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
+    modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, '🖊️ Mark writing with AI'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Upload the student\'s writing. Pick a rubric. Get a marked PDF you can download and save.'));
+
+    const rubricLbl = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Rubric');
+    const rubricSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    rubrics.forEach(function(r){ rubricSel.appendChild(el('option', { value: r.slug }, r.label)); });
+    rubricSel.appendChild(el('option', { value: '_custom' }, '✏️ Custom rubric (paste your own)'));
+    const customArea = el('textarea', { style: 'width:100%; margin-top:8px; padding:8px; border:1px solid #D1D5DB; border-radius:6px; min-height:80px; display:none;', placeholder: 'Paste your rubric here. List the criteria, their max scores, and any band descriptors.' });
+    rubricSel.onchange = function(){ customArea.style.display = rubricSel.value === '_custom' ? 'block' : 'none'; };
+
+    const nameLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Student name');
     const nameInp = el('input', { type: 'text', style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
 
-    const fileLabel = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Upload writing (image or PDF)');
+    const fileLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Upload writing (image or PDF)');
     const fileInp = el('input', { type: 'file', accept: 'image/*,application/pdf', style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+
+    const folderLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Save to folder (optional)');
+    const folderRow = el('div', { style: 'display:flex; gap:8px;' });
+    const folderSel = el('select', { style: 'flex:1; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    folderSel.appendChild(el('option', { value: '' }, '— Don\'t save —'));
+    folders.forEach(function(f){ folderSel.appendChild(el('option', { value: f.id }, '📁 ' + f.name)); });
+    const newFolderBtn = el('button', { style: 'padding:8px 14px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, '+ New folder');
+    newFolderBtn.onclick = async function () {
+      const name = prompt('New folder name:');
+      if (!name) return;
+      try {
+        const f = await fetchJson('/api/teacher/folders', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name }) });
+        folderSel.appendChild(el('option', { value: f.id, selected: 'selected' }, '📁 ' + f.name));
+        folderSel.value = f.id;
+      } catch (e) { alert('Failed: ' + e.message); }
+    };
+    folderRow.appendChild(folderSel); folderRow.appendChild(newFolderBtn);
 
     const status = el('div', { style: 'margin-top:16px; padding:12px; background:#F3F4F6; border-radius:6px; color:#374151; font-size:13px; display:none;' });
     const result = el('div', { style: 'margin-top:16px; display:none;' });
 
     const submitBtn = el('button', { style: 'margin-top:20px; padding:10px 20px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, 'Mark with AI');
-    const closeBtn = el('button', { style: 'margin-top:20px; margin-left:8px; padding:10px 20px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
+    const closeBtn  = el('button', { style: 'margin-top:20px; margin-left:8px; padding:10px 20px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
     closeBtn.onclick = function(){ overlay.remove(); };
+
+    let currentMarking = null;
+    let currentStudentName = '';
+    let currentRubricLabel = '';
 
     submitBtn.onclick = async function () {
       const f = fileInp.files && fileInp.files[0];
       if (!f) { alert('Please choose an image or PDF first.'); return; }
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Marking (30–60s)…';
-      status.style.display = 'block';
-      status.textContent = 'Sending writing to AI…';
+      submitBtn.disabled = true; submitBtn.textContent = 'Marking (30–60s)…';
+      status.style.display = 'block'; status.textContent = 'Sending writing to AI…';
       result.style.display = 'none';
       const fd = new FormData();
       fd.append('writing', f);
-      if (asmtSel.value) fd.append('assessmentId', asmtSel.value);
-      if (nameInp.value) fd.append('studentName', nameInp.value);
+      fd.append('rubricSlug', rubricSel.value === '_custom' ? '' : rubricSel.value);
+      if (rubricSel.value === '_custom') fd.append('customRubric', customArea.value);
+      fd.append('studentName', nameInp.value || '');
       try {
         const r = await fetch('/api/teacher/ai-mark-writing', { method: 'POST', body: fd, credentials: 'include' });
-        const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
-        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
-        renderResult(result, j.marking, j.studentName);
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || 'Failed');
+        currentMarking = j.marking; currentStudentName = j.studentName || nameInp.value || '';
+        currentRubricLabel = j.rubricLabel || (rubricSel.selectedOptions[0] && rubricSel.selectedOptions[0].textContent) || '';
+        renderResult(result, j.marking, currentStudentName);
         status.style.display = 'none';
         result.style.display = 'block';
       } catch (e) {
         status.textContent = 'Failed: ' + (e.message || e);
       } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Mark another';
+        submitBtn.disabled = false; submitBtn.textContent = 'Mark another';
       }
     };
 
@@ -6507,54 +6537,152 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
         el('div', { style: 'font-size:18px; font-weight:700;' }, 'Score: ' + m.totalScore + ' / ' + m.maxScore + '   (' + Math.round((m.totalScore/m.maxScore)*100) + '%)'),
         el('div', { style: 'margin-top:4px; color:#4338CA;' }, 'Band: ' + (m.band || '—')),
       ));
-      if (Array.isArray(m.criteria)) m.criteria.forEach(function(c){
-        host.appendChild(el('div', { style: 'padding:10px; border-left:3px solid #4338CA; margin:8px 0; background:#F9FAFB;' },
-          el('div', { style: 'font-weight:600;' }, c.name + ' — ' + c.score + '/' + c.max),
-          el('div', { style: 'color:#374151; margin-top:4px; font-size:14px;' }, c.comment || ''),
-        ));
-      });
-      if (m.overallComment) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#FEF7E6; border-left:3px solid #F59E0B; border-radius:4px;' },
-        el('div', { style: 'font-weight:600;' }, 'Overall'),
-        el('div', {}, m.overallComment),
-      ));
-      if (m.feedback) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#ECFDF5; border-left:3px solid #059669; border-radius:4px;' },
-        el('div', { style: 'font-weight:600;' }, 'Suggested feedback for student'),
-        el('div', {}, m.feedback),
-      ));
-      if (m.transcript) {
-        const tr = el('details', { style: 'margin-top:12px;' });
-        tr.appendChild(el('summary', { style: 'cursor:pointer; color:#0369A1;' }, 'View AI transcription'));
-        tr.appendChild(el('div', { style: 'padding:10px; background:#F9FAFB; border-radius:4px; white-space:pre-wrap; font-family:Georgia,serif;' }, m.transcript));
-        host.appendChild(tr);
+      // Mistakes.
+      if (Array.isArray(m.mistakes) && m.mistakes.length) {
+        host.appendChild(el('h4', { style: 'margin:12px 0 6px;' }, 'Corrections (' + m.mistakes.length + ')'));
+        m.mistakes.slice(0, 20).forEach(function(k, i){
+          host.appendChild(el('div', { style: 'padding:8px 10px; border-left:2px solid #B91C1C; background:#FEF2F2; margin:4px 0; font-size:13px;' },
+            el('div', {},
+              (i+1) + '. "', el('span', { style: 'color:#B91C1C;' }, k.text || ''), '" → "', el('span', { style: 'color:#059669;' }, k.correction || ''), '" (', k.type || 'note', ')'
+            ),
+            k.explanation ? el('div', { style: 'color:#6B7280; font-size:12px; margin-top:2px;' }, k.explanation) : null,
+          ));
+        });
+        if (m.mistakes.length > 20) host.appendChild(el('div', { style: 'color:#6B7280; font-size:12px;' }, '…and ' + (m.mistakes.length - 20) + ' more (see PDF).'));
       }
-      const copy = el('button', { style: 'margin-top:12px; padding:8px 14px; background:#0369A1; color:#fff; border:none; border-radius:5px; cursor:pointer;' }, '📋 Copy feedback to clipboard');
-      copy.onclick = function(){
-        try { navigator.clipboard.writeText(m.feedback || m.overallComment || ''); copy.textContent = '✓ Copied'; setTimeout(function(){ copy.textContent = '📋 Copy feedback to clipboard'; }, 2000); } catch(e){}
+      // Criteria.
+      if (Array.isArray(m.criteria)) {
+        host.appendChild(el('h4', { style: 'margin:12px 0 6px;' }, 'Rubric scoring'));
+        m.criteria.forEach(function(k){
+          host.appendChild(el('div', { style: 'padding:8px; margin:4px 0; background:#F9FAFB; border-left:3px solid #4338CA;' },
+            el('div', { style: 'font-weight:600;' }, k.name + ' — ' + k.score + '/' + k.max),
+            el('div', { style: 'color:#374151; font-size:13px;' }, k.comment || ''),
+          ));
+        });
+      }
+      if (m.overallComment) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#FEF7E6; border-left:3px solid #F59E0B;' }, el('strong', {}, 'Overall: '), m.overallComment));
+      if (m.feedback) host.appendChild(el('div', { style: 'margin-top:12px; padding:10px; background:#ECFDF5; border-left:3px solid #059669;' }, el('strong', {}, 'Feedback for student: '), m.feedback));
+
+      // Action buttons.
+      const actionRow = el('div', { style: 'margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;' });
+      const dlBtn = el('button', { style: 'padding:10px 16px; background:#0369A1; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, '📄 Download marked PDF');
+      dlBtn.onclick = async function () {
+        dlBtn.disabled = true; dlBtn.textContent = 'Building PDF…';
+        try {
+          const r = await fetch('/api/teacher/ai-mark-writing/pdf', {
+            method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+            body: JSON.stringify({ marking: currentMarking, rubricLabel: currentRubricLabel, studentName: currentStudentName }),
+          });
+          if (!r.ok) { const j = await r.json().catch(function(){return{}}); throw new Error(j.error || ('HTTP ' + r.status)); }
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url;
+          a.download = (currentStudentName || 'student').replace(/[^A-Za-z0-9_-]+/g, '_') + '_marked_writing.pdf';
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+          dlBtn.textContent = '✓ Downloaded';
+        } catch (e) { alert('Download failed: ' + e.message); dlBtn.textContent = '📄 Download marked PDF'; }
+        finally { dlBtn.disabled = false; }
       };
-      host.appendChild(copy);
+      actionRow.appendChild(dlBtn);
+
+      // Save to folder button (if a folder is selected).
+      if (folderSel.value) {
+        const saveBtn = el('button', { style: 'padding:10px 16px; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, '💾 Save to folder');
+        saveBtn.onclick = async function () {
+          saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+          try {
+            // Regenerate PDF and post to the folder-save endpoint.
+            const r1 = await fetch('/api/teacher/ai-mark-writing/pdf', {
+              method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+              body: JSON.stringify({ marking: currentMarking, rubricLabel: currentRubricLabel, studentName: currentStudentName }),
+            });
+            if (!r1.ok) throw new Error('PDF build failed');
+            const blob = await r1.blob();
+            const fd2 = new FormData();
+            fd2.append('pdf', blob, (currentStudentName || 'student') + '_marked_writing.pdf');
+            fd2.append('studentName', currentStudentName || '');
+            const r2 = await fetch('/api/teacher/folders/' + folderSel.value + '/save-marking', { method: 'POST', body: fd2, credentials: 'include' });
+            const j = await r2.json();
+            if (!r2.ok) throw new Error(j.error || 'save failed');
+            saveBtn.textContent = '✓ Saved to folder';
+          } catch (e) { alert('Save failed: ' + e.message); saveBtn.textContent = '💾 Save to folder'; }
+          finally { saveBtn.disabled = false; }
+        };
+        actionRow.appendChild(saveBtn);
+      }
+      host.appendChild(actionRow);
     }
 
-    modal.appendChild(asmtLabel); modal.appendChild(asmtSel);
-    modal.appendChild(nameLabel); modal.appendChild(nameInp);
-    modal.appendChild(fileLabel); modal.appendChild(fileInp);
+    modal.appendChild(rubricLbl); modal.appendChild(rubricSel); modal.appendChild(customArea);
+    modal.appendChild(nameLbl); modal.appendChild(nameInp);
+    modal.appendChild(fileLbl); modal.appendChild(fileInp);
+    modal.appendChild(folderLbl); modal.appendChild(folderRow);
     modal.appendChild(submitBtn); modal.appendChild(closeBtn);
-    modal.appendChild(status);
-    modal.appendChild(result);
+    modal.appendChild(status); modal.appendChild(result);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
   }
 
-  function installFloatingBtn() {
-    if (document.getElementById('cc-ai-mark-btn')) return;
-    const btn = el('button', {
-      id: 'cc-ai-mark-btn',
-      style: 'position:fixed; bottom:24px; right:24px; z-index:9998; padding:14px 20px; background:#059669; color:#fff; border:none; border-radius:999px; box-shadow:0 8px 24px rgba(5,150,105,0.4); cursor:pointer; font-weight:600; font-size:14px;',
-      onclick: openMarkModal,
-    }, '🖊️ AI Mark Writing');
-    document.body.appendChild(btn);
+  // ── Folder browser ─────────────────────────────────────────────────
+  async function openFolderBrowser() {
+    let folders = [];
+    try { folders = await fetchJson('/api/teacher/folders'); } catch(e){ alert('Load folders failed: ' + e.message); return; }
+
+    const overlay = overlayHost();
+    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:800px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
+    modal.appendChild(el('h2', { style: 'margin:0 0 12px;' }, '📁 My marking folders'));
+
+    const list = el('div', { style: 'display:flex; flex-direction:column; gap:8px;' });
+    if (!folders.length) list.appendChild(el('div', { style: 'color:#6B7280;' }, 'No folders yet. Create one from the "Mark writing" modal.'));
+    for (const f of folders) {
+      const card = el('div', { style: 'padding:12px; border:1px solid #E5E7EB; border-radius:8px;' });
+      const header = el('div', { style: 'display:flex; justify-content:space-between; align-items:center;' },
+        el('div', { style: 'font-weight:600;' }, '📁 ' + f.name),
+        el('button', { style: 'padding:4px 10px; background:#EEF2FF; color:#4338CA; border:none; border-radius:4px; cursor:pointer; font-size:12px;' }, 'Open'),
+      );
+      const detail = el('div', { style: 'margin-top:8px; display:none;' });
+      header.lastChild.onclick = async function () {
+        if (detail.style.display === 'block') { detail.style.display = 'none'; header.lastChild.textContent = 'Open'; return; }
+        try {
+          const j = await fetchJson('/api/teacher/folders/' + f.id);
+          detail.innerHTML = '';
+          if (!j.markings.length) { detail.appendChild(el('div', { style: 'color:#6B7280;' }, 'Empty folder.')); }
+          else j.markings.forEach(function(m){
+            detail.appendChild(el('div', { style: 'padding:6px; border-top:1px solid #F3F4F6; display:flex; justify-content:space-between; align-items:center;' },
+              el('div', {}, '📄 ' + m.studentName + '  ', el('span', { style: 'color:#6B7280; font-size:12px;' }, new Date(m.createdAt).toLocaleString())),
+              el('a', { href: '/api/teacher/markings/' + m.id + '/download', style: 'color:#4338CA; text-decoration:none; font-size:13px;' }, 'Download'),
+            ));
+          });
+          detail.style.display = 'block'; header.lastChild.textContent = 'Close';
+        } catch (e) { alert('Load failed: ' + e.message); }
+      };
+      card.appendChild(header); card.appendChild(detail);
+      list.appendChild(card);
+    }
+
+    const closeBtn = el('button', { style: 'margin-top:16px; padding:8px 16px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
+    closeBtn.onclick = function(){ overlay.remove(); };
+    modal.appendChild(list); modal.appendChild(closeBtn);
+    overlay.appendChild(modal); document.body.appendChild(overlay);
   }
-  document.addEventListener('DOMContentLoaded', installFloatingBtn);
-  setTimeout(installFloatingBtn, 500);
+
+  function installButtons() {
+    if (!document.getElementById('cc-ai-mark-btn')) {
+      const btn = el('button', { id: 'cc-ai-mark-btn',
+        style: 'position:fixed; bottom:24px; right:24px; z-index:9998; padding:14px 20px; background:#059669; color:#fff; border:none; border-radius:999px; box-shadow:0 8px 24px rgba(5,150,105,0.4); cursor:pointer; font-weight:600; font-size:14px;',
+        onclick: openMarkModal }, '🖊️ AI Mark Writing');
+      document.body.appendChild(btn);
+    }
+    if (!document.getElementById('cc-folders-btn')) {
+      const btn2 = el('button', { id: 'cc-folders-btn',
+        style: 'position:fixed; bottom:24px; left:24px; z-index:9998; padding:14px 20px; background:#4338CA; color:#fff; border:none; border-radius:999px; box-shadow:0 8px 24px rgba(67,56,202,0.4); cursor:pointer; font-weight:600; font-size:14px;',
+        onclick: openFolderBrowser }, '📁 My Folders');
+      document.body.appendChild(btn2);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', installButtons);
+  setTimeout(installButtons, 500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
