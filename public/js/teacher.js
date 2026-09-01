@@ -6724,105 +6724,122 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 // ─────────────────────────────────────────────────────────────────────
 
 
-// ── Dashboard cleanup: slim per-card action buttons ──────────────────
+// ── Dashboard cleanup: slim per-card action buttons (v2) ─────────────
 (function () {
   const PRIMARY = new Set(['Share with students', 'Results', 'Edit']);
   const SECONDARY_ORDER = ['PDF', 'Share with teacher', 'Preview', 'Move', 'Duplicate', 'Delete'];
+  let openMenu = null;
+  let openedAt = 0;
+
+  function positionMenu(menu, anchor) {
+    const r = anchor.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = (r.bottom + 6) + 'px';
+    // Prefer right-align with the button.
+    const menuWidth = 200;
+    let left = r.right - menuWidth;
+    if (left < 8) left = 8;
+    menu.style.left = left + 'px';
+    menu.style.minWidth = menuWidth + 'px';
+    menu.style.zIndex = '999999';
+  }
+
+  function closeAny() {
+    if (openMenu) { openMenu.style.display = 'none'; openMenu = null; }
+  }
 
   function slimCard(row) {
     if (row.dataset.ccSlim === '1') return;
-    // Only touch rows that clearly belong to an assessment card:
-    // must contain at least one Delete button (destructive text is a good marker).
     const btns = Array.from(row.querySelectorAll('button, a'));
     if (!btns.length) return;
-    const hasDelete = btns.some(b => (b.textContent || '').trim() === 'Delete');
+    const hasDelete  = btns.some(b => (b.textContent || '').trim() === 'Delete');
     const hasResults = btns.some(b => (b.textContent || '').trim() === 'Results');
     if (!hasDelete || !hasResults) return;
 
-    // Split into primary / secondary / other.
     const secondary = [];
     for (const b of btns) {
       const label = (b.textContent || '').trim();
-      // Preserve our own added buttons (Marked PDFs, etc.) inline.
       if (b.classList.contains('cc-marked-pdfs-btn')) continue;
       if (PRIMARY.has(label)) continue;
       if (SECONDARY_ORDER.includes(label)) secondary.push(b);
     }
     if (!secondary.length) { row.dataset.ccSlim = '1'; return; }
 
-    // Build the "⋯ More" button + hidden menu.
-    const wrap = document.createElement('span');
-    wrap.style.cssText = 'position:relative; display:inline-block; margin:0 4px;';
     const more = document.createElement('button');
+    more.type = 'button';
     more.className = 'cc-more-btn';
     more.textContent = '⋯ More';
-    more.style.cssText = 'padding:8px 12px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer; font-size:13px;';
+    more.style.cssText = 'margin:0 4px; padding:8px 12px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer; font-size:13px;';
+
     const menu = document.createElement('div');
-    menu.style.cssText = 'position:absolute; top:100%; right:0; margin-top:4px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); padding:6px; z-index:100; display:none; min-width:180px;';
-    // Sort secondary by canonical order.
-    secondary.sort((a, b) => {
-      const ia = SECONDARY_ORDER.indexOf((a.textContent||'').trim());
-      const ib = SECONDARY_ORDER.indexOf((b.textContent||'').trim());
-      return ia - ib;
-    });
+    menu.className = 'cc-more-menu';
+    menu.style.cssText = 'background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); padding:6px; display:none;';
+
+    secondary.sort((a, b) => SECONDARY_ORDER.indexOf((a.textContent||'').trim()) - SECONDARY_ORDER.indexOf((b.textContent||'').trim()));
     secondary.forEach(b => {
-      // Move it into the menu, styled as a menu item.
-      b.style.display = 'block';
-      b.style.width = '100%';
-      b.style.textAlign = 'left';
-      b.style.margin = '2px 0';
-      b.style.padding = '8px 10px';
-      b.style.background = 'transparent';
-      b.style.border = 'none';
-      b.style.borderRadius = '4px';
-      b.style.cursor = 'pointer';
-      b.style.color = (b.textContent||'').trim() === 'Delete' ? '#B91C1C' : '#111827';
+      b.style.display     = 'block';
+      b.style.width       = '100%';
+      b.style.textAlign   = 'left';
+      b.style.margin      = '2px 0';
+      b.style.padding     = '8px 10px';
+      b.style.background  = 'transparent';
+      b.style.border      = 'none';
+      b.style.borderRadius= '4px';
+      b.style.cursor      = 'pointer';
+      b.style.color       = (b.textContent||'').trim() === 'Delete' ? '#B91C1C' : '#111827';
       b.addEventListener('mouseenter', function(){ b.style.background = '#F3F4F6'; });
       b.addEventListener('mouseleave', function(){ b.style.background = 'transparent'; });
+      // Close menu after they click any item.
+      const originalClick = b.onclick;
+      b.addEventListener('click', function(){ setTimeout(closeAny, 50); });
       menu.appendChild(b);
     });
 
+    // Menu must live at document.body so it isn't clipped by card overflow.
+    document.body.appendChild(menu);
+
     more.onclick = function (e) {
+      e.preventDefault();
       e.stopPropagation();
-      // Close any other open menu.
-      document.querySelectorAll('.cc-more-menu-open').forEach(m => { if (m !== menu) m.style.display = 'none', m.classList.remove('cc-more-menu-open'); });
-      const isOpen = menu.style.display === 'block';
-      menu.style.display = isOpen ? 'none' : 'block';
-      menu.classList.toggle('cc-more-menu-open', !isOpen);
+      if (openMenu === menu) { closeAny(); return; }
+      closeAny();
+      positionMenu(menu, more);
+      menu.style.display = 'block';
+      openMenu = menu;
+      openedAt = Date.now();
     };
-    wrap.appendChild(more);
-    wrap.appendChild(menu);
-    row.appendChild(wrap);
+    row.appendChild(more);
     row.dataset.ccSlim = '1';
   }
 
-  // Close menus on outside click.
+  // Close on outside click, but not the click that just opened.
   document.addEventListener('click', function (e) {
-    document.querySelectorAll('.cc-more-menu-open').forEach(m => {
-      if (!m.contains(e.target)) { m.style.display = 'none'; m.classList.remove('cc-more-menu-open'); }
-    });
-  });
+    if (!openMenu) return;
+    if (Date.now() - openedAt < 150) return;
+    if (openMenu.contains(e.target)) return;
+    closeAny();
+  }, true);
+
+  // Reposition on scroll/resize.
+  window.addEventListener('scroll', function(){ if (openMenu) closeAny(); }, true);
+  window.addEventListener('resize', function(){ if (openMenu) closeAny(); });
 
   function scan() {
-    // Look for likely card action rows: any element containing a Delete button.
     const candidates = new Set();
     document.querySelectorAll('button, a').forEach(function (btn) {
       if ((btn.textContent || '').trim() !== 'Delete') return;
-      // Its parent is likely the action row.
       const parent = btn.parentElement;
       if (parent) candidates.add(parent);
     });
     candidates.forEach(slimCard);
   }
-
   document.addEventListener('DOMContentLoaded', scan);
   setTimeout(scan, 500);
   setTimeout(scan, 1500);
   if (window.MutationObserver) {
     let t = null;
-    new MutationObserver(function () {
-      clearTimeout(t); t = setTimeout(scan, 200);
-    }).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(function () { clearTimeout(t); t = setTimeout(scan, 200); })
+      .observe(document.body, { childList: true, subtree: true });
   }
 })();
 // ─────────────────────────────────────────────────────────────────────
