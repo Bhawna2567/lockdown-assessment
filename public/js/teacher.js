@@ -6480,7 +6480,9 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     const folderSel = el('select', { style: 'flex:1; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
     folderSel.appendChild(el('option', { value: '' }, '— Don\'t save —'));
     // Only show writing folders (skip legacy folders like Reading).
-    const writingFolders = folders.filter(function(f){ return f && (f.classId || /^Writing/i.test(f.name || '')); });
+    // Only WRITING folders: name must start with "Writing" (created via the class picker).
+    const writingFolders = folders.filter(function(f){ return f && /^Writing/i.test(String(f.name || '').trim()); });
+    writingFolders.forEach(function(f){ folderSel.appendChild(el('option', { value: f.id }, '📁 ' + f.name)); });
     writingFolders.forEach(function(f){ folderSel.appendChild(el('option', { value: f.id }, '📁 ' + f.name)); });
     const newFolderBtn = el('button', { style: 'padding:8px 14px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, '+ New folder');
     newFolderBtn.onclick = async function () {
