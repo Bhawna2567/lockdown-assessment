@@ -6749,21 +6749,30 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
   }
 
   function slimCard(row) {
-    if (row.dataset.ccSlim === '1') return;
+    if (row.dataset.ccSlim === '2') return;
     const btns = Array.from(row.querySelectorAll('button, a'));
     if (!btns.length) return;
-    const hasDelete  = btns.some(b => (b.textContent || '').trim() === 'Delete');
-    const hasResults = btns.some(b => (b.textContent || '').trim() === 'Results');
+    // Strip leading emojis/symbols/whitespace so "📄 PDF" matches "PDF".
+    function label(b) {
+      return String(b.textContent || '').replace(/^[^A-Za-z]+/, '').trim();
+    }
+    const hasDelete  = btns.some(b => /^Delete/i.test(label(b)));
+    const hasResults = btns.some(b => /^Results/i.test(label(b)));
     if (!hasDelete || !hasResults) return;
 
     const secondary = [];
     for (const b of btns) {
-      const label = (b.textContent || '').trim();
+      const l = label(b);
       if (b.classList.contains('cc-marked-pdfs-btn')) continue;
-      if (PRIMARY.has(label)) continue;
-      if (SECONDARY_ORDER.includes(label)) secondary.push(b);
+      // Match PRIMARY by prefix (allows for trailing icons/counts).
+      let isPrimary = false;
+      for (const p of PRIMARY) { if (l.toLowerCase().startsWith(p.toLowerCase())) { isPrimary = true; break; } }
+      if (isPrimary) continue;
+      let isSecondary = false;
+      for (const s of SECONDARY_ORDER) { if (l.toLowerCase().startsWith(s.toLowerCase())) { isSecondary = true; break; } }
+      if (isSecondary) secondary.push(b);
     }
-    if (!secondary.length) { row.dataset.ccSlim = '1'; return; }
+    if (!secondary.length) { row.dataset.ccSlim = '2'; return; }
 
     const more = document.createElement('button');
     more.type = 'button';
@@ -6775,7 +6784,15 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     menu.className = 'cc-more-menu';
     menu.style.cssText = 'background:#fff; border:1px solid #E5E7EB; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); padding:6px; display:none;';
 
-    secondary.sort((a, b) => SECONDARY_ORDER.indexOf((a.textContent||'').trim()) - SECONDARY_ORDER.indexOf((b.textContent||'').trim()));
+    secondary.sort(function(a, b){
+      function labelOf(el){ return String(el.textContent||'').replace(/^[^A-Za-z]+/,'').trim(); }
+      function rankOf(el){
+        const t = labelOf(el).toLowerCase();
+        for (let i = 0; i < SECONDARY_ORDER.length; i++) { if (t.startsWith(SECONDARY_ORDER[i].toLowerCase())) return i; }
+        return 99;
+      }
+      return rankOf(a) - rankOf(b);
+    });
     secondary.forEach(b => {
       b.style.display     = 'block';
       b.style.width       = '100%';
@@ -6786,7 +6803,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       b.style.border      = 'none';
       b.style.borderRadius= '4px';
       b.style.cursor      = 'pointer';
-      b.style.color       = (b.textContent||'').trim() === 'Delete' ? '#B91C1C' : '#111827';
+      b.style.color       = /^Delete/i.test(String(b.textContent||'').replace(/^[^A-Za-z]+/,'').trim()) ? '#B91C1C' : '#111827';
       b.addEventListener('mouseenter', function(){ b.style.background = '#F3F4F6'; });
       b.addEventListener('mouseleave', function(){ b.style.background = 'transparent'; });
       // Close menu after they click any item.
@@ -6809,7 +6826,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       openedAt = Date.now();
     };
     row.appendChild(more);
-    row.dataset.ccSlim = '1';
+    row.dataset.ccSlim = '2';
   }
 
   // Close on outside click, but not the click that just opened.
@@ -6827,7 +6844,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
   function scan() {
     const candidates = new Set();
     document.querySelectorAll('button, a').forEach(function (btn) {
-      if ((btn.textContent || '').trim() !== 'Delete') return;
+      if (!/^Delete/i.test(String(btn.textContent || '').replace(/^[^A-Za-z]+/,'').trim())) return;
       const parent = btn.parentElement;
       if (parent) candidates.add(parent);
     });
