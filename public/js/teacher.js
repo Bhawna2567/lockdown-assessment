@@ -7152,3 +7152,20 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Old floating buttons: permanent removal ──────────────────────────
+(function () {
+  function killOld() {
+    ['cc-ai-mark-btn', 'cc-folders-btn'].forEach(function (id) {
+      const b = document.getElementById(id);
+      if (b) b.remove();
+    });
+  }
+  killOld();
+  setInterval(killOld, 300);
+  if (window.MutationObserver) {
+    new MutationObserver(killOld).observe(document.body, { childList: true, subtree: true });
+  }
+})();
+// ────────────────────────────────────────────────────────────────────
+
