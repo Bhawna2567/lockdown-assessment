@@ -6955,7 +6955,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     if (document.getElementById('cc-fab')) return;
     // Remove the old individual floating buttons if they exist.
     const oldBtns = ['cc-ai-mark-btn', 'cc-folders-btn'];
-    oldBtns.forEach(id => { const b = document.getElementById(id); if (b) b.remove(); });
+    oldBtns.forEach(id => { const b = document.getElementById(id); if (b) { b.style.display='none'; b.setAttribute('aria-hidden','true'); } });
 
     const fabWrap = document.createElement('div');
     fabWrap.id = 'cc-fab';
@@ -6973,8 +6973,8 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       return btn;
     }
     // Wire to existing functions.
-    menu.appendChild(menuItem('🖊️ Mark writing with AI', '#059669', function(){ if (typeof openMarkModal === 'function') openMarkModal(); else document.querySelector('#cc-ai-mark-btn')?.click(); }));
-    menu.appendChild(menuItem('📁 My marking folders',    '#4338CA', function(){ if (typeof openFolderBrowser === 'function') openFolderBrowser(); else document.querySelector('#cc-folders-btn')?.click(); }));
+    menu.appendChild(menuItem('🖊️ Mark writing with AI', '#059669', function(){ const oldMark = document.getElementById('cc-ai-mark-btn'); if (oldMark && oldMark.onclick) oldMark.onclick(); else if (oldMark) oldMark.click(); else if (typeof openMarkModal === 'function') openMarkModal(); else window.ccToast && window.ccToast('AI Mark Writing not available', { type:'error' }); }));
+    menu.appendChild(menuItem('📁 My marking folders',    '#4338CA', function(){ const oldFold = document.getElementById('cc-folders-btn'); if (oldFold && oldFold.onclick) oldFold.onclick(); else if (oldFold) oldFold.click(); else if (typeof openFolderBrowser === 'function') openFolderBrowser(); else window.ccToast && window.ccToast('My Folders not available', { type:'error' }); }));
 
     const fab = document.createElement('button');
     fab.type = 'button';
@@ -7158,7 +7158,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
   function killOld() {
     ['cc-ai-mark-btn', 'cc-folders-btn'].forEach(function (id) {
       const b = document.getElementById(id);
-      if (b) b.remove();
+      if (b && b.style.display !== 'none') { b.style.display = 'none'; b.setAttribute('aria-hidden', 'true'); }
     });
   }
   killOld();
