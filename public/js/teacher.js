@@ -6660,8 +6660,10 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     modal.appendChild(el('h2', { style: 'margin:0 0 12px;' }, '📁 My marking folders'));
 
     const list = el('div', { style: 'display:flex; flex-direction:column; gap:8px;' });
-    if (!folders.length) list.appendChild(el('div', { style: 'color:#6B7280;' }, 'No folders yet. Create one from the "Mark writing" modal.'));
-    for (const f of folders) {
+    // Only show writing folders in the browser.
+    const writingOnly = folders.filter(function(x){ return x && /^Writing/i.test(String(x.name || '').trim()); });
+    if (!writingOnly.length) list.appendChild(el('div', { style: 'color:#6B7280;' }, 'No writing folders yet. Create one from the "🖊️ AI Mark Writing" modal → + New folder.'));
+    for (const f of writingOnly) {
       const card = el('div', { style: 'padding:12px; border:1px solid #E5E7EB; border-radius:8px;' });
       const actions = el('div', { style: 'display:flex; gap:6px;' });
       const openBtn = el('button', { style: 'padding:4px 10px; background:#EEF2FF; color:#4338CA; border:none; border-radius:4px; cursor:pointer; font-size:12px;' }, 'Open');
