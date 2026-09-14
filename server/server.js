@@ -1237,6 +1237,9 @@ app.post('/api/assessments/:id/duplicate', requireTeacher, (req, res) => {
 });
 
 app.put('/api/assessments/:id', requireTeacher, (req, res) => {
+  // Ensure `skill` is always defined to avoid ReferenceError from older patches.
+  const skill = req.body && req.body.skill;
+
   const all = readAll('assessments.json');
   const idx = all.findIndex((a) => a.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
