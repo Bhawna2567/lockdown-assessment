@@ -6734,14 +6734,26 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
   function positionMenu(menu, anchor) {
     const r = anchor.getBoundingClientRect();
     menu.style.position = 'fixed';
-    menu.style.top = (r.bottom + 6) + 'px';
-    // Prefer right-align with the button.
+    // Show menu to get its height, then decide up or down.
+    menu.style.visibility = 'hidden';
+    menu.style.display = 'block';
+    const menuHeight = menu.offsetHeight || 240;
     const menuWidth = 200;
+    const vh = window.innerHeight;
+    const spaceBelow = vh - r.bottom;
+    const spaceAbove = r.top;
+    // If there's not enough room below AND more room above, flip up.
+    if (spaceBelow < menuHeight + 20 && spaceAbove > spaceBelow) {
+      menu.style.top = Math.max(8, r.top - menuHeight - 6) + 'px';
+    } else {
+      menu.style.top = (r.bottom + 6) + 'px';
+    }
     let left = r.right - menuWidth;
     if (left < 8) left = 8;
     menu.style.left = left + 'px';
     menu.style.minWidth = menuWidth + 'px';
     menu.style.zIndex = '999999';
+    menu.style.visibility = 'visible';
   }
 
   function closeAny() {
