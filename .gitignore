@@ -33,3 +33,8 @@ config.json
 # Persistent app data — never commit. Wiping this on deploy
 # overwrites real teacher + student data on the server.
 data/*.json
+*.dmg
+*.exe
+*.pdf#
+*.tmp
+*.restored
