@@ -1291,7 +1291,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     audioFile: all[idx].audioFile || null,
-    skill: skill === undefined ? (all[idx].skill || null) : (skill ? String(skill).slice(0, 40) : null),
+    skill: req.body.skill === undefined ? (all[idx].skill || null) : (req.body.skill ? String(req.body.skill).slice(0, 40) : null),
     audioScript: audioScript === undefined
       ? (all[idx].audioScript || '')
       : (audioScript ? String(audioScript).slice(0, 12000) : ''),
