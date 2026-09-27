@@ -7546,3 +7546,130 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Class Averages modal + FAB entry ─────────────────────────────────
+(function () {
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const k of Object.keys(attrs)) {
+      if (k === 'style') n.style.cssText = attrs[k];
+      else if (k === 'onclick') n.onclick = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    for (const kid of kids) if (kid !== null && kid !== undefined) n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+    return n;
+  }
+
+  async function fetchJson(url, init){
+    const r = await fetch(url, Object.assign({ credentials: 'include' }, init || {}));
+    const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    return j;
+  }
+
+  window.openClassAveragesModal = async function () {
+    let classes = [];
+    try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch(e){}
+    const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
+    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:720px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
+    modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, '📊 Class Averages'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Pick a class, tick the assessments to include, and download an Excel with each student\'s score per assessment and their average (out of 100).'));
+
+    const clsLbl = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Class');
+    const clsSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    clsSel.appendChild(el('option', { value: '' }, '— Choose a class —'));
+    classes.forEach(function(cls){ clsSel.appendChild(el('option', { value: cls.id }, cls.name)); });
+
+    const listLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Assessments');
+    const listWrap = el('div', { style: 'max-height:320px; overflow:auto; border:1px solid #E5E7EB; border-radius:8px; padding:8px; background:#F9FAFB;' });
+    listWrap.textContent = 'Pick a class first.';
+    const listAll = el('label', { style: 'display:block; margin-top:8px; font-size:13px; color:#374151;' });
+    const listAllCb = el('input', { type: 'checkbox' });
+    listAll.appendChild(listAllCb); listAll.appendChild(document.createTextNode(' Select all'));
+
+    const status = el('div', { style: 'margin-top:16px; padding:12px; background:#F3F4F6; border-radius:6px; color:#374151; font-size:13px; display:none;' });
+
+    const genBtn = el('button', { style: 'margin-top:20px; padding:10px 20px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, '📥 Generate Excel');
+    const closeBtn = el('button', { style: 'margin-top:20px; margin-left:8px; padding:10px 20px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
+    closeBtn.onclick = function(){ overlay.remove(); };
+
+    let currentAssessments = [];
+    clsSel.onchange = async function () {
+      if (!clsSel.value) { listWrap.textContent = 'Pick a class first.'; currentAssessments = []; return; }
+      status.style.display = 'block'; status.textContent = 'Loading assessments…';
+      try {
+        currentAssessments = await fetchJson('/api/teacher/classes/' + encodeURIComponent(clsSel.value) + '/assessments');
+        listWrap.innerHTML = '';
+        if (!currentAssessments.length) { listWrap.textContent = 'No assessments found for this class.'; status.style.display = 'none'; return; }
+        currentAssessments.forEach(function (a) {
+          const row = el('label', { style: 'display:flex; align-items:center; gap:8px; padding:6px; border-radius:4px; cursor:pointer;' });
+          const cb = el('input', { type: 'checkbox', 'data-aid': a.id });
+          cb.style.cursor = 'pointer';
+          const title = el('span', {}, a.title + (a.published ? ' ✅' : ''));
+          row.appendChild(cb); row.appendChild(title);
+          listWrap.appendChild(row);
+        });
+        status.style.display = 'none';
+      } catch (e) {
+        status.textContent = 'Failed: ' + e.message;
+      }
+    };
+    listAllCb.onchange = function () {
+      listWrap.querySelectorAll('input[type=checkbox]').forEach(function(cb){ cb.checked = listAllCb.checked; });
+    };
+
+    genBtn.onclick = async function () {
+      const ids = Array.from(listWrap.querySelectorAll('input[type=checkbox]:checked')).map(cb => cb.getAttribute('data-aid'));
+      if (!clsSel.value) { alert('Pick a class first.'); return; }
+      if (!ids.length) { alert('Pick at least one assessment.'); return; }
+      genBtn.disabled = true; genBtn.textContent = 'Building Excel…';
+      status.style.display = 'block'; status.textContent = 'Computing averages and building spreadsheet…';
+      try {
+        const r = await fetch('/api/teacher/class-averages-excel', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ classId: clsSel.value, assessmentIds: ids }),
+        });
+        if (!r.ok) { let msg = 'Failed'; try { const j = await r.json(); msg = j.error || msg; } catch(_){} throw new Error(msg); }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        const cd = r.headers.get('Content-Disposition') || '';
+        const m = cd.match(/filename="?([^";]+)"?/i);
+        a.download = m ? m[1] : 'class_averages.xlsx';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+        status.textContent = '✓ Downloaded. Check your Downloads folder.';
+      } catch (e) {
+        status.textContent = 'Failed: ' + (e.message || e);
+      } finally {
+        genBtn.disabled = false; genBtn.textContent = '📥 Generate Excel';
+      }
+    };
+
+    modal.appendChild(clsLbl); modal.appendChild(clsSel);
+    modal.appendChild(listLbl); modal.appendChild(listWrap); modal.appendChild(listAll);
+    modal.appendChild(genBtn); modal.appendChild(closeBtn);
+    modal.appendChild(status);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  };
+
+  // Add to FAB menu.
+  function injectFabItem() {
+    const fabWrap = document.getElementById('cc-fab');
+    if (!fabWrap) return;
+    const menu = fabWrap.querySelector('div');
+    if (!menu || menu.querySelector('.cc-avg-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'cc-avg-btn';
+    btn.type = 'button';
+    btn.textContent = '📊 Class Averages';
+    btn.style.cssText = 'padding:12px 18px; background:#0369A1; color:#fff; border:none; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,0.15); cursor:pointer; font-weight:600; font-size:14px; white-space:nowrap;';
+    btn.onclick = function () { menu.style.display = 'none'; window.openClassAveragesModal(); };
+    menu.insertBefore(btn, menu.firstChild);
+  }
+  setInterval(injectFabItem, 500);
+  document.addEventListener('DOMContentLoaded', injectFabItem);
+})();
+// ─────────────────────────────────────────────────────────────────────
+

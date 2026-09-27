@@ -6355,6 +6355,157 @@ app.get('/api/teacher/my-classes-brief', (req, res) => {
 console.log('[ai-mark-writing v2] endpoints ready.');
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Class Averages Excel export ──────────────────────────────────────
+const _ccExcelJS = require('exceljs');
+
+// List published assessments for a class (teacher's own).
+app.get('/api/teacher/classes/:cid/assessments', (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const uid = req.session.user.id;
+    const all = _ccMpReadJson('assessments.json', []);
+    const list = all
+      .filter(a => a && a.classId === req.params.cid && (!a.teacherId || a.teacherId === uid))
+      .map(a => ({
+        id: a.id,
+        title: a.title || '(untitled)',
+        subject: a.subject || '',
+        published: a.published || a.status === 'published',
+        createdAt: a.createdAt || null,
+      }))
+      .sort((a, b) => String(a.title).localeCompare(String(b.title)));
+    res.json(list);
+  } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
+});
+
+// Build the Excel and stream it back.
+app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const { classId, assessmentIds } = req.body || {};
+    if (!classId) return res.status(400).json({ error: 'classId required' });
+    if (!Array.isArray(assessmentIds) || !assessmentIds.length) return res.status(400).json({ error: 'assessmentIds required' });
+
+    const allAssessments = _ccMpReadJson('assessments.json', []);
+    const assessments = assessmentIds
+      .map(id => allAssessments.find(a => String(a.id) === String(id)))
+      .filter(Boolean);
+    if (!assessments.length) return res.status(404).json({ error: 'No matching assessments' });
+
+    // Load class + its students.
+    const classes = _ccMpReadJson('classes.json', []);
+    const cls = classes.find(c => String(c.id) === String(classId));
+    const className = (cls && (cls.name || cls.title)) || 'Class';
+
+    // Students may live in data/students.json or embedded on the class.
+    let students = [];
+    if (Array.isArray(cls && cls.students) && cls.students.length) {
+      students = cls.students;
+    } else {
+      const allStudents = _ccMpReadJson('students.json', []);
+      students = Array.isArray(allStudents)
+        ? allStudents.filter(s => s && (s.classId === classId || (Array.isArray(s.classIds) && s.classIds.includes(classId))))
+        : [];
+    }
+    if (!students.length) return res.status(404).json({ error: 'No students found for this class' });
+
+    // Helper: total possible points for an assessment.
+    function assessmentMax(a) {
+      const qs = _ccMpQuestions(a);
+      return qs.reduce((n, q) => n + _ccMpQuestionPoints(q), 0);
+    }
+    // Helper: a student's percentage for an assessment.
+    function studentPct(a, student) {
+      const subs = _ccMpLoadSubmissions(a.id);
+      const sid = String(student.id || student.email || student.studentId || '');
+      const sub = subs.find(s => {
+        const ids = [s.studentId, s.userId, s.id, s.email, s.studentEmail].filter(Boolean).map(String);
+        return ids.includes(sid) || (student.name && s.studentName && String(s.studentName).toLowerCase() === String(student.name).toLowerCase());
+      });
+      if (!sub) return null;
+      let total = Number(sub.totalScore || sub.score || 0);
+      let max   = Number(sub.maxScore  || sub.outOf  || assessmentMax(a));
+      // If total came back 0 but per-question correctness exists, compute from that.
+      if (!total) {
+        const qs = _ccMpQuestions(a);
+        total = qs.reduce((n, q, i) => n + (Number(_ccMpPointsEarned(sub, i, q)) || 0), 0);
+      }
+      if (!max) return null;
+      return Math.round((total / max) * 1000) / 10; // one decimal place
+    }
+
+    // Build workbook.
+    const wb = new _ccExcelJS.Workbook();
+    wb.creator = 'ClassCurio';
+    wb.created = new Date();
+    const ws = wb.addWorksheet('Averages', {
+      views: [{ state: 'frozen', ySplit: 1 }],
+    });
+
+    // Columns: Student, then one per assessment, then Average, Submitted.
+    const cols = [{ header: 'Student', key: 'student', width: 32 }];
+    assessments.forEach((a, i) => {
+      cols.push({ header: (a.title || 'Assessment ' + (i + 1)) + ' (%)', key: 'a' + i, width: 26 });
+    });
+    cols.push({ header: 'Average (%)', key: 'avg', width: 14 });
+    cols.push({ header: 'Submitted', key: 'sub', width: 12 });
+    ws.columns = cols;
+
+    // Header style.
+    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } };
+    ws.getRow(1).height = 24;
+    ws.getRow(1).alignment = { vertical: 'middle' };
+
+    students.forEach(student => {
+      const row = { student: student.name || student.fullName || student.email || 'Student' };
+      const pcts = [];
+      let submittedCount = 0;
+      assessments.forEach((a, i) => {
+        const p = studentPct(a, student);
+        if (p !== null) { row['a' + i] = p; pcts.push(p); submittedCount++; }
+        else { row['a' + i] = 'DNS'; }
+      });
+      // Average across ALL included assessments (DNS counted as 0).
+      const avg = assessments.length ? Math.round((pcts.reduce((n, x) => n + x, 0) / assessments.length) * 10) / 10 : 0;
+      row.avg = avg;
+      row.sub = submittedCount + ' / ' + assessments.length;
+      ws.addRow(row);
+    });
+
+    // Highlight average column.
+    const avgCol = ws.getColumn('avg');
+    avgCol.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
+      if (rowNumber === 1) return;
+      const v = Number(cell.value) || 0;
+      const fill = v >= 80 ? 'FFDCFCE7' : v >= 60 ? 'FFFEF3C7' : 'FFFEE2E2';
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
+      cell.font = { bold: true };
+    });
+
+    // Add a summary row at bottom.
+    const bottomRow = ws.rowCount + 2;
+    ws.getCell('A' + bottomRow).value = 'Class: ' + className;
+    ws.getCell('A' + bottomRow).font = { italic: true, color: { argb: 'FF6B7280' } };
+    ws.getCell('A' + (bottomRow + 1)).value = 'Assessments included: ' + assessments.length;
+    ws.getCell('A' + (bottomRow + 1)).font = { italic: true, color: { argb: 'FF6B7280' } };
+    ws.getCell('A' + (bottomRow + 2)).value = 'Generated: ' + new Date().toLocaleString();
+    ws.getCell('A' + (bottomRow + 2)).font = { italic: true, color: { argb: 'FF6B7280' } };
+
+    const fname = _ccMpSlug(className) + '_averages_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
+    await wb.xlsx.write(res);
+    res.end();
+  } catch(e){
+    console.error('[class-averages] fatal', e);
+    res.status(500).json({ error: String(e.message||e) });
+  }
+});
+console.log('[class-averages] endpoints ready.');
+// ─────────────────────────────────────────────────────────────────────
+
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
 });
