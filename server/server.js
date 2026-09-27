@@ -6398,17 +6398,61 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
     const cls = classes.find(c => String(c.id) === String(classId));
     const className = (cls && (cls.name || cls.title)) || 'Class';
 
-    // Students may live in data/students.json or embedded on the class.
+    // Students may live in many places. Probe each in turn.
     let students = [];
-    if (Array.isArray(cls && cls.students) && cls.students.length) {
-      students = cls.students;
-    } else {
-      const allStudents = _ccMpReadJson('students.json', []);
-      students = Array.isArray(allStudents)
-        ? allStudents.filter(s => s && (s.classId === classId || (Array.isArray(s.classIds) && s.classIds.includes(classId))))
-        : [];
+    function matchesClass(s) {
+      if (!s) return false;
+      if (s.classId === classId) return true;
+      if (Array.isArray(s.classIds) && s.classIds.includes(classId)) return true;
+      if (Array.isArray(s.classes) && s.classes.some(x => (x && x.id === classId) || x === classId)) return true;
+      return false;
     }
-    if (!students.length) return res.status(404).json({ error: 'No students found for this class' });
+    // 1. Embedded on the class object.
+    if (Array.isArray(cls && cls.students) && cls.students.length) {
+      students = cls.students.slice();
+    }
+    // 2. Class may have a roster array of student IDs.
+    if (!students.length && Array.isArray(cls && cls.roster) && cls.roster.length) {
+      const allUsers = _ccMpReadJson('users.json', []);
+      const rosterIds = cls.roster.map(x => (x && x.id) || x).map(String);
+      students = allUsers.filter(u => u && rosterIds.includes(String(u.id)));
+    }
+    // 3. students.json filtered by classId.
+    if (!students.length) {
+      const allStudents = _ccMpReadJson('students.json', []);
+      if (Array.isArray(allStudents)) students = allStudents.filter(matchesClass);
+    }
+    // 4. users.json filtered by role='student' + classId.
+    if (!students.length) {
+      const allUsers = _ccMpReadJson('users.json', []);
+      if (Array.isArray(allUsers)) students = allUsers.filter(u => u && (u.role === 'student' || !u.role) && matchesClass(u));
+    }
+    // 5. accounts.json (another common name).
+    if (!students.length) {
+      const allAcc = _ccMpReadJson('accounts.json', []);
+      if (Array.isArray(allAcc)) students = allAcc.filter(u => u && (u.role === 'student' || !u.role) && matchesClass(u));
+    }
+    // 6. Fallback: derive from actual submissions of the selected assessments.
+    if (!students.length) {
+      const seen = new Map();
+      assessments.forEach(a => {
+        const subs = _ccMpLoadSubmissions(a.id);
+        subs.forEach(s => {
+          const id = String(s.studentId || s.userId || s.id || s.email || s.studentEmail || _ccMpStudentName(s));
+          if (!seen.has(id)) {
+            seen.set(id, {
+              id,
+              name: _ccMpStudentName(s),
+              email: s.email || s.studentEmail || '',
+              classId: classId,
+            });
+          }
+        });
+      });
+      students = Array.from(seen.values());
+    }
+    console.log('[class-averages] class=' + classId + ' students=' + students.length + ' assessments=' + assessments.length);
+    if (!students.length) return res.status(404).json({ error: 'No students found for this class in any data file. Add students to the class or have them take an assessment first.' });
 
     // Helper: total possible points for an assessment.
     function assessmentMax(a) {
