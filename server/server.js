@@ -6583,7 +6583,7 @@ const _prT = {
     intro2: ' from week to week. I am writing to share what we have observed and, more importantly, what we will do about it and how you can help at home.',
     results:'HER RESULTS THIS TERM',
     date:'Date', asmt:'Assessment', score:'Score', pct:'Percentage',
-    overall:'Overall', avgLine:(rmin,rmax)=>`Average across the ${'ass'} · Range: ${rmin}% – ${rmax}%`,
+    overall:'Overall', avgLine:(rmin,rmax)=>`Average across the assessments · Range: ${rmin}% – ${rmax}%`,
     interp_h:'What this pattern tells us',
     interp:(name)=>`${name} performs well on some assessments but noticeably less well on others. This inconsistency, rather than her average, is what most concerns us: a student whose scores swing from week to week is not lacking ability, but is missing steady daily practice in her weaker areas.`,
     school_h:'WHAT THE SCHOOL WILL DO',
@@ -6821,7 +6821,9 @@ function _prBuildReportDoc(lang, student, assessments, records) {
 }
 
 // Detect inconsistent students.
-function _prDetectInconsistent(students, assessments, threshold) {
+function _prDetectInconsistent(students, assessments, threshold, minConsecutive) {
+  const cutoff = Number(threshold) || 60;
+  const need = Math.max(2, Number(minConsecutive) || 2);
   const flagged = [];
   students.forEach(student => {
     const records = [];
@@ -6838,18 +6840,24 @@ function _prDetectInconsistent(students, assessments, threshold) {
       let sc  = Number(sub.totalScore || sub.score || 0);
       if (!sc) sc = qs.reduce((n, q, i) => n + (Number(_ccMpPointsEarned(sub, i, q)) || 0), 0);
       const pct = max ? Math.round((sc / max) * 100) : 0;
+      const rawDate = sub.submittedAt || sub.endedAt || sub.createdAt || '';
+      const dateOnly = rawDate ? String(rawDate).slice(0, 10) : '';
       records.push({
-        date: sub.submittedAt || sub.endedAt || sub.createdAt || '',
+        date: dateOnly, dateSort: rawDate,
         title: a.title || '',
         score: sc, max, scoreStr: sc + ' / ' + max, pct,
       });
     });
-    if (records.length < 2) return;
-    const pcts = records.map(r => r.pct);
-    const spread = Math.max(...pcts) - Math.min(...pcts);
-    const anyLow = pcts.some(p => p < 30);
-    if (records.length >= 3 && spread >= threshold) flagged.push({ student, records, reason: 'spread', spread });
-    else if (anyLow) flagged.push({ student, records, reason: 'low', spread });
+    if (records.length < need) return;
+    // Sort chronologically.
+    records.sort((a, b) => String(a.dateSort).localeCompare(String(b.dateSort)));
+    // Scan for a run of >= `need` consecutive scores strictly below the cutoff.
+    let run = 0, maxRun = 0;
+    for (const r of records) {
+      if (r.pct < cutoff) { run++; if (run > maxRun) maxRun = run; }
+      else run = 0;
+    }
+    if (maxRun >= need) flagged.push({ student, records, reason: 'consecutive_low', consecutive: maxRun });
   });
   return flagged;
 }
@@ -6898,7 +6906,7 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
     students.forEach(s => { s.className = className; });
 
     // Detect inconsistent.
-    const flagged = _prDetectInconsistent(students, assessments, Number(threshold) || 30);
+    const flagged = _prDetectInconsistent(students, assessments, Number(threshold) || 60, Number(req.body.minConsecutive) || 2);
     if (!flagged.length) return res.status(404).json({ error: 'No students met the inconsistency threshold. Try lowering the threshold.' });
 
     // Zip the reports.

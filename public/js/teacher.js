@@ -7712,11 +7712,13 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       langSel.appendChild(el('option', { value: o[0] }, o[1]));
     });
 
-    const thrLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Inconsistency threshold: spread ≥ ');
-    const thrVal = el('span', { id: 'cc-pr-thr-val', style: 'color:#4338CA;' }, '30%');
+    const thrLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Poor performance if score < ');
+    const thrVal = el('span', { id: 'cc-pr-thr-val', style: 'color:#4338CA;' }, '60%');
     thrLbl.appendChild(thrVal);
-    const thrInp = el('input', { type: 'range', min: '10', max: '60', value: '30', style: 'width:100%;' });
+    const thrInp = el('input', { type: 'range', min: '30', max: '80', value: '60', style: 'width:100%;' });
     thrInp.oninput = function(){ thrVal.textContent = thrInp.value + '%'; };
+    const thrHelp = el('div', { style: 'font-size:12px; color:#6B7280; margin-top:4px;' }, 'Flags a student only if they have 2 or more consecutive assessments below this threshold.');
+    modal.__thrHelp = thrHelp;
 
     const saveLbl = el('label', { style: 'display:block; margin:16px 0; font-size:14px;' });
     const saveCb = el('input', { type: 'checkbox', checked: 'checked' });
@@ -7740,6 +7742,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
             classId: clsSel.value,
             language: langSel.value,
             threshold: Number(thrInp.value),
+            minConsecutive: 2,
             saveToFolder: saveCb.checked,
           }),
         });
@@ -7763,7 +7766,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 
     modal.appendChild(clsLbl); modal.appendChild(clsSel);
     modal.appendChild(langLbl); modal.appendChild(langSel);
-    modal.appendChild(thrLbl); modal.appendChild(thrInp);
+    modal.appendChild(thrLbl); modal.appendChild(thrInp); modal.appendChild(modal.__thrHelp);
     modal.appendChild(saveLbl);
     modal.appendChild(genBtn); modal.appendChild(closeBtn);
     modal.appendChild(status);
