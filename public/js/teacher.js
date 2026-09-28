@@ -7673,3 +7673,118 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Parent Reports modal + FAB entry ─────────────────────────────────
+(function () {
+  function el(tag, attrs, ...kids) {
+    const n = document.createElement(tag);
+    if (attrs) for (const k of Object.keys(attrs)) {
+      if (k === 'style') n.style.cssText = attrs[k];
+      else if (k === 'onclick') n.onclick = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    for (const kid of kids) if (kid !== null && kid !== undefined) n.appendChild(typeof kid === 'string' ? document.createTextNode(kid) : kid);
+    return n;
+  }
+  async function fetchJson(url, init){
+    const r = await fetch(url, Object.assign({ credentials: 'include' }, init || {}));
+    const j = await r.json().catch(function(){ return { error: 'Bad response' }; });
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    return j;
+  }
+
+  window.openParentReportsModal = async function () {
+    let classes = [];
+    try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch(e){}
+    const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
+    const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:640px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
+    modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, '📄 Parent Reports'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Auto-detect students whose scores are inconsistent across the assessments in a class and generate one .docx per student for the parents. You can edit each before printing.'));
+
+    const clsLbl = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Class');
+    const clsSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    clsSel.appendChild(el('option', { value: '' }, '— Choose a class —'));
+    classes.forEach(function(cls){ clsSel.appendChild(el('option', { value: cls.id }, cls.name)); });
+
+    const langLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Language');
+    const langSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    [['both','English + Arabic (both files)'], ['en','English only'], ['ar','Arabic only']].forEach(function(o){
+      langSel.appendChild(el('option', { value: o[0] }, o[1]));
+    });
+
+    const thrLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Inconsistency threshold: spread ≥ ');
+    const thrVal = el('span', { id: 'cc-pr-thr-val', style: 'color:#4338CA;' }, '30%');
+    thrLbl.appendChild(thrVal);
+    const thrInp = el('input', { type: 'range', min: '10', max: '60', value: '30', style: 'width:100%;' });
+    thrInp.oninput = function(){ thrVal.textContent = thrInp.value + '%'; };
+
+    const saveLbl = el('label', { style: 'display:block; margin:16px 0; font-size:14px;' });
+    const saveCb = el('input', { type: 'checkbox', checked: 'checked' });
+    saveLbl.appendChild(saveCb);
+    saveLbl.appendChild(document.createTextNode(' Save the ZIP into a "Parent Reports — {Class}" folder for later access'));
+
+    const status = el('div', { style: 'margin-top:16px; padding:12px; background:#F3F4F6; border-radius:6px; color:#374151; font-size:13px; display:none;' });
+
+    const genBtn = el('button', { style: 'margin-top:16px; padding:10px 20px; background:#4338CA; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:600;' }, '📥 Generate reports');
+    const closeBtn = el('button', { style: 'margin-top:16px; margin-left:8px; padding:10px 20px; background:#F3F4F6; color:#374151; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;' }, 'Close');
+    closeBtn.onclick = function(){ overlay.remove(); };
+
+    genBtn.onclick = async function () {
+      if (!clsSel.value) { alert('Pick a class first.'); return; }
+      genBtn.disabled = true; genBtn.textContent = 'Generating…';
+      status.style.display = 'block'; status.textContent = 'Analysing scores and building reports (may take up to a minute)…';
+      try {
+        const r = await fetch('/api/teacher/parent-reports/generate', {
+          method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({
+            classId: clsSel.value,
+            language: langSel.value,
+            threshold: Number(thrInp.value),
+            saveToFolder: saveCb.checked,
+          }),
+        });
+        if (!r.ok) { let msg = 'Failed'; try { const j = await r.json(); msg = j.error || msg; } catch(_){} throw new Error(msg); }
+        const flagged = r.headers.get('X-CC-Students-Flagged') || '?';
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        const cd = r.headers.get('Content-Disposition') || '';
+        const m = cd.match(/filename="?([^";]+)"?/i);
+        a.download = m ? m[1] : 'parent_reports.zip';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+        status.textContent = '✓ Downloaded. Flagged students: ' + flagged + '. ' + (saveCb.checked ? 'Also saved to your Parent Reports folder.' : '');
+      } catch (e) {
+        status.textContent = 'Failed: ' + (e.message || e);
+      } finally {
+        genBtn.disabled = false; genBtn.textContent = '📥 Generate reports';
+      }
+    };
+
+    modal.appendChild(clsLbl); modal.appendChild(clsSel);
+    modal.appendChild(langLbl); modal.appendChild(langSel);
+    modal.appendChild(thrLbl); modal.appendChild(thrInp);
+    modal.appendChild(saveLbl);
+    modal.appendChild(genBtn); modal.appendChild(closeBtn);
+    modal.appendChild(status);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  };
+
+  function injectFabItem() {
+    const fabWrap = document.getElementById('cc-fab');
+    if (!fabWrap) return;
+    const menu = fabWrap.querySelector('div');
+    if (!menu || menu.querySelector('.cc-pr-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'cc-pr-btn'; btn.type = 'button';
+    btn.textContent = '📄 Parent Reports';
+    btn.style.cssText = 'padding:12px 18px; background:#B45309; color:#fff; border:none; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,0.15); cursor:pointer; font-weight:600; font-size:14px; white-space:nowrap;';
+    btn.onclick = function(){ menu.style.display = 'none'; window.openParentReportsModal(); };
+    menu.insertBefore(btn, menu.firstChild);
+  }
+  setInterval(injectFabItem, 500);
+  document.addEventListener('DOMContentLoaded', injectFabItem);
+})();
+// ─────────────────────────────────────────────────────────────────────
+

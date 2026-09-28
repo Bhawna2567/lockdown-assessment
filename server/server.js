@@ -6550,6 +6550,414 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
 console.log('[class-averages] endpoints ready.');
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Parent Reports (inconsistent students) ──────────────────────────
+const {
+  Document: _prDocument, Packer: _prPacker, Paragraph: _prParagraph,
+  TextRun: _prTextRun, Table: _prTable, TableRow: _prTableRow, TableCell: _prTableCell,
+  AlignmentType: _prAlign, WidthType: _prWidth, BorderStyle: _prBorderStyle,
+  ImageRun: _prImageRun, ShadingType: _prShadingType, HeightRule: _prHeightRule,
+} = require('docx');
+
+// Palette
+const _PR = {
+  CREAM:'F7F1E4', BURG:'C01C35', GOLD:'B38A39', DARK:'16110F', MUTED:'6B6255', GREY:'8A8A8A',
+};
+
+// Load logo once at boot.
+let _prLogoBuf = null;
+try {
+  _prLogoBuf = _ccFsV.readFileSync(_ccPathV.join(__dirname, '..', 'public', 'img', 'ministry_logo.png'));
+} catch(e){ console.warn('[parent-reports] logo not found in public/img/ministry_logo.png — reports will render without it.'); }
+
+// English + Arabic labels.
+const _prT = {
+  en: {
+    school: 'AL NOAIMIYAH GIRLS SCHOOL — CYCLE 1, 2 & 3',
+    dept:   'Department of English · Academic Year 2026 – 2027',
+    title:  'INCONSISTENT PERFORMANCE — REPORT TO PARENTS',
+    student:'Student', klass:'Class', subject:'Subject', term:'Term',
+    dear:   'Dear Parent / Guardian of ',
+    intro:  (name, count) => `I hope this letter finds you well. This term ${name} has completed ${count} English assessments in our online platform. Whilst her overall average places her at a satisfactory level, her results have been `,
+    inc:    'inconsistent',
+    intro2: ' from week to week. I am writing to share what we have observed and, more importantly, what we will do about it and how you can help at home.',
+    results:'HER RESULTS THIS TERM',
+    date:'Date', asmt:'Assessment', score:'Score', pct:'Percentage',
+    overall:'Overall', avgLine:(rmin,rmax)=>`Average across the ${'ass'} · Range: ${rmin}% – ${rmax}%`,
+    interp_h:'What this pattern tells us',
+    interp:(name)=>`${name} performs well on some assessments but noticeably less well on others. This inconsistency, rather than her average, is what most concerns us: a student whose scores swing from week to week is not lacking ability, but is missing steady daily practice in her weaker areas.`,
+    school_h:'WHAT THE SCHOOL WILL DO',
+    school_bullets:(name)=>[
+      `${name} has been placed in our targeted-support group this term.`,
+      'She will complete a short weekly Monday assessment so her progress can be tracked week by week.',
+      'Her results will be shared with you every Monday so you always know how she is doing.',
+    ],
+    home_h:'HOW YOU CAN HELP AT HOME',
+    home_bullets:(name)=>[
+      `Encourage ${name} to study English for twenty minutes every day — steadier than one long weekend session.`,
+      'Ask her each Monday how her weekly assessment went. Showing interest tells her that this matters.',
+      'Encourage her to write a few sentences in English every day, and to use new vocabulary she has learnt.',
+      'Contact the school any time if something at home is affecting her studies.',
+    ],
+    closing:(name)=>`${name} is capable of consistent, strong performance. With focused support at school and steady encouragement at home, we expect to see her scores level up rather than swing week to week. We look forward to working with you.`,
+    teacher:'Ms. Bhawna Sharma', teacher_role:'Lead Teacher – English',
+    principal:'Ms. Fanda Salem Ahmed Helais Alkaabi', principal_role:'Principal',
+    detach:'please detach and return this slip to the class teacher',
+    slip_h:"PARENT'S RESPONSE",
+    slip:[['Student\'s name',''],['Parent\'s remarks','______________________________________________________________'],['','______________________________________________________________'],['Meet the teacher','☐ Yes     ☐ No'],['Parent name','______________________________________________________________'],['Signature / Date','________________________________  /  _____________']],
+  },
+  ar: {
+    school: 'مدرسة النعيمية للبنات — الحلقات الأولى والثانية والثالثة',
+    dept:   'قسم اللغة الإنجليزية · العام الدراسي 2026 – 2027',
+    title:  'تقرير الأداء غير المنتظم — إلى ولي الأمر',
+    student:'اسم الطالبة', klass:'الصف', subject:'المادة', term:'الفصل الدراسي',
+    dear:   'إلى ولي أمر الطالبة ',
+    intro:  (name, count) => `أتمنى أن تصلكم هذه الرسالة وأنتم بأفضل حال. أدّت ${name} هذا الفصل ${count} اختبارات في مادة اللغة الإنجليزية عبر منصتنا الإلكترونية. ومع أن متوسطها العام يقع في المستوى المقبول، فإن نتائجها كانت `,
+    inc:    'غير منتظمة',
+    intro2: ' من أسبوع إلى آخر. وأكتب إليكم لأشارككم ما لاحظناه، والأهم من ذلك ما سنقوم به من إجراءات، وكيف يمكنكم دعمها في المنزل.',
+    results:'نتائجها هذا الفصل',
+    date:'التاريخ', asmt:'الاختبار', score:'الدرجة', pct:'النسبة',
+    overall:'الإجمالي', avgLine:(rmin,rmax)=>`متوسط الاختبارات · النطاق: ${rmin}% – ${rmax}%`,
+    interp_h:'ما يخبرنا به هذا النمط',
+    interp:(name)=>`تُبلي ${name} بلاءً حسناً في بعض الاختبارات، لكنها تُظهر ضعفاً واضحاً في اختبارات أخرى. وهذا التذبذب هو ما يقلقنا أكثر من متوسطها؛ فالطالبة التي تتذبذب نتائجها من أسبوع إلى آخر ليست فاقدة القدرة، بل تفتقر إلى تدريب يومي منتظم في المهارات الأضعف لديها.`,
+    school_h:'ما ستقوم به المدرسة',
+    school_bullets:(name)=>[
+      `تم إدراج ${name} ضمن مجموعة الدعم الموجّه لهذا الفصل.`,
+      'ستُؤدي اختباراً أسبوعياً قصيراً كل يوم اثنين حتى يمكن متابعة تقدمها أسبوعاً بأسبوع.',
+      'سنطلعكم على نتائجها كل يوم اثنين، لتكونوا على علم دائم بمستواها.',
+    ],
+    home_h:'كيف يمكنكم المساعدة في المنزل',
+    home_bullets:(name)=>[
+      `شجّعوا ${name} على دراسة اللغة الإنجليزية لمدة عشرين دقيقة كل يوم، فهذا أجدى من جلسة طويلة في نهاية الأسبوع.`,
+      'اسألوها كل يوم اثنين عن نتيجة اختبارها الأسبوعي؛ فاهتمامكم يُشعرها بأهمية الأمر.',
+      'شجّعوها على كتابة بضع جمل بالإنجليزية يومياً، مع توظيف المفردات الجديدة التي تعلمتها.',
+      'تواصلوا مع المدرسة في أي وقت إذا كان هناك ظرف في المنزل يؤثر على دراستها.',
+    ],
+    closing:(name)=>`إن ${name} قادرة على تحقيق أداء متسق ومتميز. ومع الدعم المركّز في المدرسة والتشجيع المستمر في المنزل، نتوقع أن نرى نتائجها ترتفع بثبات بدلاً من التذبذب. ونتطلع إلى العمل معكم.`,
+    teacher:'الأستاذة/ بهاونا شارما', teacher_role:'المعلمة الأولى – اللغة الإنجليزية',
+    principal:'الأستاذة/ فندة سالم أحمد هليس الكعبي', principal_role:'مديرة المدرسة',
+    detach:'يُرجى قص هذا الجزء وإعادته إلى معلمة الصف',
+    slip_h:'رد ولي الأمر',
+    slip:[['اسم الطالبة',''],['ملاحظات ولي الأمر','______________________________________________________________'],['','______________________________________________________________'],['أرغب في مقابلة المعلمة','☐ نعم     ☐ لا'],['اسم ولي الأمر','______________________________________________________________'],['التوقيع / التاريخ','________________________________  /  _____________']],
+  },
+};
+
+function _prRun(text, opts) {
+  opts = opts || {};
+  return new _prTextRun({
+    text: String(text || ''),
+    size: (opts.size || 22),                 // 1/2 pt (22 = 11pt)
+    bold: !!opts.bold, italics: !!opts.italic,
+    color: opts.color || _PR.DARK,
+    font: opts.rtl ? 'Arial' : 'Georgia',
+    rightToLeft: !!opts.rtl,
+  });
+}
+function _prPara(runs, opts) {
+  opts = opts || {};
+  return new _prParagraph({
+    children: runs,
+    alignment: opts.align || _prAlign.LEFT,
+    bidirectional: !!opts.rtl,
+    spacing: opts.spacing || { before: 0, after: 60 },
+  });
+}
+function _prCell(children, opts) {
+  opts = opts || {};
+  return new _prTableCell({
+    children: Array.isArray(children) ? children : [children],
+    width: opts.width ? { size: opts.width, type: _prWidth.DXA } : undefined,
+    shading: opts.bg ? { type: _prShadingType.CLEAR, color: 'auto', fill: opts.bg } : undefined,
+  });
+}
+function _prBullet(text, opts) {
+  return new _prParagraph({
+    children: [_prRun('•  ' + text, opts)],
+    alignment: opts && opts.rtl ? _prAlign.RIGHT : _prAlign.LEFT,
+    bidirectional: opts && opts.rtl,
+    spacing: { before: 20, after: 20 },
+  });
+}
+
+function _prBuildReportDoc(lang, student, assessments, records) {
+  const L = _prT[lang];
+  const rtl = (lang === 'ar');
+  const first = String(student.name || 'Student').split(' ')[0];
+  const full = student.name || 'Student';
+  const centre = _prAlign.CENTER;
+
+  const children = [];
+
+  // Centered logo.
+  if (_prLogoBuf) {
+    children.push(new _prParagraph({
+      alignment: centre,
+      children: [new _prImageRun({ data: _prLogoBuf, transformation: { width: 100, height: 110 } })],
+    }));
+  }
+  // School name + department centred.
+  children.push(_prPara([_prRun(L.school, { size: 24, bold: true, color: _PR.DARK, rtl })], { align: centre, rtl }));
+  children.push(_prPara([_prRun(L.dept,   { size: 19, italic: true, color: _PR.MUTED, rtl })], { align: centre, rtl }));
+
+  // Title.
+  children.push(_prPara([_prRun(L.title, { size: 28, bold: true, color: _PR.BURG, rtl })], { align: centre, rtl, spacing: { before: 200, after: 100 } }));
+
+  // Gold rule.
+  children.push(_prPara([_prRun('━'.repeat(60), { size: 12, color: _PR.GOLD })], { align: centre }));
+
+  // Student info table (4 columns).
+  const info = [
+    [L.student, full],
+    [L.klass, student.className || ''],
+    [L.subject, 'English'],
+    [L.term, 'Term 1 – 2026/2027'],
+  ];
+  const infoCells = info.map(([lab, val]) => _prCell([
+    _prPara([_prRun(lab + '\n', { size: 16, bold: true, color: _PR.MUTED, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }),
+    _prPara([_prRun(val,        { size: 20, bold: true, color: _PR.DARK,  rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }),
+  ], { bg: _PR.CREAM }));
+  children.push(new _prTable({ rows: [new _prTableRow({ children: infoCells })], width: { size: 100, type: _prWidth.PERCENTAGE } }));
+
+  // Blank line.
+  children.push(_prPara([_prRun('')], {}));
+
+  // Dear parent.
+  children.push(new _prParagraph({
+    children: [_prRun(L.dear, { size: 22, color: _PR.DARK, rtl }), _prRun(full, { size: 22, bold: true, color: _PR.BURG, rtl }), _prRun(rtl ? ' المحترم،' : ',', { size: 22, color: _PR.DARK, rtl })],
+    alignment: rtl ? _prAlign.RIGHT : _prAlign.LEFT, bidirectional: rtl,
+  }));
+
+  // Intro.
+  children.push(new _prParagraph({
+    children: [
+      _prRun(L.intro(first, records.length), { size: 21, color: _PR.DARK, rtl }),
+      _prRun(L.inc,       { size: 21, bold: true, color: _PR.BURG, rtl }),
+      _prRun(L.intro2,    { size: 21, color: _PR.DARK, rtl }),
+    ],
+    alignment: rtl ? _prAlign.RIGHT : _prAlign.LEFT, bidirectional: rtl,
+    spacing: { before: 100, after: 100 },
+  }));
+
+  // Results header.
+  children.push(_prPara([_prRun(L.results, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200, after: 100 } }));
+
+  // Results table.
+  const heads = [L.date, L.asmt, L.score, L.pct];
+  const headCells = heads.map(h => _prCell(_prPara([_prRun(h, { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.BURG }));
+  const bodyRows = records.map((r, i) => {
+    const bandCol = r.pct >= 70 ? _PR.GOLD : r.pct >= 50 ? 'B87333' : _PR.BURG;
+    const cells = [
+      _prCell(_prPara([_prRun(r.date || '',  { size: 19, color: _PR.DARK, rtl })], { align: centre, rtl }),                                { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(r.title || '', { size: 19, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }),  { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(r.scoreStr,    { size: 20, bold: true, color: _PR.DARK, rtl })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(r.pct + '%',    { size: 20, bold: true, color: bandCol, rtl })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+    ];
+    return new _prTableRow({ children: cells });
+  });
+  // Overall row.
+  const pcts = records.map(r => r.pct);
+  const rmax = Math.max(...pcts, 0), rmin = Math.min(...pcts, 100);
+  const totalScore = records.reduce((n, r) => n + (Number(r.score) || 0), 0);
+  const totalMax   = records.reduce((n, r) => n + (Number(r.max)   || 0), 0);
+  const avgPct = totalMax ? Math.round((totalScore / totalMax) * 100) : 0;
+  const overallCells = [
+    _prCell(_prPara([_prRun(L.overall,                { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
+    _prCell(_prPara([_prRun(L.avgLine(rmin, rmax),    { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }), { bg: _PR.GOLD }),
+    _prCell(_prPara([_prRun(totalScore + ' / ' + totalMax, { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
+    _prCell(_prPara([_prRun(avgPct + '%',              { size: 22, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
+  ];
+  children.push(new _prTable({
+    rows: [new _prTableRow({ children: headCells }), ...bodyRows, new _prTableRow({ children: overallCells })],
+    width: { size: 100, type: _prWidth.PERCENTAGE },
+  }));
+
+  // Interpretation.
+  children.push(_prPara([_prRun(L.interp_h, { size: 22, bold: true, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200, after: 60 } }));
+  children.push(_prPara([_prRun(L.interp(first), { size: 21, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }));
+
+  // What the school will do.
+  children.push(_prPara([_prRun(L.school_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
+  L.school_bullets(first).forEach(b => children.push(_prBullet(b, { size: 21, color: _PR.DARK, rtl })));
+
+  // How you can help.
+  children.push(_prPara([_prRun(L.home_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
+  L.home_bullets(first).forEach(b => children.push(_prBullet(b, { size: 21, color: _PR.DARK, rtl })));
+
+  // Closing.
+  children.push(_prPara([_prRun(L.closing(first), { size: 21, italic: true, color: _PR.MUTED, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
+
+  // Signatures.
+  const sigCells = [
+    _prCell([_prPara([_prRun(L.teacher, { size: 21, bold: true, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }),
+             _prPara([_prRun(L.teacher_role, { size: 18, italic: true, color: _PR.MUTED, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl })]),
+    _prCell([_prPara([_prRun(L.principal, { size: 21, bold: true, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.LEFT : _prAlign.RIGHT, rtl }),
+             _prPara([_prRun(L.principal_role, { size: 18, italic: true, color: _PR.MUTED, rtl })], { align: rtl ? _prAlign.LEFT : _prAlign.RIGHT, rtl })]),
+  ];
+  children.push(new _prTable({ rows: [new _prTableRow({ children: sigCells })], width: { size: 100, type: _prWidth.PERCENTAGE } }));
+
+  // Detach line.
+  children.push(_prPara([_prRun(`✂  — — — — —  ${L.detach}  — — — — —`, { size: 16, italic: true, color: _PR.GREY, rtl })], { align: centre, rtl, spacing: { before: 300 } }));
+
+  // Response slip.
+  children.push(_prPara([_prRun(L.slip_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }));
+  const slip = L.slip.map(([lab, val]) => new _prTableRow({
+    children: [
+      _prCell(_prPara([_prRun(lab === '' && val ? '' : lab, { size: 19, bold: true, color: _PR.MUTED, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl })),
+      _prCell(_prPara([_prRun(val || full,       { size: 19, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl })),
+    ],
+  }));
+  children.push(new _prTable({ rows: slip, width: { size: 100, type: _prWidth.PERCENTAGE } }));
+
+  const doc = new _prDocument({
+    creator: 'ClassCurio', title: 'Parent Report',
+    sections: [{
+      properties: {
+        page: { margin: { top: 800, right: 900, bottom: 800, left: 900 } },
+      },
+      children,
+    }],
+  });
+  return _prPacker.toBuffer(doc);
+}
+
+// Detect inconsistent students.
+function _prDetectInconsistent(students, assessments, threshold) {
+  const flagged = [];
+  students.forEach(student => {
+    const records = [];
+    assessments.forEach(a => {
+      const subs = _ccMpLoadSubmissions(a.id);
+      const sid = String(student.id || student.email || '');
+      const sub = subs.find(s => {
+        const ids = [s.studentId, s.userId, s.id, s.email, s.studentEmail].filter(Boolean).map(String);
+        return ids.includes(sid) || (student.name && s.studentName && String(s.studentName).toLowerCase() === String(student.name).toLowerCase());
+      });
+      if (!sub) return;
+      const qs = _ccMpQuestions(a);
+      const max = Number(sub.maxScore || sub.outOf || qs.reduce((n, q) => n + _ccMpQuestionPoints(q), 0));
+      let sc  = Number(sub.totalScore || sub.score || 0);
+      if (!sc) sc = qs.reduce((n, q, i) => n + (Number(_ccMpPointsEarned(sub, i, q)) || 0), 0);
+      const pct = max ? Math.round((sc / max) * 100) : 0;
+      records.push({
+        date: sub.submittedAt || sub.endedAt || sub.createdAt || '',
+        title: a.title || '',
+        score: sc, max, scoreStr: sc + ' / ' + max, pct,
+      });
+    });
+    if (records.length < 2) return;
+    const pcts = records.map(r => r.pct);
+    const spread = Math.max(...pcts) - Math.min(...pcts);
+    const anyLow = pcts.some(p => p < 30);
+    if (records.length >= 3 && spread >= threshold) flagged.push({ student, records, reason: 'spread', spread });
+    else if (anyLow) flagged.push({ student, records, reason: 'low', spread });
+  });
+  return flagged;
+}
+
+app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const { classId, language = 'both', threshold = 30, saveToFolder = true } = req.body || {};
+    if (!classId) return res.status(400).json({ error: 'classId required' });
+
+    // Assessments in this class.
+    const allA = _ccMpReadJson('assessments.json', []);
+    const assessments = allA.filter(a => a && a.classId === classId);
+    if (!assessments.length) return res.status(404).json({ error: 'No assessments found for this class.' });
+
+    // Students — reuse the same loader from Class Averages.
+    const classes = _ccMpReadJson('classes.json', []);
+    const cls = classes.find(c => String(c.id) === String(classId));
+    const className = (cls && (cls.name || cls.title)) || 'Class';
+    let students = [];
+    if (Array.isArray(cls && cls.students) && cls.students.length) students = cls.students.slice();
+    if (!students.length) {
+      const roster = (cls && cls.roster) || [];
+      if (Array.isArray(roster) && roster.length) {
+        const users = _ccMpReadJson('users.json', []);
+        const ids = roster.map(x => (x && x.id) || x).map(String);
+        students = users.filter(u => u && ids.includes(String(u.id)));
+      }
+    }
+    if (!students.length) {
+      const ss = _ccMpReadJson('students.json', []);
+      students = ss.filter(s => s && (s.classId === classId || (Array.isArray(s.classIds) && s.classIds.includes(classId))));
+    }
+    if (!students.length) {
+      const users = _ccMpReadJson('users.json', []);
+      students = users.filter(u => u && (u.role === 'student' || !u.role) && (u.classId === classId || (Array.isArray(u.classIds) && u.classIds.includes(classId))));
+    }
+    if (!students.length) {
+      const seen = new Map();
+      assessments.forEach(a => _ccMpLoadSubmissions(a.id).forEach(s => {
+        const id = String(s.studentId || s.userId || s.id || s.email || s.studentEmail || _ccMpStudentName(s));
+        if (!seen.has(id)) seen.set(id, { id, name: _ccMpStudentName(s), email: s.email || s.studentEmail || '' });
+      }));
+      students = Array.from(seen.values());
+    }
+    students.forEach(s => { s.className = className; });
+
+    // Detect inconsistent.
+    const flagged = _prDetectInconsistent(students, assessments, Number(threshold) || 30);
+    if (!flagged.length) return res.status(404).json({ error: 'No students met the inconsistency threshold. Try lowering the threshold.' });
+
+    // Zip the reports.
+    const archive = _ccArchiver('zip', { zlib: { level: 6 } });
+    const langs = language === 'both' ? ['en', 'ar'] : [language];
+    const chunks = [];
+    archive.on('data', c => chunks.push(c));
+    const done = new Promise(resolve => archive.on('end', resolve));
+
+    for (const f of flagged) {
+      for (const lang of langs) {
+        const buf = await _prBuildReportDoc(lang, f.student, assessments, f.records);
+        const nm = _ccMpSlug((f.student.name || 'student') + '_' + lang) + '.docx';
+        archive.append(buf, { name: nm });
+      }
+    }
+    archive.finalize();
+    await done;
+    const zipBuf = Buffer.concat(chunks);
+
+    // Save to folder if requested.
+    let savedInfo = null;
+    if (saveToFolder) {
+      const folderName = 'Parent Reports — ' + className;
+      // Reuse or create the folder.
+      const folders = _ccLoadFolders();
+      let folder = folders.find(x => x && x.teacherId === req.session.user.id && String(x.name) === folderName);
+      if (!folder) {
+        folder = { id: 'fld-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+                   name: folderName, classId, className,
+                   teacherId: req.session.user.id, createdAt: new Date().toISOString() };
+        folders.push(folder); _ccSaveFolders(folders);
+      }
+      _ccEnsureFolderDirs();
+      const mkId = 'mk-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const target = _ccPathV.join(_ccFolderDir, mkId + '.zip');
+      _ccFsV.writeFileSync(target, zipBuf);
+      const rec = { id: mkId, folderId: folder.id, teacherId: req.session.user.id,
+                    studentName: 'Reports — ' + new Date().toLocaleDateString(),
+                    filename: mkId + '.zip', createdAt: new Date().toISOString() };
+      const mks = _ccLoadMarkings(); mks.push(rec); _ccSaveMarkings(mks);
+      savedInfo = { folderId: folder.id, markingId: mkId };
+    }
+
+    const fname = _ccMpSlug(className) + '_parent_reports_' + new Date().toISOString().slice(0, 10) + '.zip';
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
+    res.setHeader('X-CC-Students-Flagged', String(flagged.length));
+    if (savedInfo) res.setHeader('X-CC-Saved-Folder-Id', savedInfo.folderId);
+    res.end(zipBuf);
+    console.log('[parent-reports] class=' + classId + ' flagged=' + flagged.length + ' langs=' + langs.join(','));
+  } catch(e){
+    console.error('[parent-reports] fatal', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+console.log('[parent-reports] endpoint ready.');
+// ─────────────────────────────────────────────────────────────────────
+
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);
 });
