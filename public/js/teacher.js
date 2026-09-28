@@ -5530,10 +5530,10 @@ const USER_GUIDE_HTML = `
   }
   function check() {
     if (!isAnyEditorVisible()) {
-      document.body.classList.add('cc-list-only');
+      if (!document.body.classList.contains('cc-list-only')) document.body.classList.add('cc-list-only');
       // The questions panel + Save row are siblings of #builder-view, so
       // hiding the builder alone leaves them on screen. Close them too.
-      document.body.classList.remove('cc-builder-open');
+      if (document.body.classList.contains('cc-builder-open')) document.body.classList.remove('cc-builder-open');
     }
   }
   // Run on load + periodically + on visibilitychange.
@@ -7894,14 +7894,15 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     const list = els.listView, builder = els.builderView;
     const listShown = list && list.style.display !== 'none' && getComputedStyle(list).display !== 'none';
     const builderHidden = !builder || builder.style.display === 'none' || !builder.isConnected;
-    if (listShown || builderHidden) {
+    // Only touch the class when it is actually present — writing it
+    // unconditionally re-triggers observers and can loop forever.
+    if ((listShown || builderHidden) && document.body.classList.contains('cc-builder-open')) {
       document.body.classList.remove('cc-builder-open');
     }
   }
   const obs = new MutationObserver(sync);
   if (els.listView) obs.observe(els.listView, { attributes: true, attributeFilter: ['style'] });
   if (els.builderView) obs.observe(els.builderView, { attributes: true, attributeFilter: ['style'] });
-  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   setInterval(sync, 400);
   sync();
 })();
