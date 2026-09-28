@@ -37,6 +37,12 @@
   body.cc-builder-open #builder-save-row {
     display: flex !important;
   }
+  /* Back on the dashboard: never show the builder's questions / Save row,
+   * even if an unsaved assessment is still open in memory. */
+  body.cc-list-only #builder-questions-panel,
+  body.cc-list-only #builder-save-row {
+    display: none !important;
+  }
 </style>
 
   <!-- PWA: manifest, icons, install hints. -->

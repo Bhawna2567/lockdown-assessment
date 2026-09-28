@@ -5529,6 +5529,9 @@ const USER_GUIDE_HTML = `
   function check() {
     if (!isAnyEditorVisible()) {
       document.body.classList.add('cc-list-only');
+      // The questions panel + Save row are siblings of #builder-view, so
+      // hiding the builder alone leaves them on screen. Close them too.
+      document.body.classList.remove('cc-builder-open');
     }
   }
   // Run on load + periodically + on visibilitychange.
