@@ -2054,6 +2054,8 @@ function toggleShare(id) {
 els.newBtn.onclick = () => openTemplatePicker();
 els.backBtn.onclick = () => {
   els.builderView.style.display = 'none';
+  document.body.classList.remove('cc-builder-open');
+  document.body.classList.add('cc-list-only');
   els.listView.style.display = 'block';
   loadAssessments();
 };
@@ -7883,3 +7885,23 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 })();
 // ─────────────────────────────────────────────────────────────────────
 
+
+// ── Close the editor whenever the dashboard is showing ─────────────────
+// The questions panel and Save row sit outside #builder-view, so any path
+// that returns to the dashboard must also remove .cc-builder-open.
+(function ccCloseBuilderOnDashboard() {
+  function sync() {
+    const list = els.listView, builder = els.builderView;
+    const listShown = list && list.style.display !== 'none' && getComputedStyle(list).display !== 'none';
+    const builderHidden = !builder || builder.style.display === 'none' || !builder.isConnected;
+    if (listShown || builderHidden) {
+      document.body.classList.remove('cc-builder-open');
+    }
+  }
+  const obs = new MutationObserver(sync);
+  if (els.listView) obs.observe(els.listView, { attributes: true, attributeFilter: ['style'] });
+  if (els.builderView) obs.observe(els.builderView, { attributes: true, attributeFilter: ['style'] });
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  setInterval(sync, 400);
+  sync();
+})();

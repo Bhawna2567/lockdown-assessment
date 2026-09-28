@@ -6,7 +6,7 @@
 // content, results, and proctoring traffic must always go to the network so
 // teachers see live data and live grading runs.
 
-const CACHE = 'classcurio-v2';
+const CACHE = 'classcurio-v3';
 const STATIC = [
   '/manifest.json',
   '/icon.svg',
