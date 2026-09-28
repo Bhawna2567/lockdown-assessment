@@ -4631,7 +4631,8 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '6. For "mc" questions, correctAnswer is the 0-based INDEX of the correct option (or 0 if not given).',
         '7. Do NOT prepend "1.", "Q1.", etc. to the prompt — the front-end numbers questions automatically.',
         '8. If the paper has no sections at all, create ONE section with empty title, sensible default instructions, and (only if the paper has a single reading passage) put it in that section\'s passage field.',
-        '9. When the paper has "Match the following", "Match column A with column B", "Match the word to its meaning", or "Draw lines to connect", emit type "match" with the original pairs in the same order they appear. Use matchVariant "word-definition" for word/definition, "word-word" for word/word, or "word-picture" if the paper shows pictures (leave rightImageUrl as empty string — the teacher will upload pictures in the builder). NEVER convert match questions into multiple-choice.',
+        '9. When the paper has "Match the following", "Match column A with column B", "Match the word to its meaning", or "Draw lines to connect", emit type "match" with the original pairs in the same order they appear. Use matchVariant "word-definition" for word/definition, "word-word" for word/word, or "word-picture" if the paper shows pictures (set rightImageRef on each pair — see rule 10). NEVER convert match questions into multiple-choice.',
+        '10. IMAGES: the paper\'s pictures may be attached after this text, each preceded by a label "Image #N". If a question shows or uses one of them, add "imageRef": N to that question. For word-picture match pairs, add "rightImageRef": N to each pair. Only use numbers that were actually provided. If a question refers to a figure, diagram, graph or table-as-picture that is NOT among the attached images, add "imageDescription" with a precise description (shape, labels, values, axes) so it can be redrawn.',
         '',
         'EXAM PAPER TEXT:',
         '"""',
@@ -4646,8 +4647,13 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
       try { mediaImages = await extractMediaImages(req.file.path, req.file.mimetype, req.file.originalname); } catch {}
       const userContent = [{ type: 'text', text: sys }];
       if (mediaImages.length) {
-        userContent.push({ type: 'text', text: `\n---\nThe paper contains ${mediaImages.length} image${mediaImages.length === 1 ? '' : 's'}. Use them to reproduce match-with-picture questions, diagrams, and any visual elements. If a question shows pictures to be matched, emit type "match" with matchVariant "word-picture" and leave rightImageUrl empty (teacher uploads pictures in the builder).` });
-        for (const img of mediaImages) {
+        const _pagesOnly = mediaImages.every((m) => m.kind === 'page');
+        userContent.push({ type: 'text', text: _pagesOnly
+          ? `\n---\nBelow are ${mediaImages.length} page image(s) of the paper for reference only. Do NOT use imageRef for them; use imageDescription for any figure a question needs.`
+          : `\n---\nThe paper contains ${mediaImages.length} picture${mediaImages.length === 1 ? '' : 's'}, each labelled "Image #N" below. Link each one to its question with imageRef (or rightImageRef for word-picture match pairs).` });
+        for (let _i = 0; _i < mediaImages.length; _i++) {
+          const img = mediaImages[_i];
+          if (!_pagesOnly) userContent.push({ type: 'text', text: `Image #${_i + 1}:` });
           userContent.push({
             type: 'image',
             source: { type: 'base64', media_type: img.media, data: img.buf.toString('base64') },
@@ -4685,6 +4691,12 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
           }));
 
           const validTypes = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
+          const _imgFor = (ref) => {
+            const i = parseInt(ref, 10) - 1;
+            const m = (Number.isFinite(i) && i >= 0) ? mediaImages[i] : null;
+            if (!m || m.kind === 'page') return '';
+            return 'data:' + m.media + ';base64,' + m.buf.toString('base64');
+          };
           const questions = parsed.questions.map((q) => {
             const type = validTypes.has(q.type) ? q.type : 'short';
             const sidx = Number.isFinite(q.sectionIndex) && q.sectionIndex >= 0 && q.sectionIndex < sections.length
@@ -4697,7 +4709,10 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               correctAnswer: null,
               points: Number(q.points) || (type === 'writing' ? 40 : (type === 'essay' || type === 'long' ? 5 : 1)),
               sectionId: sections[sidx].id,
+              imageUrl: _imgFor(q.imageRef),
+              imageDescription: '',
             };
+            if (!out.imageUrl && typeof q.imageDescription === 'string') out.imageDescription = q.imageDescription.slice(0, 500);
             if (type === 'mc') {
               if (!out.options.length) out.options = ['', '', '', ''];
               const idx = parseInt(q.correctAnswer, 10);
@@ -4715,7 +4730,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               out.pairs = Array.isArray(q.pairs) ? q.pairs.slice(0, 30).map((p) => ({
                 left:  String((p && p.left)  || ''),
                 right: String((p && p.right) || ''),
-                rightImageUrl: typeof (p && p.rightImageUrl) === 'string' ? p.rightImageUrl : '',
+                rightImageUrl: _imgFor(p && p.rightImageRef) || (typeof (p && p.rightImageUrl) === 'string' ? p.rightImageUrl : ''),
               })) : [];
               if (!out.points || out.points < out.pairs.length) out.points = Math.max(1, out.pairs.length);
             }
@@ -6965,6 +6980,69 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
 });
 console.log('[parent-reports] endpoint ready.');
 // ─────────────────────────────────────────────────────────────────────
+
+
+// ── AI diagram for a question (maths / science). Returns clean SVG. ──────
+app.post('/api/ai/generate-diagram', requireTeacher, async (req, res) => {
+  try {
+    const apiKey = readApiKey();
+    if (!apiKey) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const b = req.body || {};
+    const prompt = String(b.prompt || '').slice(0, 3000).trim();
+    const description = String(b.description || '').slice(0, 800).trim();
+    if (!prompt && !description) return res.status(400).json({ error: 'Write the question first.' });
+    const options = Array.isArray(b.options) ? b.options.map(String).filter(Boolean).slice(0, 6) : [];
+    const subject = String(b.subject || '').slice(0, 60);
+    const sys = [
+      'You draw clean, accurate exam diagrams as SVG for school assessments (maths, physics, chemistry, biology, geography).',
+      'Output ONLY one <svg>...</svg> element. No markdown, no commentary.',
+      'Rules:',
+      '- width="600" height="400" viewBox="0 0 600 400". First child: a white <rect> covering the whole canvas.',
+      '- Black strokes (stroke-width 2). Use colour only where it helps meaning. Labels: font-family Arial, font-size 16-18.',
+      '- Be mathematically/scientifically accurate: correct angles and proportions, right-angle markers, equal-length ticks, arrowheads on vectors, labelled axes with ticks and units on graphs, standard circuit symbols, correct bond structures.',
+      '- Include every label and value the question text gives (vertex letters, lengths, angles, forces, component values, units).',
+      '- NEVER reveal the answer. Do not label the unknown the question asks for; mark it "x" or "?" instead. Do not draw the solution.',
+      '- No title, caption or explanation text beyond what a printed exam figure would show.',
+      '- Self-contained: no <script>, no <foreignObject>, no external images, links or fonts.',
+      '- Keep everything inside the canvas with a 20px margin.',
+    ].join('\n');
+    const user = [
+      subject ? 'Subject: ' + subject : '',
+      'Question: ' + prompt,
+      options.length ? 'Options: ' + options.join(' | ') : '',
+      description ? 'Figure description: ' + description : '',
+      'Draw the figure a student needs to answer this question.',
+    ].filter(Boolean).join('\n');
+    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 4000,
+        system: sys,
+        messages: [{ role: 'user', content: user }],
+      }),
+    });
+    if (!apiRes.ok) {
+      const t = await apiRes.text().catch(() => '');
+      return res.status(502).json({ error: 'AI request failed (' + apiRes.status + ')', detail: t.slice(0, 300) });
+    }
+    const data = await apiRes.json();
+    const text = (data.content || []).map((c) => c.type === 'text' ? c.text : '').join('');
+    const m = text.match(/<svg[\s\S]*<\/svg>/i);
+    if (!m) return res.status(422).json({ error: 'The AI did not return a diagram. Try again.' });
+    let svg = m[0]
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
+      .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, '')
+      .replace(/(xlink:)?href\s*=\s*("(?!#)[^"]*"|'(?!#)[^']*')/gi, '');
+    if (!/xmlns=/.test(svg)) svg = svg.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+    res.json({ svg });
+  } catch (e) {
+    console.error('[generate-diagram]', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`[ClassCurio] listening on http://localhost:${PORT}`);

@@ -317,7 +317,7 @@ async function extractPageImagesFromPDF(filepath, maxPages = 8) {
     const out = [];
     for (const f of files) {
       const buf = await fsP.readFile(path.join(tmp, f));
-      out.push({ media: 'image/jpeg', buf });
+      out.push({ media: 'image/jpeg', buf, kind: 'page' });
     }
     return out;
   } catch (e) {
@@ -329,7 +329,7 @@ async function extractPageImagesFromPDF(filepath, maxPages = 8) {
   }
 }
 
-async function extractEmbeddedImagesFromDOCX(filepath, maxImages = 12) {
+async function extractEmbeddedImagesFromDOCX(filepath, maxImages = 20) {
   try {
     const mammoth = require('mammoth');
     const images = [];
@@ -339,11 +339,11 @@ async function extractEmbeddedImagesFromDOCX(filepath, maxImages = 12) {
         if (images.length >= maxImages) return { src: '' };
         try {
           const buf = await image.read();
-          const contentType = image.contentType || 'image/png';
-          // Anthropic supports png, jpeg, gif, webp.
-          const media = ['image/png','image/jpeg','image/gif','image/webp'].includes(contentType)
-            ? contentType : 'image/png';
-          images.push({ media, buf });
+          const contentType = String(image.contentType || '').toLowerCase();
+          // Anthropic and browsers support png, jpeg, gif, webp. Skip the rest
+          // (emf/wmf/tiff) rather than mislabel them.
+          if (!['image/png','image/jpeg','image/gif','image/webp'].includes(contentType)) return { src: '' };
+          images.push({ media: contentType, buf, kind: 'embedded' });
         } catch {}
         return { src: '' };
       }),
@@ -352,6 +352,97 @@ async function extractEmbeddedImagesFromDOCX(filepath, maxImages = 12) {
   } catch (e) {
     return [];
   }
+}
+
+
+// ── Embedded pictures inside a PDF (no external tools needed) ─────────────
+// JPEG streams (DCTDecode) are copied as-is. Flate-compressed RGB / grey
+// pixel data is re-wrapped as a PNG. Tiny images (bullets, icons) are skipped.
+const _zlib = require('zlib');
+const _CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function _crc32(buf) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < buf.length; i++) c = _CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function _pngChunk(type, data) {
+  const len = Buffer.alloc(4); len.writeUInt32BE(data.length, 0);
+  const td = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+  const crc = Buffer.alloc(4); crc.writeUInt32BE(_crc32(td), 0);
+  return Buffer.concat([len, td, crc]);
+}
+function _encodePng(width, height, channels, filteredRows) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0); ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8; ihdr[9] = channels === 3 ? 2 : 0; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+    _pngChunk('IHDR', ihdr),
+    _pngChunk('IDAT', _zlib.deflateSync(filteredRows)),
+    _pngChunk('IEND', Buffer.alloc(0)),
+  ]);
+}
+
+async function extractEmbeddedImagesFromPDF(filepath, maxImages = 20) {
+  const out = [];
+  try {
+    const { PDFDocument, PDFName, PDFRawStream, PDFNumber, PDFArray, PDFDict } = require('pdf-lib');
+    const bytes = await fsP.readFile(filepath);
+    const doc = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false });
+    const num = (d, k) => { const v = d.get(PDFName.of(k)); return v instanceof PDFNumber ? v.asNumber() : (v && v.asNumber ? v.asNumber() : 0); };
+    for (const [, obj] of doc.context.enumerateIndirectObjects()) {
+      if (out.length >= maxImages) break;
+      if (!(obj instanceof PDFRawStream)) continue;
+      const d = obj.dict;
+      if (d.get(PDFName.of('Subtype')) !== PDFName.of('Image')) continue;
+      const w = num(d, 'Width'), h = num(d, 'Height');
+      if (!w || !h || w * h < 6000 || w < 50 || h < 50) continue;   // icons, bullets, lines
+      let filter = d.get(PDFName.of('Filter'));
+      if (filter instanceof PDFArray) filter = filter.size() === 1 ? filter.get(0) : null;
+      const raw = Buffer.from(obj.contents);
+      if (filter === PDFName.of('DCTDecode')) {
+        out.push({ media: 'image/jpeg', buf: raw, kind: 'embedded' });
+        continue;
+      }
+      if (filter !== PDFName.of('FlateDecode')) continue;              // JBIG2, CCITT, JPX: skip
+      if (num(d, 'BitsPerComponent') !== 8) continue;
+      let data;
+      try { data = _zlib.inflateSync(raw); } catch { continue; }
+      let parms = d.get(PDFName.of('DecodeParms'));
+      if (parms instanceof PDFArray) parms = parms.get(0);
+      const predictor = parms instanceof PDFDict ? num(parms, 'Predictor') : 0;
+      let channels, rows;
+      if (predictor >= 10) {
+        // Data is already PNG-filtered rows (one filter byte per row).
+        channels = Math.round((data.length / h - 1) / w);
+        if (channels !== 1 && channels !== 3) continue;
+        if (data.length < h * (w * channels + 1)) continue;
+        rows = data.subarray(0, h * (w * channels + 1));
+      } else if (!predictor || predictor === 1) {
+        channels = Math.round(data.length / (w * h));
+        if (channels !== 1 && channels !== 3) continue;
+        const stride = w * channels;
+        if (data.length < h * stride) continue;
+        rows = Buffer.alloc(h * (stride + 1));
+        for (let y = 0; y < h; y++) {
+          rows[y * (stride + 1)] = 0;
+          data.copy(rows, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
+        }
+      } else continue;
+      out.push({ media: 'image/png', buf: _encodePng(w, h, channels, rows), kind: 'embedded' });
+    }
+  } catch (e) {
+    return out;
+  }
+  return out;
 }
 
 async function extractMediaImages(filepath, mimetype, name) {
@@ -373,6 +464,8 @@ async function extractMediaImages(filepath, mimetype, name) {
     return out;
   };
   if (lmime === 'application/pdf' || lname.endsWith('.pdf')) {
+    const embedded = filtered(await extractEmbeddedImagesFromPDF(filepath));
+    if (embedded.length) return embedded;
     return filtered(await extractPageImagesFromPDF(filepath));
   }
   if (lmime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||

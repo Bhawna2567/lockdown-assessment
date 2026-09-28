@@ -1737,6 +1737,17 @@ async function runImport(file) {
         const newSid = idMap.get(q.sectionId) || sections[0].id;
         return { ...q, id: uid(), sectionId: newSid };
       });
+      // Keep imported pictures, but shrink very large ones so saving works.
+      await Promise.all(questions.map(async (q) => {
+        if (q.imageUrl) q.imageUrl = await ccShrinkDataUrl(q.imageUrl);
+        if (Array.isArray(q.pairs)) {
+          for (const p of q.pairs) if (p.rightImageUrl) p.rightImageUrl = await ccShrinkDataUrl(p.rightImageUrl);
+        }
+      }));
+      const _imgCount = questions.filter((q) => q.imageUrl).length;
+      if (_imgCount && els.importStatus) {
+        els.importStatus.insertAdjacentHTML('beforeend', `<div style="color:#059669; margin-top:4px;">🖼 ${_imgCount} picture${_imgCount === 1 ? '' : 's'} from the file attached to ${_imgCount === 1 ? 'its question' : 'their questions'} — please check each one.</div>`);
+      }
     } else {
       // Regex fallback path — single section.
       if (!sections.length) {
@@ -2604,6 +2615,38 @@ function renderQuestions() {
       q.imageDescription = '';
       renderQuestions();
     };
+    const aiImgBtn = root.querySelector('[data-act=img-ai]');
+    if (aiImgBtn) aiImgBtn.onclick = async () => {
+      if (!String(q.prompt || '').trim() && !String(q.imageDescription || '').trim()) {
+        alert('Write the question first, then generate the diagram.');
+        return;
+      }
+      const label = aiImgBtn.textContent;
+      aiImgBtn.disabled = true;
+      aiImgBtn.textContent = '✨ Drawing…';
+      try {
+        const r = await fetch('/api/ai/generate-diagram', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            prompt: q.prompt || '',
+            description: q.imageDescription || '',
+            options: Array.isArray(q.options) ? q.options : [],
+            subject: (els.subject && els.subject.value) || '',
+          }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+        q.imageUrl = await ccSvgToPngDataUrl(j.svg, 900);
+        q.imageDescription = '';
+        renderQuestions();
+      } catch (err) {
+        alert('Could not generate the diagram: ' + (err.message || err));
+        aiImgBtn.disabled = false;
+        aiImgBtn.textContent = label;
+      }
+    };
     if (imgFileInput) imgFileInput.onchange = async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
@@ -2751,6 +2794,7 @@ function renderQuestion(q, idx) {
           <img src="${escapeAttr(q.imageUrl)}" alt="Question image" style="max-width: 240px; max-height: 180px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;" />
           <div>
             <button class="btn ghost" data-act="img-replace">Replace</button>
+            <button class="btn ghost" data-act="img-ai" style="margin-left: 6px;">✨ Redraw with AI</button>
             <button class="btn danger" data-act="img-remove" style="margin-left: 6px;">Remove</button>
             <input type="file" accept="image/*" data-img-file style="display: none;" />
           </div>
@@ -2762,7 +2806,8 @@ function renderQuestion(q, idx) {
       <div class="field" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 1px dashed #c4b5fd; border-radius: 8px; padding: 12px;">
         <label>✨ AI suggests a graphic for this question</label>
         <div style="font-size: 13px; color: #6b21a8; margin-bottom: 8px;">${escapeHtml(q.imageDescription)}</div>
-        <button class="btn primary" data-act="img-upload">📎 Upload image</button>
+        <button class="btn primary" data-act="img-ai">✨ Generate with AI</button>
+        <button class="btn ghost" data-act="img-upload" style="margin-left: 6px;">📎 Upload image</button>
         <button class="btn ghost" data-act="img-skip" style="margin-left: 6px;">Skip — text only</button>
         <input type="file" accept="image/*" data-img-file style="display: none;" />
       </div>
@@ -2771,6 +2816,7 @@ function renderQuestion(q, idx) {
     imageSection = `
       <div class="field">
         <button class="btn ghost" data-act="img-upload">🖼 Add image (optional)</button>
+        <button class="btn ghost" data-act="img-ai" style="margin-left: 6px;">✨ Generate diagram with AI</button>
         <input type="file" accept="image/*" data-img-file style="display: none;" />
       </div>
     `;
@@ -2803,6 +2849,49 @@ function renderQuestion(q, idx) {
 // Compress + base64-encode an uploaded image so it can live inline in the
 // assessment JSON. Caps at 800px wide and ~70% JPEG quality which keeps each
 // image well under 250KB.
+// Render an SVG string to a PNG data URL (white background) so AI diagrams
+// behave exactly like uploaded images everywhere (student view, PDF, print).
+function ccSvgToPngDataUrl(svg, width = 900) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const w0 = img.naturalWidth || 600, h0 = img.naturalHeight || 400;
+      const scale = width / w0;
+      const c = document.createElement('canvas');
+      c.width = Math.round(w0 * scale); c.height = Math.round(h0 * scale);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('The diagram could not be rendered.')); };
+    img.src = url;
+  });
+}
+
+// Shrink a large data-URL image (e.g. a big photo inside an imported Word
+// file) so the assessment stays small enough to save.
+function ccShrinkDataUrl(dataUrl, maxW = 900, maxLen = 400000) {
+  return new Promise((resolve) => {
+    if (!dataUrl || dataUrl.length <= maxLen) return resolve(dataUrl);
+    const img = new Image();
+    img.onload = () => {
+      const ratio = Math.min(1, maxW / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * ratio); c.height = Math.round(img.height * ratio);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 function compressImageToDataUrl(file, maxW = 800) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -6320,7 +6409,7 @@ async function ccOpenImageApiPanel() {
 // Attach to Admin dropdown if present.
 document.addEventListener('DOMContentLoaded', function () {
   const menu = document.querySelector('.admin-dropdown-menu, #admin-dropdown, .admin-menu');
-  if (!menu || document.getElementById('cc-image-api-item')) return;
+  return; // Paid real-world image generation removed at the teacher's request.
   const item = document.createElement('a');
   item.id = 'cc-image-api-item';
   item.href = '#';
