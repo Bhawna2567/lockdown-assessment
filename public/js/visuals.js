@@ -79,12 +79,40 @@
       try { window.MathJax.typesetPromise().catch(function(){}); } catch(e){}
     }
   };
-  if (window.MutationObserver) {
-    var _ccMj = null;
-    new MutationObserver(function () {
-      clearTimeout(_ccMj);
-      _ccMj = setTimeout(function () { window.ccTypesetAll(); }, 250);
-    }).observe(document.body, { childList: true, subtree: true, characterData: true });
-  }
-
+  // Typeset maths whenever new content appears. Starts only once <body>
+  // exists (this file loads in <head>), ignores MathJax's own output, and
+  // only runs when the new content actually contains maths.
+  (function () {
+    var busy = false, timer = null;
+    var MATH_RE = /\\\(|\\\[|\$\$/;
+    function run() {
+      timer = null;
+      if (busy) return;
+      var MJ = window.MathJax;
+      if (!MJ || !MJ.typesetPromise) { timer = setTimeout(run, 300); return; }
+      busy = true;
+      MJ.typesetPromise().catch(function () {}).then(function () { busy = false; });
+    }
+    function schedule() { if (!timer) timer = setTimeout(run, 120); }
+    function relevant(muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var added = muts[i].addedNodes;
+        for (var j = 0; j < added.length; j++) {
+          var n = added[j];
+          if (n.nodeType === 1 && /^mjx-/i.test(n.nodeName)) continue;
+          if (n.nodeType === 1 && n.closest && n.closest('mjx-container')) continue;
+          var t = n.textContent || '';
+          if (MATH_RE.test(t)) return true;
+        }
+      }
+      return false;
+    }
+    function start() {
+      if (!document.body || !window.MutationObserver) return;
+      new MutationObserver(function (muts) { if (!busy && relevant(muts)) schedule(); })
+        .observe(document.body, { childList: true, subtree: true });
+      schedule();
+    }
+    if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
+  })();
 })();

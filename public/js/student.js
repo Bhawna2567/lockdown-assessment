@@ -1131,6 +1131,12 @@ function renderQuestions() {
   }
 
   els.questions.innerHTML = banner + sectionsHtml;
+  // Render maths (\( … \)) as real notation once MathJax is ready.
+  (function typesetExam(tries) {
+    const MJ = window.MathJax;
+    if (MJ && MJ.typesetPromise) { MJ.typesetPromise([els.questions]).catch(() => {}); return; }
+    if (tries < 60) setTimeout(() => typesetExam(tries + 1), 250);
+  })(0);
   // Right-to-left languages (Arabic, Urdu, Persian, Hebrew) read right to left.
   els.questions.dir = /arab|urdu|persian|farsi|hebrew|عرب/i.test(String(currentAssessment.assessmentLanguage || '')) ? 'rtl' : '';
 
