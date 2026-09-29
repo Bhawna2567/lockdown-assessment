@@ -2537,6 +2537,84 @@ function renderQuestions() {
     const root = document.getElementById(`q-${q.id}`);
     if (!root) return;
     root.querySelector('[data-f=prompt]').oninput = (e) => { q.prompt = e.target.value; };
+
+    // ── Maths preview, paste-a-screenshot, tidy, clear ──────────────────
+    {
+      const promptEl = root.querySelector('[data-f=prompt]');
+      const statusEl = root.querySelector('[data-shot-status]');
+      const setStatus = (msg, isErr) => {
+        if (!statusEl) return;
+        statusEl.style.display = msg ? 'block' : 'none';
+        statusEl.style.color = isErr ? '#b91c1c' : '#4338ca';
+        statusEl.textContent = msg || '';
+      };
+      let pvTimer = null;
+      root.addEventListener('input', () => { clearTimeout(pvTimer); pvTimer = setTimeout(() => ccRefreshMathPreview(root, q), 350); });
+      ccRefreshMathPreview(root, q);
+      const runImage = async (dataUrl) => {
+        setStatus('🔍 Reading the screenshot and building the question…');
+        promptEl.disabled = true;
+        try {
+          const ai = await ccQuestionFromContent({ image: dataUrl });
+          await ccApplyAiQuestion(q, ai, dataUrl);
+          renderQuestions();
+        } catch (err) {
+          promptEl.disabled = false;
+          setStatus('Could not read that screenshot: ' + (err.message || err), true);
+        }
+      };
+      const fromFile = async (file) => {
+        try { await runImage(await ccFileToDataUrl(file, 1600)); } catch (err) { setStatus(err.message || String(err), true); }
+      };
+      promptEl.addEventListener('paste', (e) => {
+        const items = e.clipboardData && e.clipboardData.items ? Array.from(e.clipboardData.items) : [];
+        const imgItem = items.find((it) => it.kind === 'file' && /^image\//.test(it.type));
+        if (!imgItem) return;                       // ordinary text paste
+        e.preventDefault();
+        const file = imgItem.getAsFile();
+        if (file) fromFile(file);
+      });
+      promptEl.addEventListener('dragover', (e) => {
+        if (e.dataTransfer && Array.from(e.dataTransfer.items || []).some((it) => it.kind === 'file')) e.preventDefault();
+      });
+      promptEl.addEventListener('drop', (e) => {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!file || !/^image\//.test(file.type)) return;
+        e.preventDefault();
+        fromFile(file);
+      });
+      const shotBtn = root.querySelector('[data-act=shot-upload]');
+      const shotFile = root.querySelector('[data-shot-file]');
+      if (shotBtn && shotFile) {
+        shotBtn.onclick = () => shotFile.click();
+        shotFile.onchange = (e) => { const f = e.target.files && e.target.files[0]; if (f) fromFile(f); };
+      }
+      const tidyBtn = root.querySelector('[data-act=ai-tidy]');
+      if (tidyBtn) tidyBtn.onclick = async () => {
+        const text = [q.prompt || ''].concat(q.type === 'mc' ? (q.options || []).filter(Boolean).map((o, i) => String.fromCharCode(65 + i) + ') ' + o) : []).join('\n').trim();
+        if (!text) { setStatus('Type or paste a question first.', true); return; }
+        setStatus('✨ Tidying the question and formatting the maths…');
+        tidyBtn.disabled = true;
+        try {
+          const ai = await ccQuestionFromContent({ text });
+          await ccApplyAiQuestion(q, ai, null);
+          renderQuestions();
+        } catch (err) {
+          tidyBtn.disabled = false;
+          setStatus('Could not tidy it: ' + (err.message || err), true);
+        }
+      };
+      const clearBtn = root.querySelector('[data-act=clear]');
+      if (clearBtn) clearBtn.onclick = () => {
+        if ((q.prompt || '').trim() && !confirm('Clear this question so you can type or paste a new one?')) return;
+        q.prompt = ''; q.imageUrl = ''; q.imageDescription = ''; q._aiCheck = false;
+        if (q.type === 'mc') { q.options = ['', '', '', '']; q.correctAnswer = 0; }
+        else if (q.type === 'short') q.correctAnswer = '';
+        else if (q.type === 'match') q.pairs = [{ left: '', right: '', rightImageUrl: '' }];
+        renderQuestions();
+        setTimeout(() => { const el = document.querySelector('#q-' + q.id + ' [data-f=prompt]'); if (el) el.focus(); }, 50);
+      };
+    }
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
     root.querySelector('[data-act=remove]').onclick = () => {
       const ix = questions.indexOf(q);
@@ -2627,20 +2705,7 @@ function renderQuestions() {
       aiImgBtn.disabled = true;
       aiImgBtn.textContent = '✨ Drawing…';
       try {
-        const r = await fetch('/api/ai/generate-diagram', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            prompt: q.prompt || '',
-            description: q.imageDescription || '',
-            options: Array.isArray(q.options) ? q.options : [],
-            subject: (els.subject && els.subject.value) || '',
-          }),
-        });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
-        q.imageUrl = await ccSvgToPngDataUrl(j.svg, 900);
+        q.imageUrl = await ccGenerateDiagramImage(q, (msg) => { aiImgBtn.textContent = msg; });
         q.imageDescription = '';
         renderQuestions();
       } catch (err) {
@@ -2739,7 +2804,7 @@ function renderQuestion(q, idx) {
         ${q.options.map((opt, oi) => `
           <div class="row" style="margin-bottom: 6px;">
             <input type="radio" name="correct-${q.id}" data-correct="${oi}" ${q.correctAnswer === oi ? 'checked' : ''} />
-            <input type="text" data-oi="${oi}" value="${escapeAttr(opt)}" placeholder="Option ${oi + 1}" />
+            <input type="text" dir="auto" data-oi="${oi}" value="${escapeAttr(opt)}" placeholder="Option ${oi + 1}" />
             ${q.options.length > 2 ? `<button class="btn ghost" data-rmop="${oi}">✕</button>` : ''}
           </div>
         `).join('')}
@@ -2832,11 +2897,22 @@ function renderQuestion(q, idx) {
         <div class="spacer"></div>
         <button class="btn ghost" data-act="up">↑</button>
         <button class="btn ghost" data-act="down">↓</button>
+        <button class="btn ghost" data-act="clear" title="Empty this question so you can type or paste a new one">🧹 Clear</button>
         <button class="btn danger" data-act="remove">Remove</button>
       </div>
       <div class="field">
-        <label>Prompt</label>
-        <textarea data-f="prompt">${escapeHtml(q.prompt || '')}</textarea>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+          <label style="margin:0;">Prompt</label>
+          <span style="font-size:12px; color:#6b7280;">type, paste text, or paste a screenshot of a question (⌘V)</span>
+          <span style="flex:1;"></span>
+          <button type="button" class="btn ghost" data-act="shot-upload" style="padding:4px 10px; font-size:12px;">📷 Screenshot → question</button>
+          <button type="button" class="btn ghost" data-act="ai-tidy" style="padding:4px 10px; font-size:12px;" title="Turn pasted text into a clean question with proper maths symbols">✨ Tidy with AI</button>
+          <input type="file" accept="image/*" data-shot-file style="display:none;" />
+        </div>
+        <textarea data-f="prompt" dir="auto" placeholder="Type the question — or paste a screenshot of a question and the AI will turn it into a real question.">${escapeHtml(q.prompt || '')}</textarea>
+        <div data-shot-status style="display:none; font-size:13px; color:#4338ca; margin-top:6px;"></div>
+        ${q._aiCheck ? '<div style="font-size:12px; color:#92400e; background:#fef3c7; border-radius:6px; padding:6px 10px; margin-top:6px;">⚠️ Filled in by AI — please check the question and the correct answer.</div>' : ''}
+        <div data-math-preview style="display:none; margin-top:8px; padding:10px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px;"></div>
       </div>
       <div class="field">
         <label>Points</label>
@@ -4251,7 +4327,9 @@ async function printAssessmentPDF(assessmentId) {
   }
   body += `<div class="pagebreak"></div><h2>Answer Key</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
 
-  const fullHtml = `<!DOCTYPE html><html><head><title>${escapeHtml(a.title)}</title>${css}</head><body>${body}</body></html>`;
+  const _rtlPrint = /arab|urdu|persian|farsi|hebrew|عرب/i.test(String(a.assessmentLanguage || ''));
+  const _mathJaxPrint = `<script>window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},svg:{fontCache:'global'}};<\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>`;
+  const fullHtml = `<!DOCTYPE html><html dir="${_rtlPrint ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>${escapeHtml(a.title)}</title>${css}${_mathJaxPrint}</head><body>${body}</body></html>`;
 
   // Build a same-origin modal wrapping a print iframe — no popup needed.
   const overlay = document.createElement('div');
@@ -4281,9 +4359,21 @@ async function printAssessmentPDF(assessmentId) {
   const iframe = document.getElementById('pdf-print-iframe');
   // Write the HTML into the iframe and trigger print after a moment.
   iframe.onload = () => {
-    setTimeout(() => {
-      try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch (e) {}
-    }, 300);
+    // Wait for the maths to finish rendering before opening the print dialog.
+    const w = iframe.contentWindow;
+    const go = () => { try { w.focus(); w.print(); } catch (e) {} };
+    let waited = 0;
+    const tick = () => {
+      const MJ = w && w.MathJax;
+      if (MJ && MJ.startup && MJ.startup.promise) {
+        MJ.startup.promise.then(() => (MJ.typesetPromise ? MJ.typesetPromise() : null))
+          .then(() => setTimeout(go, 200)).catch(() => setTimeout(go, 200));
+        return;
+      }
+      if ((waited += 150) > 5000) return go();
+      setTimeout(tick, 150);
+    };
+    setTimeout(tick, 150);
   };
   iframe.srcdoc = fullHtml;
   document.getElementById('pdf-print-btn').onclick = () => {
@@ -7906,3 +7996,441 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
   setInterval(sync, 400);
   sync();
 })();
+
+// ════════════════════════════════════════════════════════════════════════
+//  Maths preview, paste-a-screenshot questions, accurate AI diagrams
+// ════════════════════════════════════════════════════════════════════════
+
+function ccHasMath(s) {
+  return /\\\(|\\\[|\\[a-zA-Z]+|\^\{|_\{/.test(String(s || ''));
+}
+
+// Rendered preview of the question as students will see it (only shown
+// when the question contains maths). MathJax typesets it automatically.
+function ccMathPreviewHtml(q) {
+  const parts = [q.prompt || ''].concat(q.type === 'mc' ? (q.options || []) : []);
+  if (!parts.some(ccHasMath)) return '';
+  const opts = q.type === 'mc'
+    ? '<ol type="A" style="margin:6px 0 0 18px; padding:0;">' + (q.options || []).map((o) => `<li>${escapeHtml(o || '')}</li>`).join('') + '</ol>'
+    : '';
+  return `<div style="font-size:12px; color:#6b7280; margin-bottom:4px;">Preview — how students will see it</div>
+    <div dir="auto" style="font-size:16px; line-height:1.6; color:#1a1e33;">${escapeHtml(q.prompt || '')}</div>${opts}`;
+}
+
+function ccRefreshMathPreview(root, q) {
+  const box = root.querySelector('[data-math-preview]');
+  if (!box) return;
+  const html = ccMathPreviewHtml(q);
+  box.innerHTML = html;
+  box.style.display = html ? 'block' : 'none';
+  if (html && window.MathJax && window.MathJax.typesetPromise) {
+    try { window.MathJax.typesetPromise([box]).catch(() => {}); } catch (e) {}
+  }
+}
+
+function ccFileToDataUrl(file, maxW = 1600) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read the image'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('That file is not a readable image'));
+      img.onload = () => {
+        const ratio = Math.min(1, maxW / img.width);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * ratio); c.height = Math.round(img.height * ratio);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.92));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Crop a region (fractions 0–1) out of a data-URL image, with a small margin.
+function ccCropDataUrl(dataUrl, box, pad = 0.03) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const W = img.width, H = img.height;
+      const x = Math.max(0, (box.x - pad) * W), y = Math.max(0, (box.y - pad) * H);
+      const w = Math.min(W - x, (box.w + 2 * pad) * W), h = Math.min(H - y, (box.h + 2 * pad) * H);
+      if (w < 10 || h < 10) return resolve('');
+      const scale = Math.min(1, 900 / w);
+      const c = document.createElement('canvas');
+      c.width = Math.round(w * scale); c.height = Math.round(h * scale);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, x, y, w, h, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.9));
+    };
+    img.onerror = () => resolve('');
+    img.src = dataUrl;
+  });
+}
+
+async function ccQuestionFromContent(payload) {
+  const r = await fetch('/api/ai/question-from-content', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(Object.assign({
+      subject: (els.subject && els.subject.value) || '',
+      language: (els.assessmentLanguage && els.assessmentLanguage.value) || (document.getElementById('assessment-language') || {}).value || '',
+    }, payload)),
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j.question;
+}
+
+// Replace the question in its slot with what the AI read.
+async function ccApplyAiQuestion(q, ai, sourceImage) {
+  const types = ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match'];
+  const t = types.includes(ai.type) ? ai.type : (q.type || 'short');
+  q.type = t;
+  q.prompt = String(ai.prompt || '');
+  q.imageDescription = '';
+  if (ai.points && Number(ai.points) > 0) q.points = Number(ai.points);
+  if (t === 'mc') {
+    q.options = (Array.isArray(ai.options) && ai.options.length ? ai.options : ['', '', '', '']).map(String);
+    const i = parseInt(ai.correctAnswer, 10);
+    q.correctAnswer = i >= 0 && i < q.options.length ? i : 0;
+  } else {
+    q.options = [];
+    if (t === 'tf') q.correctAnswer = ai.correctAnswer === true || String(ai.correctAnswer).toLowerCase() === 'true';
+    else if (t === 'tfng') { const v = String(ai.correctAnswer || '').toLowerCase(); q.correctAnswer = ['true', 'false', 'ng'].includes(v) ? v : 'true'; }
+    else if (t === 'short') q.correctAnswer = ai.correctAnswer != null ? String(ai.correctAnswer) : '';
+    else q.correctAnswer = null;
+  }
+  if (t === 'match') {
+    q.matchVariant = ai.matchVariant === 'word-word' ? 'word-word' : 'word-definition';
+    q.pairs = (Array.isArray(ai.pairs) ? ai.pairs : []).slice(0, 30).map((p) => ({ left: String((p && p.left) || ''), right: String((p && p.right) || ''), rightImageUrl: '' }));
+    if (!q.pairs.length) q.pairs = [{ left: '', right: '', rightImageUrl: '' }];
+  }
+  q.imageUrl = '';
+  if (sourceImage && ai.hasFigure && ai.figureBox) {
+    q.imageUrl = await ccCropDataUrl(sourceImage, ai.figureBox);
+  }
+  q._aiCheck = !!ai.answerUnsure || ['mc', 'tf', 'tfng', 'short'].includes(t);
+}
+
+// ── Safe maths expression compiler (no eval) ─────────────────────────────
+function ccCompileExpr(src) {
+  let s = String(src || '').trim()
+    .replace(/^\s*(?:y|f\s*\(\s*x\s*\))\s*=/i, '')
+    .replace(/\*\*/g, '^').replace(/π/g, 'pi').replace(/[−–]/g, '-').replace(/×/g, '*').replace(/÷/g, '/')
+    .replace(/\s+/g, '');
+  const FUN = {
+    asin: Math.asin, acos: Math.acos, atan: Math.atan, sqrt: Math.sqrt, sin: Math.sin, cos: Math.cos, tan: Math.tan,
+    abs: Math.abs, exp: Math.exp, ln: Math.log, log: (v) => Math.log10(v), sec: (v) => 1 / Math.cos(v), csc: (v) => 1 / Math.sin(v), cot: (v) => 1 / Math.tan(v),
+  };
+  const NAMES = Object.keys(FUN).sort((a, b) => b.length - a.length).concat(['pi', 'x', 'e']);
+  let i = 0;
+  const peek = () => s[i];
+  const startsPrimary = (c) => c !== undefined && /[0-9.a-zA-Z(]/.test(c);
+  function expr() {
+    let f = term();
+    for (;;) {
+      const c = peek();
+      if (c === '+' || c === '-') { i++; const a = f, b = term(); f = c === '+' ? (x) => a(x) + b(x) : (x) => a(x) - b(x); } else return f;
+    }
+  }
+  function term() {
+    let f = unary();
+    for (;;) {
+      const c = peek();
+      if (c === '*' || c === '/') { i++; const a = f, b = unary(); f = c === '*' ? (x) => a(x) * b(x) : (x) => a(x) / b(x); }
+      else if (startsPrimary(c)) { const a = f, b = power(); f = (x) => a(x) * b(x); }
+      else return f;
+    }
+  }
+  function unary() {
+    const c = peek();
+    if (c === '-') { i++; const a = unary(); return (x) => -a(x); }
+    if (c === '+') { i++; return unary(); }
+    return power();
+  }
+  function power() {
+    const base = primary();
+    if (peek() === '^') { i++; const ex = unary(); return (x) => Math.pow(base(x), ex(x)); }
+    return base;
+  }
+  function primary() {
+    const c = peek();
+    if (c === '(') { i++; const f = expr(); if (peek() !== ')') throw new Error('Missing )'); i++; return f; }
+    if (/[0-9.]/.test(c || '')) {
+      let j = i; while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      const v = parseFloat(s.slice(i, j)); if (isNaN(v)) throw new Error('Bad number'); i = j; return () => v;
+    }
+    if (/[a-zA-Z]/.test(c || '')) {
+      const name = NAMES.find((n) => s.startsWith(n, i));
+      if (!name) throw new Error('Unknown symbol at ' + s.slice(i, i + 6));
+      i += name.length;
+      if (FUN[name]) {
+        const fn = FUN[name];
+        if (peek() === '(') { i++; const arg = expr(); if (peek() !== ')') throw new Error('Missing )'); i++; return (x) => fn(arg(x)); }
+        const arg = power(); return (x) => fn(arg(x));
+      }
+      if (name === 'x') return (x) => x;
+      if (name === 'pi') return () => Math.PI;
+      return () => Math.E;
+    }
+    throw new Error('Unexpected ' + (c || 'end'));
+  }
+  const f = expr();
+  if (i < s.length) throw new Error('Unexpected ' + s[i]);
+  return f;
+}
+
+function ccNiceStep(range) {
+  const raw = range / 10;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / p;
+  return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * p;
+}
+function ccFmtNum(v) {
+  const r = Math.round(v * 1000) / 1000;
+  return String(r).replace('-', '−');
+}
+function ccPlainLabel(s) {
+  return String(s == null ? '' : s)
+    .replace(/\\\(|\\\)|\\\[|\\\]/g, '').replace(/\^\{?\\circ\}?/g, '°')
+    .replace(/\\theta/g, 'θ').replace(/\\alpha/g, 'α').replace(/\\beta/g, 'β').replace(/\\pi/g, 'π').replace(/\\Delta/g, 'Δ')
+    .replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\le(q)?/g, '≤').replace(/\\ge(q)?/g, '≥')
+    .replace(/\^\{?2\}?/g, '²').replace(/\^\{?3\}?/g, '³').replace(/\\[a-zA-Z]+/g, '').replace(/[{}]/g, '');
+}
+function ccEsc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+const CC_SVG_HEAD = '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400" font-family="Arial, Helvetica, sans-serif">'
+  + '<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#111"/></marker>'
+  + '<marker id="arb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1d4ed8"/></marker></defs>'
+  + '<rect width="600" height="400" fill="#fff"/>';
+
+function ccRenderAxes(spec) {
+  const W = 600, H = 400, m = { l: 50, r: 30, t: 25, b: 40 };
+  const fns = (spec.functions || []).map((f) => ({ ...f, fn: ccCompileExpr(f.expr) }));
+  let [x0, x1] = Array.isArray(spec.x) && spec.x.length === 2 ? spec.x.map(Number) : [-10, 10];
+  if (!(x1 > x0)) [x0, x1] = [-10, 10];
+  let y0, y1;
+  if (Array.isArray(spec.y) && spec.y.length === 2 && Number(spec.y[1]) > Number(spec.y[0])) [y0, y1] = spec.y.map(Number);
+  else {
+    const ys = [0];
+    for (const f of fns) for (let k = 0; k <= 200; k++) { const x = x0 + (x1 - x0) * k / 200; const v = f.fn(x); if (isFinite(v)) ys.push(v); }
+    (spec.points || []).forEach((p) => ys.push(Number(p.y)));
+    let lo = Math.min(...ys), hi = Math.max(...ys); if (hi - lo < 1e-9) { lo -= 5; hi += 5; }
+    const pad = (hi - lo) * 0.1; y0 = lo - pad; y1 = hi + pad;
+  }
+  const sx = (v) => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r);
+  const sy = (v) => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  let out = CC_SVG_HEAD + `<clipPath id="plot"><rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}"/></clipPath>`;
+  const xs = ccNiceStep(x1 - x0), ys2 = ccNiceStep(y1 - y0);
+  const ax = y0 <= 0 && y1 >= 0 ? sy(0) : sy(y0);
+  const ay = x0 <= 0 && x1 >= 0 ? sx(0) : sx(x0);
+  if (spec.grid !== false) {
+    for (let v = Math.ceil(x0 / xs) * xs; v <= x1 + 1e-9; v += xs) out += `<line x1="${sx(v)}" y1="${m.t}" x2="${sx(v)}" y2="${H - m.b}" stroke="#e5e7eb" stroke-width="1"/>`;
+    for (let v = Math.ceil(y0 / ys2) * ys2; v <= y1 + 1e-9; v += ys2) out += `<line x1="${m.l}" y1="${sy(v)}" x2="${W - m.r}" y2="${sy(v)}" stroke="#e5e7eb" stroke-width="1"/>`;
+  }
+  out += `<line x1="${m.l}" y1="${ax}" x2="${W - m.r + 12}" y2="${ax}" stroke="#111" stroke-width="1.6" marker-end="url(#ar)"/>`;
+  out += `<line x1="${ay}" y1="${H - m.b}" x2="${ay}" y2="${m.t - 12}" stroke="#111" stroke-width="1.6" marker-end="url(#ar)"/>`;
+  for (let v = Math.ceil(x0 / xs) * xs; v <= x1 + 1e-9; v += xs) {
+    if (Math.abs(v) < 1e-9) continue;
+    out += `<line x1="${sx(v)}" y1="${ax - 4}" x2="${sx(v)}" y2="${ax + 4}" stroke="#111"/><text x="${sx(v)}" y="${ax + 18}" font-size="13" text-anchor="middle">${ccFmtNum(v)}</text>`;
+  }
+  for (let v = Math.ceil(y0 / ys2) * ys2; v <= y1 + 1e-9; v += ys2) {
+    if (Math.abs(v) < 1e-9) continue;
+    out += `<line x1="${ay - 4}" y1="${sy(v)}" x2="${ay + 4}" y2="${sy(v)}" stroke="#111"/><text x="${ay - 8}" y="${sy(v) + 4}" font-size="13" text-anchor="end">${ccFmtNum(v)}</text>`;
+  }
+  if (x0 <= 0 && x1 >= 0 && y0 <= 0 && y1 >= 0) out += `<text x="${sx(0) - 8}" y="${sy(0) + 16}" font-size="13" text-anchor="end">0</text>`;
+  out += `<text x="${W - m.r + 14}" y="${ax - 8}" font-size="16" font-style="italic" text-anchor="end">${ccEsc(ccPlainLabel(spec.xLabel || 'x'))}</text>`;
+  out += `<text x="${ay + 10}" y="${m.t - 2}" font-size="16" font-style="italic">${ccEsc(ccPlainLabel(spec.yLabel || 'y'))}</text>`;
+  const colors = ['#1d4ed8', '#dc2626', '#047857', '#7c3aed'];
+  const usedY = [];
+  const freeY = (y) => { let v = y; while (usedY.some((u) => Math.abs(u - v) < 20)) v += 22; usedY.push(v); return v; };
+  (spec.polygons || []).forEach((pg) => {
+    const pts = (pg.points || []).map((p) => `${sx(+p[0])},${sy(+p[1])}`).join(' ');
+    if (pts) out += `<polygon points="${pts}" fill="#93c5fd" fill-opacity="0.25" stroke="#111" stroke-width="2" clip-path="url(#plot)"/>`;
+  });
+  fns.forEach((f, idx) => {
+    const [d0, d1] = Array.isArray(f.domain) && f.domain.length === 2 ? f.domain.map(Number) : [x0, x1];
+    const a0 = Math.max(x0, d0), a1 = Math.min(x1, d1);
+    let d = '', pen = false, prev = null, last = null;
+    const N = 800, span = y1 - y0;
+    for (let k = 0; k <= N; k++) {
+      const x = a0 + (a1 - a0) * k / N, y = f.fn(x);
+      if (!isFinite(y) || y < y0 - span * 3 || y > y1 + span * 3 || (prev !== null && Math.abs(y - prev) > span * 1.5)) { pen = false; prev = isFinite(y) ? y : null; continue; }
+      d += (pen ? 'L' : 'M') + sx(x).toFixed(2) + ',' + sy(y).toFixed(2);
+      pen = true; prev = y;
+      if (y >= y0 && y <= y1) last = [x, y];
+    }
+    const col = colors[idx % colors.length];
+    out += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" clip-path="url(#plot)"/>`;
+    if (f.label && last) out += `<text x="${Math.min(sx(last[0]) + 6, W - m.r - 4)}" y="${freeY(Math.max(sy(last[1]) - 8, m.t + 12))}" font-size="15" fill="${col}" stroke="#fff" stroke-width="4" paint-order="stroke" text-anchor="${sx(last[0]) > W - 140 ? 'end' : 'start'}">${ccEsc(ccPlainLabel(f.label))}</text>`;
+  });
+  (spec.segments || []).forEach((sg) => {
+    if (!sg.from || !sg.to) return;
+    const [ax1, ay1] = sg.from.map(Number), [ax2, ay2] = sg.to.map(Number);
+    out += `<line x1="${sx(ax1)}" y1="${sy(ay1)}" x2="${sx(ax2)}" y2="${sy(ay2)}" stroke="#111" stroke-width="2" ${sg.dashed ? 'stroke-dasharray="6 5"' : ''} clip-path="url(#plot)"/>`;
+    if (sg.label) out += `<text x="${(sx(ax1) + sx(ax2)) / 2 + 8}" y="${(sy(ay1) + sy(ay2)) / 2 - 8}" font-size="15">${ccEsc(ccPlainLabel(sg.label))}</text>`;
+  });
+  (spec.points || []).forEach((p) => {
+    const X = sx(+p.x), Y = sy(+p.y);
+    out += `<circle cx="${X}" cy="${Y}" r="4.5" fill="${p.open ? '#fff' : '#111'}" stroke="#111" stroke-width="2"/>`;
+    if (p.label) out += `<text x="${X + 8}" y="${Y - 10}" font-size="15" font-weight="bold" stroke="#fff" stroke-width="4" paint-order="stroke">${ccEsc(ccPlainLabel(p.label))}</text>`;
+  });
+  return out + '</svg>';
+}
+
+function ccRenderNumberLine(spec) {
+  const W = 600, y = 220, l = 45, r = 555;
+  let min = Number(spec.min), max = Number(spec.max);
+  if (!(max > min)) { min = -5; max = 5; }
+  const step = Number(spec.step) > 0 ? Number(spec.step) : ccNiceStep(max - min) || 1;
+  const sx = (v) => l + (v - min) / (max - min) * (r - l);
+  let out = CC_SVG_HEAD + `<line x1="${l - 25}" y1="${y}" x2="${r + 25}" y2="${y}" stroke="#111" stroke-width="2" marker-start="url(#ar)" marker-end="url(#ar)"/>`;
+  for (let v = min, n = 0; v <= max + 1e-9 && n < 60; v += step, n++) {
+    out += `<line x1="${sx(v)}" y1="${y - 8}" x2="${sx(v)}" y2="${y + 8}" stroke="#111" stroke-width="2"/><text x="${sx(v)}" y="${y + 30}" font-size="15" text-anchor="middle">${ccFmtNum(v)}</text>`;
+  }
+  (spec.intervals || []).forEach((iv) => {
+    const a = iv.from == null ? null : Number(iv.from), b = iv.to == null ? null : Number(iv.to);
+    const X1 = a == null ? l - 22 : sx(a), X2 = b == null ? r + 22 : sx(b);
+    out += `<line x1="${X1}" y1="${y - 28}" x2="${X2}" y2="${y - 28}" stroke="#1d4ed8" stroke-width="4" ${a == null ? 'marker-start="url(#arb)"' : ''} ${b == null ? 'marker-end="url(#arb)"' : ''}/>`;
+    if (a != null) out += `<line x1="${X1}" y1="${y - 28}" x2="${X1}" y2="${y}" stroke="#1d4ed8" stroke-dasharray="3 3"/><circle cx="${X1}" cy="${y - 28}" r="7" fill="${iv.fromOpen ? '#fff' : '#1d4ed8'}" stroke="#1d4ed8" stroke-width="2.5"/>`;
+    if (b != null) out += `<line x1="${X2}" y1="${y - 28}" x2="${X2}" y2="${y}" stroke="#1d4ed8" stroke-dasharray="3 3"/><circle cx="${X2}" cy="${y - 28}" r="7" fill="${iv.toOpen ? '#fff' : '#1d4ed8'}" stroke="#1d4ed8" stroke-width="2.5"/>`;
+  });
+  (spec.points || []).forEach((p) => {
+    const X = sx(Number(p.x));
+    out += `<circle cx="${X}" cy="${y}" r="7" fill="${p.open ? '#fff' : '#111'}" stroke="#111" stroke-width="2.5"/>`;
+    if (p.label) out += `<text x="${X}" y="${y - 18}" font-size="16" font-weight="bold" text-anchor="middle">${ccEsc(ccPlainLabel(p.label))}</text>`;
+  });
+  return out + '</svg>';
+}
+
+function ccSolveTriangle(sides, angles) {
+  const rad = (d) => d * Math.PI / 180, deg = (r) => r * 180 / Math.PI;
+  let a = +((sides || {}).a) || 0, b = +((sides || {}).b) || 0, c = +((sides || {}).c) || 0;
+  let A = +((angles || {}).A) || 0, B = +((angles || {}).B) || 0, C = +((angles || {}).C) || 0;
+  for (let k = 0; k < 5; k++) {
+    if ([A, B, C].filter(Boolean).length === 2) { if (!A) A = 180 - B - C; else if (!B) B = 180 - A - C; else C = 180 - A - B; }
+    if (a && b && c && !(A && B && C)) {
+      A = deg(Math.acos((b * b + c * c - a * a) / (2 * b * c)));
+      B = deg(Math.acos((a * a + c * c - b * b) / (2 * a * c)));
+      C = 180 - A - B;
+    }
+    if (!a && b && c && A) a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(rad(A)));
+    if (!b && a && c && B) b = Math.sqrt(a * a + c * c - 2 * a * c * Math.cos(rad(B)));
+    if (!c && a && b && C) c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(rad(C)));
+    const pair = [[a, A], [b, B], [c, C]].find(([s, t]) => s && t);
+    if (pair) {
+      const K = pair[0] / Math.sin(rad(pair[1]));
+      if (!a && A) a = K * Math.sin(rad(A));
+      if (!b && B) b = K * Math.sin(rad(B));
+      if (!c && C) c = K * Math.sin(rad(C));
+      const asin = (s) => deg(Math.asin(Math.max(-1, Math.min(1, s / K))));
+      if ([A, B, C].filter(Boolean).length < 2) {
+        if (a && !A) A = asin(a); else if (b && !B) B = asin(b); else if (c && !C) C = asin(c);
+      }
+    }
+  }
+  const ok = [a, b, c, A, B, C].every((v) => isFinite(v) && v > 0) && Math.abs(A + B + C - 180) < 1;
+  if (!ok) return null;
+  return { a, b, c, A, B, C };
+}
+
+function ccRenderTriangle(spec) {
+  let t = ccSolveTriangle(spec.sides, spec.angles);
+  const fallback = !t;
+  if (!t) { t = { A: 62, B: 48, C: 70 }; const K = 1; t.a = K * Math.sin(t.A * Math.PI / 180); t.b = K * Math.sin(t.B * Math.PI / 180); t.c = K * Math.sin(t.C * Math.PI / 180); }
+  const rad = (d) => d * Math.PI / 180;
+  const P = { B: [0, 0], C: [t.a, 0], A: [t.c * Math.cos(rad(t.B)), t.c * Math.sin(rad(t.B))] };
+  const xs = [P.A[0], P.B[0], P.C[0]], ys = [P.A[1], P.B[1], P.C[1]];
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const sc = Math.min(470 / (maxX - minX || 1), 300 / (maxY - minY || 1));
+  const offX = 300 - sc * (minX + maxX) / 2, offY = 200 + sc * (minY + maxY) / 2;
+  const S = {}; for (const k of ['A', 'B', 'C']) S[k] = [offX + sc * P[k][0], offY - sc * P[k][1]];
+  const G = [(S.A[0] + S.B[0] + S.C[0]) / 3, (S.A[1] + S.B[1] + S.C[1]) / 3];
+  const unit = (v) => { const L = Math.hypot(v[0], v[1]) || 1; return [v[0] / L, v[1] / L]; };
+  const labels = spec.labels || {}, sideLabels = spec.sideLabels || {}, angleLabels = spec.angleLabels || {};
+  let out = CC_SVG_HEAD + `<polygon points="${['A', 'B', 'C'].map((k) => S[k].join(',')).join(' ')}" fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const opp = { a: ['B', 'C'], b: ['C', 'A'], c: ['A', 'B'] };
+  const angVal = { A: t.A, B: t.B, C: t.C };
+  for (const V of ['A', 'B', 'C']) {
+    const [Q1, Q2] = ['A', 'B', 'C'].filter((k) => k !== V);
+    const u1 = unit([S[Q1][0] - S[V][0], S[Q1][1] - S[V][1]]), u2 = unit([S[Q2][0] - S[V][0], S[Q2][1] - S[V][1]]);
+    const isRight = !fallback && Math.abs(angVal[V] - 90) < 0.6;
+    if (isRight) {
+      const s = 16, p1 = [S[V][0] + u1[0] * s, S[V][1] + u1[1] * s], p2 = [p1[0] + u2[0] * s, p1[1] + u2[1] * s], p3 = [S[V][0] + u2[0] * s, S[V][1] + u2[1] * s];
+      out += `<polyline points="${p1.join(',')} ${p2.join(',')} ${p3.join(',')}" fill="none" stroke="#111" stroke-width="1.8"/>`;
+    }
+    const al = angleLabels[V];
+    if (al && !isRight) {
+      const r = 30, s1 = [S[V][0] + u1[0] * r, S[V][1] + u1[1] * r], s2 = [S[V][0] + u2[0] * r, S[V][1] + u2[1] * r];
+      const sweep = (u1[0] * u2[1] - u1[1] * u2[0]) > 0 ? 1 : 0;
+      out += `<path d="M${s1.join(',')} A${r},${r} 0 0 ${sweep} ${s2.join(',')}" fill="none" stroke="#111" stroke-width="1.6"/>`;
+      const bis = unit([u1[0] + u2[0], u1[1] + u2[1]]);
+      out += `<text x="${S[V][0] + bis[0] * 50}" y="${S[V][1] + bis[1] * 50 + 5}" font-size="16" text-anchor="middle">${ccEsc(ccPlainLabel(al))}</text>`;
+    } else if (al && isRight && !/^90/.test(String(al))) {
+      const bis = unit([u1[0] + u2[0], u1[1] + u2[1]]);
+      out += `<text x="${S[V][0] + bis[0] * 44}" y="${S[V][1] + bis[1] * 44 + 5}" font-size="16" text-anchor="middle">${ccEsc(ccPlainLabel(al))}</text>`;
+    }
+    const out1 = unit([S[V][0] - G[0], S[V][1] - G[1]]);
+    out += `<text x="${S[V][0] + out1[0] * 20}" y="${S[V][1] + out1[1] * 20 + 6}" font-size="18" font-weight="bold" font-style="italic" text-anchor="middle">${ccEsc(ccPlainLabel(labels[V] || V))}</text>`;
+  }
+  for (const sd of ['a', 'b', 'c']) {
+    const lab = sideLabels[sd];
+    if (!lab) continue;
+    const [p, q] = opp[sd];
+    const M = [(S[p][0] + S[q][0]) / 2, (S[p][1] + S[q][1]) / 2];
+    const n = unit([M[0] - G[0], M[1] - G[1]]);
+    const anc = n[0] > 0.35 ? 'start' : n[0] < -0.35 ? 'end' : 'middle';
+    out += `<text x="${M[0] + n[0] * 12}" y="${M[1] + n[1] * 16 + 6}" font-size="16" text-anchor="${anc}">${ccEsc(ccPlainLabel(lab))}</text>`;
+  }
+  return out + '</svg>';
+}
+
+function ccRenderDiagramSpec(spec) {
+  if (!spec || typeof spec !== 'object') return '';
+  if (spec.kind === 'axes') return ccRenderAxes(spec);
+  if (spec.kind === 'numberline') return ccRenderNumberLine(spec);
+  if (spec.kind === 'triangle') return ccRenderTriangle(spec);
+  return '';
+}
+
+async function ccGenerateDiagramImage(q, onStatus) {
+  const status = (s) => { try { onStatus && onStatus(s); } catch (e) {} };
+  const body = {
+    prompt: q.prompt || '',
+    description: q.imageDescription || '',
+    options: Array.isArray(q.options) ? q.options : [],
+    subject: (els.subject && els.subject.value) || '',
+  };
+  const call = async (url, payload) => {
+    const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    return j;
+  };
+  status('✨ Drawing…');
+  let j = await call('/api/ai/generate-diagram', body);
+  if (j.spec) {
+    try {
+      const svg = ccRenderDiagramSpec(j.spec);
+      if (svg) return await ccSvgToPngDataUrl(svg, 900);
+    } catch (e) { console.warn('[diagram spec]', e); }
+    status('✨ Drawing…');
+    j = await call('/api/ai/generate-diagram', Object.assign({}, body, { forceSvg: true }));
+  }
+  if (!j.svg) throw new Error('No diagram was returned.');
+  let png = await ccSvgToPngDataUrl(j.svg, 900);
+  status('🔍 Checking accuracy…');
+  try {
+    const rv = await call('/api/ai/review-diagram', { prompt: body.prompt, options: body.options, svg: j.svg, image: png });
+    if (rv && rv.svg) png = await ccSvgToPngDataUrl(rv.svg, 900);
+  } catch (e) { /* keep the first drawing */ }
+  return png;
+}
+

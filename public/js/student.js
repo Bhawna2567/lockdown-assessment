@@ -1131,6 +1131,8 @@ function renderQuestions() {
   }
 
   els.questions.innerHTML = banner + sectionsHtml;
+  // Right-to-left languages (Arabic, Urdu, Persian, Hebrew) read right to left.
+  els.questions.dir = /arab|urdu|persian|farsi|hebrew|عرب/i.test(String(currentAssessment.assessmentLanguage || '')) ? 'rtl' : '';
 
   // Wire up answer capture
   currentAssessment.questions.forEach((q) => {

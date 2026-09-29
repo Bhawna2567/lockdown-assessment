@@ -16,6 +16,114 @@ const fs = require('fs');
 const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 
+
+// ── Word equations (OMML) → LaTeX, so equations survive text extraction ──
+// mammoth ignores Word's equation objects entirely; this rewrites each one
+// as a text run containing \( … \) LaTeX before mammoth reads the file.
+const _OMML_CHARS = {
+  '×': '\\times ', '÷': '\\div ', '±': '\\pm ', '∓': '\\mp ', '≤': '\\le ', '≥': '\\ge ', '≠': '\\ne ', '≈': '\\approx ', '≡': '\\equiv ',
+  '∞': '\\infty ', '°': '^{\\circ}', '·': '\\cdot ', '⋅': '\\cdot ', '−': '-', '→': '\\rightarrow ', '←': '\\leftarrow ', '⇌': '\\rightleftharpoons ', '⇒': '\\Rightarrow ',
+  'π': '\\pi ', 'θ': '\\theta ', 'α': '\\alpha ', 'β': '\\beta ', 'γ': '\\gamma ', 'δ': '\\delta ', 'Δ': '\\Delta ', 'λ': '\\lambda ', 'μ': '\\mu ', 'σ': '\\sigma ', 'Σ': '\\Sigma ',
+  'ω': '\\omega ', 'Ω': '\\Omega ', 'φ': '\\phi ', 'ϕ': '\\phi ', 'ρ': '\\rho ', 'τ': '\\tau ', 'ε': '\\varepsilon ', 'η': '\\eta ', '∠': '\\angle ', '△': '\\triangle ', '⊥': '\\perp ', '∥': '\\parallel ',
+  '∈': '\\in ', '∪': '\\cup ', '∩': '\\cap ', '⊂': '\\subset ', '∴': '\\therefore ', '∂': '\\partial ', '∇': '\\nabla ', '…': '\\ldots ', '⋯': '\\cdots ',
+};
+const _OMML_FUNCS = /^(sin|cos|tan|sec|csc|cot|log|ln|exp|lim|max|min|sinh|cosh|tanh|arcsin|arccos|arctan)$/;
+
+function _ommlToLatex(root) {
+  const local = (n) => n.localName || String(n.nodeName).split(':').pop();
+  const kids = (n) => { const out = []; for (let c = n.firstChild; c; c = c.nextSibling) if (c.nodeType === 1) out.push(c); return out; };
+  const child = (n, name) => (n ? kids(n).find((c) => local(c) === name) : null);
+  const attrVal = (n) => (n ? (n.getAttribute('m:val') || n.getAttribute('val') || '') : '');
+  const chars = (t) => [...String(t || '')].map((ch) => _OMML_CHARS[ch] !== undefined ? _OMML_CHARS[ch] : ch).join('');
+  const conv = (n) => (n ? kids(n).map(one).join('') : '');
+  const delim = (c) => ({ '(': '(', ')': ')', '[': '[', ']': ']', '{': '\\{', '}': '\\}', '|': '|', '‖': '\\|', '⟨': '\\langle ', '⟩': '\\rangle ', '': '.' }[c] ?? c);
+  function one(n) {
+    switch (local(n)) {
+      case 'r': return kids(n).filter((c) => local(c) === 't').map((t) => chars(t.textContent)).join('');
+      case 'f': return '\\frac{' + conv(child(n, 'num')) + '}{' + conv(child(n, 'den')) + '}';
+      case 'sSup': return '{' + conv(child(n, 'e')) + '}^{' + conv(child(n, 'sup')) + '}';
+      case 'sSub': return '{' + conv(child(n, 'e')) + '}_{' + conv(child(n, 'sub')) + '}';
+      case 'sSubSup': return '{' + conv(child(n, 'e')) + '}_{' + conv(child(n, 'sub')) + '}^{' + conv(child(n, 'sup')) + '}';
+      case 'sPre': return '{}_{' + conv(child(n, 'sub')) + '}^{' + conv(child(n, 'sup')) + '}' + conv(child(n, 'e'));
+      case 'rad': {
+        const deg = conv(child(n, 'deg')).trim();
+        return (deg ? '\\sqrt[' + deg + ']{' : '\\sqrt{') + conv(child(n, 'e')) + '}';
+      }
+      case 'd': {
+        const pr = child(n, 'dPr');
+        const bc = child(pr, 'begChr'), ec = child(pr, 'endChr');
+        const beg = bc ? attrVal(bc) : '(', end = ec ? attrVal(ec) : ')';
+        const parts = kids(n).filter((c) => local(c) === 'e').map(conv);
+        return '\\left' + delim(beg) + parts.join(',') + '\\right' + delim(end);
+      }
+      case 'nary': {
+        const pr = child(n, 'naryPr');
+        const ch = child(pr, 'chr');
+        const sym = ch ? attrVal(ch) : '∫';
+        const op = { '∑': '\\sum', '∏': '\\prod', '∫': '\\int', '∬': '\\iint', '∭': '\\iiint', '∮': '\\oint', '⋃': '\\bigcup', '⋂': '\\bigcap' }[sym] || '\\int';
+        const sub = conv(child(n, 'sub')), sup = conv(child(n, 'sup'));
+        return op + (sub ? '_{' + sub + '}' : '') + (sup ? '^{' + sup + '}' : '') + ' ' + conv(child(n, 'e'));
+      }
+      case 'func': {
+        const name = conv(child(n, 'fName')).trim();
+        return (_OMML_FUNCS.test(name) ? '\\' + name : name) + ' ' + conv(child(n, 'e'));
+      }
+      case 'acc': {
+        const ch = child(child(n, 'accPr'), 'chr');
+        const c = ch ? attrVal(ch) : '̂';
+        const cmd = { '⃗': '\\vec', '→': '\\vec', '̅': '\\overline', '¯': '\\overline', '̂': '\\hat', '̇': '\\dot', '̈': '\\ddot', '̃': '\\tilde' }[c] || '\\hat';
+        return cmd + '{' + conv(child(n, 'e')) + '}';
+      }
+      case 'bar': return '\\overline{' + conv(child(n, 'e')) + '}';
+      case 'groupChr': return '\\underbrace{' + conv(child(n, 'e')) + '}';
+      case 'limLow': return '{' + conv(child(n, 'e')) + '}_{' + conv(child(n, 'lim')) + '}';
+      case 'limUpp': return '{' + conv(child(n, 'e')) + '}^{' + conv(child(n, 'lim')) + '}';
+      case 'eqArr': return '\\begin{aligned}' + kids(n).filter((c) => local(c) === 'e').map(conv).join('\\\\') + '\\end{aligned}';
+      case 'm': return '\\begin{pmatrix}' + kids(n).filter((c) => local(c) === 'mr').map((r) => kids(r).filter((c) => local(c) === 'e').map(conv).join('&')).join('\\\\') + '\\end{pmatrix}';
+      default:
+        if (/Pr$/.test(local(n))) return '';
+        return conv(n);
+    }
+  }
+  return conv(root).replace(/\s+/g, ' ').trim();
+}
+
+async function _ccDocxMathToLatex(buf) {
+  let JSZip, xmldom;
+  try { JSZip = require('jszip'); xmldom = require('@xmldom/xmldom'); } catch (e) { return buf; }
+  const zip = await JSZip.loadAsync(buf);
+  const f = zip.file('word/document.xml');
+  if (!f) return buf;
+  const xml = await f.async('string');
+  if (xml.indexOf('<m:oMath') === -1) return buf;
+  const doc = new xmldom.DOMParser().parseFromString(xml, 'text/xml');
+  const W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  const makeRun = (text) => {
+    const r = doc.createElementNS(W, 'w:r');
+    const t = doc.createElementNS(W, 'w:t');
+    t.setAttribute('xml:space', 'preserve');
+    t.appendChild(doc.createTextNode(text));
+    r.appendChild(t);
+    return r;
+  };
+  const replaceAll = (tag, wrapL, wrapR) => {
+    const list = Array.from(doc.getElementsByTagName(tag));
+    for (const node of list) {
+      if (!node.parentNode) continue;
+      const latex = tag === 'm:oMathPara'
+        ? Array.from(node.getElementsByTagName('m:oMath')).map(_ommlToLatex).join(' \\\\ ')
+        : _ommlToLatex(node);
+      if (!latex) { node.parentNode.removeChild(node); continue; }
+      node.parentNode.replaceChild(makeRun(' ' + wrapL + latex + wrapR + ' '), node);
+    }
+  };
+  replaceAll('m:oMathPara', '\\[', '\\]');
+  replaceAll('m:oMath', '\\(', '\\)');
+  const out = new xmldom.XMLSerializer().serializeToString(doc);
+  zip.file('word/document.xml', out);
+  return zip.generateAsync({ type: 'nodebuffer' });
+}
+
 async function extractText(filePath, mimeType, originalName = '') {
   const name = (originalName || '').toLowerCase();
   const buf = fs.readFileSync(filePath);
@@ -27,7 +135,9 @@ async function extractText(filePath, mimeType, originalName = '') {
     mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
     name.endsWith('.docx')
   ) {
-    const result = await mammoth.extractRawText({ buffer: buf });
+    let docBuf = buf;
+    try { docBuf = await _ccDocxMathToLatex(buf); } catch (e) { docBuf = buf; }
+    const result = await mammoth.extractRawText({ buffer: docBuf });
     return result.value || '';
   }
   if (

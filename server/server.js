@@ -3137,7 +3137,7 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
       autoMax += q.points;
       correct =
         typeof given === 'string' &&
-        given.trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
+        _ccNormShort(given) === _ccNormShort(q.correctAnswer);
       if (correct) autoScore += q.points;
     } else if (q.type === 'match' && Array.isArray(q.pairs) && q.pairs.length) {
       // Match scoring: the student sends { shuffleIndexMap, picks } where
@@ -4235,6 +4235,214 @@ app.get('/api/assessments/:id/scoresheet', requireTeacher, async (req, res) => {
 //   - Screenshot (PNG / JPEG / GIF / WebP) → forwarded as a Claude Vision
 //     image block so the model can read text from the screenshot AND see
 //     diagrams, tables, formulas, calligraphy, etc.
+
+// ════════════════════════════════════════════════════════════════════════
+//  AI quality helpers — stronger model, maths/LaTeX, Arabic quality
+// ════════════════════════════════════════════════════════════════════════
+
+// Model tiers. The first model that the account can use is remembered.
+const _CC_MODEL_TIERS = {
+  smart: ['claude-sonnet-5', 'claude-sonnet-4-5-20250929', 'claude-sonnet-4-5', 'claude-3-7-sonnet-latest'],
+};
+const _ccWorkingModel = {};
+
+// POST to the Messages API, trying each model in the tier until one is
+// accepted. Returns the fetch Response (same shape callers already use).
+async function _ccClaudeFetch(body, tier) {
+  const apiKey = readApiKey();
+  const base = _CC_MODEL_TIERS[tier || 'smart'] || _CC_MODEL_TIERS.smart;
+  const list = _ccWorkingModel[tier] ? [_ccWorkingModel[tier]].concat(base.filter((m) => m !== _ccWorkingModel[tier])) : base;
+  let last = null;
+  for (const model of list) {
+    const r = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify(Object.assign({}, body, { model })),
+    });
+    if (r.ok) { _ccWorkingModel[tier] = model; return r; }
+    last = r;
+    let t = '';
+    try { t = await r.clone().text(); } catch {}
+    if (r.status === 404 || (r.status === 400 && /model/i.test(t))) continue;
+    return r;
+  }
+  return last;
+}
+
+async function _ccClaudeText(body, tier) {
+  const r = await _ccClaudeFetch(body, tier);
+  if (!r || !r.ok) {
+    const t = r ? await r.text().catch(() => '') : '';
+    const err = new Error('AI service error' + (r ? ' ' + r.status : ''));
+    err.status = r ? r.status : 0; err.detail = t.slice(0, 400);
+    throw err;
+  }
+  const data = await r.json();
+  return (data.content || []).map((b) => (b.type === 'text' ? b.text : '')).join('').trim();
+}
+
+// LaTeX commands that models sometimes leave single-escaped inside JSON.
+// "\frac" in JSON silently becomes form-feed + "rac", "\theta" becomes
+// TAB + "heta", "\neq" becomes NEWLINE + "eq" — this repairs them.
+const _CC_LATEX_CMDS = new Set((
+  'frac dfrac tfrac cfrac sqrt times div cdot pm mp le leq ge geq ne neq approx equiv sim simeq cong propto infty int iint iiint oint sum prod lim log ln exp sin cos tan sec csc cot arcsin arccos arctan sinh cosh tanh ' +
+  'alpha beta gamma delta epsilon varepsilon zeta eta theta vartheta iota kappa lambda mu nu xi pi varpi rho varrho sigma varsigma tau upsilon phi varphi chi psi omega ' +
+  'Gamma Delta Theta Lambda Xi Pi Sigma Upsilon Phi Psi Omega circ degree angle measuredangle triangle perp parallel vec overrightarrow overleftrightarrow overline underline hat widehat bar dot ddot tilde ' +
+  'mathrm mathbf mathit mathbb mathcal mathsf text textbf textit textrm operatorname left right big Big bigg Bigg bigl bigr Bigl Bigr ' +
+  'rightarrow leftarrow Rightarrow Leftarrow leftrightarrow Leftrightarrow longrightarrow longleftarrow rightleftharpoons leftrightharpoons xrightarrow to mapsto uparrow downarrow updownarrow ' +
+  'in notin ni subset subseteq supset supseteq cup cap setminus emptyset varnothing forall exists nexists nabla partial prime ldots cdots vdots ddots dots quad qquad ' +
+  'begin end matrix pmatrix bmatrix vmatrix Vmatrix cases array aligned align hline displaystyle textstyle boxed underbrace overbrace ce pu therefore because mid nmid ' +
+  'square blacksquare star ast bullet oplus otimes odot neg lnot land lor wedge vee implies iff gg ll lfloor rfloor lceil rceil langle rangle vert Vert lvert rvert frown smile hbar ell Re Im aleph'
+).split(/\s+/));
+
+function _ccRepairLatexJson(s) {
+  return String(s).replace(/\\\\|\\([A-Za-z]+|[()\[\]{},;:!% ])/g, (m, name) => {
+    if (!name) return m;                          // already a proper "\\"
+    if (/^[A-Za-z]+$/.test(name)) return _CC_LATEX_CMDS.has(name) ? '\\\\' + name : m;
+    return '\\\\' + name;                          // \( \) \[ \] \{ \} \, \; \! \  \%
+  });
+}
+
+function _ccParseModelJson(text) {
+  let t = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  const tryParse = (s) => { try { return JSON.parse(_ccRepairLatexJson(s)); } catch { return undefined; } };
+  let v = tryParse(t);
+  if (v !== undefined) return v;
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  const c = t.indexOf('['), d = t.lastIndexOf(']');
+  if (a !== -1 && b > a) { v = tryParse(t.slice(a, b + 1)); if (v !== undefined) return v; }
+  if (c !== -1 && d > c) { v = tryParse(t.slice(c, d + 1)); if (v !== undefined) return v; }
+  return null;
+}
+
+function _ccIsArabic(lang) {
+  return /arab|عرب/i.test(String(lang || ''));
+}
+
+// Rules added to every generation / import prompt.
+function _ccMathRulesFor(mode) {
+  return String.raw`
+MATHEMATICS & SCIENCE NOTATION (mandatory whenever any maths, physics, chemistry or other symbolic content appears)
+- Write EVERY mathematical or scientific expression in LaTeX, wrapped in \( ... \) for inline maths or \[ ... \] for a displayed equation. This includes powers, fractions, roots, inequalities, angles, vectors, units with powers, Greek letters and chemical formulas/equations.
+- Examples: \(x^{2}+3x-4=0\), \(\frac{3}{4}\), \(\sqrt{2x+1}\), \(\sin 30^{\circ}\), \(\theta\), \(\pi r^{2}\), \(a \neq b\), \(x \leq 5\), \(\vec{F}=m\vec{a}\), \(9.8\ \mathrm{m/s^{2}}\), \(\mathrm{H_{2}SO_{4}}\), \(\mathrm{2H_{2}+O_{2}\rightarrow 2H_{2}O}\), \(\Delta H\), \(\int_{0}^{1}x\,dx\), \(\lim_{x\to 0}\frac{\sin x}{x}\).
+- NEVER flatten notation into plain text: not "x2" for x squared, not "sqrt" or "pi" written as words, not "->" for an arrow, not "3/4x" when \(\frac{3}{4}x\) is meant.
+- Multiple-choice options that contain maths must also use LaTeX, e.g. "options": ["\\(x=2\\)", "\\(x=-2\\)", "\\(x=\\frac{1}{2}\\)", "\\(x=4\\)"].
+- The correctAnswer of a "short" question must be PLAIN TEXT a student can type on a keyboard (e.g. "x=2", "3/4", "25 cm", "H2O") — never LaTeX.
+- JSON ESCAPING: inside JSON strings every LaTeX backslash must be doubled: "\\frac{1}{2}", "\\theta", "\\(" and "\\)".` +
+  (mode === 'import' ? String.raw`
+- The paper may use special maths fonts. Read every symbol from what is VISIBLE on the page: minus vs dash, ±, ×, ÷, ≤, ≥, ≠, ≈, °, µ, Ω, Greek letters, superscripts, subscripts, fraction bars, vectors, overlines, matrices, integrals and chemical arrows. Reproduce them exactly in LaTeX. If a symbol is unclear, work it out from the mathematics of the question.
+- If the paper states the answers, use them. Otherwise solve each objective question yourself, checking the working, before setting correctAnswer.` : String.raw`
+- Solve every maths/science question yourself before choosing correctAnswer and double-check the working. Exactly one option must be correct and it must be at the index given in correctAnswer. Distractors should reflect common student mistakes.`);
+}
+
+function _ccLangRulesFor(language) {
+  if (!_ccIsArabic(language)) return '';
+  return `
+ARABIC LANGUAGE QUALITY (the assessment is in Arabic)
+- Compose natively in Modern Standard Arabic (الفصحى) exactly as an experienced UAE Ministry of Education subject teacher would write an exam. Do NOT translate word-for-word from English.
+- Grammar must be flawless: correct agreement in gender and number (verb–subject, noun–adjective, pronoun reference), العدد والمعدود, المثنى وجمع المذكر السالم, الأسماء الخمسة, كان وإن وأخواتهما, and the prepositions each verb takes.
+- Spelling must be exact: همزة الوصل والقطع (ا / أ / إ), التاء المربوطة والهاء (ة / ه), الألف المقصورة والياء (ى / ي), الهمزة المتوسطة والمتطرفة.
+- Use Arabic punctuation (، ؛ ؟) — never a Latin comma or question mark inside Arabic text.
+- Use standard exam phrasing, e.g. «اقرأ النص الآتي ثم أجب عن الأسئلة التي تليه»، «اختر الإجابة الصحيحة»، «ضع علامة (✓) أمام العبارة الصحيحة وعلامة (✗) أمام العبارة الخاطئة»، «علّل»، «وضّح». Address the student in ONE consistent form throughout; if the teacher's request or uploaded paper addresses girls (أجيبي، اختاري), use the feminine form everywhere.
+- Use the standard Arabic subject terminology of UAE curricula (e.g. المعادلة، المتغيّر، الكسر، الجذر التربيعي، الميل، القوة، التسارع، السرعة المتجهة، المركّب، التفاعل الكيميائي، الخلية).
+- Mathematics stays in LaTeX inside \\( \\). Keep variables and units in Latin letters (x, y, m/s) unless the uploaded paper uses Arabic symbols (س، ص). Use Western digits (0-9) unless the source uses Eastern Arabic digits (٠-٩).
+- Multiple-choice options must be grammatically parallel and each must complete the stem correctly.`;
+}
+
+// Second pass: an Arabic editor corrects every Arabic string in place.
+// Only text changes — answers, option order, numbers and LaTeX are kept.
+async function _ccProofreadArabic(pack, subject) {
+  const items = [];
+  const add = (get, set) => {
+    const v = get();
+    if (typeof v === 'string' && v.trim() && /[؀-ۿ]/.test(v)) items.push({ id: items.length, text: v, set });
+  };
+  add(() => pack.title, (v) => { pack.title = v; });
+  add(() => pack.description, (v) => { pack.description = v; });
+  add(() => pack.audioScript, (v) => { pack.audioScript = v; });
+  for (const s of pack.sections || []) {
+    add(() => s.title, (v) => { s.title = v; });
+    add(() => s.instructions, (v) => { s.instructions = v; });
+    add(() => s.passage, (v) => { s.passage = v; });
+  }
+  for (const q of pack.questions || []) {
+    add(() => q.prompt, (v) => { q.prompt = v; });
+    (q.options || []).forEach((_, i) => add(() => q.options[i], (v) => { q.options[i] = v; }));
+    if (q.type === 'short' && q.correctAnswer) add(() => q.correctAnswer, (v) => { q.correctAnswer = v; });
+    (q.pairs || []).forEach((p) => {
+      add(() => p.left, (v) => { p.left = v; });
+      add(() => p.right, (v) => { p.right = v; });
+    });
+    add(() => q.imageDescription, (v) => { q.imageDescription = v; });
+  }
+  if (!items.length) return 0;
+  const system = [
+    'You are a senior Arabic language editor who proofreads exam papers for UAE Ministry of Education schools.',
+    'You receive a JSON array of {"id", "text"} items from one assessment' + (subject ? ` (subject: ${subject})` : '') + '.',
+    'Correct every error of grammar (نحو), morphology (صرف), agreement, spelling (الهمزات، التاء المربوطة، الألف المقصورة), punctuation and unnatural or literally-translated phrasing, so each item reads as polished Modern Standard Arabic written by a native subject specialist.',
+    'Make the form of address to the student consistent across all items (if any item uses the feminine form, use it everywhere).',
+    'Do NOT change the meaning, the facts, numbers, names, the difficulty, or anything inside LaTeX delimiters \\( \\) or \\[ \\]. Keep multiple-choice options parallel to each other.',
+    'Return ONLY a JSON array containing the items you changed, as [{"id": 3, "text": "…"}]. Return [] if nothing needs changing. Double every backslash inside JSON strings.',
+  ].join('\n');
+  const text = await _ccClaudeText({
+    max_tokens: 16000,
+    system,
+    messages: [{ role: 'user', content: JSON.stringify(items.map(({ id, text }) => ({ id, text }))) }],
+  }, 'smart');
+  const fixes = _ccParseModelJson(text);
+  let n = 0;
+  if (Array.isArray(fixes)) {
+    for (const f of fixes) {
+      const it = f && Number.isInteger(f.id) ? items[f.id] : null;
+      if (it && typeof f.text === 'string' && f.text.trim()) { it.set(f.text); n++; }
+    }
+  }
+  return n;
+}
+
+// Plain-text rendering of LaTeX for places that can't show real maths
+// (server-made PDFs, Excel) and for tolerant short-answer marking.
+function _ccLatexToPlain(s) {
+  let t = String(s == null ? '' : s);
+  if (!/[\\^_]/.test(t)) return t;
+  const SUP = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹', '+': '⁺', '-': '⁻', n: 'ⁿ' };
+  const SUB = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉', '+': '₊', '-': '₋' };
+  t = t.replace(/\\\(|\\\)|\\\[|\\\]/g, '');
+  t = t.replace(/\^\{?\\circ\}?/g, '°');
+  for (let k = 0; k < 6; k++) {
+    t = t.replace(/\\[dtc]?frac\{([^{}]*)\}\{([^{}]*)\}/g, (m, a, b) => (a.length > 1 ? '(' + a + ')' : a) + '/' + (b.length > 1 ? '(' + b + ')' : b));
+    t = t.replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g, '$1√($2)').replace(/\\sqrt\{([^{}]*)\}/g, '√($1)');
+    t = t.replace(/\\(?:mathrm|text|textrm|mathbf|mathit|operatorname|overline|boxed|ce)\{([^{}]*)\}/g, '$1');
+    t = t.replace(/\\(?:vec|overrightarrow)\{([^{}]*)\}/g, '$1⃗');
+    t = t.replace(/\^\{([^{}]*)\}/g, (m, a) => ([...a].every((c) => SUP[c]) ? [...a].map((c) => SUP[c]).join('') : '^(' + a + ')'));
+    t = t.replace(/_\{([^{}]*)\}/g, (m, a) => ([...a].every((c) => SUB[c]) ? [...a].map((c) => SUB[c]).join('') : a));
+  }
+  t = t.replace(/\^([0-9n+-])/g, (m, a) => SUP[a] || m).replace(/_([0-9])/g, (m, a) => SUB[a] || m);
+  const MAP = {
+    times: '×', div: '÷', cdot: '·', pm: '±', mp: '∓', le: '≤', leq: '≤', ge: '≥', geq: '≥', ne: '≠', neq: '≠', approx: '≈', equiv: '≡', infty: '∞', circ: '°', degree: '°',
+    pi: 'π', theta: 'θ', alpha: 'α', beta: 'β', gamma: 'γ', delta: 'δ', Delta: 'Δ', lambda: 'λ', mu: 'μ', sigma: 'σ', Sigma: 'Σ', omega: 'ω', Omega: 'Ω', phi: 'φ', rho: 'ρ', tau: 'τ', epsilon: 'ε', eta: 'η',
+    nabla: '∇', partial: '∂', int: '∫', sum: '∑', prod: '∏', rightarrow: '→', to: '→', longrightarrow: '→', leftarrow: '←', Rightarrow: '⇒', leftrightarrow: '↔', rightleftharpoons: '⇌',
+    angle: '∠', triangle: '△', perp: '⊥', parallel: '∥', in: '∈', cup: '∪', cap: '∩', subset: '⊂', therefore: '∴', ldots: '…', cdots: '⋯', dots: '…',
+    sin: 'sin ', cos: 'cos ', tan: 'tan ', log: 'log ', ln: 'ln ', lim: 'lim ', left: '', right: '', quad: ' ', qquad: '  ', displaystyle: '', textstyle: '',
+  };
+  t = t.replace(/\\([A-Za-z]+)\s?/g, (m, n) => (MAP[n] !== undefined ? MAP[n] : n));
+  t = t.replace(/\\[,;:! ]/g, ' ').replace(/[{}]/g, '').replace(/\s{2,}/g, ' ').trim();
+  return t;
+}
+
+function _ccNormShort(s) {
+  return _ccLatexToPlain(String(s == null ? '' : s)).toLowerCase()
+    .replace(/[−–—]/g, '-').replace(/×/g, '*').replace(/÷/g, '/')
+    .replace(/\s+/g, '').replace(/[.。]+$/, '');
+}
+
+function _ccDataUrlToImageBlock(dataUrl) {
+  const m = /^data:(image\/(?:png|jpe?g|gif|webp));base64,([A-Za-z0-9+/=]+)$/i.exec(String(dataUrl || ''));
+  if (!m) return null;
+  const media = m[1].toLowerCase() === 'image/jpg' ? 'image/jpeg' : m[1].toLowerCase();
+  return { type: 'image', source: { type: 'base64', media_type: media, data: m[2] } };
+}
+
 app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfWork', 20), async (req, res) => {
   const cleanupAll = () => {
     for (const f of (req.files || [])) {
@@ -4266,9 +4474,10 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   const imageBlocks = []; // Claude Vision blocks to append after the system prompt
   const textChunks = [];  // extracted text from PDFs / Word docs
   const skipped = [];     // for client-side error reporting
+  const docBlocks = [];   // PDFs sent whole so the AI reads equations visually
 
   const MAX_IMAGE_BYTES = 4 * 1024 * 1024;   // Claude caps single images at ~5MB
-  const MAX_TOTAL_IMAGE_BYTES = 30 * 1024 * 1024; // overall safety cap
+  const MAX_TOTAL_IMAGE_BYTES = 22 * 1024 * 1024; // overall cap (request limit is 32 MB after encoding)
   let totalImageBytes = 0;
 
   for (const f of files) {
@@ -4298,6 +4507,16 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
           type: 'image',
           source: { type: 'base64', media_type: media, data: buf.toString('base64') },
         });
+      } else if (mt === 'application/pdf' || /\.pdf$/i.test(name)) {
+        // Send the PDF itself: the AI reads every page visually, so maths
+        // symbols, equations, tables and diagrams come through intact.
+        const stat = fs.statSync(f.path);
+        if (stat.size > 20 * 1024 * 1024 || totalImageBytes + stat.size > MAX_TOTAL_IMAGE_BYTES) {
+          skipped.push(`${f.originalname} (PDF too large — over 20 MB; split it or upload screenshots)`);
+          continue;
+        }
+        totalImageBytes += stat.size;
+        docBlocks.push({ name: f.originalname || 'document.pdf', block: { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: fs.readFileSync(f.path).toString('base64') } } });
       } else if (/\.(pdf|docx|doc|txt)$/i.test(name) || mt === 'application/pdf' ||
                  mt === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
                  mt === 'text/plain') {
@@ -4433,6 +4652,9 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '   Short (<80 words) description of a graphic that would help that question. Add only when a graphic genuinely helps comprehension.',
     '   Examples by subject: Math diagrams, Physics circuits, Chemistry molecules, Biology cells, Social Studies maps, Arabic calligraphy.',
     '',
+    _ccMathRulesFor('generate'),
+    _ccLangRulesFor(language),
+    '',
     'G. LANGUAGE',
     `   All text — titles, instructions, passages, prompts, options, correctAnswer for short questions — must be in: ${language || 'English'}.`,
     subject ? `   Subject conventions: ${subject}. Use the standard format, vocabulary, and graphic types for this subject.` : '',
@@ -4461,6 +4683,10 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   if (schemeText && schemeText.trim()) {
     userContent.push({ type: 'text', text: '---\nScheme of work (extracted text):\n' + schemeText });
   }
+  if (docBlocks.length) {
+    userContent.push({ type: 'text', text: `---\nScheme of work / source paper (${docBlocks.length} PDF file${docBlocks.length === 1 ? '' : 's'}). Read every page VISUALLY — all equations, symbols, tables and diagrams — and reproduce mathematical notation exactly in LaTeX:` });
+    for (const d of docBlocks) { userContent.push({ type: 'text', text: 'File: ' + d.name }); userContent.push(d.block); }
+  }
   if (imageBlocks.length) {
     userContent.push({
       type: 'text',
@@ -4472,19 +4698,13 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   }
 
   try {
-    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 8192,
-        messages: [{ role: 'user', content: userContent }],
-      }),
-    });
+    const apiRes = await _ccClaudeFetch({ max_tokens: 16000, messages: [{ role: 'user', content: userContent }] }, 'smart');
     if (!apiRes.ok) {
       const errText = await apiRes.text().catch(() => '');
       console.error('[ai-generate] API error', apiRes.status, errText);
-      return res.status(502).json({ ok: false, error: 'AI service error: ' + apiRes.status });
+      let _apiMsg = '';
+      try { _apiMsg = (JSON.parse(errText).error || {}).message || ''; } catch {}
+      return res.status(502).json({ ok: false, error: 'AI service error: ' + apiRes.status + (_apiMsg ? ' — ' + _apiMsg : '') });
     }
     const data = await apiRes.json();
     let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
@@ -4492,7 +4712,8 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
     let parsed;
     try {
-      parsed = JSON.parse(text);
+      parsed = _ccParseModelJson(text);
+      if (!parsed) throw new Error('unparseable');
     } catch (e) {
       console.error('[ai-generate] failed to parse JSON', text.slice(0, 400));
       return res.status(502).json({ ok: false, error: 'AI returned an invalid response. Please try again.' });
@@ -4557,6 +4778,16 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       return res.status(502).json({ ok: false, error: 'AI did not produce any usable questions. Please try a more specific prompt.' });
     }
 
+    // Arabic: a second pass by an Arabic editor fixes grammar and phrasing.
+    if (_ccIsArabic(language)) {
+      try {
+        const pack = { title: parsed.title, description: parsed.description, audioScript: parsed.audioScript, sections: outSections, questions };
+        const n = await _ccProofreadArabic(pack, subject);
+        parsed.title = pack.title; parsed.description = pack.description; parsed.audioScript = pack.audioScript;
+        console.log('[ai-generate] Arabic proofread corrected', n, 'item(s)');
+      } catch (e) { console.warn('[ai-generate] Arabic proofread skipped:', e.message); }
+    }
+
     res.json({
       ok: true,
       title: String(parsed.title || 'AI-generated assessment').slice(0, 200),
@@ -4588,16 +4819,24 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
   // structured parsing (preferred — captures every passage in a multi-passage
   // paper and groups questions by section) or fall back to the regex parser
   // (the old behaviour) when no API key is configured.
+  // PDFs up to 20 MB are sent to the AI as the real document, so every
+  // equation and symbol is read from the page image, not mangled text.
+  let _isPdfImport = false;
+  if (req.file.mimetype === 'application/pdf' || /\.pdf$/i.test(req.file.originalname || '')) {
+    try { _isPdfImport = fs.statSync(req.file.path).size <= 20 * 1024 * 1024; } catch {}
+  }
   let rawText = '';
   try {
     rawText = await extractText(req.file.path, req.file.mimetype, req.file.originalname);
   } catch (e) {
-    try { fs.unlinkSync(req.file.path); } catch {}
-    return res.status(500).json({ error: 'Could not read file: ' + e.message });
+    if (!_isPdfImport) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(500).json({ error: 'Could not read file: ' + e.message });
+    }
   }
 
   const apiKey = readApiKey();
-  if (apiKey && rawText && rawText.trim().length > 40) {
+  if (apiKey && ((rawText && rawText.trim().length > 40) || _isPdfImport)) {
     // ---- Claude path ----
     // Send the file's text to Claude with the SAME sections+passages schema
     // the AI generator uses. We instruct it to mirror the source exactly —
@@ -4633,11 +4872,12 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '8. If the paper has no sections at all, create ONE section with empty title, sensible default instructions, and (only if the paper has a single reading passage) put it in that section\'s passage field.',
         '9. When the paper has "Match the following", "Match column A with column B", "Match the word to its meaning", or "Draw lines to connect", emit type "match" with the original pairs in the same order they appear. Use matchVariant "word-definition" for word/definition, "word-word" for word/word, or "word-picture" if the paper shows pictures (set rightImageRef on each pair — see rule 10). NEVER convert match questions into multiple-choice.',
         '10. IMAGES: the paper\'s pictures may be attached after this text, each preceded by a label "Image #N". If a question shows or uses one of them, add "imageRef": N to that question. For word-picture match pairs, add "rightImageRef": N to each pair. Only use numbers that were actually provided. If a question refers to a figure, diagram, graph or table-as-picture that is NOT among the attached images, add "imageDescription" with a precise description (shape, labels, values, axes) so it can be redrawn.',
+        _ccMathRulesFor('import'),
+        'Keep the paper in its original language. If it is in Arabic (or any other language), copy the wording exactly — do not rephrase or translate it.',
         '',
-        'EXAM PAPER TEXT:',
-        '"""',
-        rawText.length > 60000 ? rawText.slice(0, 60000) + '\n…[truncated]' : rawText,
-        '"""',
+        ...(_isPdfImport
+          ? ['The exam paper is attached below as a PDF document. Read it VISUALLY, page by page — every equation, symbol, table and figure exactly as printed.']
+          : ['EXAM PAPER TEXT:', '"""', rawText.length > 60000 ? rawText.slice(0, 60000) + '\n…[truncated]' : rawText, '"""']),
       ].join('\n');
 
       // Also extract any embedded images (or PDF page rasters) so Claude can
@@ -4646,6 +4886,12 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
       let mediaImages = [];
       try { mediaImages = await extractMediaImages(req.file.path, req.file.mimetype, req.file.originalname); } catch {}
       const userContent = [{ type: 'text', text: sys }];
+      if (_isPdfImport) {
+        try {
+          userContent.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: fs.readFileSync(req.file.path).toString('base64') } });
+          mediaImages = mediaImages.filter((m) => m.kind !== 'page');   // the pages are already in the PDF
+        } catch {}
+      }
       if (mediaImages.length) {
         const _pagesOnly = mediaImages.every((m) => m.kind === 'page');
         userContent.push({ type: 'text', text: _pagesOnly
@@ -4660,22 +4906,14 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
           });
         }
       }
-      const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 8192,
-          messages: [{ role: 'user', content: userContent }],
-        }),
-      });
+      const apiRes = await _ccClaudeFetch({ max_tokens: 16000, messages: [{ role: 'user', content: userContent }] }, 'smart');
 
       if (apiRes.ok) {
         const data = await apiRes.json();
         let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
         text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
         let parsed = null;
-        try { parsed = JSON.parse(text); } catch { /* fall through to regex */ }
+        parsed = _ccParseModelJson(text);
 
         if (parsed && Array.isArray(parsed.questions) && parsed.questions.length) {
           // Normalise sections.
@@ -5878,11 +6116,11 @@ function _ccMpPointsEarned(sub, qIdx, question) {
 }
 function _ccMpQuestionText(q) {
   if (!q) return '';
-  return String(q.text || q.prompt || q.question || q.title || '').slice(0, 4000);
+  return _ccLatexToPlain(String(q.text || q.prompt || q.question || q.title || '')).slice(0, 4000);
 }
 function _ccMpQuestionOptions(q) {
   const opts = q && (q.options || q.choices) || [];
-  return opts.map(o => (o && typeof o === 'object') ? (o.text || o.label || JSON.stringify(o)) : String(o));
+  return opts.map(o => _ccLatexToPlain((o && typeof o === 'object') ? (o.text || o.label || JSON.stringify(o)) : String(o)));
 }
 function _ccMpQuestionPoints(q) {
   return Number(q && (q.points || q.marks) || 1);
@@ -6982,65 +7220,147 @@ console.log('[parent-reports] endpoint ready.');
 // ─────────────────────────────────────────────────────────────────────
 
 
-// ── AI diagram for a question (maths / science). Returns clean SVG. ──────
+// ── Pasted screenshot / text → one real question ──────────────────────────
+app.post('/api/ai/question-from-content', requireTeacher, async (req, res) => {
+  try {
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const b = req.body || {};
+    const img = b.image ? _ccDataUrlToImageBlock(b.image) : null;
+    const text = String(b.text || '').slice(0, 8000).trim();
+    if (!img && !text) return res.status(400).json({ error: 'Paste a screenshot or some question text first.' });
+    const subject = String(b.subject || '').slice(0, 60);
+    const language = String(b.language || '').slice(0, 60);
+    const system = [
+      'You convert ONE exam question — from a screenshot or pasted text — into ClassCurio\'s JSON question format.',
+      'Transcribe the question EXACTLY as written, in its original language. Do not reword, simplify or translate it. Do not include the question number.',
+      'Return ONLY one JSON object:',
+      '{ "type": "mc|tf|tfng|short|long|essay|match", "prompt": "…", "options": ["…"], "correctAnswer": …, "points": 1,',
+      '  "pairs": [{"left": "…", "right": "…"}], "matchVariant": "word-definition|word-word",',
+      '  "hasFigure": false, "figureBox": {"x": 0, "y": 0, "w": 1, "h": 1}, "answerUnsure": false }',
+      'Type rules: options labelled A/B/C/D (or similar) → "mc" with the option texts WITHOUT their letters; True/False → "tf" (correctAnswer true/false); True/False/Not Given → "tfng" ("true"|"false"|"ng"); one short exact answer → "short"; explain/describe/show working → "long"; matching columns → "match" with pairs in original order.',
+      'correctAnswer: for "mc" the 0-based index of the correct option. If the source marks the answer, use it. Otherwise solve the question yourself, checking your working carefully; if you are not confident, set "answerUnsure": true. For "short" give a plain-text answer a student can type.',
+      'If the screenshot contains a diagram, graph, figure, picture or a table drawn as an image that the question needs, set "hasFigure": true and "figureBox" to the tight bounding box of ONLY that figure, as fractions (0–1) of the image width/height measured from the top-left corner — exclude the question text and the options.',
+      _ccMathRulesFor('import'),
+      _ccLangRulesFor(language),
+      subject ? `Subject: ${subject}.` : '',
+    ].filter(Boolean).join('\n');
+    const content = [];
+    if (img) content.push(img);
+    content.push({ type: 'text', text: img ? 'Convert the question in this screenshot.' + (text ? '\nExtra text the teacher pasted:\n' + text : '') : 'Convert this pasted question:\n' + text });
+    const out = await _ccClaudeText({ max_tokens: 4000, system, messages: [{ role: 'user', content }] }, 'smart');
+    const q = _ccParseModelJson(out);
+    if (!q || typeof q !== 'object' || !String(q.prompt || '').trim()) return res.status(422).json({ error: 'Could not read a question from that. Try a clearer or larger screenshot.' });
+    if (q.figureBox && typeof q.figureBox === 'object') {
+      const c = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+      q.figureBox = { x: c(q.figureBox.x), y: c(q.figureBox.y), w: c(q.figureBox.w), h: c(q.figureBox.h) };
+      if (q.figureBox.w < 0.03 || q.figureBox.h < 0.03) q.hasFigure = false;
+    }
+    res.json({ question: q });
+  } catch (e) {
+    console.error('[question-from-content]', e);
+    res.status(e.status && e.status >= 400 && e.status < 600 ? 502 : 500).json({ error: String(e.message || e) });
+  }
+});
+
+// ── AI diagram: exact spec (graphs, number lines, triangles) or SVG ───────
+function _ccCleanSvg(svg) {
+  let s = String(svg || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, '')
+    .replace(/(xlink:)?href\s*=\s*("(?!#)[^"]*"|'(?!#)[^']*')/gi, '');
+  if (!/xmlns=/.test(s)) s = s.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  return s;
+}
+
 app.post('/api/ai/generate-diagram', requireTeacher, async (req, res) => {
   try {
-    const apiKey = readApiKey();
-    if (!apiKey) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
     const b = req.body || {};
     const prompt = String(b.prompt || '').slice(0, 3000).trim();
     const description = String(b.description || '').slice(0, 800).trim();
     if (!prompt && !description) return res.status(400).json({ error: 'Write the question first.' });
     const options = Array.isArray(b.options) ? b.options.map(String).filter(Boolean).slice(0, 6) : [];
     const subject = String(b.subject || '').slice(0, 60);
-    const sys = [
-      'You draw clean, accurate exam diagrams as SVG for school assessments (maths, physics, chemistry, biology, geography).',
-      'Output ONLY one <svg>...</svg> element. No markdown, no commentary.',
-      'Rules:',
-      '- width="600" height="400" viewBox="0 0 600 400". First child: a white <rect> covering the whole canvas.',
-      '- Black strokes (stroke-width 2). Use colour only where it helps meaning. Labels: font-family Arial, font-size 16-18.',
-      '- Be mathematically/scientifically accurate: correct angles and proportions, right-angle markers, equal-length ticks, arrowheads on vectors, labelled axes with ticks and units on graphs, standard circuit symbols, correct bond structures.',
-      '- Include every label and value the question text gives (vertex letters, lengths, angles, forces, component values, units).',
-      '- NEVER reveal the answer. Do not label the unknown the question asks for; mark it "x" or "?" instead. Do not draw the solution.',
-      '- No title, caption or explanation text beyond what a printed exam figure would show.',
-      '- Self-contained: no <script>, no <foreignObject>, no external images, links or fonts.',
-      '- Keep everything inside the canvas with a 20px margin.',
-    ].join('\n');
+    const forceSvg = !!b.forceSvg;
+    const system = String.raw`You create accurate exam figures for school maths and science questions. Accuracy matters more than decoration.
+
+Choose ONE output format.
+
+FORMAT 1 — JSON spec inside <spec>…</spec>. Prefer this whenever the figure is one of these, because it is drawn with exact mathematics:
+ a) Coordinate graph / functions / points / lines / polygons on axes:
+    {"kind":"axes","x":[-5,5],"y":[-6,10],"grid":true,"xLabel":"x","yLabel":"y",
+     "functions":[{"expr":"x^2-4","label":"y = x² − 4","domain":[-4,4]}],
+     "points":[{"x":2,"y":0,"label":"A","open":false}],
+     "segments":[{"from":[0,0],"to":[3,4],"dashed":false,"label":""}],
+     "polygons":[{"points":[[0,0],[4,0],[4,3]],"label":""}]}
+    expr syntax: use * for multiplication and ^ for powers; functions sqrt abs sin cos tan (radians) ln log (base 10) exp; constant pi; the only variable is x.
+ b) Number line (inequalities, integers, intervals):
+    {"kind":"numberline","min":-5,"max":5,"step":1,"points":[{"x":2,"open":true,"label":""}],"intervals":[{"from":2,"to":null,"fromOpen":true,"toOpen":true}]}   (null means it continues to infinity)
+ c) One triangle with given sides/angles:
+    {"kind":"triangle","labels":{"A":"A","B":"B","C":"C"},"sides":{"a":8,"b":6,"c":null},"angles":{"C":90},
+     "sideLabels":{"a":"8 cm","b":"6 cm","c":"x"},"angleLabels":{"A":"θ"}}
+    side a = BC (opposite A), b = CA, c = AB. Give enough numbers to fix the shape (3 sides, 2 sides + the angle between them, or 2 angles + a side). An unknown gets no number and the label "x" or "?".
+
+FORMAT 2 — SVG, for every other figure (circles with chords/tangents/sectors, 3D solids, circuits, force/free-body diagrams, ray diagrams, lenses, apparatus, cells, organs, molecules, bar charts, pie charts, etc.).
+First write <plan>…</plan> in which you list every element and COMPUTE the exact coordinates of each point from the given measurements (show the arithmetic, e.g. angles with cos/sin). Then output exactly one <svg>…</svg>:
+- width="600" height="400" viewBox="0 0 600 400"; the first child is a white <rect> covering the canvas; keep 25px margins.
+- Black strokes, stroke-width 2; colour only where it carries meaning. Labels in font-family Arial, font-size 16–18, placed so they never overlap lines or each other.
+- Correct conventions: right-angle squares, equal-length tick marks, arrowheads on vectors/forces/rays, labelled axes with units, standard circuit symbols (cell, resistor, bulb, switch, ammeter A, voltmeter V), correct bond structures.
+- Proportions must match the given values (a 10 cm side is drawn twice as long as a 5 cm side; a 30° angle looks like 30°).
+- No <script>, <foreignObject>, external images, links or fonts.
+
+Rules for BOTH formats:
+- Include every label and value the question gives, attached to the correct element.
+- NEVER reveal the answer: do not label the unknown the question asks for (use "x" or "?"), and do not draw the solution.
+- No title, caption or explanatory text.`;
     const user = [
       subject ? 'Subject: ' + subject : '',
       'Question: ' + prompt,
       options.length ? 'Options: ' + options.join(' | ') : '',
       description ? 'Figure description: ' + description : '',
-      'Draw the figure a student needs to answer this question.',
+      forceSvg ? 'Use FORMAT 2 (SVG).' : 'Draw the figure a student needs to answer this question.',
     ].filter(Boolean).join('\n');
-    const apiRes = await _ccAnthropicFetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 4000,
-        system: sys,
-        messages: [{ role: 'user', content: user }],
-      }),
-    });
-    if (!apiRes.ok) {
-      const t = await apiRes.text().catch(() => '');
-      return res.status(502).json({ error: 'AI request failed (' + apiRes.status + ')', detail: t.slice(0, 300) });
+    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content: user }] }, 'smart');
+    if (!forceSvg) {
+      const sm = text.match(/<spec>([\s\S]*?)<\/spec>/i);
+      if (sm) {
+        const spec = _ccParseModelJson(sm[1]);
+        if (spec && typeof spec === 'object' && spec.kind) return res.json({ spec });
+      }
     }
-    const data = await apiRes.json();
-    const text = (data.content || []).map((c) => c.type === 'text' ? c.text : '').join('');
     const m = text.match(/<svg[\s\S]*<\/svg>/i);
-    if (!m) return res.status(422).json({ error: 'The AI did not return a diagram. Try again.' });
-    let svg = m[0]
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
-      .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*')/gi, '')
-      .replace(/(xlink:)?href\s*=\s*("(?!#)[^"]*"|'(?!#)[^']*')/gi, '');
-    if (!/xmlns=/.test(svg)) svg = svg.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
-    res.json({ svg });
+    if (!m) return res.status(422).json({ error: 'The AI did not return a diagram. Try again, or add a short figure description.' });
+    res.json({ svg: _ccCleanSvg(m[0]) });
   } catch (e) {
     console.error('[generate-diagram]', e);
     res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+// ── Look at the rendered diagram and fix mistakes (one pass) ─────────────
+app.post('/api/ai/review-diagram', requireTeacher, async (req, res) => {
+  try {
+    if (!readApiKey()) return res.json({ ok: true });
+    const b = req.body || {};
+    const img = _ccDataUrlToImageBlock(b.image);
+    const svg = String(b.svg || '').slice(0, 60000);
+    if (!img || !svg) return res.json({ ok: true });
+    const prompt = String(b.prompt || '').slice(0, 3000);
+    const options = Array.isArray(b.options) ? b.options.map(String).slice(0, 6) : [];
+    const system = 'You check exam figures for accuracy before they are given to students. You are strict about mathematics and science.';
+    const content = [
+      { type: 'text', text: 'Question: ' + prompt + (options.length ? '\nOptions: ' + options.join(' | ') : '') + '\n\nThis is the figure as it will be printed:' },
+      img,
+      { type: 'text', text: 'Its SVG source:\n' + svg + '\n\nCheck carefully: (1) every value and label from the question is present and attached to the correct element; (2) proportions, lengths and angles are consistent with the given measurements (right angles look square, longer sides look longer, graphs pass through the stated points); (3) scientific symbols and conventions are correct; (4) nothing is cut off, overlapping or unreadable; (5) the answer is NOT revealed.\nIf everything is correct, reply with exactly: OK\nOtherwise reply with ONLY a corrected, complete <svg>…</svg> (600×400, white background).' },
+    ];
+    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content }] }, 'smart');
+    const m = text.match(/<svg[\s\S]*<\/svg>/i);
+    if (m && !/^\s*OK\s*$/i.test(text)) return res.json({ svg: _ccCleanSvg(m[0]) });
+    res.json({ ok: true });
+  } catch (e) {
+    console.warn('[review-diagram]', e.message);
+    res.json({ ok: true });
   }
 });
 
