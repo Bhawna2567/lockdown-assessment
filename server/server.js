@@ -3208,11 +3208,8 @@ app.post('/api/ai/tag-skills', requireTeacher, async (req, res) => {
         pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
       }));
       const existing = out.map((x) => x.skill).filter(Boolean);
-      const text = await _ccClaudeText({
-        max_tokens: 12000, system,
-        messages: [{ role: 'user', content: (existing.length ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(new Set(existing)).join(' | ') + '\n\n' : '') + JSON.stringify(batch) }],
-      }, 'smart');
-      const arr = _ccParseModelJson(text);
+      const arr = await _ccClaudeList({ system, maxTokens: 12000, itemProps: _CC_SKILL_PROPS,
+        user: (existing.length ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(new Set(existing)).join(' | ') + '\n\n' : '') + JSON.stringify(batch) });
       if (Array.isArray(arr)) for (const x of arr) if (x && x.id) out.push({ id: String(x.id), skill: String(x.skill || '').slice(0, 80), explanation: String(x.explanation || '').slice(0, 1500) });
     }
     res.json({ items: out });
@@ -3425,8 +3422,7 @@ async function _ccClassifyDifficulty(a, qs) {
       correctAnswer: q.correctAnswer,
       passage: q.sectionId ? String(((a.sections || []).find((s) => s.id === q.sectionId) || {}).passage || '').slice(0, 1500) || undefined : undefined,
     }));
-    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content: JSON.stringify(batch) }] }, 'smart');
-    const arr = _ccParseModelJson(text);
+    const arr = await _ccClaudeList({ system, maxTokens: 8000, itemProps: _CC_DIFF_PROPS, user: JSON.stringify(batch) });
     if (Array.isArray(arr)) for (const x of arr) {
       const level = _ccNormLevel(x && x.difficulty);
       if (x && x.id && level) out.push({ questionId: String(x.id), level, reason: String(x.difficultyReason || '').slice(0, 300), source: 'ai' });
@@ -3609,11 +3605,9 @@ async function _ccTagMissingSkills(aid) {
         let arr = null, lastErr = null;
         for (let attempt = 0; attempt < 3 && !Array.isArray(arr); attempt++) {
           try {
-            const text = await _ccClaudeText({ max_tokens: 6000, system, messages: [{ role: 'user', content:
-              (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(payload) }] }, 'smart');
-            arr = _ccParseModelJson(text);
-            if (!Array.isArray(arr) && arr && Array.isArray(arr.questions)) arr = arr.questions;
-            if (!Array.isArray(arr)) { lastErr = new Error('AI reply was not a list'); console.warn('[skills] unparseable reply:', String(text).slice(0, 300)); }
+            arr = await _ccClaudeList({ system, maxTokens: 8000, itemProps: _CC_SKILL_PROPS,
+              user: (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(payload) });
+            if (!Array.isArray(arr)) lastErr = new Error('AI reply could not be read');
           } catch (e) { lastErr = e; console.warn('[skills] batch attempt failed:', e.message, e.detail || ''); await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
         }
         if (!Array.isArray(arr)) throw lastErr || new Error('AI did not return skills');
@@ -4969,6 +4963,57 @@ async function _ccClaudeFetch(body, tier) {
   }
   return last;
 }
+
+
+// ── Structured AI replies ────────────────────────────────────────────────
+// The AI fills in a form (tool call) instead of writing free text, so its
+// answer always arrives as valid data — quotes, maths and Arabic included.
+function _ccLenientItems(text, keys) {
+  const v = _ccParseModelJson(text);
+  if (Array.isArray(v)) return v;
+  if (v && typeof v === 'object') for (const k of Object.keys(v)) if (Array.isArray(v[k])) return v[k];
+  const out = [];
+  const chunks = String(text || '').split(/(?=\{\s*"id"\s*:)/);
+  for (const c of chunks) {
+    const item = {};
+    for (const k of keys) {
+      const m = c.match(new RegExp('"' + k + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"'));
+      if (m) { try { item[k] = JSON.parse('"' + m[1] + '"'); } catch { item[k] = m[1]; } }
+    }
+    if (item.id) out.push(item);
+  }
+  return out.length ? out : null;
+}
+async function _ccClaudeList({ system, user, maxTokens, itemProps, required }) {
+  const tool = {
+    name: 'submit_items',
+    description: 'Submit exactly one entry for every question you were given.',
+    input_schema: { type: 'object', properties: { items: { type: 'array', items: { type: 'object', properties: itemProps, required: required || Object.keys(itemProps) } } }, required: ['items'] },
+  };
+  let why = '';
+  try {
+    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
+    if (r && r.ok) {
+      const data = await r.json();
+      const blk = (data.content || []).find((b) => b.type === 'tool_use');
+      let items = blk && blk.input && blk.input.items;
+      if (typeof items === 'string') items = _ccLenientItems(items, Object.keys(itemProps));
+      if (Array.isArray(items)) return items;
+      why = 'no items (stop: ' + (data.stop_reason || '?') + ')';
+    } else if (r) {
+      const t = await r.text().catch(() => '');
+      why = 'HTTP ' + r.status + ' ' + t.slice(0, 160);
+      if (r.status === 401 || r.status === 403) { const e = new Error('The Anthropic API key was rejected (' + r.status + ')'); throw e; }
+    }
+  } catch (e) { if (/API key/.test(e.message)) throw e; why = e.message; }
+  console.warn('[ai-list] structured reply failed, falling back to text:', why);
+  const text = await _ccClaudeText({ max_tokens: maxTokens, system: system + '\nReturn ONLY a JSON array, nothing else.', messages: [{ role: 'user', content: user }] }, 'smart');
+  const items = _ccLenientItems(text, Object.keys(itemProps));
+  if (!items) { const e = new Error('AI reply could not be read'); e.detail = 'structured: ' + why + ' | text: ' + String(text).slice(0, 160); throw e; }
+  return items;
+}
+const _CC_SKILL_PROPS = { id: { type: 'string' }, skill: { type: 'string' }, explanation: { type: 'string' } };
+const _CC_DIFF_PROPS = { id: { type: 'string' }, difficulty: { type: 'string', enum: ['easy', 'medium', 'hard'] }, difficultyReason: { type: 'string' } };
 
 async function _ccClaudeText(body, tier) {
   const r = await _ccClaudeFetch(body, tier);
