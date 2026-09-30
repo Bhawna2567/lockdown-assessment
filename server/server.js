@@ -1100,6 +1100,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   all.push(assessment);
   writeAll('assessments.json', all);
+  _ccDifficultyAfterSave(req, assessment);
   res.json({ assessment });
 });
 
@@ -1237,6 +1238,11 @@ app.post('/api/assessments/:id/duplicate', requireTeacher, (req, res) => {
 
   all.push(copy);
   writeAll('assessments.json', all);
+  try {
+    const _src = _ccDiffFor(orig.id);
+    const _map = new Map((orig.questions || []).map((q, i) => [q.id, (copy.questions || [])[i] && copy.questions[i].id]));
+    _ccDiffUpsert(copy.id, _src.filter((r) => _map.get(r.questionId)).map((r) => ({ questionId: _map.get(r.questionId), level: r.level, reason: r.reason, source: r.source })));
+  } catch (e) { console.warn('[difficulty] copy:', e.message); }
   res.json({ assessment: copy });
 });
 
@@ -1343,6 +1349,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   if (req.body && req.body.shuffle !== undefined) updated.shuffle = !!req.body.shuffle;
   all[idx] = updated;
   writeAll('assessments.json', all);
+  _ccDifficultyAfterSave(req, updated);
   res.json({ assessment: updated });
 });
 
@@ -3313,6 +3320,249 @@ app.get('/api/assessments/:id/skills-report.xlsx', requireTeacher, async (req, r
   }
 });
 
+
+// ════════════════════════════════════════════════════════════════════════
+//  Question difficulty (easy / medium / hard) — ADMIN ONLY
+//  Labels live in data/difficulty.json, never on the assessment itself, so
+//  no teacher or student endpoint can reveal them and teacher saves can't
+//  wipe them.
+// ════════════════════════════════════════════════════════════════════════
+const _CC_DIFF_TARGET = { easy: 30, medium: 50, hard: 20 };   // % of marks
+const _CC_DIFF_LEVELS = ['easy', 'medium', 'hard'];
+
+function _ccIsAdminReq(req) {
+  const e = String((req.session && req.session.user && req.session.user.email) || '').toLowerCase();
+  return ADMIN_EMAILS.map((x) => x.toLowerCase()).includes(e);
+}
+function _ccNormLevel(v) {
+  const s = String(v || '').toLowerCase().trim();
+  if (/^(easy|low|foundation|سهل)/.test(s)) return 'easy';
+  if (/^(hard|high|difficult|challeng|صعب)/.test(s)) return 'hard';
+  if (/^(medium|moderate|mid|متوسط)/.test(s)) return 'medium';
+  return null;
+}
+function _ccDiffTargetCounts(n) {
+  const e = Math.round(n * 0.3), h = Math.round(n * 0.2);
+  return { easy: e, medium: Math.max(0, n - e - h), hard: h };
+}
+const _CC_DIFF_DEFS = `  - easy: recall or recognise, one step (a definition, a fact stated directly in the passage, a basic calculation or substitution).
+  - medium: apply a known method to a familiar problem, two or three steps, or a straightforward inference.
+  - hard: multi-step reasoning, unfamiliar context, analysing / evaluating / justifying, or combining several skills.`;
+
+function _ccDiffRulesGenerate(count, reproducing) {
+  const c = _ccDiffTargetCounts(count);
+  return `
+DIFFICULTY (internal only — NEVER mention difficulty, "easy", "hard" etc. in any title, instruction or question text)
+- Give EVERY question "difficulty": "easy" | "medium" | "hard" and "difficultyReason": one short sentence.
+${_CC_DIFF_DEFS}` + (reproducing
+    ? `
+- The teacher uploaded a paper to reproduce: do NOT change or reorder its questions — only label each one honestly.`
+    : `
+- Target mix by MARKS: 30% easy, 50% medium, 20% hard. With equal marks that is exactly ${c.easy} easy, ${c.medium} medium and ${c.hard} hard out of ${count}. Build each difficulty genuinely (not just longer wording).
+- Within each section, order the questions from easy to hard.`);
+}
+const _CC_DIFF_RULES_LABEL = `
+DIFFICULTY LABEL (internal only — do not change the question)
+- Add "difficulty": "easy" | "medium" | "hard" and "difficultyReason": one short sentence, judged for the student's grade level.
+${_CC_DIFF_DEFS}`;
+
+// Labels from AI generation / import wait here (keyed by teacher + question
+// text) until the teacher saves the assessment.
+const _ccDiffPending = new Map();
+function _ccDiffKey(teacherId, prompt) {
+  return String(teacherId || '') + '|' + String(prompt || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 300);
+}
+function _ccStashDifficulty(req, questions, source) {
+  const tid = req.session && req.session.user && req.session.user.id;
+  const now = Date.now();
+  for (const [k, v] of _ccDiffPending) if (now - v.at > 12 * 3600 * 1000) _ccDiffPending.delete(k);
+  for (const q of questions || []) {
+    const level = _ccNormLevel(q.difficulty);
+    if (level && q.prompt) _ccDiffPending.set(_ccDiffKey(tid, q.prompt), { level, reason: String(q.difficultyReason || '').slice(0, 300), source, at: now });
+    delete q.difficulty;
+    delete q.difficultyReason;
+  }
+}
+function _ccSortEasyToHard(questions) {
+  const rank = (q) => ({ easy: 0, medium: 1, hard: 2 }[_ccNormLevel(q.difficulty)] ?? 1);
+  const bySec = new Map();
+  questions.forEach((q, i) => { const k = q.sectionId || ''; if (!bySec.has(k)) bySec.set(k, []); bySec.get(k).push({ q, i }); });
+  const out = [];
+  for (const list of bySec.values()) {
+    list.sort((a, b) => rank(a.q) - rank(b.q) || a.i - b.i).forEach((x) => out.push(x.q));
+  }
+  return out;
+}
+
+function _ccDiffRecords() { const r = readAll('difficulty.json'); return Array.isArray(r) ? r : []; }
+function _ccDiffFor(aid) { return _ccDiffRecords().filter((r) => r.assessmentId === aid); }
+function _ccDiffUpsert(aid, entries) {
+  if (!entries.length) return;
+  const all = _ccDiffRecords();
+  for (const e of entries) {
+    const i = all.findIndex((r) => r.assessmentId === aid && r.questionId === e.questionId);
+    const rec = { assessmentId: aid, questionId: e.questionId, level: e.level, reason: e.reason || '', source: e.source || 'ai', updatedAt: new Date().toISOString() };
+    if (i >= 0) {
+      if (all[i].source === 'admin' && rec.source !== 'admin') continue;   // never overwrite an admin's decision
+      all[i] = rec;
+    } else all.push(rec);
+  }
+  writeAll('difficulty.json', all);
+}
+
+async function _ccClassifyDifficulty(a, qs) {
+  const out = [];
+  const system = [
+    'You are an experienced assessment moderator. Classify how difficult each exam question is for the stated grade.',
+    `Subject: ${a.subject || 'not specified'}. Grade: ${a.grade || 'not specified'}.`,
+    _CC_DIFF_RULES_LABEL,
+    'Return ONLY a JSON array: [{"id": "...", "difficulty": "easy|medium|hard", "difficultyReason": "..."}], one entry per question.',
+  ].join('\n');
+  for (let i = 0; i < qs.length; i += 30) {
+    const batch = qs.slice(i, i + 30).map((q) => ({
+      id: q.id, type: q.type, points: q.points, prompt: String(q.prompt || '').slice(0, 2500),
+      options: Array.isArray(q.options) && q.options.length ? q.options : undefined,
+      correctAnswer: q.correctAnswer,
+      passage: q.sectionId ? String(((a.sections || []).find((s) => s.id === q.sectionId) || {}).passage || '').slice(0, 1500) || undefined : undefined,
+    }));
+    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content: JSON.stringify(batch) }] }, 'smart');
+    const arr = _ccParseModelJson(text);
+    if (Array.isArray(arr)) for (const x of arr) {
+      const level = _ccNormLevel(x && x.difficulty);
+      if (x && x.id && level) out.push({ questionId: String(x.id), level, reason: String(x.difficultyReason || '').slice(0, 300), source: 'ai' });
+    }
+  }
+  return out;
+}
+
+const _ccDiffRunning = new Set();
+async function _ccLabelMissing(a) {
+  if (!a || _ccDiffRunning.has(a.id)) return 0;
+  _ccDiffRunning.add(a.id);
+  try {
+    const have = new Set(_ccDiffFor(a.id).map((r) => r.questionId));
+    const missing = (a.questions || []).filter((q) => !have.has(q.id) && String(q.prompt || '').trim());
+    if (!missing.length || !readApiKey()) return 0;
+    const found = await _ccClassifyDifficulty(a, missing);
+    _ccDiffUpsert(a.id, found);
+    return found.length;
+  } finally { _ccDiffRunning.delete(a.id); }
+}
+
+// After a teacher saves: attach waiting labels, AI-label anything new.
+function _ccDifficultyAfterSave(req, a) {
+  try {
+    if (!a || !Array.isArray(a.questions)) return;
+    const tid = req.session && req.session.user && req.session.user.id;
+    const have = new Set(_ccDiffFor(a.id).map((r) => r.questionId));
+    const fromPending = [];
+    for (const q of a.questions) {
+      if (have.has(q.id)) continue;
+      const p = _ccDiffPending.get(_ccDiffKey(tid, q.prompt));
+      if (p) fromPending.push({ questionId: q.id, level: p.level, reason: p.reason, source: p.source });
+    }
+    _ccDiffUpsert(a.id, fromPending);
+    // Drop labels of deleted questions.
+    const ids = new Set(a.questions.map((q) => q.id));
+    const all = _ccDiffRecords();
+    const kept = all.filter((r) => r.assessmentId !== a.id || ids.has(r.questionId));
+    if (kept.length !== all.length) writeAll('difficulty.json', kept);
+    setImmediate(() => { _ccLabelMissing(a).catch((e) => console.warn('[difficulty] label failed:', e.message)); });
+  } catch (e) { console.warn('[difficulty] after-save:', e.message); }
+}
+
+function _ccDiffMix(a, recs) {
+  const byQ = new Map(recs.map((r) => [r.questionId, r]));
+  const marks = { easy: 0, medium: 0, hard: 0 }, counts = { easy: 0, medium: 0, hard: 0 };
+  let total = 0, labelled = 0;
+  for (const q of a.questions || []) {
+    const pts = Number(q.points) || 1;
+    total += pts;
+    const r = byQ.get(q.id);
+    if (!r) continue;
+    labelled++; marks[r.level] += pts; counts[r.level]++;
+  }
+  const lm = marks.easy + marks.medium + marks.hard;
+  const pct = {};
+  for (const l of _CC_DIFF_LEVELS) pct[l] = lm ? Math.round((marks[l] / lm) * 100) : 0;
+  const offBy = lm ? Math.max(..._CC_DIFF_LEVELS.map((l) => Math.abs(pct[l] - _CC_DIFF_TARGET[l]))) : null;
+  return { pct, counts, labelled, questions: (a.questions || []).length, offBy, flag: offBy != null && offBy > 15 };
+}
+
+// ── Admin endpoints ──────────────────────────────────────────────────
+app.get('/api/admin/difficulty', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admin only' });
+  const users = readAll('users.json');
+  const recs = _ccDiffRecords();
+  const list = readAll('assessments.json').map((a) => {
+    const mix = _ccDiffMix(a, recs.filter((r) => r.assessmentId === a.id));
+    const t = users.find((u) => u.id === a.teacherId);
+    return { id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', teacher: (t && (t.name || t.email)) || a.teacherName || '', createdAt: a.createdAt || '', ...mix };
+  }).sort((x, y) => String(y.createdAt).localeCompare(String(x.createdAt)));
+  res.json({ target: _CC_DIFF_TARGET, assessments: list });
+});
+
+app.get('/api/admin/difficulty/:id', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admin only' });
+  const a = readAll('assessments.json').find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  const recs = _ccDiffFor(a.id);
+  const byQ = new Map(recs.map((r) => [r.questionId, r]));
+  const results = readAll('results.json').filter((r) => r.assessmentId === a.id);
+  const questions = (a.questions || []).map((q, i) => {
+    const marks = results.map((r) => _ccQuestionEarned(q, r)).filter(Boolean);
+    const pctCorrect = marks.length ? Math.round((marks.reduce((t, m) => t + m.earned / m.max, 0) / marks.length) * 100) : null;
+    const r = byQ.get(q.id) || null;
+    let check = null;
+    if (r && marks.length >= 5) {
+      if (r.level === 'hard' && pctCorrect >= 85) check = 'Most students got this right — probably easier than labelled';
+      else if (r.level === 'easy' && pctCorrect < 40) check = 'Most students got this wrong — probably harder than labelled';
+      else if (r.level === 'medium' && pctCorrect >= 95) check = 'Nearly everyone got this right — probably easy';
+      else if (r.level === 'medium' && pctCorrect < 25) check = 'Very few got this right — probably hard';
+    }
+    return { n: i + 1, id: q.id, type: q.type, points: q.points, prompt: _ccLatexToPlain(String(q.prompt || '')).slice(0, 300), skill: q.skill || '',
+      level: r ? r.level : null, reason: r ? r.reason : '', source: r ? r.source : null, pctCorrect, answered: marks.length, check };
+  });
+  res.json({ id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', target: _CC_DIFF_TARGET, mix: _ccDiffMix(a, recs), questions });
+});
+
+app.put('/api/admin/difficulty/:id/:qid', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admin only' });
+  const level = _ccNormLevel(req.body && req.body.level);
+  if (!level) return res.status(400).json({ error: 'level must be easy, medium or hard' });
+  _ccDiffUpsert(req.params.id, [{ questionId: req.params.qid, level, reason: 'Set by admin', source: 'admin' }]);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/difficulty/:id/classify', requireTeacher, async (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admin only' });
+  const a = readAll('assessments.json').find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  try {
+    if (req.body && req.body.redo) {
+      const keep = _ccDiffRecords().filter((r) => r.assessmentId !== a.id || r.source === 'admin');
+      writeAll('difficulty.json', keep);
+    }
+    const n = await _ccLabelMissing(a);
+    res.json({ ok: true, labelled: n });
+  } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+});
+
+app.post('/api/admin/difficulty/backfill', requireTeacher, async (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admin only' });
+  const recs = _ccDiffRecords();
+  const todo = readAll('assessments.json').filter((a) => {
+    const have = new Set(recs.filter((r) => r.assessmentId === a.id).map((r) => r.questionId));
+    return (a.questions || []).some((q) => !have.has(q.id));
+  });
+  const batch = todo.slice(0, 15);
+  let labelled = 0;
+  try {
+    for (const a of batch) labelled += await _ccLabelMissing(a);
+    res.json({ ok: true, assessmentsDone: batch.length, remaining: todo.length - batch.length, labelled });
+  } catch (e) { res.status(500).json({ error: String(e.message || e), assessmentsDone: batch.length, labelled }); }
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);
@@ -5004,6 +5254,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '',
     _ccMathRulesFor('generate'),
     _ccSkillRules(),
+    _ccDiffRulesGenerate(requestedCount, files.length > 0),
     _ccLangRulesFor(language),
     '',
     'G. LANGUAGE',
@@ -5111,6 +5362,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         imageUrl: '', // populated client-side after teacher uploads
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
+        difficulty: q.difficulty, difficultyReason: q.difficultyReason,
       };
       if (type === 'mc') {
         if (!out.options.length) out.options = ['', '', '', ''];
@@ -5140,6 +5392,11 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         console.log('[ai-generate] Arabic proofread corrected', n, 'item(s)');
       } catch (e) { console.warn('[ai-generate] Arabic proofread skipped:', e.message); }
     }
+
+    // Difficulty: easy → hard within each section (only when the AI wrote
+    // the questions itself), then move the labels to admin-only storage.
+    if (!files.length) { const _sorted = _ccSortEasyToHard(questions); questions.splice(0, questions.length, ..._sorted); }
+    _ccStashDifficulty(req, questions, 'ai-generate');
 
     res.json({
       ok: true,
@@ -5227,6 +5484,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '10. IMAGES: the paper\'s pictures may be attached after this text, each preceded by a label "Image #N". If a question shows or uses one of them, add "imageRef": N to that question. For word-picture match pairs, add "rightImageRef": N to each pair. Only use numbers that were actually provided. If a question refers to a figure, diagram, graph or table-as-picture that is NOT among the attached images, add "imageDescription" with a precise description (shape, labels, values, axes) so it can be redrawn.',
         _ccMathRulesFor('import'),
         _ccSkillRules(),
+        _CC_DIFF_RULES_LABEL,
         'Keep the paper in its original language. If it is in Arabic (or any other language), copy the wording exactly — do not rephrase or translate it.',
         '',
         ...(_isPdfImport
@@ -5305,6 +5563,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               imageDescription: '',
               skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
               explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
+              difficulty: q.difficulty, difficultyReason: q.difficultyReason,
             };
             if (!out.imageUrl && typeof q.imageDescription === 'string') out.imageDescription = q.imageDescription.slice(0, 500);
             if (type === 'mc') {
@@ -5332,6 +5591,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
           }).filter((q) => q.prompt.trim() || (q.type === 'match' && q.pairs && q.pairs.length));
 
           if (questions.length) {
+            _ccStashDifficulty(req, questions, 'ai-import');
             try { fs.unlinkSync(req.file.path); } catch {}
             return res.json({
               title: String(parsed.title || 'Imported assessment').slice(0, 200),
@@ -7601,6 +7861,7 @@ app.post('/api/ai/question-from-content', requireTeacher, async (req, res) => {
       'If the screenshot contains a diagram, graph, figure, picture or a table drawn as an image that the question needs, set "hasFigure": true and "figureBox" to the tight bounding box of ONLY that figure, as fractions (0–1) of the image width/height measured from the top-left corner — exclude the question text and the options.',
       _ccMathRulesFor('import'),
       _ccSkillRules(),
+      _CC_DIFF_RULES_LABEL,
       _ccLangRulesFor(language),
       subject ? `Subject: ${subject}.` : '',
     ].filter(Boolean).join('\n');
@@ -7615,6 +7876,7 @@ app.post('/api/ai/question-from-content', requireTeacher, async (req, res) => {
       q.figureBox = { x: c(q.figureBox.x), y: c(q.figureBox.y), w: c(q.figureBox.w), h: c(q.figureBox.h) };
       if (q.figureBox.w < 0.03 || q.figureBox.h < 0.03) q.hasFigure = false;
     }
+    _ccStashDifficulty(req, [q], 'ai-paste');
     res.json({ question: q });
   } catch (e) {
     console.error('[question-from-content]', e);

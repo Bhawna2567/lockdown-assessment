@@ -8656,3 +8656,125 @@ function ccAnalyticsSkillsHtml(assessmentId, a) {
   return { releaseBar, body };
 }
 
+// ── Admin → 📊 Difficulty review (admins only; labels never shown elsewhere) ─
+function ccDiffBar(pct) {
+  const seg = (l, c) => pct[l] ? `<div title="${l} ${pct[l]}%" style="width:${pct[l]}%; background:${c}; height:100%;"></div>` : '';
+  return `<div style="display:flex; width:180px; height:12px; border-radius:6px; overflow:hidden; background:#e5e7eb;">${seg('easy', '#34d399')}${seg('medium', '#fbbf24')}${seg('hard', '#f87171')}</div>`;
+}
+function ccDiffOverlay(inner) {
+  const ov = document.createElement('div');
+  ov.id = 'cc-diff-overlay';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+  ov.innerHTML = `<div style="background:#fff; border-radius:12px; width:min(1100px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);">${inner}</div>`;
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  return ov;
+}
+async function ccOpenDifficultyReview() {
+  const old = document.getElementById('cc-diff-overlay'); if (old) old.remove();
+  const ov = ccDiffOverlay('<div class="muted">Loading…</div>');
+  const box = ov.firstElementChild;
+  let data;
+  try { data = await api('/api/admin/difficulty'); } catch (e) { box.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; return; }
+  const t = data.target;
+  const unlabeled = data.assessments.filter((a) => a.labelled < a.questions).length;
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;">
+      <h2 style="margin:0; flex:1;">📊 Difficulty review <span class="muted" style="font-size:13px; font-weight:400;">— visible to admins only</span></h2>
+      <button class="btn" id="cc-diff-close">Close</button>
+    </div>
+    <div class="muted" style="font-size:13px; margin-bottom:12px;">
+      Target mix by marks: <strong style="color:#059669;">${t.easy}% easy</strong> · <strong style="color:#b45309;">${t.medium}% medium</strong> · <strong style="color:#dc2626;">${t.hard}% hard</strong>.
+      Papers more than 15 points off the target are flagged. New and edited assessments are labelled automatically a few seconds after the teacher saves.
+    </div>
+    ${unlabeled ? `<div style="padding:10px 12px; background:#eef2ff; border-radius:8px; margin-bottom:12px;">${unlabeled} assessment${unlabeled === 1 ? ' has' : 's have'} unlabelled questions. <button class="btn primary" id="cc-diff-backfill" style="margin-left:8px;">🏷 Label existing assessments with AI</button> <span id="cc-diff-bf-status" class="muted"></span></div>` : ''}
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <tr style="text-align:left; border-bottom:2px solid #e5e7eb;"><th style="padding:6px;">Assessment</th><th>Teacher</th><th>Mix</th><th>Easy / Med / Hard</th><th>Labelled</th><th></th></tr>
+      ${data.assessments.map((a) => `
+        <tr style="border-bottom:1px solid #f1f5f9; ${a.flag ? 'background:#fff7ed;' : ''}">
+          <td style="padding:6px;" dir="auto">${escapeHtml(a.title || '(untitled)')}<div class="muted" style="font-size:12px;">${escapeHtml([a.subject, a.grade ? 'Grade ' + a.grade : ''].filter(Boolean).join(' · '))}</div></td>
+          <td>${escapeHtml(a.teacher)}</td>
+          <td>${a.labelled ? ccDiffBar(a.pct) : '<span class="muted">—</span>'}</td>
+          <td>${a.labelled ? `${a.pct.easy}% / ${a.pct.medium}% / ${a.pct.hard}%${a.flag ? ' <span style="color:#c2410c; font-weight:600;">⚠ off target</span>' : ''}` : ''}</td>
+          <td>${a.labelled}/${a.questions}</td>
+          <td><button class="btn" data-cc-diff-open="${a.id}">Open</button></td>
+        </tr>`).join('')}
+    </table>`;
+  box.querySelector('#cc-diff-close').onclick = () => ov.remove();
+  box.querySelectorAll('[data-cc-diff-open]').forEach((b) => { b.onclick = () => ccOpenDifficultyDetail(b.getAttribute('data-cc-diff-open')); });
+  const bf = box.querySelector('#cc-diff-backfill');
+  if (bf) bf.onclick = async () => {
+    const st = box.querySelector('#cc-diff-bf-status');
+    bf.disabled = true;
+    try {
+      for (;;) {
+        st.textContent = 'Labelling… (this can take a minute)';
+        const r = await api('/api/admin/difficulty/backfill', { method: 'POST', body: {} });
+        if (!r.remaining) break;
+        st.textContent = `${r.remaining} assessments left…`;
+      }
+      ccOpenDifficultyReview();
+    } catch (e) { st.textContent = 'Stopped: ' + e.message; bf.disabled = false; }
+  };
+}
+async function ccOpenDifficultyDetail(id) {
+  const old = document.getElementById('cc-diff-overlay'); if (old) old.remove();
+  const ov = ccDiffOverlay('<div class="muted">Loading…</div>');
+  const box = ov.firstElementChild;
+  let d;
+  try { d = await api('/api/admin/difficulty/' + encodeURIComponent(id)); } catch (e) { box.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; return; }
+  const colour = { easy: '#059669', medium: '#b45309', hard: '#dc2626' };
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:8px;">
+      <button class="btn" id="cc-diff-back">← All assessments</button>
+      <h2 style="margin:0; flex:1;" dir="auto">${escapeHtml(d.title || '')}</h2>
+      <button class="btn" id="cc-diff-redo" title="Re-label every question (your manual changes are kept)">🔄 Re-label with AI</button>
+    </div>
+    <div class="row" style="gap:14px; align-items:center; margin-bottom:12px;">
+      ${ccDiffBar(d.mix.pct)}
+      <div>Easy <strong>${d.mix.pct.easy}%</strong> (${d.mix.counts.easy}) · Medium <strong>${d.mix.pct.medium}%</strong> (${d.mix.counts.medium}) · Hard <strong>${d.mix.pct.hard}%</strong> (${d.mix.counts.hard}) — target ${d.target.easy}/${d.target.medium}/${d.target.hard}
+      ${d.mix.flag ? ' <span style="color:#c2410c; font-weight:600;">⚠ off target</span>' : ''}</div>
+    </div>
+    ${d.mix.labelled < d.mix.questions ? `<div class="muted" style="margin-bottom:10px;">${d.mix.questions - d.mix.labelled} question(s) not labelled yet. <button class="btn" id="cc-diff-fill">🏷 Label them now</button></div>` : ''}
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <tr style="text-align:left; border-bottom:2px solid #e5e7eb;"><th style="padding:6px;">Q</th><th>Question</th><th>Difficulty</th><th>Why</th><th>Students correct</th></tr>
+      ${d.questions.map((q) => `
+        <tr style="border-bottom:1px solid #f1f5f9; vertical-align:top;">
+          <td style="padding:6px;"><strong>${q.n}</strong><div class="muted" style="font-size:11px;">${q.points} pt</div></td>
+          <td dir="auto" style="max-width:380px;">${escapeHtml(q.prompt)}${q.skill ? `<div class="muted" style="font-size:12px;">🎯 ${escapeHtml(q.skill)}</div>` : ''}</td>
+          <td>
+            <select data-cc-diff-q="${q.id}" style="color:${colour[q.level] || '#6b7280'}; font-weight:600;">
+              <option value="" ${q.level ? '' : 'selected'} disabled>—</option>
+              ${['easy', 'medium', 'hard'].map((l) => `<option value="${l}" ${q.level === l ? 'selected' : ''}>${l}</option>`).join('')}
+            </select>
+            ${q.source === 'admin' ? '<div class="muted" style="font-size:11px;">set by admin</div>' : ''}
+          </td>
+          <td class="muted" style="font-size:13px; max-width:260px;" dir="auto">${escapeHtml(q.reason || '')}</td>
+          <td>${q.pctCorrect == null ? '<span class="muted">—</span>' : `${q.pctCorrect}% <span class="muted" style="font-size:11px;">(${q.answered})</span>`}
+            ${q.check ? `<div style="font-size:12px; color:#c2410c; margin-top:2px;">⚠ ${escapeHtml(q.check)}</div>` : ''}</td>
+        </tr>`).join('')}
+    </table>`;
+  box.querySelector('#cc-diff-back').onclick = () => ccOpenDifficultyReview();
+  box.querySelectorAll('[data-cc-diff-q]').forEach((sel) => {
+    sel.onchange = async () => {
+      try { await api(`/api/admin/difficulty/${encodeURIComponent(id)}/${encodeURIComponent(sel.getAttribute('data-cc-diff-q'))}`, { method: 'PUT', body: { level: sel.value } }); ccOpenDifficultyDetail(id); }
+      catch (e) { alert('Could not save: ' + e.message); }
+    };
+  });
+  const run = async (btn, redo) => {
+    btn.disabled = true; btn.textContent = 'Labelling…';
+    try { await api(`/api/admin/difficulty/${encodeURIComponent(id)}/classify`, { method: 'POST', body: { redo } }); ccOpenDifficultyDetail(id); }
+    catch (e) { alert('Failed: ' + e.message); btn.disabled = false; }
+  };
+  const redo = box.querySelector('#cc-diff-redo'); if (redo) redo.onclick = () => { if (confirm('Re-label every question with AI? Labels you set yourself are kept.')) run(redo, true); };
+  const fill = box.querySelector('#cc-diff-fill'); if (fill) fill.onclick = () => run(fill, false);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#admin-difficulty');
+  if (b) {
+    e.preventDefault();
+    const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+    ccOpenDifficultyReview();
+  }
+});
+
