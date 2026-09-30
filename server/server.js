@@ -3241,7 +3241,7 @@ app.post('/api/ai/tag-skills', requireTeacher, async (req, res) => {
   try {
     if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
     const b = req.body || {};
-    const qs = (Array.isArray(b.questions) ? b.questions : []).slice(0, 120);
+    const qs = (Array.isArray(b.questions) ? b.questions : []).slice(0, 150);
     if (!qs.length) return res.status(400).json({ error: 'Add some questions first.' });
     const language = String(b.language || '').slice(0, 60);
     const system = [
@@ -3250,21 +3250,51 @@ app.post('/api/ai/tag-skills', requireTeacher, async (req, res) => {
       _ccSkillRules(),
       _ccLangRulesFor(language),
       'Work out the correct answer yourself when writing feedback; if the given answer key looks wrong, still explain the given answer but start the feedback with "⚠ Check answer key:".',
-      'Return ONLY a JSON array: [{"id": "...", "skill": "...", "explanation": "..."}], one entry per question, same ids.',
+      'Some questions are shown as a picture — read the image to work out what is tested. EVERY question must get a non-empty skill.',
+      'Return one entry per question, using exactly the same ids.',
     ].filter(Boolean).join('\n');
     const out = [];
-    for (let i = 0; i < qs.length; i += 25) {
-      const batch = qs.slice(i, i + 25).map((q) => ({
-        id: String(q.id), type: q.type, prompt: String(q.prompt || '').slice(0, 3000),
-        options: Array.isArray(q.options) ? q.options.map(String) : undefined,
-        correctAnswer: q.correctAnswer,
-        pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
-      }));
-      const existing = out.map((x) => x.skill).filter(Boolean);
-      const arr = await _ccClaudeList({ system, maxTokens: 12000, itemProps: _CC_SKILL_PROPS,
-        user: (existing.length ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(new Set(existing)).join(' | ') + '\n\n' : '') + JSON.stringify(batch) });
-      if (Array.isArray(arr)) for (const x of arr) if (x && x.id) out.push({ id: String(x.id), skill: String(x.skill || '').slice(0, 80), explanation: String(x.explanation || '').slice(0, 1500) });
+    const used = new Set();
+    const ask = async (chunk) => {
+      const content = [];
+      const list = chunk.map((q) => {
+        const img = _ccImageBlock(q.imageUrl);
+        if (img) { content.push({ type: 'text', text: `Image for question id ${q.id}:` }); content.push(img); }
+        return {
+          id: String(q.id), type: q.type,
+          prompt: String(q.prompt || '').slice(0, 3000) || (img ? `[see image for question ${q.id}]` : (q.imageDescription ? `[picture: ${q.imageDescription}]` : '[no text]')),
+          options: Array.isArray(q.options) ? q.options.map(String) : undefined,
+          correctAnswer: q.correctAnswer,
+          pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
+        };
+      });
+      content.push({ type: 'text', text: (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(list) });
+      let arr = null, err = null;
+      for (let t = 0; t < 2 && !Array.isArray(arr); t++) {
+        try { arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS }); } catch (e) { err = e; }
+      }
+      if (!Array.isArray(arr)) throw err || new Error('AI reply could not be read');
+      const ids = new Set(chunk.map((q) => String(q.id)));
+      if (!arr.some((x) => x && ids.has(String(x.id).trim())) && arr.length === chunk.length) arr = arr.map((x, k) => Object.assign({}, x, { id: chunk[k].id }));
+      for (const x of arr) {
+        if (!x || x.id == null || !String(x.skill || '').trim()) continue;
+        const sk = String(x.skill).slice(0, 80).trim();
+        used.add(sk);
+        out.push({ id: String(x.id).trim(), skill: sk, explanation: String(x.explanation || '').slice(0, 1500) });
+      }
+    };
+    const batches = [];
+    for (let i = 0; i < qs.length; i += 8) batches.push(qs.slice(i, i + 8));
+    let firstErr = null;
+    // Up to 3 batches at a time so long papers finish quickly.
+    for (let i = 0; i < batches.length; i += 3) {
+      await Promise.all(batches.slice(i, i + 3).map((c) => ask(c).catch((e) => { firstErr = firstErr || e; })));
     }
+    const got = new Set(out.map((x) => x.id));
+    for (const q of qs.filter((q) => !got.has(String(q.id)))) {
+      await ask([q]).catch((e) => { firstErr = firstErr || e; });
+    }
+    if (!out.length && firstErr) throw firstErr;
     res.json({ items: out });
   } catch (e) {
     console.error('[tag-skills]', e);
@@ -3619,6 +3649,25 @@ app.post('/api/admin/difficulty/backfill', requireTeacher, async (req, res) => {
 // never hit the web request time limit. The results page polls for status.
 const _ccTagJobs = new Map();   // aid -> { state, done, total, tagged, error, startedAt }
 function _ccTagStatus(aid) { return _ccTagJobs.get(aid) || { state: 'idle' }; }
+
+// Turn a question image (data: URL, web URL or /uploads path) into an AI image block.
+function _ccImageBlock(url) {
+  try {
+    const u = String(url || '');
+    let m = u.match(/^data:(image\/(?:png|jpe?g|gif|webp));base64,(.+)$/i);
+    if (m) { if (m[2].length > 4.5e6) return null; return { type: 'image', source: { type: 'base64', media_type: m[1].toLowerCase().replace('jpg', 'jpeg'), data: m[2] } }; }
+    if (/^https?:\/\//i.test(u)) return { type: 'image', source: { type: 'url', url: u } };
+    m = u.match(/^\/?uploads\/([\w.\-]+)$/);
+    if (m) {
+      const p = path.join(UPLOAD_DIR, m[1]);
+      if (!fs.existsSync(p) || fs.statSync(p).size > 3.3e6) return null;
+      const ext = (path.extname(p).slice(1) || 'png').toLowerCase();
+      const mt = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'gif' ? 'image/gif' : ext === 'webp' ? 'image/webp' : 'image/png';
+      return { type: 'image', source: { type: 'base64', media_type: mt, data: fs.readFileSync(p).toString('base64') } };
+    }
+  } catch {}
+  return null;
+}
 async function _ccTagMissingSkills(aid) {
   const cur = _ccTagJobs.get(aid);
   if (cur && cur.state === 'running') return cur.promise;
@@ -3629,7 +3678,7 @@ async function _ccTagMissingSkills(aid) {
       if (!readApiKey()) throw new Error('No Anthropic API key configured in Settings.');
       const a0 = readAll('assessments.json').find((x) => x.id === aid);
       if (!a0) throw new Error('Assessment not found');
-      const todo = (a0.questions || []).filter((q) => String(q.prompt || '').trim() && (!String(q.skill || '').trim() || !String(q.explanation || '').trim()));
+      const todo = (a0.questions || []).filter((q) => !String(q.skill || '').trim() || !String(q.explanation || '').trim());
       job.total = todo.length;
       if (!todo.length) { job.state = 'done'; return 0; }
       const system = [
@@ -3639,36 +3688,62 @@ async function _ccTagMissingSkills(aid) {
         _ccLangRulesFor(a0.assessmentLanguage || ''),
         'Keep each explanation under 60 words.',
         'Work out the correct answer yourself when writing feedback; if the given answer key looks wrong, still explain the given answer but start the feedback with "⚠ Check answer key:".',
-        'Return ONLY a JSON array: [{"id": "...", "skill": "...", "explanation": "..."}], one entry per question, same ids. No other text.',
+        'Some questions are shown as a picture ("[see image for question …]") or only make sense with their section instructions/passage — read those to work out what is being tested.',
+        'EVERY question must get a non-empty skill, even if its text is short or unclear — give your best judgement for the subject and grade.',
+        'Return one entry per question, using exactly the same ids.',
       ].filter(Boolean).join('\n');
-      const passages = new Map((a0.sections || []).map((s) => [s.id, String(s.passage || '').slice(0, 2500)]));
+      const secInfo = new Map((a0.sections || []).map((s) => [s.id, {
+        title: String(s.title || '').slice(0, 200), instructions: String(s.instructions || '').slice(0, 600), passage: String(s.passage || '').slice(0, 2500) }]));
       const used = new Set((a0.questions || []).map((q) => q.skill).filter(Boolean));
-      const BATCH = 8;
-      for (let i = 0; i < todo.length; i += BATCH) {
-        const chunk = todo.slice(i, i + BATCH);
-        const secIds = Array.from(new Set(chunk.map((q) => q.sectionId).filter((id) => passages.get(id))));
-        const payload = {
-          passages: secIds.length ? Object.fromEntries(secIds.map((id) => [id, passages.get(id)])) : undefined,
-          questions: chunk.map((q) => ({
-            id: q.id, type: q.type, sectionId: q.sectionId || undefined, prompt: String(q.prompt || '').slice(0, 2500),
+      // Smaller batches when questions carry pictures.
+      const batches = [];
+      { let cur = [], imgs = 0;
+        for (const q of todo) {
+          const hasImg = !!_ccImageBlock(q.imageUrl);
+          if (cur.length && (cur.length >= 8 || (hasImg && imgs >= 4))) { batches.push(cur); cur = []; imgs = 0; }
+          cur.push(q); if (hasImg) imgs++;
+        }
+        if (cur.length) batches.push(cur); }
+      const askBatch = async (chunk) => {
+        const secIds = Array.from(new Set(chunk.map((q) => q.sectionId).filter((id) => secInfo.has(id))));
+        const content = [];
+        const qList = [];
+        for (const q of chunk) {
+          const img = _ccImageBlock(q.imageUrl);
+          if (img) { content.push({ type: 'text', text: `Image for question id ${q.id}:` }); content.push(img); }
+          qList.push({
+            id: q.id, type: q.type, sectionId: q.sectionId || undefined,
+            prompt: String(q.prompt || '').slice(0, 2500) || (img ? `[see image for question ${q.id}]` : (q.imageDescription ? `[picture: ${q.imageDescription}]` : '[no text — use the section instructions/passage]')),
+            imageDescription: q.imageDescription || undefined,
             options: Array.isArray(q.options) && q.options.length ? q.options : undefined, correctAnswer: q.correctAnswer,
-            pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
-          })),
-        };
+            pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right || (p.rightImageUrl ? '[picture]' : '') })) : undefined,
+            points: q.points,
+          });
+        }
+        const payload = { sections: secIds.length ? Object.fromEntries(secIds.map((id) => [id, secInfo.get(id)])) : undefined, questions: qList };
+        content.push({ type: 'text', text: (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(payload) });
         let arr = null, lastErr = null;
         for (let attempt = 0; attempt < 3 && !Array.isArray(arr); attempt++) {
           try {
-            arr = await _ccClaudeList({ system, maxTokens: 8000, itemProps: _CC_SKILL_PROPS,
-              user: (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(payload) });
+            arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS });
             if (!Array.isArray(arr)) lastErr = new Error('AI reply could not be read');
-          } catch (e) { lastErr = e; console.warn('[skills] batch attempt failed:', e.message, e.detail || ''); await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
+          } catch (e) {
+            lastErr = e; console.warn('[skills] batch attempt failed:', e.message, e.detail || '');
+            if (/API key|credit|billing/i.test(e.message)) break;
+            await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+          }
         }
         if (!Array.isArray(arr)) throw lastErr || new Error('AI did not return skills');
-        // Save this batch straight away (re-read so a teacher's newer save wins).
+        return arr;
+      };
+      const saveItems = (arr) => {
+        // Save straight away (re-read so a teacher's newer save wins).
         const all = readAll('assessments.json');
         const idx = all.findIndex((x) => x.id === aid);
         if (idx < 0) throw new Error('Assessment was deleted');
-        const byId = new Map(arr.filter((x) => x && x.id).map((x) => [String(x.id), x]));
+        const byId = new Map(arr.filter((x) => x && x.id != null).map((x) => [String(x.id).trim(), x]));
+        // If the AI changed the ids but kept the order, match by position.
+        const ids = arr.map((x) => String((x && x.id) || '').trim());
         for (const q of all[idx].questions || []) {
           const f = byId.get(String(q.id));
           if (!f) continue;
@@ -3678,7 +3753,35 @@ async function _ccTagMissingSkills(aid) {
           if (!String(q.explanation || '').trim() && ex) q.explanation = ex;
         }
         writeAll('assessments.json', all);
-        job.done = Math.min(todo.length, i + chunk.length);
+        return ids;
+      };
+      const stillMissing = () => {
+        const a = readAll('assessments.json').find((x) => x.id === aid);
+        const want = new Set(todo.map((q) => q.id));
+        return ((a && a.questions) || []).filter((q) => want.has(q.id) && !String(q.skill || '').trim());
+      };
+      let firstErr = null;
+      for (const chunk of batches) {
+        try {
+          const arr = await askBatch(chunk);
+          const got = new Set(saveItems(arr));
+          // Position match when the AI renamed every id.
+          if (!chunk.some((q) => got.has(String(q.id))) && arr.length === chunk.length) {
+            saveItems(arr.map((x, k) => Object.assign({}, x, { id: chunk[k].id })));
+          }
+        } catch (e) { firstErr = firstErr || e; if (/API key|credit|billing/i.test(e.message)) throw e; }
+        job.done = Math.min(todo.length, job.done + chunk.length);
+      }
+      // Second pass: anything still missing goes one question at a time.
+      for (const q of stillMissing()) {
+        try { const arr = await askBatch([q]); saveItems(arr.length === 1 ? [Object.assign({}, arr[0], { id: q.id })] : arr); }
+        catch (e) { firstErr = firstErr || e; }
+      }
+      const left = stillMissing().length;
+      if (left) {
+        const e = new Error(`${left} question${left === 1 ? '' : 's'} could not be tagged`);
+        e.detail = firstErr ? firstErr.message + (firstErr.detail ? ' — ' + firstErr.detail : '') : 'the AI returned an empty skill';
+        throw e;
       }
       job.state = 'done';
       console.log('[skills] auto-tagged', job.tagged, 'question(s) in', aid);
@@ -5037,7 +5140,8 @@ function _ccLenientItems(text, keys) {
   }
   return out.length ? out : null;
 }
-async function _ccClaudeList({ system, user, maxTokens, itemProps, required }) {
+async function _ccClaudeList({ system, user, content, maxTokens, itemProps, required }) {
+  const _msgContent = Array.isArray(content) && content.length ? content : user;
   const tool = {
     name: 'submit_items',
     description: 'Submit exactly one entry for every question you were given.',
@@ -5045,7 +5149,7 @@ async function _ccClaudeList({ system, user, maxTokens, itemProps, required }) {
   };
   let why = '';
   try {
-    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
+    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system, messages: [{ role: 'user', content: _msgContent }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
     if (r && r.ok) {
       const data = await r.json();
       const blk = (data.content || []).find((b) => b.type === 'tool_use');
@@ -5060,7 +5164,7 @@ async function _ccClaudeList({ system, user, maxTokens, itemProps, required }) {
     }
   } catch (e) { if (/API key/.test(e.message)) throw e; why = e.message; }
   console.warn('[ai-list] structured reply failed, falling back to text:', why);
-  const text = await _ccClaudeText({ max_tokens: maxTokens, system: system + '\nReturn ONLY a JSON array, nothing else.', messages: [{ role: 'user', content: user }] }, 'smart');
+  const text = await _ccClaudeText({ max_tokens: maxTokens, system: system + '\nReturn ONLY a JSON array, nothing else.', messages: [{ role: 'user', content: _msgContent }] }, 'smart');
   const items = _ccLenientItems(text, Object.keys(itemProps));
   if (!items) { const e = new Error('AI reply could not be read'); e.detail = 'structured: ' + why + ' | text: ' + String(text).slice(0, 160); throw e; }
   return items;

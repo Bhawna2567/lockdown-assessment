@@ -8520,7 +8520,12 @@ async function ccTagSkillsWithAI(btn) {
         subject: (els.subject && els.subject.value) || '',
         grade: (els.grade && els.grade.value) || '',
         language: (els.assessmentLanguage && els.assessmentLanguage.value) || '',
-        questions: target.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt, options: q.options, correctAnswer: q.correctAnswer, pairs: q.pairs })),
+        questions: (() => { let budget = 11e6; return target.map((q) => {
+          let imageUrl = '';
+          const u = String(q.imageUrl || '');
+          if (u && (!u.startsWith('data:') || u.length < budget)) { imageUrl = u; if (u.startsWith('data:')) budget -= u.length; }
+          return { id: q.id, type: q.type, prompt: q.prompt, options: q.options, correctAnswer: q.correctAnswer, pairs: (q.pairs || []).map((p) => ({ left: p.left, right: p.right })), imageUrl, imageDescription: q.imageDescription || '' };
+        }); })(),
       }),
     });
     const j = await r.json().catch(() => ({}));
