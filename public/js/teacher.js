@@ -1855,6 +1855,7 @@ function renderList() {
           <div style="flex:1; min-width: 0;">
             <div class="card-title">${escapeHtml(a.title)}
               <span class="badge ${a.published ? 'green' : ''}">${a.published ? 'Published' : 'Draft'}</span>
+              ${a.shuffle === true ? '<span class="badge" style="background:#ede9fe; color:#5b21b6;" title="Every student gets a different order of questions and answer options">🔀 Shuffled for each student</span>' : ''}
             </div>
             <div class="muted">${meta}</div>
           </div>
@@ -1865,6 +1866,7 @@ function renderList() {
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
           <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
           <button class="btn" data-act="preview" data-id="${a.id}" title="See the assessment exactly as a student would">👁 Preview</button>
+          ${a.shuffle === true ? `<button class="btn" data-cc-shuffle-sample="${a.id}" title="See an example of how one student's shuffled paper looks">🔀 Example student version</button>` : ''}
           <button class="btn" data-act="move" data-id="${a.id}" title="Move this assessment to another folder or class">📂 Move</button>
           <button class="btn" data-act="edit" data-id="${a.id}">Edit</button>
           <button class="btn" data-act="duplicate" data-id="${a.id}" title="Make a copy for a new batch of students">⎘ Duplicate</button>
@@ -2298,7 +2300,7 @@ function openBuilder(a, presets) {
     els.deliveryMode.value = a && a.deliveryMode === 'onsite' ? 'onsite' : 'online';
   }
   if (els.skill) els.skill.value = (a && a.skill) || '';
-  { const sh = document.getElementById('shuffle-toggle'); if (sh) sh.checked = a ? a.shuffle === true : true; }
+  { const sh = document.getElementById('shuffle-toggle'); if (sh) sh.checked = a ? a.shuffle === true : true; if (typeof ccShuffleStatusUpdate === 'function') ccShuffleStatusUpdate(); }
   if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels();
   // Builder class dropdown — for new assessments default to the active class;
   // for edits use the assessment's stored classId.
@@ -4566,6 +4568,7 @@ function showExportChooser(assessmentId) {
           <option value="4">Set 4 (shuffled)</option>
         </select>
         <div class="muted" style="font-size:12px; margin-top:4px;">Sets have the same questions in a different order, with shuffled answer options and their own answer key. Sets are PDF only.</div>
+        <div style="font-size:12px; margin-top:8px; padding:8px 10px; background:#ede9fe; color:#4c1d95; border-radius:8px;">🖨 <strong>Printing for class?</strong> Download Set 1, 2, 3 and 4 one after another and hand out a different set to neighbouring students. Each set title shows "— Set 1", "— Set 2"… and has its own answer key.</div>
       </div>
       <div class="row" style="gap: 10px; flex-wrap: wrap;">
         <button class="btn primary" data-export-fmt="pdf" style="flex:1; min-width: 160px;">📄 Download as PDF</button>
@@ -8806,3 +8809,78 @@ async function ccAutoTagSkills(assessmentId, force) {
     show('⚠️ Could not tag skills: ' + escapeHtml(e.message) + retryBtn);
   }
 }
+
+// ── 🔀 Make shuffling visible to the teacher ─────────────────────────────
+function ccShuffleSampleOverlay(a, heading) {
+  const old = document.getElementById('cc-shuffle-sample'); if (old) old.remove();
+  const origNo = new Map((a.questions || []).map((q, i) => [q.id, i + 1]));
+  const LET = 'ABCDEFGH';
+  const esc = (s) => escapeHtml(String(s == null ? '' : s));
+  const ov = document.createElement('div');
+  ov.id = 'cc-shuffle-sample';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+  const draw = () => {
+    const seed = 'sample-' + Math.random().toString(36).slice(2, 8);
+    const qs = ccMakeSet(a, seed);
+    const secTitle = new Map((a.sections || []).map((s) => [s.id, s.title]));
+    let lastSec = null;
+    const body = qs.map((q, i) => {
+      let head = '';
+      if ((q.sectionId || '') !== lastSec) { lastSec = q.sectionId || ''; const st = secTitle.get(lastSec); if (st) head = `<h3 style="margin:16px 0 6px;" dir="auto">${esc(st)}</h3>`; }
+      const orig = (a.questions || []).find((o) => o.id === q.id) || {};
+      const opts = (q.type === 'mc' && Array.isArray(q.options)) ? `<ol style="list-style:none; padding-left:4px; margin:6px 0 0;">${q.options.map((o, k) => {
+        const was = (orig.options || []).indexOf(o);
+        return `<li dir="auto" style="margin:2px 0; ${k === Number(q.correctAnswer) ? 'color:#047857; font-weight:600;' : ''}">${LET[k]}. ${esc(o)}${was >= 0 && was !== k ? ` <span class="muted" style="font-size:11px; font-weight:400;">(was ${LET[was]})</span>` : ''}</li>`;
+      }).join('')}</ol>` : '';
+      const n0 = origNo.get(q.id);
+      return `${head}<div style="padding:8px 0; border-bottom:1px solid #f1f5f9;">
+        <strong>Q${i + 1}.</strong> ${n0 !== i + 1 ? `<span class="muted" style="font-size:11px;">(Q${n0} in your original)</span>` : ''}
+        <div dir="auto" style="margin-top:2px;">${esc(q.prompt)}</div>
+        ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" style="max-width:260px; max-height:160px; margin-top:4px;">` : ''}${opts}</div>`;
+    }).join('');
+    ov.innerHTML = `<div style="background:#fff; border-radius:12px; width:min(820px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);">
+      <div class="row" style="align-items:center; gap:10px;">
+        <h2 style="margin:0; flex:1;">🔀 ${esc(heading || 'Example student version')}</h2>
+        <button class="btn" id="cc-ss-again">🔄 Show another student</button>
+        <button class="btn" id="cc-ss-close">Close</button>
+      </div>
+      <div style="margin:10px 0 6px; padding:10px 12px; background:#ede9fe; color:#4c1d95; border-radius:8px; font-size:13px;">
+        This is what <strong>one</strong> student might see. Every student gets their own order of questions (within each section) and of answer options, so neighbours can't copy numbers or letters.
+        Marking is automatic, and in Results every question keeps its original number. Correct answers are shown in green here only.
+      </div>
+      ${body || '<div class="muted">No questions yet.</div>'}</div>`;
+    ov.querySelector('#cc-ss-close').onclick = () => ov.remove();
+    ov.querySelector('#cc-ss-again').onclick = draw;
+    try { if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([ov]).catch(() => {}); } catch (e) {}
+  };
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  draw();
+}
+function ccShuffleStatusUpdate() {
+  const cb = document.getElementById('shuffle-toggle');
+  const box = document.getElementById('cc-shuffle-status');
+  if (!cb || !box) return;
+  box.innerHTML = cb.checked
+    ? `<span style="display:inline-block; padding:4px 10px; border-radius:999px; background:#ede9fe; color:#5b21b6; font-weight:600;">🔀 On — every student gets a different version</span>
+       <button type="button" class="btn" id="cc-shuffle-example" style="margin-left:8px;">👁 See an example student version</button>`
+    : `<span style="display:inline-block; padding:4px 10px; border-radius:999px; background:#f1f5f9; color:#475569; font-weight:600;">Off — every student sees the same order</span>`;
+}
+document.addEventListener('change', (e) => { if (e.target && e.target.id === 'shuffle-toggle') ccShuffleStatusUpdate(); });
+document.addEventListener('click', async (e) => {
+  const ex = e.target && e.target.closest && e.target.closest('#cc-shuffle-example');
+  if (ex) {
+    e.preventDefault();
+    ccShuffleSampleOverlay({ id: editingId || 'draft', questions, sections }, 'Example student version (unsaved changes included)');
+    return;
+  }
+  const card = e.target && e.target.closest && e.target.closest('[data-cc-shuffle-sample]');
+  if (card) {
+    e.preventDefault();
+    try {
+      const d = await api(`/api/assessments/${card.getAttribute('data-cc-shuffle-sample')}/export`);
+      const a = d.assessment || d;
+      ccShuffleSampleOverlay(a, 'Example student version — ' + (a.title || ''));
+    } catch (err) { alert('Could not load: ' + err.message); }
+  }
+});
