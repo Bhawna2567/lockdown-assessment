@@ -8647,8 +8647,11 @@ function ccAnalyticsSkillsHtml(assessmentId, a) {
   }
   const _untagged = (a.questions || []).filter((q) => !q.skill).length;
   if (_untagged) {
-    body = `<div id="cc-autotag-${assessmentId}" style="margin-top:12px; padding:10px 12px; background:#eef2ff; border-radius:8px;">🏷 Identifying the skill tested by ${_untagged} question${_untagged === 1 ? '' : 's'} and writing feedback… this takes about 20–40 seconds. The report will refresh by itself.</div>` + body;
-    ccAutoTagSkills(assessmentId);
+    const _tried = _ccAutoTagDone.has(assessmentId);
+    body = `<div id="cc-autotag-${assessmentId}" style="margin-top:12px; padding:10px 12px; background:#eef2ff; border-radius:8px;">${_tried
+      ? `🏷 ${_untagged} question${_untagged === 1 ? ' is' : 's are'} still untagged. <button class="btn" onclick="ccAutoTagSkills('${assessmentId}', true)">Tag them now</button>`
+      : `🏷 Identifying the skill tested by ${_untagged} question${_untagged === 1 ? '' : 's'} and writing feedback… The report will refresh by itself.`}</div>` + body;
+    if (!_tried) ccAutoTagSkills(assessmentId);
   }
   if (hard.length) {
     body += `<h3 style="margin-top:16px;">⚠️ Questions most students got wrong</h3>` + hard.map((q) => `
@@ -8784,14 +8787,22 @@ document.addEventListener('click', (e) => {
 });
 
 const _ccAutoTagDone = new Set();
-async function ccAutoTagSkills(assessmentId) {
-  if (_ccAutoTagDone.has(assessmentId)) return;
+async function ccAutoTagSkills(assessmentId, force) {
+  if (_ccAutoTagDone.has(assessmentId) && !force) return;
   _ccAutoTagDone.add(assessmentId);
+  const box = () => document.getElementById('cc-autotag-' + assessmentId);
+  const show = (html) => { const b = box(); if (b) b.innerHTML = html; };
+  const retryBtn = `<button class="btn" style="margin-left:8px;" onclick="ccAutoTagSkills('${assessmentId}', true)">Try again</button>`;
   try {
-    await api(`/api/assessments/${assessmentId}/tag-skills`, { method: 'POST', body: {} });
+    let st = await api(`/api/assessments/${assessmentId}/tag-skills`, { method: 'POST', body: {} });
+    for (let i = 0; i < 150 && st.state === 'running'; i++) {
+      show(`🏷 Identifying the skill tested by each question and writing feedback… ${st.total ? `${st.done} of ${st.total} done` : 'starting'}. The report will refresh by itself.`);
+      await new Promise((r) => setTimeout(r, 4000));
+      st = await api(`/api/assessments/${assessmentId}/tag-skills`);
+    }
+    if (st.state === 'error') { show('⚠️ Could not tag skills: ' + escapeHtml(st.error || 'unknown error') + retryBtn); return; }
     if (currentResultsAssessmentId === assessmentId && els.resultsView && els.resultsView.style.display !== 'none') openResults(assessmentId);
   } catch (e) {
-    const box = document.getElementById('cc-autotag-' + assessmentId);
-    if (box) box.innerHTML = 'Could not tag skills automatically: ' + escapeHtml(e.message) + ' <button class="btn" onclick="_ccAutoTagDone.delete(\'' + assessmentId + '\'); ccAutoTagSkills(\'' + assessmentId + '\')">Try again</button>';
+    show('⚠️ Could not tag skills: ' + escapeHtml(e.message) + retryBtn);
   }
 }
