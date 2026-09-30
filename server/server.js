@@ -1330,8 +1330,8 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             points: Number(q.points) || 1,
             imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
-            skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-            explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
+            skill: (typeof q.skill === 'string' && q.skill.trim()) ? q.skill.slice(0, 80) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).skill || ''),
+            explanation: (typeof q.explanation === 'string' && q.explanation.trim()) ? q.explanation.slice(0, 1500) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).explanation || ''),
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
           else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -3452,6 +3452,7 @@ async function _ccLabelMissing(a) {
 // After a teacher saves: attach waiting labels, AI-label anything new.
 function _ccDifficultyAfterSave(req, a) {
   try {
+    if (a && a.id) setTimeout(() => { _ccTagMissingSkills(a.id).catch((e) => console.warn('[skills] auto-tag failed:', e.message)); }, 1500);
     if (!a || !Array.isArray(a.questions)) return;
     const tid = req.session && req.session.user && req.session.user.id;
     const have = new Set(_ccDiffFor(a.id).map((r) => r.questionId));
@@ -3561,6 +3562,66 @@ app.post('/api/admin/difficulty/backfill', requireTeacher, async (req, res) => {
     for (const a of batch) labelled += await _ccLabelMissing(a);
     res.json({ ok: true, assessmentsDone: batch.length, remaining: todo.length - batch.length, labelled });
   } catch (e) { res.status(500).json({ error: String(e.message || e), assessmentsDone: batch.length, labelled }); }
+});
+
+
+// ── Automatic skill + feedback tagging for untagged questions ──────────
+const _ccTagRunning = new Map();
+async function _ccTagMissingSkills(aid) {
+  if (_ccTagRunning.has(aid)) return _ccTagRunning.get(aid);
+  const job = (async () => {
+    if (!readApiKey()) return 0;
+    const a0 = readAll('assessments.json').find((x) => x.id === aid);
+    if (!a0) return 0;
+    const todo = (a0.questions || []).filter((q) => String(q.prompt || '').trim() && (!String(q.skill || '').trim() || !String(q.explanation || '').trim()));
+    if (!todo.length) return 0;
+    const system = [
+      'You are an experienced assessment designer. For each exam question you receive, identify the skill or learning outcome it tests and write short feedback for students.',
+      `Subject: ${a0.subject || 'not specified'}. Grade: ${a0.grade || 'not specified'}.`,
+      _ccSkillRules(),
+      _ccLangRulesFor(a0.assessmentLanguage || ''),
+      'Work out the correct answer yourself when writing feedback; if the given answer key looks wrong, still explain the given answer but start the feedback with "⚠ Check answer key:".',
+      'Return ONLY a JSON array: [{"id": "...", "skill": "...", "explanation": "..."}], one entry per question, same ids.',
+    ].filter(Boolean).join('\n');
+    const found = new Map();
+    const already = (a0.questions || []).map((q) => q.skill).filter(Boolean);
+    for (let i = 0; i < todo.length; i += 25) {
+      const batch = todo.slice(i, i + 25).map((q) => ({
+        id: q.id, type: q.type, prompt: String(q.prompt || '').slice(0, 3000),
+        options: Array.isArray(q.options) && q.options.length ? q.options : undefined, correctAnswer: q.correctAnswer,
+        pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
+        passage: q.sectionId ? String(((a0.sections || []).find((s) => s.id === q.sectionId) || {}).passage || '').slice(0, 1500) || undefined : undefined,
+      }));
+      const used = Array.from(new Set(already.concat(Array.from(found.values()).map((x) => x.skill)).filter(Boolean)));
+      const text = await _ccClaudeText({ max_tokens: 12000, system, messages: [{ role: 'user', content: (used.length ? 'Skill names already used in this assessment (reuse them where they fit): ' + used.join(' | ') + '\n\n' : '') + JSON.stringify(batch) }] }, 'smart');
+      const arr = _ccParseModelJson(text);
+      if (Array.isArray(arr)) for (const x of arr) if (x && x.id) found.set(String(x.id), { skill: String(x.skill || '').slice(0, 80), explanation: String(x.explanation || '').slice(0, 1500) });
+    }
+    // Re-read before writing so we never overwrite a teacher's newer save.
+    const all = readAll('assessments.json');
+    const idx = all.findIndex((x) => x.id === aid);
+    if (idx < 0) return 0;
+    let n = 0;
+    for (const q of all[idx].questions || []) {
+      const f = found.get(String(q.id));
+      if (!f) continue;
+      if (!String(q.skill || '').trim() && f.skill) { q.skill = f.skill; n++; }
+      if (!String(q.explanation || '').trim() && f.explanation) q.explanation = f.explanation;
+    }
+    if (n || found.size) writeAll('assessments.json', all);
+    console.log('[skills] auto-tagged', n, 'question(s) in', aid);
+    return n;
+  })().finally(() => _ccTagRunning.delete(aid));
+  _ccTagRunning.set(aid, job);
+  return job;
+}
+app.post('/api/assessments/:id/tag-skills', requireTeacher, async (req, res) => {
+  const a = readAll('assessments.json').find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId && a.teacherId !== req.session.user.id && !_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+  try { res.json({ ok: true, tagged: await _ccTagMissingSkills(a.id) }); }
+  catch (e) { res.status(500).json({ error: String(e.message || e) }); }
 });
 
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
