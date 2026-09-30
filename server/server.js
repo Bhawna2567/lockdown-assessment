@@ -103,6 +103,20 @@ app.use(
   })
 );
 
+// ───────────────────────────────────────────────────────────────────────────
+//  Admin "view a teacher's dashboard" — VIEW ONLY.
+//  While an admin is viewing, the session acts as that teacher for reading,
+//  but every change (POST/PUT/PATCH/DELETE) is refused on the server.
+// ───────────────────────────────────────────────────────────────────────────
+const _CC_VIEWAS_ALLOW = new Set(['/api/admin/view-as/exit', '/api/logout']);
+app.use((req, res, next) => {
+  const s = req.session;
+  if (!s || !s.ccViewAs) return next();
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  if (_CC_VIEWAS_ALLOW.has(req.path)) return next();
+  return res.status(403).json({ error: `View only — you are viewing ${s.ccViewAs.teacherName || 'a teacher'}'s dashboard as an admin. Nothing can be changed. Click "Return to my account" at the top to make changes.`, viewOnly: true });
+});
+
 
 // ───────────────────────────────────────────────────────────────────────────
 //  Rescale every AI-graded essay to a universal /40 scale.
@@ -2581,6 +2595,45 @@ app.get('/api/admin/users', requireTeacher, (req, res) => {
     return (a.name || '').localeCompare(b.name || '');
   });
   res.json({ users });
+});
+
+function _ccViewLog(entry) {
+  try {
+    const log = readAll('admin-view-log.json');
+    log.push({ id: 'vl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: new Date().toISOString(), ...entry });
+    writeAll('admin-view-log.json', log.slice(-5000));
+  } catch (e) { console.warn('[view-as] log:', e.message); }
+}
+app.post('/api/admin/view-as/exit', (req, res) => {
+  const v = req.session && req.session.ccViewAs;
+  if (!v) return res.json({ ok: true });
+  req.session.user = v.admin;
+  delete req.session.ccViewAs;
+  const mins = Math.round((Date.now() - Date.parse(v.startedAt)) / 60000);
+  _ccViewLog({ action: 'end', adminEmail: v.admin.email, adminName: v.admin.name, teacherId: v.teacherId, teacherName: v.teacherName, teacherEmail: v.teacherEmail, minutes: mins });
+  req.session.save(() => res.json({ ok: true }));
+});
+app.post('/api/admin/view-as/:userId', requireTeacher, (req, res) => {
+  if (req.session.ccViewAs) return res.status(400).json({ error: 'Already viewing a dashboard. Return to your account first.' });
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const u = readAll('users.json').find((x) => x.id === req.params.userId);
+  if (!u || u.role !== 'teacher') return res.status(404).json({ error: 'Teacher not found.' });
+  if (ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(String(u.email || '').toLowerCase())) return res.status(400).json({ error: 'That is an admin account.' });
+  const admin = req.session.user;
+  req.session.ccViewAs = { admin, teacherId: u.id, teacherName: u.name, teacherEmail: u.email, startedAt: new Date().toISOString() };
+  req.session.user = { id: u.id, name: u.name, email: u.email, role: u.role };
+  _ccViewLog({ action: 'start', adminEmail: admin.email, adminName: admin.name, teacherId: u.id, teacherName: u.name, teacherEmail: u.email, ip: req.ip });
+  console.log(`[view-as] ${admin.email} is viewing ${u.email}`);
+  req.session.save(() => res.json({ ok: true }));
+});
+app.get('/api/admin/view-as/status', (req, res) => {
+  const v = req.session && req.session.ccViewAs;
+  if (!v) return res.json({ viewing: false });
+  res.json({ viewing: true, teacherName: v.teacherName, teacherEmail: v.teacherEmail, adminName: v.admin.name, startedAt: v.startedAt });
+});
+app.get('/api/admin/view-log', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  res.json({ log: readAll('admin-view-log.json').slice(-500).reverse() });
 });
 app.post('/api/admin/users/:id/block', requireTeacher, (req, res) => {
   if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });

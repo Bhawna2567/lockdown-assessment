@@ -8884,3 +8884,87 @@ document.addEventListener('click', async (e) => {
     } catch (err) { alert('Could not load: ' + err.message); }
   }
 });
+
+// ── Admin: view a teacher's dashboard (view only) ─────────────────────────
+async function ccOpenViewAsPicker(tab) {
+  const old = document.getElementById('cc-viewas'); if (old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'cc-viewas';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+  ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(820px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const head = `<div class="row" style="align-items:center; gap:8px; margin-bottom:10px;">
+      <h2 style="margin:0; flex:1;">👁 Teachers' dashboards</h2>
+      <button class="btn ${tab === 'log' ? '' : 'primary'}" id="cc-va-t1">Teachers</button>
+      <button class="btn ${tab === 'log' ? 'primary' : ''}" id="cc-va-t2">📜 Visit log</button>
+      <button class="btn" id="cc-va-close">Close</button></div>`;
+  const wire = () => {
+    box.querySelector('#cc-va-close').onclick = () => ov.remove();
+    box.querySelector('#cc-va-t1').onclick = () => ccOpenViewAsPicker('teachers');
+    box.querySelector('#cc-va-t2').onclick = () => ccOpenViewAsPicker('log');
+  };
+  try {
+    if (tab === 'log') {
+      const { log } = await api('/api/admin/view-log');
+      box.innerHTML = head + `<div class="muted" style="font-size:13px; margin-bottom:8px;">Only admins can see this log. Teachers are not notified.</div>
+        <table style="width:100%; border-collapse:collapse; font-size:14px;">
+        <tr style="text-align:left; border-bottom:2px solid #e5e7eb;"><th style="padding:6px;">When</th><th>Admin</th><th>Teacher</th><th></th></tr>
+        ${log.length ? log.map((r) => `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px;">${esc(new Date(r.at).toLocaleString())}</td><td>${esc(r.adminName || r.adminEmail)}</td><td>${esc(r.teacherName)} <span class="muted" style="font-size:12px;">${esc(r.teacherEmail)}</span></td><td>${r.action === 'start' ? 'Opened' : `Closed${r.minutes != null ? ` (${r.minutes} min)` : ''}`}</td></tr>`).join('') : '<tr><td colspan="4" class="muted" style="padding:8px;">No visits yet.</td></tr>'}
+        </table>`;
+      wire(); return;
+    }
+    const { users } = await api('/api/admin/users?role=teacher');
+    box.innerHTML = head + `<div style="padding:10px 12px; background:#eff6ff; border-radius:8px; font-size:13px; margin-bottom:10px;">
+        You'll see the teacher's dashboard exactly as they do: assessments, results, students and reports. It is <strong>view only</strong>, so nothing can be edited, deleted, published or marked.
+        Each visit is recorded in the Visit log. Click <strong>Return to my account</strong> at the top when you're done.</div>
+      <input id="cc-va-q" placeholder="Search by name or email…" style="width:100%; margin-bottom:8px;">
+      <div id="cc-va-list"></div>`;
+    wire();
+    const list = box.querySelector('#cc-va-list');
+    const draw = () => {
+      const q = box.querySelector('#cc-va-q').value.trim().toLowerCase();
+      const rows = users.filter((u) => !q || (u.name + ' ' + u.email).toLowerCase().includes(q));
+      list.innerHTML = rows.map((u) => `<div style="display:flex; align-items:center; gap:10px; padding:8px 4px; border-bottom:1px solid #f1f5f9;">
+          <div style="flex:1;" dir="auto"><strong>${esc(u.name)}</strong> <span class="muted" style="font-size:12px;">${esc(u.email)}</span>${u.blocked ? ' <span class="badge">blocked</span>' : ''}</div>
+          <button class="btn" data-cc-va="${esc(u.id)}">👁 View dashboard</button></div>`).join('') || '<div class="muted">No teachers found.</div>';
+      list.querySelectorAll('[data-cc-va]').forEach((b) => {
+        b.onclick = async () => {
+          b.disabled = true; b.textContent = 'Opening…';
+          try { await api('/api/admin/view-as/' + encodeURIComponent(b.getAttribute('data-cc-va')), { method: 'POST', body: {} }); window.location.reload(); }
+          catch (e) { alert(e.message); b.disabled = false; b.textContent = '👁 View dashboard'; }
+        };
+      });
+    };
+    box.querySelector('#cc-va-q').oninput = draw;
+    draw();
+  } catch (e) { box.innerHTML = head + `<div class="error">${esc(e.message)}</div>`; wire(); }
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#admin-view-as');
+  if (b) {
+    e.preventDefault();
+    const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+    ccOpenViewAsPicker('teachers');
+  }
+});
+(async function ccViewAsBanner() {
+  try {
+    const r = await fetch('/api/admin/view-as/status', { credentials: 'include' });
+    const s = await r.json();
+    if (!s || !s.viewing) return;
+    const bar = document.createElement('div');
+    bar.id = 'cc-viewas-banner';
+    bar.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:2147483500; background:#7c2d12; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:12px; font-size:14px; box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    bar.innerHTML = `<span style="flex:1;">👁 You are viewing <strong>${escapeHtml(s.teacherName || '')}</strong>'s dashboard <span style="opacity:.8;">(${escapeHtml(s.teacherEmail || '')})</span> — <strong>view only</strong>. Nothing can be changed.</span>
+      <button id="cc-viewas-exit" class="btn" style="background:#fff; color:#7c2d12; font-weight:600;">↩ Return to my account</button>`;
+    document.body.appendChild(bar);
+    document.body.style.paddingTop = (bar.offsetHeight + 4) + 'px';
+    bar.querySelector('#cc-viewas-exit').onclick = async () => {
+      try { await fetch('/api/admin/view-as/exit', { method: 'POST', credentials: 'include' }); } catch (e) {}
+      window.location.reload();
+    };
+  } catch (e) {}
+})();
