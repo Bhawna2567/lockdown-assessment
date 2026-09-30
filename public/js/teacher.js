@@ -2298,6 +2298,7 @@ function openBuilder(a, presets) {
     els.deliveryMode.value = a && a.deliveryMode === 'onsite' ? 'onsite' : 'online';
   }
   if (els.skill) els.skill.value = (a && a.skill) || '';
+  { const sh = document.getElementById('shuffle-toggle'); if (sh) sh.checked = a ? a.shuffle === true : true; }
   if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels();
   // Builder class dropdown — for new assessments default to the active class;
   // for edits use the assessment's stored classId.
@@ -2616,6 +2617,8 @@ function renderQuestions() {
       };
     }
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
+    { const sk = root.querySelector('[data-f=skill]'); if (sk) sk.oninput = (e) => { q.skill = e.target.value; }; }
+    { const ex = root.querySelector('[data-f=explanation]'); if (ex) ex.oninput = (e) => { q.explanation = e.target.value; }; }
     root.querySelector('[data-act=remove]').onclick = () => {
       const ix = questions.indexOf(q);
       if (ix >= 0) questions.splice(ix, 1);
@@ -2918,6 +2921,16 @@ function renderQuestion(q, idx) {
         <label>Points</label>
         <input type="number" min="1" data-f="points" value="${q.points || 1}" style="width: 80px;" />
       </div>
+      <div class="row" style="gap:10px; align-items:flex-start;">
+        <div class="field" style="flex:1; min-width:200px;">
+          <label>🎯 Skill / outcome tested</label>
+          <input type="text" data-f="skill" dir="auto" value="${escapeAttr(q.skill || '')}" placeholder="e.g. Differentiation — product rule" />
+        </div>
+        <div class="field" style="flex:2; min-width:260px;">
+          <label>💡 Feedback students see after results are released</label>
+          <textarea data-f="explanation" dir="auto" rows="2" placeholder="Why the correct answer is right, and the common mistake behind the wrong ones.">${escapeHtml(q.explanation || '')}</textarea>
+        </div>
+      </div>
       ${imageSection}
       ${body}
     </div>
@@ -3006,6 +3019,7 @@ els.saveBtn.onclick = async () => {
       subject: els.subject ? els.subject.value || null : null,
       assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
       deliveryMode: els.deliveryMode ? els.deliveryMode.value : 'online',
+      shuffle: !!(document.getElementById('shuffle-toggle') || {}).checked,
       skill: els.skill ? els.skill.value || null : null,
       classId: els.builderClass ? els.builderClass.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
@@ -3269,8 +3283,9 @@ async function renderAnalytics(assessmentId) {
   } catch {
     return '';
   }
+  const _sk = ccAnalyticsSkillsHtml(assessmentId, a);
   if (!a.submissionCount) {
-    return `<div class="panel" style="margin-bottom: 14px;"><strong>Class analytics:</strong> no submissions yet.</div>`;
+    return _sk.releaseBar + `<div class="panel" style="margin-bottom: 14px;"><strong>Class analytics:</strong> no submissions yet.</div>`;
   }
 
   const histMax = Math.max(...a.histogram.map((b) => b.count), 1);
@@ -3285,9 +3300,9 @@ async function renderAnalytics(assessmentId) {
     const rate = q.correctRate == null ? null : Math.round(q.correctRate * 100);
     const rateClass = rate == null ? 'muted' : rate >= 70 ? 'green' : rate >= 40 ? 'amber' : 'red';
     const rateText = rate == null ? 'manual / not gradable' : `${rate}% correct`;
-    const wrong = q.mostCommonWrong
+    const wrong = (q.skill ? `<div class="muted" style="font-size: 12px; margin-top: 2px;">🎯 ${escapeHtml(q.skill)}</div>` : '') + (q.mostCommonWrong
       ? `<div class="muted" style="font-size: 12px; margin-top: 2px;">Most common wrong answer: "${escapeHtml(q.mostCommonWrong.optionText)}" (${q.mostCommonWrong.count} student${q.mostCommonWrong.count === 1 ? '' : 's'})</div>`
-      : '';
+      : '');
     return `
       <div class="qd-row">
         <div class="qd-num">Q${i + 1}</div>
@@ -3298,7 +3313,7 @@ async function renderAnalytics(assessmentId) {
     `;
   }).join('');
 
-  return `
+  return _sk.releaseBar + `
     <div class="panel analytics-panel" style="margin-bottom: 14px;">
       <h2 style="margin-top: 0;">Class performance</h2>
       <div class="stats-grid">
@@ -3313,6 +3328,7 @@ async function renderAnalytics(assessmentId) {
       <h3 style="margin-top: 16px;">Score distribution</h3>
       <div class="histogram">${histHtml}</div>
       <div class="muted" style="margin-top: 4px; font-size: 12px;">Buckets are 10-percent ranges. Hover for counts.</div>
+      ${_sk.body}
       <h3 style="margin-top: 16px;">Per-question difficulty</h3>
       <div class="question-difficulty">${qHtml}</div>
     </div>
@@ -3457,7 +3473,7 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
     </div>
   `;
 
-  mountBody.innerHTML = `
+  mountBody.innerHTML = ccSkillsBlockHtml(data.skillReport) + `
     <div class="report-card">
       <h2>Question by Question</h2>
       ${data.review.map((q, i) => renderReviewQuestion(q, i)).join('')}
@@ -3561,6 +3577,7 @@ ${escapeHtml(q.manualGrade.feedback)}
       <div><strong>Answer:</strong> ${givenDisplay}</div>
       ${correctDisplay}
       ${feedback}
+      ${ccReviewExtrasHtml(q)}
     </div>
   `;
 }
@@ -4256,7 +4273,7 @@ async function openClassAnalytics() {
 // ───────────────────────────────────────────────────────────────────────────
 //  PRINT-TO-PDF — opens a printable view of the assessment + answer key
 // ───────────────────────────────────────────────────────────────────────────
-async function printAssessmentPDF(assessmentId) {
+async function printAssessmentPDF(assessmentId, setNo) {
   // Fetch the assessment JSON with the session cookie attached, then render
   // a fully-styled printable page inside a HIDDEN IFRAME inside this same
   // window. No popup required — works in browsers and the desktop app.
@@ -4269,7 +4286,8 @@ async function printAssessmentPDF(assessmentId) {
   }
   const a = data.assessment || data;
   const sections = a.sections || [];
-  const questions = a.questions || [];
+  const questions = setNo ? ccMakeSet(a, setNo) : (a.questions || []);
+  const _setLabel = setNo ? ` — Set ${setNo}` : '';
 
   const css = `
     <style>
@@ -4305,7 +4323,7 @@ async function printAssessmentPDF(assessmentId) {
     if (q.type === 'short') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String(q.correctAnswer || '(open-ended)'))}</div>`;
     return `<div class="key-row"><strong>Q${i+1}:</strong> Teacher / AI graded — no fixed key.</div>`;
   }
-  let body = `<h1>${escapeHtml(a.title)}</h1>
+  let body = `<h1>${escapeHtml(a.title)}${_setLabel}</h1>
     <div class="meta">${escapeHtml(a.description || '')}</div>
     <div class="meta">${a.durationMinutes ? a.durationMinutes + ' minutes &middot; ' : ''}${questions.length} question${questions.length === 1 ? '' : 's'}${a.subject ? ' &middot; ' + escapeHtml(a.subject) : ''}${a.grade ? ' &middot; Grade ' + escapeHtml(a.grade) : ''}${a.term ? ' &middot; Term ' + escapeHtml(a.term) : ''}</div>`;
   let qi = 0;
@@ -4325,7 +4343,7 @@ async function printAssessmentPDF(assessmentId) {
       body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
     }
   }
-  body += `<div class="pagebreak"></div><h2>Answer Key</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
+  body += `<div class="pagebreak"></div><h2>Answer Key${_setLabel}</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
 
   const _rtlPrint = /arab|urdu|persian|farsi|hebrew|عرب/i.test(String(a.assessmentLanguage || ''));
   const _mathJaxPrint = `<script>window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},svg:{fontCache:'global'}};<\/script><script src="${location.origin}/vendor/mathjax/tex-svg.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js'"><\/script>`;
@@ -4538,6 +4556,17 @@ function showExportChooser(assessmentId) {
     <div style="background:#fff; border-radius:12px; padding:24px 28px; max-width: 460px; width: 90%; box-shadow: 0 16px 48px rgba(0,0,0,0.30);">
       <h2 style="margin: 0 0 8px; color:#1a1e33;">Download assessment</h2>
       <p style="margin: 0 0 16px; color:#475569; font-size: 14px;">Choose the format. Both include the questions and a separate answer-key page.</p>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Version</label>
+        <select id="export-set" style="width:100%;">
+          <option value="0">Original order</option>
+          <option value="1">Set 1 (shuffled)</option>
+          <option value="2">Set 2 (shuffled)</option>
+          <option value="3">Set 3 (shuffled)</option>
+          <option value="4">Set 4 (shuffled)</option>
+        </select>
+        <div class="muted" style="font-size:12px; margin-top:4px;">Sets have the same questions in a different order, with shuffled answer options and their own answer key. Sets are PDF only.</div>
+      </div>
       <div class="row" style="gap: 10px; flex-wrap: wrap;">
         <button class="btn primary" data-export-fmt="pdf" style="flex:1; min-width: 160px;">📄 Download as PDF</button>
         <button class="btn" data-export-fmt="docx" style="flex:1; min-width: 160px;">📝 Download as Word</button>
@@ -4555,8 +4584,10 @@ function showExportChooser(assessmentId) {
     b.onclick = () => {
       const fmt = b.dataset.exportFmt;
       if (fmt === 'cancel') return close();
+      const _setNo = Number((overlay.querySelector('#export-set') || {}).value || 0);
       close();
-      if (fmt === 'pdf') return printAssessmentPDF(assessmentId);
+      if (fmt === 'pdf') return printAssessmentPDF(assessmentId, _setNo || undefined);
+      if (fmt === 'docx' && _setNo) alert('Shuffled sets are available as PDF only — downloading the original order as Word.');
       if (fmt === 'docx') return downloadAssessmentDocx(assessmentId);
     };
   });
@@ -8094,6 +8125,8 @@ async function ccApplyAiQuestion(q, ai, sourceImage) {
   q.type = t;
   q.prompt = String(ai.prompt || '');
   q.imageDescription = '';
+  if (ai.skill) q.skill = String(ai.skill);
+  if (ai.explanation) q.explanation = String(ai.explanation);
   if (ai.points && Number(ai.points) > 0) q.points = Number(ai.points);
   if (t === 'mc') {
     q.options = (Array.isArray(ai.options) && ai.options.length ? ai.options : ['', '', '', '']).map(String);
@@ -8432,5 +8465,194 @@ async function ccGenerateDiagramImage(q, onStatus) {
     if (rv && rv.svg) png = await ccSvgToPngDataUrl(rv.svg, 900);
   } catch (e) { /* keep the first drawing */ }
   return png;
+}
+
+// ── Skills report block (shared by student + teacher report cards) ─────
+function ccSkillsBlockHtml(rep) {
+  if (!rep || !Array.isArray(rep.skills) || !rep.skills.length) return '';
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const colour = (p) => (p >= 80 ? '#059669' : p >= 60 ? '#d97706' : '#dc2626');
+  const rows = rep.skills.slice().sort((a, b) => b.pct - a.pct).map((s) => `
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)}</div>
+      <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.pct}%; height:100%; background:${colour(s.pct)};"></div></div>
+      <div style="flex:0 0 120px; text-align:right; font-size:13px; color:${colour(s.pct)}; font-weight:600;">${s.pct}% · ${esc(s.status)}</div>
+    </div>`).join('');
+  const list = (arr) => arr.map((x) => `<li dir="auto">${esc(x)}</li>`).join('');
+  return `
+    <div class="report-card" style="margin-top:14px;">
+      <h2 style="margin-top:0;">🎯 Skills report</h2>
+      ${rows}
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;">
+        ${rep.strengths && rep.strengths.length ? `<div style="flex:1; min-width:220px; background:#ecfdf5; border-radius:8px; padding:10px 12px;"><strong>✅ Strengths</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.strengths)}</ul></div>` : ''}
+        ${rep.needsWork && rep.needsWork.length ? `<div style="flex:1; min-width:220px; background:#fef2f2; border-radius:8px; padding:10px 12px;"><strong>📌 Skills to work on</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.needsWork)}</ul><div style="font-size:12px; color:#6b7280; margin-top:6px;">Review the feedback on the questions for these skills below.</div></div>` : ''}
+      </div>
+    </div>`;
+}
+
+function ccReviewExtrasHtml(q) {
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let h = '';
+  if (q.skill) h += `<div style="margin-top:6px; font-size:13px; color:#4338ca;">🎯 Skill: <span dir="auto">${esc(q.skill)}</span></div>`;
+  if (q.explanation) h += `<div dir="auto" style="margin-top:6px; padding:8px 10px; background:#fffbeb; border-left:3px solid #f59e0b; border-radius:6px; font-size:14px;"><strong>💡 Feedback:</strong> ${esc(q.explanation)}</div>`;
+  return h;
+}
+
+
+// ── 🏷 Tag skills & write feedback with AI (builder) ───────────────────
+async function ccTagSkillsWithAI(btn) {
+  if (!questions.length) { alert('Add some questions first.'); return; }
+  const missing = questions.filter((q) => !String(q.skill || '').trim() || !String(q.explanation || '').trim());
+  let target = missing;
+  if (!missing.length) {
+    if (!confirm('Every question already has a skill and feedback. Re-do them all with AI? (Your current text will be replaced.)')) return;
+    target = questions.slice();
+  }
+  const label = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = `🏷 Tagging ${target.length} question${target.length === 1 ? '' : 's'}…`; }
+  try {
+    const r = await fetch('/api/ai/tag-skills', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+      body: JSON.stringify({
+        subject: (els.subject && els.subject.value) || '',
+        grade: (els.grade && els.grade.value) || '',
+        language: (els.assessmentLanguage && els.assessmentLanguage.value) || '',
+        questions: target.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt, options: q.options, correctAnswer: q.correctAnswer, pairs: q.pairs })),
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    const byId = new Map((j.items || []).map((x) => [String(x.id), x]));
+    let n = 0;
+    for (const q of target) {
+      const x = byId.get(String(q.id));
+      if (!x) continue;
+      if (x.skill) q.skill = x.skill;
+      if (x.explanation) q.explanation = x.explanation;
+      n++;
+    }
+    renderQuestions();
+    alert(`Skills and feedback added to ${n} question${n === 1 ? '' : 's'}. Check them, then click Save assessment.`);
+  } catch (e) {
+    alert('Could not tag the questions: ' + (e.message || e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = label; }
+  }
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#tag-skills-btn');
+  if (b) { e.preventDefault(); ccTagSkillsWithAI(b); }
+});
+
+// ── Printed Sets 1–4 (same algorithm as the server's per-student shuffle) ─
+function ccSetRng(seedStr) {
+  let h = 2166136261 >>> 0;
+  const s = String(seedStr);
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0;
+  return function () {
+    h = (h + 0x6D2B79F5) >>> 0;
+    let t = h;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function ccMakeSet(a, setNo) {
+  const LETTER_REF = /\b[A-F]\s*(?:and|&|or|,)\s*[A-F]\b|\b(?:options?|choices?)\s+[A-F]\b/;
+  const LOCK_OPT = /\b(?:all|none|any)\s+of\s+(?:the\s+)?(?:above|these|them)\b|\bneither\b|\bboth\b|جميع ما سبق|كل ما سبق|لا شيء مما سبق|ليس مما سبق|كلاهما|لا هذا ولا ذاك/i;
+  const LOCK_Q = /\b(?:previous|above|preceding|last|next|following)\s+question\b|\bquestions?\s*\d+\b|\bQ\s?\d+\b|السؤال السابق|السؤال الآتي/i;
+  const shuffle = (arr, rand) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+  const key = `set${setNo}`;
+  const qs = (a.questions || []).map((q) => JSON.parse(JSON.stringify(q)));
+  const bySec = new Map();
+  qs.forEach((q) => { const k = q.sectionId || ''; if (!bySec.has(k)) bySec.set(k, []); bySec.get(k).push(q); });
+  const order = (a.sections || []).map((s) => s.id);
+  for (const k of bySec.keys()) if (!order.includes(k)) order.push(k);
+  const out = [];
+  for (const sid of order) {
+    const list = bySec.get(sid);
+    if (!list) continue;
+    const free = list.filter((q) => !LOCK_Q.test(String(q.prompt || '')));
+    let mixed = free;
+    for (let attempt = 0; attempt < 12; attempt++) {
+      mixed = shuffle(free.slice(), ccSetRng(`${a.id}|${key}|sec|${sid}|${attempt}`));
+      if (free.length < 3 || mixed.some((q, i) => q !== free[i])) break;   // make sure the set really differs
+    }
+    let k = 0;
+    list.forEach((q) => out.push(LOCK_Q.test(String(q.prompt || '')) ? q : mixed[k++]));
+  }
+  for (const q of out) {
+    if (q.type !== 'mc' || !Array.isArray(q.options) || q.options.length < 2) continue;
+    if (q.options.some((o) => LETTER_REF.test(String(o || '')))) continue;
+    const ident = q.options.map((_, i) => i);
+    const free = ident.filter((i) => !LOCK_OPT.test(String(q.options[i] || '')));
+    const mixed = shuffle(free.slice(), ccSetRng(`${a.id}|${key}|opt|${q.id}`));
+    let k = 0;
+    const perm = ident.map((i) => (free.includes(i) ? mixed[k++] : i));
+    const orig = q.options.slice();
+    q.options = perm.map((i) => orig[i]);
+    q.correctAnswer = perm.indexOf(Number(q.correctAnswer));
+  }
+  return out;
+}
+
+// ── Results page: release toggle, skills, flags ────────────────────────
+document.addEventListener('click', async (e) => {
+  const rel = e.target && e.target.closest && e.target.closest('[data-cc-release]');
+  if (rel) {
+    e.preventDefault();
+    const id = rel.getAttribute('data-cc-release');
+    const release = rel.getAttribute('data-state') !== 'released';
+    if (release && !confirm('Release results to students? They will see their score, the correct answers, the feedback for every question and their skills report.\n\nOnly do this when every student has finished.')) return;
+    rel.disabled = true;
+    try {
+      await api(`/api/assessments/${id}/release-results`, { method: 'POST', body: { released: release } });
+      if (typeof openResults === 'function') openResults(id);
+    } catch (err) { alert('Could not update: ' + err.message); rel.disabled = false; }
+  }
+  const xl = e.target && e.target.closest && e.target.closest('[data-cc-skills-xlsx]');
+  if (xl) {
+    e.preventDefault();
+    window.location.href = `/api/assessments/${xl.getAttribute('data-cc-skills-xlsx')}/skills-report.xlsx`;
+  }
+});
+
+function ccAnalyticsSkillsHtml(assessmentId, a) {
+  const esc = (s) => escapeHtml(String(s == null ? '' : s));
+  const colour = (p) => (p >= 80 ? '#059669' : p >= 60 ? '#d97706' : '#dc2626');
+  const released = a.resultsReleased !== false;
+  const releaseBar = `
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:12px 14px; border-radius:10px; margin-bottom:14px; background:${released ? '#ecfdf5' : '#fef3c7'}; border:1px solid ${released ? '#10b981' : '#f59e0b'};">
+      <div style="flex:1; min-width:240px;">${released
+        ? '✅ <strong>Results are released.</strong> Students can see their answers, feedback and skills report.'
+        : '🔒 <strong>Results are hidden from students.</strong> Release them once everyone has finished so answers can\'t be shared.'}</div>
+      <button class="btn ${released ? '' : 'primary'}" data-cc-release="${assessmentId}" data-state="${released ? 'released' : 'hidden'}">${released ? '🔒 Hide from students' : '📢 Release results & feedback'}</button>
+      <button class="btn" data-cc-skills-xlsx="${assessmentId}">⬇ Skills report (Excel)</button>
+    </div>`;
+  const skills = Array.isArray(a.classSkills) ? a.classSkills : [];
+  const hard = (a.questions || []).map((q, i) => ({ ...q, n: i + 1 })).filter((q) => q.correctRate != null && q.correctRate < 0.5);
+  let body = '';
+  if (skills.length) {
+    body += `<h3 style="margin-top:16px;">🎯 Skills — class average</h3>` + skills.map((s) => `
+      <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+        <div dir="auto" style="flex:0 0 36%;">${esc(s.skill)} <span class="muted" style="font-size:12px;">(${s.questionNums.map((n) => 'Q' + n).join(', ')})</span></div>
+        <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.classPct}%; height:100%; background:${colour(s.classPct)};"></div></div>
+        <div style="flex:0 0 60px; text-align:right; font-weight:600; color:${colour(s.classPct)};">${s.classPct}%</div>
+      </div>
+      ${s.strugglingCount ? `<div class="muted" style="font-size:12px; margin:-2px 0 6px 0;">Below 60%: ${s.struggling.map((x) => esc(x.name) + ' (' + x.pct + '%)').join(', ')}</div>` : ''}`).join('');
+    const weak = skills.filter((s) => s.classPct < 60);
+    if (weak.length) body += `<div style="margin-top:10px; padding:10px 12px; background:#fef2f2; border-radius:8px;"><strong>📌 The class is struggling with:</strong> ${weak.map((s) => esc(s.skill) + ' (' + s.classPct + '%)').join(', ')}</div>`;
+  } else {
+    body += `<div class="muted" style="margin-top:12px;">No skills tagged yet — open this assessment in the builder and click <strong>🏷 Tag skills & feedback with AI</strong>.</div>`;
+  }
+  if (hard.length) {
+    body += `<h3 style="margin-top:16px;">⚠️ Questions most students got wrong</h3>` + hard.map((q) => `
+      <div style="padding:8px 10px; border-left:3px solid #dc2626; background:#fff7f7; margin:6px 0; border-radius:6px;">
+        <strong>Q${q.n}</strong> — ${Math.round(q.correctRate * 100)}% correct${q.skill ? ` · 🎯 ${esc(q.skill)}` : ''}
+        <div dir="auto" style="font-size:13px; margin-top:2px;">${esc(String(q.prompt || '').slice(0, 160))}</div>
+        ${q.mostCommonWrong ? `<div class="muted" style="font-size:12px; margin-top:2px;">Most chose: "${esc(q.mostCommonWrong.optionText)}" (${q.mostCommonWrong.count}) — likely misconception to reteach.</div>` : ''}
+      </div>`).join('');
+  }
+  return { releaseBar, body };
 }
 

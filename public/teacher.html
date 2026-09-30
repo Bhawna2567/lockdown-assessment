@@ -56,7 +56,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1790758808" />
+  <link rel="stylesheet" href="/css/styles.css?v=1790779694" />
   <style id="cc-dashboard-closes-builder">
     /* Loaded after styles.css and more specific, so it always wins:
      * on the dashboard, the builder's questions + Save row never show. */
@@ -74,7 +74,7 @@
   </script>
   <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
   <script src="/vendor/mathjax/tex-svg.js" async onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js';s.async=true;document.head.appendChild(s);"></script>
-  <script src="/js/visuals.js?v=1790758808"></script>
+  <script src="/js/visuals.js?v=1790779694"></script>
 </head>
 <body class="cc-list-only">
   <div class="topbar">
@@ -592,6 +592,18 @@
             </div>
           </div>
         </div>
+        <div class="row">
+          <div class="field" style="flex:1;">
+            <label style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:14px; color:#1a1e33;">
+              <input type="checkbox" id="shuffle-toggle" style="width:auto;" />
+              🔀 Give every student a different order of questions and answer options
+            </label>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">
+              Same questions for everyone, but each student's paper is shuffled (within each section — reading passages stay with their questions), so neighbours can't copy question numbers or letters.
+              Options like "All of the above" or "Both A and B" stay in place. Marking and reports are unaffected. For printed tests use Download → Set 1–4.
+            </div>
+          </div>
+        </div>
       </div>
 
 
@@ -646,6 +658,7 @@
       <div class="panel" id="builder-questions-panel">
         <div class="row" style="margin-bottom: 10px;">
           <h2 style="margin:0;">Questions</h2>
+          <button type="button" class="btn" id="tag-skills-btn" style="margin-left:10px; background:#eef2ff; border-color:#c7d2fe; color:#3730a3;" title="AI names the skill each question tests and writes feedback for students">🏷 Tag skills &amp; feedback with AI</button>
           <div class="spacer"></div>
           <button class="btn" data-add="mc">+ Multiple choice</button>
           <button class="btn" data-add="tf">+ True/False</button>
@@ -781,6 +794,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1790758808"></script>
+  <script src="/js/teacher.js?v=1790779694"></script>
 </body>
 </html>

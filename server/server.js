@@ -1080,6 +1080,8 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         points: Number(q.points) || 1,
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
+        skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+        explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
       else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -1093,6 +1095,8 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     }),
     createdAt: new Date().toISOString(),
   };
+  assessment.shuffle = !(req.body && req.body.shuffle === false);
+  assessment.resultsReleased = false;
   const all = readAll('assessments.json');
   all.push(assessment);
   writeAll('assessments.json', all);
@@ -1320,6 +1324,8 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             points: Number(q.points) || 1,
             imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
+            skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+            explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
           else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -1334,6 +1340,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       : all[idx].questions,
     updatedAt: new Date().toISOString(),
   };
+  if (req.body && req.body.shuffle !== undefined) updated.shuffle = !!req.body.shuffle;
   all[idx] = updated;
   writeAll('assessments.json', all);
   res.json({ assessment: updated });
@@ -3002,6 +3009,310 @@ app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
   res.json({ assessment: safe });
 });
 
+
+// ════════════════════════════════════════════════════════════════════════
+//  Per-student shuffling, skills, feedback and results release
+// ════════════════════════════════════════════════════════════════════════
+
+// Deterministic random numbers: the same student always gets the same
+// order for the same assessment (so refresh / re-entry / marking agree).
+function _ccRng(seedStr) {
+  let h = 2166136261 >>> 0;
+  const s = String(seedStr);
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0;
+  return function () {
+    h = (h + 0x6D2B79F5) >>> 0;
+    let t = h;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function _ccShuffle(arr, rand) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+// Options that refer to other options by letter ("Both A and B") make the
+// whole question unsafe to shuffle; "All/None of the above" just stay put.
+const _CC_LETTER_REF = /\b[A-F]\s*(?:and|&|or|,)\s*[A-F]\b|\b(?:options?|choices?)\s+[A-F]\b/;
+const _CC_LOCK_OPT = /\b(?:all|none|any)\s+of\s+(?:the\s+)?(?:above|these|them)\b|\bneither\b|\bboth\b|جميع ما سبق|كل ما سبق|لا شيء مما سبق|ليس مما سبق|كلاهما|لا هذا ولا ذاك/i;
+const _CC_LOCK_Q = /\b(?:previous|above|preceding|last|next|following)\s+question\b|\bquestions?\s*\d+\b|\bQ\s?\d+\b|السؤال السابق|السؤال الآتي/i;
+
+function _ccShuffleOn(a) { return !!(a && a.shuffle === true); }
+
+function _ccOptionPerm(a, studentId, q) {
+  const opts = Array.isArray(q.options) ? q.options : [];
+  const ident = opts.map((_, i) => i);
+  if (q.type !== 'mc' || opts.length < 2) return ident;
+  if (opts.some((o) => _CC_LETTER_REF.test(String(o || '')))) return ident;
+  const free = ident.filter((i) => !_CC_LOCK_OPT.test(String(opts[i] || '')));
+  const rand = _ccRng(`${a.id}|${studentId}|opt|${q.id}|${a.shuffleVersion || 1}`);
+  const mixed = _ccShuffle(free.slice(), rand);
+  let k = 0;
+  return ident.map((i) => (free.includes(i) ? mixed[k++] : i));   // display position → original index
+}
+
+function _ccStudentLayout(a, studentId) {
+  const qs = Array.isArray(a.questions) ? a.questions : [];
+  const bySec = new Map();
+  qs.forEach((q) => {
+    const k = q.sectionId || '';
+    if (!bySec.has(k)) bySec.set(k, []);
+    bySec.get(k).push(q);
+  });
+  const secOrder = (a.sections || []).map((s) => s.id);
+  for (const k of bySec.keys()) if (!secOrder.includes(k)) secOrder.push(k);
+  const questions = [];
+  for (const sid of secOrder) {
+    const list = bySec.get(sid);
+    if (!list) continue;
+    const rand = _ccRng(`${a.id}|${studentId}|sec|${sid}|${a.shuffleVersion || 1}`);
+    const locked = (q) => _CC_LOCK_Q.test(String(q.prompt || ''));
+    const mixed = _ccShuffle(list.filter((q) => !locked(q)), rand);
+    let k = 0;
+    list.forEach((q) => questions.push(locked(q) ? q : mixed[k++]));
+  }
+  const perms = {};
+  for (const q of qs) if (q.type === 'mc') perms[q.id] = _ccOptionPerm(a, studentId, q);
+  return { questions, perms };
+}
+
+// Results / answers / feedback are visible to students only after the
+// teacher releases them. Assessments made before this feature existed keep
+// their old behaviour (visible).
+function _ccResultsReleased(a) {
+  return a.resultsReleased === undefined ? true : !!a.resultsReleased;
+}
+
+// Marks a student earned on one question, or null if not marked yet.
+function _ccQuestionEarned(q, result) {
+  const pts = Number(q.points) || 1;
+  const manual = (result.manualGrades || {})[q.id];
+  if (manual && manual.score !== undefined && manual.score !== null && manual.score !== '') {
+    return { earned: Number(manual.score) || 0, max: Number(manual.maxScore) || pts };
+  }
+  const ans = (result.answers || []).find((x) => x.questionId === q.id) || {};
+  if (q.type === 'match' && typeof ans.earned === 'number') return { earned: ans.earned, max: pts };
+  if (ans.correct === true) return { earned: pts, max: pts };
+  if (ans.correct === false) return { earned: 0, max: pts };
+  return null;
+}
+
+function _ccSkillName(q) {
+  const s = String((q && q.skill) || '').trim();
+  return s || 'Untagged';
+}
+
+// Per-skill mastery for one student.
+function _ccSkillReport(a, result) {
+  const map = new Map();
+  for (const q of a.questions || []) {
+    const e = _ccQuestionEarned(q, result);
+    const name = _ccSkillName(q);
+    if (!map.has(name)) map.set(name, { skill: name, earned: 0, max: 0, questions: 0, marked: 0 });
+    const s = map.get(name);
+    s.questions++;
+    if (e) { s.earned += e.earned; s.max += e.max; s.marked++; }
+  }
+  const skills = Array.from(map.values())
+    .filter((s) => s.max > 0)
+    .map((s) => {
+      const pct = Math.round((s.earned / s.max) * 100);
+      return { ...s, earned: Math.round(s.earned * 100) / 100, pct, status: pct >= 80 ? 'strong' : pct >= 60 ? 'developing' : 'needs work' };
+    })
+    .sort((x, y) => x.pct - y.pct);
+  return {
+    skills,
+    strengths: skills.filter((s) => s.pct >= 80 && s.skill !== 'Untagged').map((s) => s.skill).reverse(),
+    needsWork: skills.filter((s) => s.pct < 60 && s.skill !== 'Untagged').map((s) => s.skill),
+  };
+}
+
+// Class-level skills + question analysis.
+function _ccClassSkillAnalysis(a, results) {
+  const map = new Map();
+  for (const q of a.questions || []) {
+    const name = _ccSkillName(q);
+    if (!map.has(name)) map.set(name, { skill: name, earned: 0, max: 0, questionNums: [], struggling: [] });
+  }
+  (a.questions || []).forEach((q, i) => map.get(_ccSkillName(q)).questionNums.push(i + 1));
+  for (const r of results) {
+    const per = new Map();
+    for (const q of a.questions || []) {
+      const e = _ccQuestionEarned(q, r);
+      if (!e) continue;
+      const name = _ccSkillName(q);
+      const s = map.get(name);
+      s.earned += e.earned; s.max += e.max;
+      const p = per.get(name) || { earned: 0, max: 0 };
+      p.earned += e.earned; p.max += e.max;
+      per.set(name, p);
+    }
+    for (const [name, p] of per) {
+      if (p.max > 0 && p.earned / p.max < 0.6) {
+        map.get(name).struggling.push({ name: r.studentName || r.studentEmail || 'Student', pct: Math.round((p.earned / p.max) * 100) });
+      }
+    }
+  }
+  return Array.from(map.values())
+    .filter((s) => s.max > 0)
+    .map((s) => ({
+      skill: s.skill,
+      classPct: Math.round((s.earned / s.max) * 100),
+      questionNums: s.questionNums,
+      strugglingCount: s.struggling.length,
+      struggling: s.struggling.sort((x, y) => x.pct - y.pct),
+    }))
+    .sort((x, y) => x.classPct - y.classPct);
+}
+
+function _ccSkillRules() {
+  return `
+SKILL TAG + FEEDBACK (required on EVERY question)
+- "skill": the specific skill or learning outcome the question tests, 2–7 words, e.g. "Differentiation — product rule", "Inference from text", "Balancing chemical equations", "Past simple — irregular verbs", "Map reading — scale". Use EXACTLY the same wording for questions that test the same skill so they group together; aim for 3–8 distinct skills in the whole assessment. Write it in the assessment's language.
+- "explanation": 1–3 sentences of feedback the student reads after marking: why the correct answer is right (show the key step for maths/science) and, for multiple choice, the misconception behind the most tempting wrong option. For open questions, say what a full-mark answer must include. Never just restate the answer. Same language as the assessment; maths in LaTeX with doubled backslashes inside JSON.`;
+}
+
+// ── AI: tag skills + write feedback for existing questions ─────────────
+app.post('/api/ai/tag-skills', requireTeacher, async (req, res) => {
+  try {
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const b = req.body || {};
+    const qs = (Array.isArray(b.questions) ? b.questions : []).slice(0, 120);
+    if (!qs.length) return res.status(400).json({ error: 'Add some questions first.' });
+    const language = String(b.language || '').slice(0, 60);
+    const system = [
+      'You are an experienced assessment designer. For each exam question you receive, identify the skill or learning outcome it tests and write short feedback for students.',
+      `Subject: ${String(b.subject || 'not specified').slice(0, 60)}. Grade: ${String(b.grade || 'not specified').slice(0, 20)}.`,
+      _ccSkillRules(),
+      _ccLangRulesFor(language),
+      'Work out the correct answer yourself when writing feedback; if the given answer key looks wrong, still explain the given answer but start the feedback with "⚠ Check answer key:".',
+      'Return ONLY a JSON array: [{"id": "...", "skill": "...", "explanation": "..."}], one entry per question, same ids.',
+    ].filter(Boolean).join('\n');
+    const out = [];
+    for (let i = 0; i < qs.length; i += 25) {
+      const batch = qs.slice(i, i + 25).map((q) => ({
+        id: String(q.id), type: q.type, prompt: String(q.prompt || '').slice(0, 3000),
+        options: Array.isArray(q.options) ? q.options.map(String) : undefined,
+        correctAnswer: q.correctAnswer,
+        pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right })) : undefined,
+      }));
+      const existing = out.map((x) => x.skill).filter(Boolean);
+      const text = await _ccClaudeText({
+        max_tokens: 12000, system,
+        messages: [{ role: 'user', content: (existing.length ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(new Set(existing)).join(' | ') + '\n\n' : '') + JSON.stringify(batch) }],
+      }, 'smart');
+      const arr = _ccParseModelJson(text);
+      if (Array.isArray(arr)) for (const x of arr) if (x && x.id) out.push({ id: String(x.id), skill: String(x.skill || '').slice(0, 80), explanation: String(x.explanation || '').slice(0, 1500) });
+    }
+    res.json({ items: out });
+  } catch (e) {
+    console.error('[tag-skills]', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+// ── Release / hide results, answers and feedback for students ──────────
+app.post('/api/assessments/:id/release-results', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((x) => x.id === req.params.id);
+  if (idx < 0) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId && all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  all[idx].resultsReleased = !!(req.body && req.body.released);
+  all[idx].resultsReleasedAt = all[idx].resultsReleased ? new Date().toISOString() : null;
+  writeAll('assessments.json', all);
+  res.json({ ok: true, resultsReleased: all[idx].resultsReleased });
+});
+
+// ── Excel: skills & question analysis for the class ────────────────────
+app.get('/api/assessments/:id/skills-report.xlsx', requireTeacher, async (req, res) => {
+  try {
+    const a = readAll('assessments.json').find((x) => x.id === req.params.id);
+    if (!a) return res.status(404).json({ error: 'Not found' });
+    if (a.teacherId && a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+    const results = readAll('results.json').filter((r) => r.assessmentId === a.id);
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    const head = (ws) => {
+      ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } };
+      ws.views = [{ state: 'frozen', ySplit: 1 }];
+    };
+    const band = (cell, pct) => {
+      if (pct == null || pct === '') return;
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: pct >= 80 ? 'FFDCFCE7' : pct >= 60 ? 'FFFEF3C7' : 'FFFEE2E2' } };
+    };
+    const plain = (s) => _ccLatexToPlain(String(s == null ? '' : s));
+
+    // 1. Class skills
+    const cls = _ccClassSkillAnalysis(a, results);
+    const ws1 = wb.addWorksheet('Class skills');
+    ws1.columns = [
+      { header: 'Skill / outcome', key: 's', width: 42 },
+      { header: 'Questions', key: 'q', width: 18 },
+      { header: 'Class average %', key: 'p', width: 16 },
+      { header: 'Students below 60%', key: 'n', width: 18 },
+      { header: 'Students who need support', key: 'w', width: 70 },
+    ];
+    head(ws1);
+    for (const s of cls) {
+      const row = ws1.addRow({ s: s.skill, q: s.questionNums.map((n) => 'Q' + n).join(', '), p: s.classPct, n: s.strugglingCount, w: s.struggling.map((x) => `${x.name} (${x.pct}%)`).join(', ') });
+      band(row.getCell('p'), s.classPct);
+    }
+
+    // 2. Question analysis
+    const ws2 = wb.addWorksheet('Question analysis');
+    ws2.columns = [
+      { header: 'Q', key: 'n', width: 6 },
+      { header: 'Skill', key: 's', width: 32 },
+      { header: 'Question', key: 't', width: 60 },
+      { header: '% correct', key: 'p', width: 11 },
+      { header: 'Most common wrong answer', key: 'w', width: 40 },
+      { header: 'Flag', key: 'f', width: 26 },
+    ];
+    head(ws2);
+    (a.questions || []).forEach((q, i) => {
+      const marks = results.map((r) => _ccQuestionEarned(q, r)).filter(Boolean);
+      const pct = marks.length ? Math.round((marks.reduce((t, m) => t + m.earned / m.max, 0) / marks.length) * 100) : null;
+      let wrong = '';
+      if (q.type === 'mc') {
+        const c = {};
+        results.forEach((r) => { const x = (r.answers || []).find((y) => y.questionId === q.id); if (x && x.correct === false && x.given !== null && x.given !== undefined && x.given !== '') c[x.given] = (c[x.given] || 0) + 1; });
+        const top = Object.entries(c).sort((x, y) => y[1] - x[1])[0];
+        if (top) wrong = `${plain((q.options || [])[Number(top[0])])} (${top[1]} students)`;
+      }
+      const row = ws2.addRow({ n: i + 1, s: _ccSkillName(q), t: plain(q.prompt).slice(0, 400), p: pct, w: wrong, f: pct != null && pct < 50 ? 'Most students got this wrong' : '' });
+      band(row.getCell('p'), pct);
+    });
+
+    // 3. Students × skills
+    const ws3 = wb.addWorksheet('Students by skill');
+    const skillNames = cls.map((s) => s.skill);
+    ws3.columns = [{ header: 'Student', key: 'name', width: 28 }].concat(skillNames.map((s, i) => ({ header: s, key: 'k' + i, width: 18 }))).concat([{ header: 'Needs work in', key: 'nw', width: 50 }]);
+    head(ws3);
+    for (const r of results) {
+      const rep = _ccSkillReport(a, r);
+      const vals = { name: r.studentName || r.studentEmail };
+      skillNames.forEach((s, i) => { const f = rep.skills.find((x) => x.skill === s); vals['k' + i] = f ? f.pct : ''; });
+      vals.nw = rep.needsWork.join(', ');
+      const row = ws3.addRow(vals);
+      skillNames.forEach((s, i) => band(row.getCell('k' + i), vals['k' + i] === '' ? null : vals['k' + i]));
+    }
+
+    const fname = String(a.title || 'assessment').replace(/[^A-Za-z0-9_\-]+/g, '_').slice(0, 60) + '_skills_report.xlsx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fname}"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (e) {
+    console.error('[skills-report]', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);
@@ -3038,6 +3349,16 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     }
   }
 
+  const _layout = _ccShuffleOn(a) ? _ccStudentLayout(a, req.session.user.id) : null;
+  if (_layout && previousAnswersMap) {
+    for (const q of a.questions) {
+      const p = _layout.perms[q.id];
+      if (p && previousAnswersMap[q.id] !== undefined && previousAnswersMap[q.id] !== null && previousAnswersMap[q.id] !== '') {
+        const pos = p.indexOf(Number(previousAnswersMap[q.id]));
+        if (pos >= 0) previousAnswersMap[q.id] = pos;
+      }
+    }
+  }
   const safe = {
     id: a.id,
     title: a.title,
@@ -3063,14 +3384,15 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     previousAnswers: previousAnswersMap,
     remainingMs: (already && Number.isFinite(already.remainingMs)) ? already.remainingMs : null,
     sections: Array.isArray(a.sections) ? a.sections : [],
-    questions: a.questions.map((q) => {
+    shuffleKey: _layout ? 'v1' : null,
+    questions: (_layout ? _layout.questions : a.questions).map((q, _qi) => {
       const out = {
         id: q.id,
-        order: q.order,
+        order: _layout ? _qi : q.order,
         sectionId: q.sectionId || '',
         type: q.type,
         prompt: q.prompt,
-        options: q.options,
+        options: _layout && _layout.perms[q.id] ? _layout.perms[q.id].map((i) => q.options[i]) : q.options,
         points: q.points,
         imageUrl: q.imageUrl || '',
       };
@@ -3103,6 +3425,16 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
   if (!a) return res.status(404).json({ error: 'Not found' });
 
   const { answers, violations, startedAt, submitReason, remainingMs } = req.body || {};
+  if (req.body && req.body.shuffleKey === 'v1' && _ccShuffleOn(a) && answers && typeof answers === 'object') {
+    const _lay = _ccStudentLayout(a, req.session.user.id);
+    for (const q of a.questions) {
+      const p = _lay.perms[q.id];
+      const v = answers[q.id];
+      if (!p || v === undefined || v === null || v === '') continue;
+      const pos = Number(v);
+      if (Number.isInteger(pos) && p[pos] !== undefined) answers[q.id] = p[pos];
+    }
+  }
   const results = readAll('results.json');
 
   // Block re-submission UNLESS the teacher has granted a re-entry. A grant
@@ -3124,6 +3456,7 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
   const gradedAnswers = a.questions.map((q) => {
     const given = answers?.[q.id];
     let correct = null;
+    let _matchEarned = null;
     if (q.type === 'mc' || q.type === 'tf') {
       autoMax += q.points;
       correct = String(given) === String(q.correctAnswer);
@@ -3171,12 +3504,14 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
       const earned = (correctCount / n) * q.points;
       autoScore += earned;
       correct = correctCount === n;
+      _matchEarned = Math.round(earned * 100) / 100;
     }
     // 'long' and 'essay' types are always manual; 'writing' is rubric-based.
     return {
       questionId: q.id,
       given: given ?? null,
       correct, // null for essay / long / ungradable
+      ...(_matchEarned !== null ? { earned: _matchEarned } : {}),
     };
   });
 
@@ -3197,6 +3532,7 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
     remainingMs: Number.isFinite(Number(remainingMs)) ? Number(remainingMs) : null,
     environment: vmFlags.get(envKey) || null,
     answers: gradedAnswers,
+    shuffled: _ccShuffleOn(a) && !!(req.body && req.body.shuffleKey === 'v1'),
     manualGrades: {},
   };
   vmFlags.delete(envKey);
@@ -3370,6 +3706,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
           ? q.correctAnswer
           : null,
       explanation: q.explanation || null,
+      skill: q.skill || null,
       manualGrade: manual, // { score, maxScore, feedback } or null
     };
   });
@@ -3389,7 +3726,13 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
     }
   }
 
+  const _released = _ccResultsReleased(a);
+  if (!_released) {
+    for (const r of review) { r.correct = null; r.correctAnswer = null; r.explanation = null; r.skill = null; }
+  }
   res.json({
+    resultsReleased: _released,
+    skillReport: _released ? _ccSkillReport(a, result) : null,
     assessmentId: a.id,
     assessmentTitle: a.title,
     term: a.term || null,
@@ -3443,6 +3786,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
           ? q.correctAnswer
           : null,
       explanation: q.explanation || null,
+      skill: q.skill || null,
       manualGrade: manual,
     };
   });
@@ -3481,6 +3825,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
     teacherCommentBy: result.teacherCommentBy || '',
     teacherCommentAt: result.teacherCommentAt || '',
     review,
+    skillReport: _ccSkillReport(a, result),
     violations: result.violations || [],
     submitReason: result.submitReason || null,
   });
@@ -3586,11 +3931,13 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
   if (!results.length) {
     return res.json({
       assessmentTitle: a.title,
+      resultsReleased: _ccResultsReleased(a),
+      classSkills: [],
       submissionCount: 0,
       mean: null, median: null, min: null, max: null, avgTimeMinutes: null,
       histogram: [],
       questions: a.questions.map((q) => ({
-        id: q.id, type: q.type, prompt: q.prompt, points: q.points,
+        id: q.id, type: q.type, prompt: q.prompt, points: q.points, skill: q.skill || null,
         attempted: 0, correctRate: null, mostCommonWrong: null,
       })),
     });
@@ -3670,6 +4017,7 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
       type: q.type,
       prompt: q.prompt,
       points: q.points,
+      skill: q.skill || null,
       attempted,
       correctRate,
       mostCommonWrong,
@@ -3687,6 +4035,8 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
 
   res.json({
     assessmentTitle: a.title,
+    resultsReleased: _ccResultsReleased(a),
+    classSkills: _ccClassSkillAnalysis(a, results),
     submissionCount: results.length,
     mean: Math.round(mean * 10) / 10,
     median: Math.round(median * 10) / 10,
@@ -4653,6 +5003,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '   Examples by subject: Math diagrams, Physics circuits, Chemistry molecules, Biology cells, Social Studies maps, Arabic calligraphy.',
     '',
     _ccMathRulesFor('generate'),
+    _ccSkillRules(),
     _ccLangRulesFor(language),
     '',
     'G. LANGUAGE',
@@ -4758,6 +5109,8 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         sectionId: outSections[sidx].id,
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
+        skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+        explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
       };
       if (type === 'mc') {
         if (!out.options.length) out.options = ['', '', '', ''];
@@ -4873,6 +5226,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
         '9. When the paper has "Match the following", "Match column A with column B", "Match the word to its meaning", or "Draw lines to connect", emit type "match" with the original pairs in the same order they appear. Use matchVariant "word-definition" for word/definition, "word-word" for word/word, or "word-picture" if the paper shows pictures (set rightImageRef on each pair — see rule 10). NEVER convert match questions into multiple-choice.',
         '10. IMAGES: the paper\'s pictures may be attached after this text, each preceded by a label "Image #N". If a question shows or uses one of them, add "imageRef": N to that question. For word-picture match pairs, add "rightImageRef": N to each pair. Only use numbers that were actually provided. If a question refers to a figure, diagram, graph or table-as-picture that is NOT among the attached images, add "imageDescription" with a precise description (shape, labels, values, axes) so it can be redrawn.',
         _ccMathRulesFor('import'),
+        _ccSkillRules(),
         'Keep the paper in its original language. If it is in Arabic (or any other language), copy the wording exactly — do not rephrase or translate it.',
         '',
         ...(_isPdfImport
@@ -4949,6 +5303,8 @@ app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) 
               sectionId: sections[sidx].id,
               imageUrl: _imgFor(q.imageRef),
               imageDescription: '',
+              skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+              explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
             };
             if (!out.imageUrl && typeof q.imageDescription === 'string') out.imageDescription = q.imageDescription.slice(0, 500);
             if (type === 'mc') {
@@ -7244,6 +7600,7 @@ app.post('/api/ai/question-from-content', requireTeacher, async (req, res) => {
       'correctAnswer: for "mc" the 0-based index of the correct option. If the source marks the answer, use it. Otherwise solve the question yourself, checking your working carefully; if you are not confident, set "answerUnsure": true. For "short" give a plain-text answer a student can type.',
       'If the screenshot contains a diagram, graph, figure, picture or a table drawn as an image that the question needs, set "hasFigure": true and "figureBox" to the tight bounding box of ONLY that figure, as fractions (0–1) of the image width/height measured from the top-left corner — exclude the question text and the options.',
       _ccMathRulesFor('import'),
+      _ccSkillRules(),
       _ccLangRulesFor(language),
       subject ? `Subject: ${subject}.` : '',
     ].filter(Boolean).join('\n');

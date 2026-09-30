@@ -1258,7 +1258,7 @@ async function submit(reason) {
   try {
     resp = await api(`/api/assessments/${currentAssessment.id}/submit`, {
       method: 'POST',
-      body: { answers, violations, startedAt, submitReason: reason, remainingMs: Math.max(0, (endAt || 0) - Date.now()) },
+      body: { answers, violations, startedAt, submitReason: reason, remainingMs: Math.max(0, (endAt || 0) - Date.now()), shuffleKey: (currentAssessment && currentAssessment.shuffleKey) || null },
     });
   } catch (e) {
     // Submit failed (network blip, server error). Show a Retry path so the
@@ -1450,7 +1450,11 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
     </div>
   `;
 
-  mountBody.innerHTML = `
+  if (data.resultsReleased === false) {
+    mountBody.innerHTML = `<div class="report-card"><div class="env-warn" style="margin:0;">🔒 Your teacher hasn't released the answers and feedback yet. Check back later — you'll see the correct answers, feedback for every question and your skills report here.</div></div>`;
+    return;
+  }
+  mountBody.innerHTML = ccSkillsBlockHtml(data.skillReport) + `
     <div class="report-card">
       <h2>Question by Question</h2>
       ${data.review.map((q, i) => renderReviewQuestion(q, i)).join('')}
@@ -1517,9 +1521,7 @@ function renderReviewQuestion(q, i) {
        </div>`
     : '';
 
-  const explanation = q.explanation
-    ? `<div class="muted" style="margin-top: 6px;"><em>${escapeHtml(q.explanation)}</em></div>`
-    : '';
+  const explanation = ccReviewExtrasHtml(q);
 
   return `
     <div class="panel">
@@ -2828,4 +2830,35 @@ if (window.MutationObserver) {
 }
 document.addEventListener('DOMContentLoaded', _ccStudentDecorateVisuals);
 // ─────────────────────────────────────────────────────────────────────
+
+// ── Skills report block (shared by student + teacher report cards) ─────
+function ccSkillsBlockHtml(rep) {
+  if (!rep || !Array.isArray(rep.skills) || !rep.skills.length) return '';
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const colour = (p) => (p >= 80 ? '#059669' : p >= 60 ? '#d97706' : '#dc2626');
+  const rows = rep.skills.slice().sort((a, b) => b.pct - a.pct).map((s) => `
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)}</div>
+      <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.pct}%; height:100%; background:${colour(s.pct)};"></div></div>
+      <div style="flex:0 0 120px; text-align:right; font-size:13px; color:${colour(s.pct)}; font-weight:600;">${s.pct}% · ${esc(s.status)}</div>
+    </div>`).join('');
+  const list = (arr) => arr.map((x) => `<li dir="auto">${esc(x)}</li>`).join('');
+  return `
+    <div class="report-card" style="margin-top:14px;">
+      <h2 style="margin-top:0;">🎯 Skills report</h2>
+      ${rows}
+      <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;">
+        ${rep.strengths && rep.strengths.length ? `<div style="flex:1; min-width:220px; background:#ecfdf5; border-radius:8px; padding:10px 12px;"><strong>✅ Strengths</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.strengths)}</ul></div>` : ''}
+        ${rep.needsWork && rep.needsWork.length ? `<div style="flex:1; min-width:220px; background:#fef2f2; border-radius:8px; padding:10px 12px;"><strong>📌 Skills to work on</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.needsWork)}</ul><div style="font-size:12px; color:#6b7280; margin-top:6px;">Review the feedback on the questions for these skills below.</div></div>` : ''}
+      </div>
+    </div>`;
+}
+
+function ccReviewExtrasHtml(q) {
+  const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let h = '';
+  if (q.skill) h += `<div style="margin-top:6px; font-size:13px; color:#4338ca;">🎯 Skill: <span dir="auto">${esc(q.skill)}</span></div>`;
+  if (q.explanation) h += `<div dir="auto" style="margin-top:6px; padding:8px 10px; background:#fffbeb; border-left:3px solid #f59e0b; border-radius:6px; font-size:14px;"><strong>💡 Feedback:</strong> ${esc(q.explanation)}</div>`;
+  return h;
+}
 
