@@ -5364,6 +5364,9 @@ app.get('/take/:id', (req, res) => {
 });
 
 // Static ----------
+// Maths renderer served from our own server (was a public CDN that some
+// school networks block or load slowly — students then saw raw code).
+app.use('/vendor/mathjax', express.static(path.join(__dirname, '..', 'node_modules', 'mathjax', 'es5'), { maxAge: '30d', fallthrough: true }));
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 

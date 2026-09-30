@@ -115,4 +115,56 @@
     }
     if (document.body) start(); else document.addEventListener('DOMContentLoaded', start);
   })();
+
+  // ── Safety net: readable maths if the renderer can't load ─────────────
+  (function () {
+    var SUP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','+':'⁺','-':'⁻','n':'ⁿ','x':'ˣ' };
+    var SUB = { '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','+':'₊','-':'₋' };
+    var MAP = { times:'×', div:'÷', cdot:'·', pm:'±', mp:'∓', le:'≤', leq:'≤', ge:'≥', geq:'≥', ne:'≠', neq:'≠', approx:'≈', equiv:'≡', infty:'∞', circ:'°', degree:'°',
+      pi:'π', theta:'θ', alpha:'α', beta:'β', gamma:'γ', delta:'δ', Delta:'Δ', lambda:'λ', mu:'μ', sigma:'σ', Sigma:'Σ', omega:'ω', Omega:'Ω', phi:'φ', rho:'ρ', tau:'τ', epsilon:'ε', varepsilon:'ε', eta:'η',
+      nabla:'∇', partial:'∂', int:'∫', sum:'∑', prod:'∏', rightarrow:'→', to:'→', longrightarrow:'→', leftarrow:'←', Rightarrow:'⇒', leftrightarrow:'↔', rightleftharpoons:'⇌',
+      angle:'∠', triangle:'△', perp:'⊥', parallel:'∥', 'in':'∈', cup:'∪', cap:'∩', subset:'⊂', therefore:'∴', ldots:'…', cdots:'⋯', dots:'…',
+      sin:'sin', cos:'cos', tan:'tan', sec:'sec', csc:'csc', cot:'cot', log:'log', ln:'ln', lim:'lim', exp:'exp', left:'', right:'', quad:' ', qquad:'  ', displaystyle:'', textstyle:'' };
+    function map(str, table) { var out = ''; for (var i = 0; i < str.length; i++) { if (!table[str[i]]) return null; out += table[str[i]]; } return out; }
+    function plain(t) {
+      t = t.replace(/\^\{?\\circ\}?/g, '°');
+      for (var k = 0; k < 6; k++) {
+        t = t.replace(/\\[dtc]?frac\{([^{}]*)\}\{([^{}]*)\}/g, function (m, a, b) { return (a.length > 1 ? '(' + a + ')' : a) + '/' + (b.length > 1 ? '(' + b + ')' : b); });
+        t = t.replace(/\\sqrt\[([^\]]*)\]\{([^{}]*)\}/g, '$1√($2)').replace(/\\sqrt\{([^{}]*)\}/g, '√($1)');
+        t = t.replace(/\\(?:mathrm|text|textrm|mathbf|mathit|operatorname|boxed|ce)\{([^{}]*)\}/g, '$1');
+        t = t.replace(/\\(?:vec|overrightarrow)\{([^{}]*)\}/g, '$1⃗').replace(/\\overline\{([^{}]*)\}/g, '$1̅');
+        t = t.replace(/\^\{([^{}]*)\}/g, function (m, a) { var s = map(a, SUP); return s !== null ? s : '^(' + a + ')'; });
+        t = t.replace(/_\{([^{}]*)\}/g, function (m, a) { var s = map(a, SUB); return s !== null ? s : '_' + a; });
+      }
+      t = t.replace(/\^([0-9nx+-])/g, function (m, a) { return SUP[a] || m; }).replace(/_([0-9])/g, function (m, a) { return SUB[a] || m; });
+      t = t.replace(/\\([A-Za-z]+)\s?/g, function (m, n) { return MAP[n] !== undefined ? MAP[n] + (/^(sin|cos|tan|sec|csc|cot|log|ln|lim|exp)$/.test(n) ? ' ' : '') : n; });
+      t = t.replace(/\b(sin|cos|tan|sec|csc|cot|log|ln|exp) \(/g, '$1(').replace(/lim _/g, 'lim ');
+      return t.replace(/\\[,;:! ]/g, ' ').replace(/\\([{}%$])/g, '$1').replace(/[{}]/g, '').replace(/ {2,}/g, ' ');
+    }
+    var RE = /\\\(([\s\S]*?)\\\)|\\\[([\s\S]*?)\\\]|\$\$([\s\S]*?)\$\$/g;
+    function convert(root) {
+      var w = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode: function (n) {
+          var p = n.parentNode;
+          if (!p || /^(TEXTAREA|INPUT|SCRIPT|STYLE|CODE|PRE)$/.test(p.nodeName) || (p.closest && p.closest('mjx-container,[contenteditable="true"]'))) return NodeFilter.FILTER_REJECT;
+          return /\\\(|\\\[|\$\$/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        }
+      });
+      var list = []; while (w.nextNode()) list.push(w.currentNode);
+      list.forEach(function (n) { n.nodeValue = n.nodeValue.replace(RE, function (m, a, b, c) { return plain(a || b || c || ''); }); });
+    }
+    window.ccMathFallback = convert;
+    var started = Date.now();
+    function check() {
+      if (window.MathJax && window.MathJax.typesetPromise) return;          // real renderer is fine
+      if (Date.now() - started < 8000) return setTimeout(check, 500);
+      console.warn('[ClassCurio] Maths renderer unavailable — showing readable maths instead.');
+      convert(document.body);
+      if (window.MutationObserver && document.body) {
+        new MutationObserver(function () { if (!(window.MathJax && window.MathJax.typesetPromise)) convert(document.body); })
+          .observe(document.body, { childList: true, subtree: true });
+      }
+    }
+    if (document.body) check(); else document.addEventListener('DOMContentLoaded', check);
+  })();
 })();

@@ -4328,7 +4328,7 @@ async function printAssessmentPDF(assessmentId) {
   body += `<div class="pagebreak"></div><h2>Answer Key</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
 
   const _rtlPrint = /arab|urdu|persian|farsi|hebrew|عرب/i.test(String(a.assessmentLanguage || ''));
-  const _mathJaxPrint = `<script>window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},svg:{fontCache:'global'}};<\/script><script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"><\/script>`;
+  const _mathJaxPrint = `<script>window.MathJax={tex:{inlineMath:[['\\\\(','\\\\)']],displayMath:[['\\\\[','\\\\]']]},svg:{fontCache:'global'}};<\/script><script src="${location.origin}/vendor/mathjax/tex-svg.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js'"><\/script>`;
   const fullHtml = `<!DOCTYPE html><html dir="${_rtlPrint ? 'rtl' : 'ltr'}"><head><meta charset="utf-8"><title>${escapeHtml(a.title)}</title>${css}${_mathJaxPrint}</head><body>${body}</body></html>`;
 
   // Build a same-origin modal wrapping a print iframe — no popup needed.
