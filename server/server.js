@@ -5149,13 +5149,21 @@ async function _ccClaudeList({ system, user, content, maxTokens, itemProps, requ
   };
   let why = '';
   try {
-    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system, messages: [{ role: 'user', content: _msgContent }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
+    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system: system + '\nYou are filling in a form, not writing JSON: write LaTeX with SINGLE backslashes, e.g. \\(\\frac{1}{2}\\).', messages: [{ role: 'user', content: _msgContent }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
     if (r && r.ok) {
       const data = await r.json();
       const blk = (data.content || []).find((b) => b.type === 'tool_use');
       let items = blk && blk.input && blk.input.items;
       if (typeof items === 'string') items = _ccLenientItems(items, Object.keys(itemProps));
-      if (Array.isArray(items)) return items;
+      if (Array.isArray(items)) {
+        // In the form, LaTeX needs single backslashes — undo any doubling.
+        return items.map((x) => {
+          if (!x || typeof x !== 'object') return x;
+          const y = Object.assign({}, x);
+          for (const k of Object.keys(y)) if (typeof y[k] === 'string') y[k] = y[k].replace(/\\\\(?=[A-Za-z()[\]{}])/g, '\\');
+          return y;
+        });
+      }
       why = 'no items (stop: ' + (data.stop_reason || '?') + ')';
     } else if (r) {
       const t = await r.text().catch(() => '');
