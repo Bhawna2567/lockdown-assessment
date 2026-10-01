@@ -45,7 +45,8 @@ module.exports = function specTable(app, d) {
         (outs || []).forEach((t, oi) => list.push({ code: `${abbr}${gk}.T${term}.${si + 1}.${oi + 1}`, text: String(t), unit: strand, weeks: '', wFrom: null, wTo: null, type: 'core' }));
       });
     }
-    return { list, source: e.source || e.sequenceSource || 'MOE curriculum', gk, sk, term };
+    const src = String(e.sequenceSource || e.source || 'MOE curriculum').replace(/^Masar \(GitHub\)$/, 'MOE curriculum (from Adeptly)');
+    return { list, source: src, gk, sk, term };
   }
 
   // ── 2026-27 calendar + weekly level plan ──────────────────────────────────
@@ -236,7 +237,7 @@ module.exports = function specTable(app, d) {
       return {
         id: q.id, no: String(i + 1), skill,
         outcomeCode: t.outcomeCode || '', outcome: t.outcome || '', unit: t.unit || '', weeks: t.weeks || '',
-        preview: String(q.prompt || '').replace(/\s+/g, ' ').replace(/\\\(|\\\)|\\\[|\\\]|\$/g, '').trim().slice(0, 110) || (q.imageUrl ? (lang === 'ar' ? '[سؤال بصورة]' : '[picture question]') : ''),
+        preview: String(q.prompt || '').replace(/\s+/g, ' ').replace(/\\\(|\\\)|\\\[|\\\]|\$/g, '').trim().slice(0, 90) || (q.imageUrl ? (lang === 'ar' ? '[سؤال بصورة]' : '[picture question]') : ''),
         format: FORMAT_LABEL[lang][q.type] || q.type, objective: OBJECTIVE.has(q.type),
         bloom: t.bloom || '', marks: Number(q.points) || 1,
         difficulty: df ? df.level : '', tagged: t.source === 'admin' ? 'admin' : (t.source ? 'ai' : ''),
@@ -372,6 +373,30 @@ module.exports = function specTable(app, d) {
   const strLit = (s) => '"' + String(s).replace(/"/g, '""') + '"';
   const sideAlign = (t) => ({ horizontal: t.dir ? 'right' : 'left', vertical: 'middle', wrapText: true });
 
+  // Row height that fits wrapped text (Excel does not auto-fit wrapped/merged cells).
+  function textHeight(text, width, size) {
+    const per = Math.max(4, Math.floor((width || 10) * (size <= 9 ? 1.2 : 1.05)));
+    const lines = String(text == null ? '' : text).split('\n').reduce((n, p) => n + Math.max(1, Math.ceil(p.length / per)), 0);
+    return lines * (size <= 9 ? 12 : 13.5) + 8;
+  }
+  function colW(ws, c) { return ws.getColumn(c).width || 10; }
+  function fitRow(ws, r, size, minH) {
+    let h = minH || 20;
+    ws.getRow(r).eachCell({ includeEmpty: false }, (cell, c) => {
+      if (cell.isMerged && cell.master !== cell) return;
+      const v = cell.value; if (v == null || typeof v === 'object') return;
+      let w = colW(ws, c);
+      if (cell.isMerged) { let cc = c + 1; while (cc <= 30 && ws.getCell(r, cc).isMerged && ws.getCell(r, cc).master === cell) { w += colW(ws, cc); cc++; } }
+      h = Math.max(h, textHeight(v, w, size));
+    });
+    ws.getRow(r).height = Math.min(h, 400);
+  }
+  function note(ws, r, lastCol, text) {
+    ws.mergeCells(`A${r}:${lastCol}${r}`); const c = ws.getCell(`A${r}`); c.value = text;
+    c.font = font({ size: 8, italic: true, color: { argb: 'FF595959' } }); c.alignment = { wrapText: true, vertical: 'top' };
+    let w = 0; for (let k = 1; k <= ws.getColumn(lastCol).number; k++) w += colW(ws, k);
+    ws.getRow(r).height = textHeight(text, w, 8);
+  }
   function headerCells(ws, refs) { for (const ref of refs) { const x = ws.getCell(ref); x.font = font({ bold: true, color: { argb: 'FFFFFFFF' } }); x.fill = fill('1F3864'); x.alignment = CENTER; x.border = BORDER; } }
   function boxRange(ws, r1, c1, r2, c2, o = {}) {
     for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) {
@@ -383,6 +408,7 @@ module.exports = function specTable(app, d) {
     ws.mergeCells(`A1:${lastCol}1`); ws.getCell('A1').value = m.st.school || ''; ws.getCell('A1').font = font({ size: 9, color: { argb: 'FF595959' } });
     ws.mergeCells(`A2:${lastCol}2`); ws.getCell('A2').value = text; ws.getCell('A2').font = font({ bold: true, size: 16, color: { argb: NAVY } });
     ws.mergeCells(`A3:${lastCol}3`); ws.getCell('A3').value = sub; ws.getCell('A3').font = font({ size: 10, italic: true, color: { argb: 'FF595959' } });
+    ws.getCell('A3').alignment = { wrapText: true, vertical: 'top' };
     ws.getRow(2).height = 28;
   }
   function cf(ws, ref, first) {
@@ -398,7 +424,7 @@ module.exports = function specTable(app, d) {
     const t = T[m.lang];
     const ws = wb.addWorksheet(name, { views: [{ rightToLeft: t.dir, showGridLines: false, state: 'frozen', ySplit: 6 }],
       pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0, paperSize: 9 } });
-    [16, 58, 26, 11, 9, 13, 13, 13, 13, 16].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+    [16, 58, 26, 11, 9, 13, 16, 16, 16, 17].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
     ws.mergeCells('A1:J1'); ws.getCell('A1').value = m.st.school || ''; ws.getCell('A1').font = font({ bold: true }); ws.getRow(1).height = 46;
     ws.getCell('A1').alignment = { vertical: 'middle', horizontal: t.dir ? 'right' : 'left' };
     addLogo(wb, ws, 3.2, 0.1, 150, 44);
@@ -417,7 +443,7 @@ module.exports = function specTable(app, d) {
     });
     ws.mergeCells('G5:I5'); ws.getCell('G5').value = t.bloomHdr;
     for (const r of [5, 6]) for (let c = 1; c <= 10; c++) { const x = ws.getCell(r, c); x.font = font({ bold: true, color: { argb: NAVY } }); x.alignment = CENTER; x.fill = fill('F2F2F2'); x.border = BORDER; }
-    ws.getRow(5).height = 24; ws.getRow(6).height = 36;
+    ws.getRow(5).height = 30; ws.getRow(6).height = 40;
     const first = 7; let r = first;
     const totalRow = first + m.items.length;
     m.skills.forEach((sk, si) => {
@@ -441,12 +467,19 @@ module.exports = function specTable(app, d) {
         ws.getRow(r).height = 22; r++;
       });
       flush(r - 1, its[its.length - 1]);
+      // make each outcome group tall enough for its text
+      { let g = start; while (g < r) { let e2 = g; const key = (m.items.find((x) => x.no === String(ws.getCell(`E${g}`).value)) || {});
+          const k0 = key.outcomeCode || key.outcome;
+          while (e2 + 1 < r) { const nx = m.items.find((x) => x.no === String(ws.getCell(`E${e2 + 1}`).value)) || {}; if ((nx.outcomeCode || nx.outcome) !== k0) break; e2++; }
+          const need = Math.max(textHeight(key.outcome, 58, 10), textHeight(key.unit, 26, 10), textHeight(sk, 16, 10) / (r - start));
+          const per = Math.max(22, Math.ceil(need / (e2 - g + 1)));
+          for (let rr = g; rr <= e2; rr++) ws.getRow(rr).height = per;
+          g = e2 + 1; } }
       const end = r - 1;
       if (end > start) { ws.mergeCells(`A${start}:A${end}`); ws.mergeCells(`D${start}:D${end}`); }
       ws.getCell(`A${start}`).value = sk; ws.getCell(`A${start}`).font = font({ bold: true });
       ws.getCell(`D${start}`).value = { formula: `IFERROR(SUM(G${start}:I${end})/$J$${totalRow},0)` }; ws.getCell(`D${start}`).numFmt = '0%';
       ws.getCell(`D${start}`).font = font({ bold: true, size: 11 });
-      if (end === start) ws.getRow(start).height = 48;
     });
     const tr = totalRow;
     ws.getCell(`A${tr}`).value = t.total;
@@ -455,7 +488,8 @@ module.exports = function specTable(app, d) {
     ws.getCell(`J${tr}`).value = { formula: `SUM(G${tr}:I${tr})` };
     for (let c = 1; c <= 10; c++) { const x = ws.getCell(tr, c); x.border = BORDER; x.alignment = CENTER; x.font = font({ bold: true, size: 11, color: { argb: 'FFC00000' } }); if (c === 2 || c === 3) x.fill = fill('FFC000'); }
     ws.getRow(tr).height = 24;
-    ws.getCell(`A${tr + 2}`).value = t.legend; ws.getCell(`A${tr + 2}`).font = font({ size: 8, italic: true, color: { argb: 'FF595959' } });
+    note(ws, tr + 2, 'J', t.legend);
+    fitRow(ws, 3, 10, 22);
     ws.pageSetup.printTitlesRow = '5:6';
     return ws;
   }
@@ -472,7 +506,7 @@ module.exports = function specTable(app, d) {
 
     // ---- Specification
     titleBlock(sp, m, t.specTitle, t.moeTitle(m), 'Q');
-    [8, 18, 13, 46, 24, 10, 34, 15, 11, 20, 8, 12, 12, 12, 12, 12, 22].forEach((w, i) => { sp.getColumn(i + 1).width = w; });
+    [8, 18, 13, 50, 26, 11, 40, 16, 11, 22, 8, 15, 15, 15, 13, 12, 22].forEach((w, i) => { sp.getColumn(i + 1).width = w; });
     t.specCols.forEach((h, i) => { sp.getCell(5, i + 1).value = h; });
     headerCells(sp, t.specCols.map((_, i) => sp.getCell(5, i + 1).address)); sp.getRow(5).height = 34;
     const r0 = 6; let r = r0;
@@ -488,7 +522,7 @@ module.exports = function specTable(app, d) {
         c.alignment = [3, 4, 6, 16].includes(i) ? sideAlign(t) : CENTER;
       });
       sp.getCell(r, 2).fill = fill(colorOf(it.skill));
-      sp.getRow(r).height = 30; r++;
+      fitRow(sp, r, 9, 24); r++;
     }
     const rl = Math.max(r0, r - 1), tr = r;
     sp.getCell(`A${tr}`).value = t.total;
@@ -501,16 +535,18 @@ module.exports = function specTable(app, d) {
       { type: 'cellIs', operator: 'equal', formulae: [strLit(t.diff.medium)], style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFFEB9C' } } } },
       { type: 'cellIs', operator: 'equal', formulae: [strLit(t.diff.easy)], style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFC6EFCE' } } } }] });
     sp.autoFilter = { from: { row: 5, column: 1 }, to: { row: rl, column: 17 } };
-    sp.getCell(`A${tr + 2}`).value = t.legend; sp.getCell(`A${tr + 2}`).font = font({ size: 8, italic: true, color: { argb: 'FF595959' } });
+    note(sp, tr + 2, 'Q', t.legend); fitRow(sp, 5, 10, 34);
     const SPR = (c) => `${q(SN.spec)}!$${c}$${r0}:$${c}$${rl}`;
 
     // ---- Summary
     titleBlock(sm, m, t.sumTitle, t.moeTitle(m), 'I');
-    [26, 15, 15, 15, 12, 12, 12, 3, 24].forEach((w, i) => { sm.getColumn(i + 1).width = w; });
+    [30, 16, 16, 16, 12, 12, 12, 3, 24].forEach((w, i) => { sm.getColumn(i + 1).width = w; });
     addLogo(wb, sm, 8, 4, 130, 38);
     t.infoRows(m).forEach(([k, v], i) => {
       const rr = 5 + i; sm.getCell(`A${rr}`).value = k; sm.mergeCells(`B${rr}:G${rr}`); sm.getCell(`B${rr}`).value = v;
       sm.getCell(`A${rr}`).font = font({ bold: true, color: { argb: NAVY } }); sm.getCell(`A${rr}`).fill = fill('DDEBF7'); sm.getCell(`B${rr}`).font = font();
+      sm.getCell(`A${rr}`).alignment = { vertical: 'middle', wrapText: true }; sm.getCell(`B${rr}`).alignment = { vertical: 'middle', wrapText: true, horizontal: t.dir ? 'right' : 'left' };
+      fitRow(sm, rr, 10, 20);
     });
     const nChecks = t.checks.length;
     const tiles = [
@@ -525,9 +561,9 @@ module.exports = function specTable(app, d) {
       sm.getCell(`${col}12`).font = font({ size: 18, bold: true, color: { argb: NAVY } }); sm.getCell(`${col}12`).alignment = CENTER;
       for (const rr of [11, 12]) { sm.getCell(`${col}${rr}`).fill = fill('F2F2F2'); sm.getCell(`${col}${rr}`).border = BORDER; }
     });
-    sm.getRow(12).height = 34;
+    sm.getRow(12).height = 34; fitRow(sm, 11, 9, 24);
     let s = 14;
-    sm.getCell(`A${s}`).value = t.s1; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } });
+    sm.mergeCells(`A${s}:I${s}`); sm.getCell(`A${s}`).value = t.s1; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } }); sm.getRow(s).height = 22;
     s++;
     t.bpCols.forEach((h, i) => { sm.getCell(s, i < 7 ? i + 1 : 9).value = h; });
     headerCells(sm, ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'I'].map((c) => `${c}${s}`)); sm.getRow(s).height = 30;
@@ -544,6 +580,7 @@ module.exports = function specTable(app, d) {
       boxRange(sm, rr, 1, rr, 7); boxRange(sm, rr, 9, rr, 9);
       sm.getCell(`A${rr}`).alignment = sideAlign(t); sm.getCell(`A${rr}`).fill = fill(PAL[i % PAL.length]);
       sm.getCell(`F${rr}`).numFmt = '0%'; sm.getCell(`G${rr}`).numFmt = '0%'; sm.getCell(`G${rr}`).font = font({ color: { argb: 'FF0000FF' } });
+      fitRow(sm, rr, 10, 20);
     });
     sm.getCell(`A${btot}`).value = t.total;
     for (const c of 'BCDEF') sm.getCell(`${c}${btot}`).value = { formula: `SUM(${c}${b0}:${c}${Math.max(b0, btot - 1)})` };
@@ -554,7 +591,7 @@ module.exports = function specTable(app, d) {
     boxRange(sm, btot + 1, 1, btot + 1, 4, { bold: true, fill: 'F2F2F2' });
     if (m.skills.length) cf(sm, `I${b0}:I${btot - 1}`, `I${b0}`);
     s = btot + 3;
-    sm.getCell(`A${s}`).value = t.s2; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } });
+    sm.mergeCells(`A${s}:I${s}`); sm.getCell(`A${s}`).value = t.s2; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } }); sm.getRow(s).height = 22;
     s++;
     t.dCols.forEach((h, i) => { sm.getCell(s, i < 5 ? i + 1 : 9).value = h; });
     headerCells(sm, ['A', 'B', 'C', 'D', 'E', 'I'].map((c) => `${c}${s}`));
@@ -576,7 +613,7 @@ module.exports = function specTable(app, d) {
     sm.addConditionalFormatting({ ref: `C${d0}:C${d1}`, rules: [{ type: 'dataBar', cfvo: [{ type: 'num', value: 0 }, { type: 'num', value: 1 }], color: { argb: 'FF5B9BD5' } }] });
     cf(sm, `I${d0}:I${d1}`, `I${d0}`);
     s = d1 + 2;
-    sm.getCell(`A${s}`).value = t.s3; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } });
+    sm.mergeCells(`A${s}:I${s}`); sm.getCell(`A${s}`).value = t.s3; sm.getCell(`A${s}`).font = font({ bold: true, size: 12, color: { argb: NAVY } }); sm.getRow(s).height = 22;
     s++;
     t.tCols.forEach((h, i) => { sm.getCell(s, i + 1).value = h; });
     headerCells(sm, ['A', 'B', 'C', 'D'].map((c) => `${c}${s}`));
@@ -590,7 +627,7 @@ module.exports = function specTable(app, d) {
 
     // ---- Outcome coverage
     titleBlock(oc, m, t.covTitle, m.cur.source || '', 'H');
-    [13, 18, 55, 24, 12, 10, 10, 16].forEach((w, i) => { oc.getColumn(i + 1).width = w; });
+    [13, 18, 60, 28, 12, 10, 10, 18].forEach((w, i) => { oc.getColumn(i + 1).width = w; });
     t.covCols.forEach((h, i) => { oc.getCell(5, i + 1).value = h; });
     headerCells(oc, t.covCols.map((_, i) => oc.getCell(5, i + 1).address)); oc.getRow(5).height = 28;
     let orow = 5;
@@ -601,11 +638,11 @@ module.exports = function specTable(app, d) {
       oc.getCell(`G${orow}`).value = { formula: `IFERROR(F${orow}/SUM(${SPR('K')}),0)` }; oc.getCell(`G${orow}`).numFmt = '0%';
       oc.getCell(`H${orow}`).value = { formula: `IF(F${orow}=0,${strLit(t.notAssessed)},${strLit(t.assessed)})` };
       boxRange(oc, orow, 1, orow, 8);
-      oc.getCell(`C${orow}`).alignment = sideAlign(t); oc.getRow(orow).height = 30;
+      oc.getCell(`C${orow}`).alignment = sideAlign(t); oc.getCell(`D${orow}`).alignment = sideAlign(t); fitRow(oc, orow, 10, 22);
     }
     const ocLast = Math.max(6, orow);
     if (orow > 5) cf(oc, `H6:H${orow}`, 'H6');
-    oc.getCell(`A${ocLast + 2}`).value = t.covNote; oc.getCell(`A${ocLast + 2}`).font = font({ size: 8, italic: true, color: { argb: 'FF595959' } });
+    note(oc, ocLast + 2, 'H', t.covNote);
 
     // ---- Checks
     titleBlock(ck, m, t.chkTitle, t.moeTitle(m), 'E');
@@ -631,8 +668,9 @@ module.exports = function specTable(app, d) {
       const rr = 6 + i;
       ck.getCell(`A${rr}`).value = i + 1; ck.getCell(`B${rr}`).value = t.checks[i];
       ck.getCell(`C${rr}`).value = { formula: v }; ck.getCell(`D${rr}`).value = { formula: res(rr) }; ck.getCell(`E${rr}`).value = t.todo[i];
-      boxRange(ck, rr, 1, rr, 5); ck.getRow(rr).height = 30;
+      boxRange(ck, rr, 1, rr, 5);
       for (const c of 'BE') ck.getCell(`${c}${rr}`).alignment = sideAlign(t);
+      fitRow(ck, rr, 10, 24);
     });
     ck.getCell('C12').numFmt = '0%';
     cf(ck, `D6:D${5 + nChecks}`, 'D6');
