@@ -114,6 +114,9 @@ app.use((req, res, next) => {
   if (!s || !s.ccViewAs) return next();
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
   if (_CC_VIEWAS_ALLOW.has(req.path)) return next();
+  // Filling in missing skill tags is maintenance, not a change to the teacher's work.
+  if (req.method === 'POST' && /^\/api\/assessments\/[^/]+\/tag-skills$/.test(req.path)) return next();
+  if (req.method === 'POST' && /^\/api\/admin\/spec\/[^/]+\/prepare$/.test(req.path)) return next();
   return res.status(403).json({ error: `View only — you are viewing ${s.ccViewAs.teacherName || 'a teacher'}'s dashboard as an admin. Nothing can be changed. Click "Return to my account" at the top to make changes.`, viewOnly: true });
 });
 
@@ -3795,6 +3798,55 @@ async function _ccTagMissingSkills(aid) {
   })();
   return job.promise;
 }
+
+// ── Skill tagging across EVERY assessment of EVERY teacher ──────────────
+// Runs a few minutes after each start-up, then every 6 hours, and on demand
+// from Admin → 🏷 Tag skills in all assessments. One assessment at a time.
+const _ccSweep = { state: 'idle', total: 0, done: 0, tagged: 0, failed: [], startedAt: null, finishedAt: null, current: null };
+function _ccUntaggedCount(a) { return (a.questions || []).filter((q) => !String(q.skill || '').trim() || !String(q.explanation || '').trim()).length; }
+async function _ccSweepAllSkills(reason) {
+  if (_ccSweep.state === 'running') return;
+  if (!readApiKey()) { _ccSweep.state = 'error'; _ccSweep.error = 'No Anthropic API key configured.'; return; }
+  const users = new Map(readAll('users.json').map((u) => [u.id, u]));
+  const list = readAll('assessments.json').filter((a) => (a.questions || []).length && _ccUntaggedCount(a) > 0);
+  Object.assign(_ccSweep, { state: 'running', total: list.length, done: 0, tagged: 0, failed: [], error: null, startedAt: new Date().toISOString(), finishedAt: null, reason: reason || '' });
+  console.log(`[skills-sweep] ${list.length} assessment(s) need tags (${reason || 'manual'})`);
+  for (const a of list) {
+    const teacher = users.get(a.teacherId);
+    _ccSweep.current = { id: a.id, title: a.title || '(untitled)', teacher: teacher ? teacher.name : '' };
+    try {
+      const n = await _ccTagMissingSkills(a.id);
+      _ccSweep.tagged += Number(n) || 0;
+      const st = _ccTagStatus(a.id);
+      if (st.state === 'error') {
+        _ccSweep.failed.push({ id: a.id, title: a.title || '(untitled)', teacher: teacher ? teacher.name : '', error: st.error });
+        if (/API key|credit|billing|rejected/i.test(st.error || '')) { _ccSweep.error = st.error; break; }
+      }
+    } catch (e) { _ccSweep.failed.push({ id: a.id, title: a.title || '(untitled)', teacher: teacher ? teacher.name : '', error: e.message }); }
+    _ccSweep.done++;
+  }
+  _ccSweep.state = 'done'; _ccSweep.current = null; _ccSweep.finishedAt = new Date().toISOString();
+  console.log(`[skills-sweep] finished: ${_ccSweep.tagged} question(s) tagged, ${_ccSweep.failed.length} assessment(s) with problems`);
+}
+setTimeout(() => { _ccSweepAllSkills('start-up').catch((e) => console.error('[skills-sweep]', e)); }, 3 * 60 * 1000);
+setInterval(() => { _ccSweepAllSkills('every 6 hours').catch((e) => console.error('[skills-sweep]', e)); }, 6 * 60 * 60 * 1000);
+app.post('/api/admin/skills-sweep', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  _ccSweepAllSkills('started by ' + req.session.user.email).catch((e) => console.error('[skills-sweep]', e));
+  res.json(_ccSweepSummary());
+});
+function _ccSweepSummary() {
+  const all = readAll('assessments.json');
+  const users = new Map(readAll('users.json').map((u) => [u.id, u]));
+  const pending = all.filter((a) => (a.questions || []).length && _ccUntaggedCount(a) > 0)
+    .map((a) => ({ id: a.id, title: a.title || '(untitled)', teacher: (users.get(a.teacherId) || {}).name || '', untagged: _ccUntaggedCount(a), questions: (a.questions || []).length }));
+  const totalQ = all.reduce((n, a) => n + (a.questions || []).length, 0);
+  return { ..._ccSweep, assessments: all.length, questions: totalQ, pending };
+}
+app.get('/api/admin/skills-sweep', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  res.json(_ccSweepSummary());
+});
 function _ccCanTag(req, a) { return !a.teacherId || a.teacherId === req.session.user.id || _ccIsAdminReq(req); }
 // Start (or re-start) tagging — returns immediately.
 app.post('/api/assessments/:id/tag-skills', requireTeacher, (req, res) => {
@@ -3813,6 +3865,17 @@ app.get('/api/assessments/:id/tag-skills', requireTeacher, (req, res) => {
   const untagged = (a.questions || []).filter((q) => !String(q.skill || '').trim()).length;
   res.json({ state: st.state, done: st.done || 0, total: st.total || 0, tagged: st.tagged || 0, error: st.error || null, untagged });
 });
+
+// ── Specification table (admin-only Excel) ─────────────────────────────
+try {
+  require('./spec-table')(app, {
+    readAll, writeAll, ADMIN_EMAILS, readApiKey,
+    tagMissingSkills: (aid) => _ccTagMissingSkills(aid),
+    diffFor: (aid) => _ccDiffFor(aid), diffUpsert: (aid, e) => _ccDiffUpsert(aid, e),
+    normLevel: (v) => _ccNormLevel(v), imageBlock: (u) => _ccImageBlock(u),
+    claudeList: (o) => _ccClaudeList(o),
+  });
+} catch (e) { console.error('[spec] module failed to load:', e); }
 
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
@@ -5354,7 +5417,40 @@ function _ccDataUrlToImageBlock(dataUrl) {
   return { type: 'image', source: { type: 'base64', media_type: media, data: m[2] } };
 }
 
-app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfWork', 20), async (req, res) => {
+
+// ── Long AI requests run as background jobs ─────────────────────────────
+// Generating or importing can take 1-3 minutes. School networks/proxies cut
+// HTTP connections that stay silent that long, which the browser reports as
+// "Failed to fetch". When the client sends `X-CC-Async: 1`, we reply at once
+// with a job id (after the upload has been received) and let the normal
+// handler finish in the background; the client polls /api/jobs/:id.
+const _ccJobs = new Map();
+setInterval(() => { const now = Date.now(); for (const [k, j] of _ccJobs) if (now - j.startedAt > 30 * 60 * 1000) _ccJobs.delete(k); }, 5 * 60 * 1000);
+function _ccAsyncJob(req, res, next) {
+  if (String(req.get('x-cc-async') || '') !== '1') return next();
+  const id = 'job_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const job = { id, state: 'running', status: 200, result: null, startedAt: Date.now(), userId: req.session && req.session.user && req.session.user.id };
+  _ccJobs.set(id, job);
+  res.status(202).json({ jobId: id });
+  const finish = (o) => { if (job.state === 'running') { job.state = 'done'; job.result = o; } return res; };
+  res.status = (c) => { job.status = c; return res; };
+  res.json = finish;
+  res.send = (o) => { let v = o; if (typeof o === 'string') { try { v = JSON.parse(o); } catch { v = { ok: job.status < 400, message: o }; } } return finish(v); };
+  res.setHeader = () => res; res.set = () => res; res.type = () => res; res.header = () => res;
+  setTimeout(() => { if (job.state === 'running') { job.state = 'done'; job.status = 504; job.result = { ok: false, error: 'The AI took too long (over 8 minutes). Please try again with fewer questions or smaller files.' }; } }, 8 * 60 * 1000);
+  try {
+    const p = next();
+    if (p && typeof p.catch === 'function') p.catch((e) => { job.status = 500; finish({ ok: false, error: String(e.message || e) }); });
+  } catch (e) { job.status = 500; finish({ ok: false, error: String(e.message || e) }); }
+}
+app.get('/api/jobs/:id', requireTeacher, (req, res) => {
+  const j = _ccJobs.get(req.params.id);
+  if (!j) return res.status(404).json({ error: 'This request is no longer available — please try again.' });
+  if (j.userId && j.userId !== req.session.user.id && !(req.session.ccViewAs)) return res.status(403).json({ error: 'Forbidden' });
+  res.json({ state: j.state, status: j.status, result: j.state === 'done' ? j.result : null, seconds: Math.round((Date.now() - j.startedAt) / 1000) });
+});
+
+app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfWork', 20), _ccAsyncJob, async (req, res) => {
   const cleanupAll = () => {
     for (const f of (req.files || [])) {
       try { fs.unlinkSync(f.path); } catch {}
@@ -5733,7 +5829,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
 });
 
 // ---------- Quick Import (PDF / DOCX / TXT → questions) ----------
-app.post('/api/import', requireTeacher, upload.single('file'), async (req, res) => {
+app.post('/api/import', requireTeacher, upload.single('file'), _ccAsyncJob, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
   // Pull the raw text out once. We'll either send it to Claude for full

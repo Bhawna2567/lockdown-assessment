@@ -1684,13 +1684,48 @@ els.importDrop.addEventListener('drop', (e) => {
   if (e.dataTransfer.files && e.dataTransfer.files[0]) runImport(e.dataTransfer.files[0]);
 });
 
+
+// Sends a long AI request as a background job and polls for the result, so
+// slow generations are never cut off by the network ("Failed to fetch").
+// Returns { ok, status, data } like a normal fetch + json.
+async function ccFetchJob(url, body, onTick) {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  let res;
+  for (let attempt = 0; ; attempt++) {
+    try { res = await fetch(url, { method: 'POST', body, headers: { 'X-CC-Async': '1' }, credentials: 'include' }); break; }
+    catch (e) {
+      if (attempt >= 2) throw new Error('Could not reach the server — check the internet connection and try again.');
+      await sleep(2000 * (attempt + 1));
+    }
+  }
+  let data = await res.json().catch(() => ({}));
+  if (res.status !== 202 || !data.jobId) return { ok: res.ok, status: res.status, data };
+  const started = Date.now(); let fails = 0;
+  while (Date.now() - started < 10 * 60 * 1000) {
+    await sleep(3000);
+    try {
+      const r = await fetch('/api/jobs/' + encodeURIComponent(data.jobId), { credentials: 'include' });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error(j.error || ('HTTP ' + r.status)), { hard: r.status === 404 || r.status === 403 });
+      fails = 0;
+      if (typeof onTick === 'function') onTick(j.seconds || Math.round((Date.now() - started) / 1000));
+      if (j.state === 'done') { const st = j.status || 200; return { ok: st < 400, status: st, data: j.result || {} }; }
+    } catch (e) {
+      if (e.hard) throw e;
+      if (++fails > 20) throw new Error('Lost connection to the server while waiting — please try again.');
+    }
+  }
+  throw new Error('This is taking too long — please try again with fewer questions or smaller files.');
+}
+
 async function runImport(file) {
   els.importStatus.innerHTML = `<em>Parsing ${escapeHtml(file.name)}…</em>`;
   const fd = new FormData();
   fd.append('file', file);
   try {
-    const res = await fetch('/api/import', { method: 'POST', body: fd });
-    const data = await res.json();
+    const _job = await ccFetchJob('/api/import', fd, (sec) => { els.importStatus.innerHTML = `<em>Parsing ${escapeHtml(file.name)}… (${sec}s)</em>`; });
+    const res = { ok: _job.ok, status: _job.status };
+    const data = _job.data || {};
     if (!res.ok) {
       els.importStatus.innerHTML =
         `<span style="color:#d63939;">${escapeHtml(data.error || 'Import failed')}</span>` +
@@ -1863,6 +1898,7 @@ function renderList() {
         <div class="card-actions" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 10px;">
           ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}" title="Copy the link your students will use to take this assessment">🔗 Share with students</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
+          <button class="btn cc-admin-only" data-cc-spec="${a.id}" title="Admin: download the specification table (جدول المواصفات) as Excel">📋 Spec table</button>
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
           <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
           <button class="btn" data-act="preview" data-id="${a.id}" title="See the assessment exactly as a student would">👁 Preview</button>
@@ -2175,8 +2211,9 @@ if (els.aiGenerateBtn) {
       // collects them as req.files = [...] on the server.
       for (const f of fileList) fd.append('schemeOfWork', f);
 
-      const res = await fetch('/api/assessments/ai-generate', { method: 'POST', body: fd });
-      const data = await res.json().catch(() => ({}));
+      const _job = await ccFetchJob('/api/assessments/ai-generate', fd, (sec) => { els.aiStatus.textContent = startMsg + `  (${sec}s)`; });
+      const res = { ok: _job.ok, status: _job.status };
+      const data = _job.data || {};
       if (!res.ok || !data.ok) {
         throw new Error(data.error || 'Generation failed');
       }
@@ -8744,6 +8781,7 @@ async function ccOpenDifficultyDetail(id) {
     <div class="row" style="align-items:center; gap:10px; margin-bottom:8px;">
       <button class="btn" id="cc-diff-back">← All assessments</button>
       <h2 style="margin:0; flex:1;" dir="auto">${escapeHtml(d.title || '')}</h2>
+      <button class="btn" data-cc-spec="${id}" title="Download the specification table (Excel)">📋 Spec table</button>
       <button class="btn" id="cc-diff-redo" title="Re-label every question (your manual changes are kept)">🔄 Re-label with AI</button>
     </div>
     <div class="row" style="gap:14px; align-items:center; margin-bottom:12px;">
@@ -8973,3 +9011,228 @@ document.addEventListener('click', (e) => {
     };
   } catch (e) {}
 })();
+
+// ── Admin: skill tags across every teacher's assessments ──────────────────
+async function ccOpenSkillsSweep(start) {
+  let ov = document.getElementById('cc-sweep');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'cc-sweep';
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(900px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+    ov.addEventListener('click', (e) => { if (e.target === ov) { clearInterval(ov._t); ov.remove(); } });
+    document.body.appendChild(ov);
+  }
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  let d;
+  try { d = start ? await api('/api/admin/skills-sweep', { method: 'POST', body: {} }) : await api('/api/admin/skills-sweep'); }
+  catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div>`; return; }
+  const running = d.state === 'running';
+  const pendQ = d.pending.reduce((n, p) => n + p.untagged, 0);
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:8px;">
+      <h2 style="margin:0; flex:1;">🏷 Skill tags — all teachers</h2>
+      <button class="btn primary" id="cc-sw-go" ${running || !d.pending.length ? 'disabled' : ''}>${running ? 'Tagging…' : '▶ Tag everything now'}</button>
+      <button class="btn" id="cc-sw-close">Close</button>
+    </div>
+    <div style="padding:10px 12px; border-radius:8px; margin-bottom:10px; background:${d.pending.length ? '#fef3c7' : '#ecfdf5'};">
+      ${d.pending.length
+        ? `<strong>${d.pending.length}</strong> of ${d.assessments} assessments still have <strong>${pendQ}</strong> question${pendQ === 1 ? '' : 's'} without a skill or feedback.`
+        : `✅ Every question in all ${d.assessments} assessments (${d.questions} questions) has a skill and feedback.`}
+      <div class="muted" style="font-size:12px; margin-top:4px;">This check also runs automatically a few minutes after each update and every 6 hours.</div>
+    </div>
+    ${running ? `<div style="margin-bottom:10px;">
+      <div style="background:#e5e7eb; border-radius:6px; height:10px; overflow:hidden;"><div style="width:${d.total ? Math.round(d.done / d.total * 100) : 0}%; height:100%; background:#6366f1;"></div></div>
+      <div class="muted" style="font-size:13px; margin-top:4px;">${d.done}/${d.total} assessments · ${d.tagged} questions tagged so far${d.current ? ` · now: ${esc(d.current.title)} (${esc(d.current.teacher)})` : ''}</div></div>` : ''}
+    ${!running && d.finishedAt ? `<div class="muted" style="font-size:13px; margin-bottom:8px;">Last run ${esc(new Date(d.finishedAt).toLocaleString())}: ${d.tagged} questions tagged.</div>` : ''}
+    ${d.error ? `<div class="error" style="margin-bottom:8px;">Stopped: ${esc(d.error)}</div>` : ''}
+    ${d.failed && d.failed.length ? `<h3>Problems</h3>${d.failed.map((f) => `<div style="font-size:13px; padding:4px 0; border-bottom:1px solid #f1f5f9;"><strong dir="auto">${esc(f.title)}</strong> — ${esc(f.teacher)}<div class="muted">${esc(f.error)}</div></div>`).join('')}` : ''}
+    ${d.pending.length ? `<h3 style="margin-top:12px;">Still to tag</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <tr style="text-align:left; border-bottom:2px solid #e5e7eb;"><th style="padding:6px;">Assessment</th><th>Teacher</th><th>Missing</th></tr>
+      ${d.pending.map((p) => `<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:6px;" dir="auto">${esc(p.title)}</td><td>${esc(p.teacher)}</td><td>${p.untagged}/${p.questions}</td></tr>`).join('')}</table>` : ''}`;
+  box.querySelector('#cc-sw-close').onclick = () => { clearInterval(ov._t); ov.remove(); };
+  const go = box.querySelector('#cc-sw-go'); if (go) go.onclick = () => ccOpenSkillsSweep(true);
+  clearInterval(ov._t);
+  if (running || start) ov._t = setInterval(() => { if (document.getElementById('cc-sweep')) ccOpenSkillsSweep(false); }, 5000);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#admin-skills-sweep');
+  if (b) {
+    e.preventDefault();
+    const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+    ccOpenSkillsSweep(false);
+  }
+});
+
+// ── Session safety net ──────────────────────────────────────────────────
+// 1) While the dashboard is open, ping the server every 5 minutes so the
+//    sign-in doesn't time out in the middle of work.
+// 2) If it has expired anyway (e.g. the tab was left open overnight), any
+//    request that gets "Not authenticated" opens a small sign-in box. After
+//    signing in, the SAME request is sent again automatically, so nothing
+//    the teacher typed or generated is lost.
+(function ccSessionGuard() {
+  if (window.__ccSessionGuard) return; window.__ccSessionGuard = true;
+  const origFetch = window.fetch.bind(window);
+  let pending = null;
+  const myEmail = () => { const m = String((document.getElementById('who') || {}).textContent || '').match(/\(([^)]+@[^)]+)\)/); return m ? m[1] : ''; };
+  function relogin() {
+    if (pending) return pending;
+    pending = new Promise((resolve) => {
+      const ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.6); z-index:2147483646; display:flex; align-items:center; justify-content:center;';
+      ov.innerHTML = `<form style="background:#fff; border-radius:12px; padding:22px 26px; width:min(380px,92vw); box-shadow:0 16px 48px rgba(0,0,0,.35); font-family:inherit;">
+        <h3 style="margin:0 0 6px;">🔒 Please sign in again</h3>
+        <div class="muted" style="font-size:13px; margin-bottom:12px;">Your session timed out. Sign in and your work will continue from where you left off — nothing is lost.</div>
+        <input name="email" type="email" placeholder="Email" required style="width:100%; margin-bottom:8px;" value="${myEmail().replace(/"/g, '')}">
+        <input name="password" type="password" placeholder="Password" required style="width:100%; margin-bottom:8px;" autocomplete="current-password">
+        <input name="otp" placeholder="2FA code (admins only)" style="width:100%; margin-bottom:8px; display:none;" inputmode="numeric">
+        <div class="cc-rl-err" style="color:#b91c1c; font-size:13px; min-height:18px;"></div>
+        <button class="btn primary" type="submit" style="width:100%;">Sign in and continue</button>
+      </form>`;
+      document.body.appendChild(ov);
+      const f = ov.querySelector('form');
+      setTimeout(() => { (f.email.value ? f.password : f.email).focus(); }, 50);
+      f.onsubmit = async (e) => {
+        e.preventDefault();
+        const err = f.querySelector('.cc-rl-err'); err.textContent = '';
+        const btn = f.querySelector('button'); btn.disabled = true; btn.textContent = 'Signing in…';
+        try {
+          const r = await origFetch('/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
+            body: JSON.stringify({ email: f.email.value.trim(), password: f.password.value, otp: f.otp.value.trim() || undefined }) });
+          const j = await r.json().catch(() => ({}));
+          if (!r.ok) {
+            if (j.need2fa) f.otp.style.display = 'block';
+            throw new Error(j.error || 'Sign-in failed');
+          }
+          const was = myEmail();
+          ov.remove(); pending = null;
+          if (was && j.user && String(j.user.email).toLowerCase() !== was.toLowerCase()) { location.reload(); return; }
+          resolve(true);
+        } catch (ex) { err.textContent = ex.message; btn.disabled = false; btn.textContent = 'Sign in and continue'; }
+      };
+    });
+    return pending;
+  }
+  window.fetch = async function (input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    const res = await origFetch(input, init);
+    if (res.status !== 401 || !/\/api\//.test(url) || /\/api\/(login|register|logout)/.test(url)) return res;
+    let body = {};
+    try { body = await res.clone().json(); } catch {}
+    if (!/not authenticated/i.test(body.error || '')) return res;
+    await relogin();
+    return origFetch(input, init);   // retry the same request once signed in
+  };
+  // keep-alive
+  setInterval(() => { if (document.visibilityState === 'visible') origFetch('/api/me', { credentials: 'include' }).catch(() => {}); }, 5 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    origFetch('/api/me', { credentials: 'include' }).then((r) => r.json()).then((j) => { if (j && !j.user) relogin(); }).catch(() => {});
+  });
+})();
+
+// ── Admin: 📋 Specification table (جدول المواصفات) download ────────────────
+(async function ccMarkAdmin() {
+  try {
+    const [a, v] = await Promise.all([
+      fetch('/api/admin/is-admin', { credentials: 'include' }).then((r) => r.json()).catch(() => ({})),
+      fetch('/api/admin/view-as/status', { credentials: 'include' }).then((r) => r.json()).catch(() => ({})),
+    ]);
+    if ((a && a.isAdmin) || (v && v.viewing)) document.body.classList.add('cc-admin');
+  } catch (e) {}
+})();
+async function ccOpenSpecDialog(id) {
+  const old = document.getElementById('cc-spec-dlg'); if (old) old.remove();
+  const ov = document.createElement('div'); ov.id = 'cc-spec-dlg';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483100; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+  ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(760px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+  ov.addEventListener('click', (e) => { if (e.target === ov) { clearInterval(ov._t); ov.remove(); } });
+  document.body.appendChild(ov);
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  let d;
+  try { d = await api('/api/admin/spec/' + encodeURIComponent(id)); } catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div>`; return; }
+  const st = d.settings || {};
+  const lvlName = { E: 'Easy', M: 'Medium', D: 'Difficult' };
+  const autoLbl = d.week ? `Auto — Term ${d.week.term}, Week ${d.week.week}: ${lvlName[d.week.level] || '—'}` : 'Auto (no scheduled date in the 2026–27 calendar)';
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;">
+      <h2 style="margin:0; flex:1;">📋 Specification table <span class="muted" style="font-size:13px; font-weight:400;">— admins only</span></h2>
+      <button class="btn" id="cc-spec-close">Close</button>
+    </div>
+    <div class="muted" style="margin-bottom:12px;" dir="auto"><strong>${esc(d.title)}</strong> · ${esc(d.teacher || '')} · Grade ${esc(d.grade || '—')} · ${esc(d.subject || '—')} · ${d.items} questions</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;">
+      <label>Format<select id="cc-sp-format" style="width:100%;">
+        <option value="B">Full blueprint (Summary, Specification, Outcome coverage, Checks + MOE format)</option>
+        <option value="A">MOE format only (same as the ministry sheet)</option></select></label>
+      <label>Language<select id="cc-sp-lang" style="width:100%;"><option value="en">English</option><option value="ar">العربية</option></select></label>
+      <label style="grid-column:1/3;">School name (header)<input id="cc-sp-school" style="width:100%;" value="${esc(st.school || '')}" placeholder="e.g. Al-Noaimeyah Girls' School – Cycle 1, Cycle 2 & 3"></label>
+      ${d.needsStream ? `<label>Stream<select id="cc-sp-stream" style="width:100%;">
+        <option value="">All streams</option><option value="A" ${st.stream === 'A' ? 'selected' : ''}>Advanced</option><option value="G" ${st.stream === 'G' ? 'selected' : ''}>General</option></select></label>` : '<span></span>'}
+      <label>Term<select id="cc-sp-term" style="width:100%;"><option value="">Auto (${esc(d.term || '—')})</option>
+        ${['1', '2', '3'].map((x) => `<option value="${x}" ${st.term === x ? 'selected' : ''}>Term ${x}</option>`).join('')}</select></label>
+      <label>Required difficulty level<select id="cc-sp-level" style="width:100%;">
+        <option value="auto">${esc(autoLbl)}</option>
+        ${['E', 'M', 'D'].map((x) => `<option value="${x}" ${st.level === x ? 'selected' : ''}>${lvlName[x]}</option>`).join('')}
+        <option value="none" ${st.level === 'none' ? 'selected' : ''}>No target (end-of-term / central exam)</option></select></label>
+      <label>Paper covers<select id="cc-sp-scope" style="width:100%;">
+        <option value="term">Everything taught this term so far</option><option value="week" ${st.scope === 'week' ? 'selected' : ''}>This week’s lessons (weekly assessment)</option></select></label>
+    </div>
+    <div style="margin-top:12px; padding:10px 12px; background:${d.curriculum ? '#ecfdf5' : '#fef3c7'}; border-radius:8px; font-size:13px;">
+      ${d.curriculum ? `📚 Curriculum linked: <strong>${esc(d.curriculum.key)}</strong> — ${d.curriculum.outcomes} outcomes · ${esc(d.curriculum.source)}`
+        : `📚 No MOE curriculum is stored for this grade/subject${d.needsStream ? ' (check the stream)' : ''} — the AI will write the learning outcomes itself.`}
+    </div>
+    <details style="margin-top:10px;" ${Object.keys(st.targets || {}).length ? 'open' : ''}><summary style="cursor:pointer;"><strong>Target weight per skill</strong> <span class="muted">(optional — from the MOE table; leave blank to skip that check)</span></summary>
+      <table style="width:100%; margin-top:6px; font-size:14px;">${(d.skills || []).map((s, i) => `<tr><td dir="auto">${esc(s.skill)} <span class="muted">(${s.marks} marks now)</span></td>
+        <td style="width:120px;"><input type="number" min="0" max="100" step="1" data-cc-sp-target="${i}" value="${st.targets && st.targets[s.skill] != null ? st.targets[s.skill] : ''}" style="width:80px;"> %</td></tr>`).join('')}</table>
+    </details>
+    <label style="display:flex; gap:8px; align-items:center; margin-top:10px; text-transform:none; letter-spacing:0;"><input type="checkbox" id="cc-sp-force" style="width:auto;"> Re-tag every question with AI (Bloom’s level, outcome, difficulty)</label>
+    <div id="cc-sp-status" style="margin-top:12px;"></div>
+    <div class="row" style="margin-top:14px; gap:10px;"><div class="spacer"></div>
+      <button class="btn primary" id="cc-sp-go">⬇ Prepare & download</button></div>`;
+  box.querySelector('#cc-spec-close').onclick = () => { clearInterval(ov._t); ov.remove(); };
+  const stBox = box.querySelector('#cc-sp-status');
+  const showWarnings = (s) => {
+    const w = s.warnings || [];
+    return w.length ? `<div style="padding:10px 12px; background:#fff7ed; border:1px solid #fdba74; border-radius:8px;"><strong>⚠ Checks found ${w.length} thing${w.length === 1 ? '' : 's'} to look at</strong> (also listed in the file):<ul style="margin:6px 0 0 18px;">${w.map((x) => `<li dir="auto">${esc(x)}</li>`).join('')}</ul></div>`
+      : '<div style="padding:10px 12px; background:#ecfdf5; border-radius:8px;">✅ All checks passed.</div>';
+  };
+  stBox.innerHTML = showWarnings(d);
+  box.querySelector('#cc-sp-go').onclick = async () => {
+    const btn = box.querySelector('#cc-sp-go');
+    const lang = box.querySelector('#cc-sp-lang').value, format = box.querySelector('#cc-sp-format').value;
+    const targets = {};
+    box.querySelectorAll('[data-cc-sp-target]').forEach((inp) => { const s = d.skills[Number(inp.getAttribute('data-cc-sp-target'))]; if (s && inp.value !== '') targets[s.skill] = Number(inp.value); });
+    const settings = { school: box.querySelector('#cc-sp-school').value, stream: (box.querySelector('#cc-sp-stream') || {}).value || '',
+      term: box.querySelector('#cc-sp-term').value, level: box.querySelector('#cc-sp-level').value, scope: box.querySelector('#cc-sp-scope').value, targets };
+    btn.disabled = true; btn.textContent = 'Preparing…';
+    try {
+      let s = await api(`/api/admin/spec/${encodeURIComponent(id)}/prepare`, { method: 'POST', body: { settings, force: box.querySelector('#cc-sp-force').checked, lang } });
+      clearInterval(ov._t);
+      const finish = (s2) => {
+        clearInterval(ov._t);
+        if (s2.job && s2.job.state === 'error') { stBox.innerHTML = `<div class="error">AI tagging stopped: ${esc(s2.job.error)}</div>` + showWarnings(s2); }
+        else stBox.innerHTML = showWarnings(s2);
+        window.location.href = `/api/admin/spec/${encodeURIComponent(id)}/xlsx?format=${format}&lang=${lang}`;
+        btn.disabled = false; btn.textContent = '⬇ Download again';
+      };
+      if (s.job && s.job.state === 'running') {
+        const tick = async () => {
+          try {
+            const s2 = await api(`/api/admin/spec/${encodeURIComponent(id)}/status?lang=${lang}`);
+            if (s2.job.state === 'running') stBox.innerHTML = `<div class="muted">🤖 Tagging Bloom’s levels and learning outcomes… ${s2.job.done}/${s2.job.total || '…'} questions</div>`;
+            else finish(s2);
+          } catch (e) { clearInterval(ov._t); stBox.innerHTML = `<div class="error">${esc(e.message)}</div>`; btn.disabled = false; btn.textContent = '⬇ Prepare & download'; }
+        };
+        stBox.innerHTML = '<div class="muted">🤖 Tagging Bloom’s levels and learning outcomes…</div>';
+        ov._t = setInterval(tick, 2500);
+      } else finish(s);
+    } catch (e) { stBox.innerHTML = `<div class="error">${esc(e.message)}</div>`; btn.disabled = false; btn.textContent = '⬇ Prepare & download'; }
+  };
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('[data-cc-spec]');
+  if (b) { e.preventDefault(); e.stopPropagation(); ccOpenSpecDialog(b.getAttribute('data-cc-spec')); }
+}, true);
