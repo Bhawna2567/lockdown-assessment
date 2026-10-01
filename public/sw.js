@@ -6,7 +6,7 @@
 // content, results, and proctoring traffic must always go to the network so
 // teachers see live data and live grading runs.
 
-const CACHE = 'classcurio-v3';
+const CACHE = 'classcurio-v4';
 const STATIC = [
   '/manifest.json',
   '/icon.svg',
@@ -61,6 +61,17 @@ self.addEventListener('fetch', (event) => {
     /\.(png|svg|css|js|woff2?|ttf|otf|ico|webp|jpg|jpeg)$/i.test(url.pathname) ||
     url.pathname === '/manifest.json';
   if (!isStatic) return;
+  // Scripts and styles: ALWAYS try the network first so an update is picked up
+  // immediately; the cached copy is only used when offline.
+  if (/\.(js|css)$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {}); }
+        return res;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req).then((hit) => {
       const fetchPromise = fetch(req).then((res) => {

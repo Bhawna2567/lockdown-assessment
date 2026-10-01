@@ -9117,7 +9117,15 @@ document.addEventListener('click', (e) => {
   }
   window.fetch = async function (input, init) {
     const url = typeof input === 'string' ? input : (input && input.url) || '';
-    const res = await origFetch(input, init);
+    let res;
+    try { res = await origFetch(input, init); }
+    catch (e) {
+      // Network blip: try once more for app requests, then explain in plain words.
+      if (!/\/api\//.test(url)) throw e;
+      await new Promise((r) => setTimeout(r, 2000));
+      try { res = await origFetch(input, init); }
+      catch (e2) { throw new Error('Could not reach ClassCurio — please check the internet connection and try again.'); }
+    }
     if (res.status !== 401 || !/\/api\//.test(url) || /\/api\/(login|register|logout)/.test(url)) return res;
     let body = {};
     try { body = await res.clone().json(); } catch {}
@@ -9236,3 +9244,30 @@ document.addEventListener('click', (e) => {
   const b = e.target && e.target.closest && e.target.closest('[data-cc-spec]');
   if (b) { e.preventDefault(); e.stopPropagation(); ccOpenSpecDialog(b.getAttribute('data-cc-spec')); }
 }, true);
+
+// ── Auto-update: when a new version is deployed, open pages refresh ─────
+(function ccAutoUpdate() {
+  let mine = null;
+  const builderOpen = () => { const b = document.getElementById('builder-view'); return !!(b && b.style.display !== 'none' && b.offsetParent !== null); };
+  function banner() {
+    if (document.getElementById('cc-update-banner')) return;
+    const d = document.createElement('div'); d.id = 'cc-update-banner';
+    d.style.cssText = 'position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:2147483600; background:#1e3a8a; color:#fff; padding:10px 16px; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.3); display:flex; gap:12px; align-items:center; font-size:14px;';
+    d.innerHTML = '🔄 ClassCurio has been updated. Save your work, then reload. <button class="btn" style="background:#fff; color:#1e3a8a; font-weight:600;">Reload now</button>';
+    d.querySelector('button').onclick = () => location.reload();
+    document.body.appendChild(d);
+  }
+  async function check() {
+    try {
+      const r = await fetch('/api/version', { cache: 'no-store', credentials: 'include' });
+      const j = await r.json();
+      if (!j || !j.build) return;
+      if (mine === null) { mine = j.build; return; }
+      if (j.build !== mine) { if (builderOpen()) banner(); else location.reload(); }
+    } catch (e) {}
+  }
+  check();
+  setInterval(check, 60 * 1000);
+  window.addEventListener('focus', check);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+})();

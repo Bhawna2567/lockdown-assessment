@@ -6390,7 +6390,15 @@ app.get('/take/:id', (req, res) => {
 // Maths renderer served from our own server (was a public CDN that some
 // school networks block or load slowly — students then saw raw code).
 app.use('/vendor/mathjax', express.static(path.join(__dirname, '..', 'node_modules', 'mathjax', 'es5'), { maxAge: '30d', fallthrough: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Build id changes on every deploy; open pages compare it and refresh themselves.
+const _CC_BUILD = String(process.env.RENDER_GIT_COMMIT || '').slice(0, 12) || ('boot-' + Date.now().toString(36));
+app.get('/api/version', (req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json({ build: _CC_BUILD }); });
+// Always re-check pages and scripts with the server so nobody runs an old copy.
+app.use((req, res, next) => {
+  if (req.method === 'GET' && (/\.(html|js|css)$/i.test(req.path) || req.path === '/')) res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+  next();
+});
+app.use(express.static(path.join(__dirname, '..', 'public'), { setHeaders: (res, p) => { if (/\.(html|js|css)$/i.test(p)) res.setHeader('Cache-Control', 'no-cache, must-revalidate'); } }));
 
 
 // ── Soft-delete + backup helpers (self-contained) ─────────────────────────
