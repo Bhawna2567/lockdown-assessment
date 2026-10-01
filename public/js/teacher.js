@@ -9000,11 +9000,11 @@ document.addEventListener('click', (e) => {
     if (!s || !s.viewing) return;
     const bar = document.createElement('div');
     bar.id = 'cc-viewas-banner';
-    bar.style.cssText = 'position:fixed; top:0; left:0; right:0; z-index:2147483500; background:#7c2d12; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:12px; font-size:14px; box-shadow:0 2px 8px rgba(0,0,0,.25);';
+    bar.style.cssText = 'position:fixed; top:var(--cc-credit-h,0px); left:0; right:0; z-index:2147483500; background:#7c2d12; color:#fff; padding:8px 14px; display:flex; align-items:center; gap:12px; font-size:14px; box-shadow:0 2px 8px rgba(0,0,0,.25);';
     bar.innerHTML = `<span style="flex:1;">👁 You are viewing <strong>${escapeHtml(s.teacherName || '')}</strong>'s dashboard <span style="opacity:.8;">(${escapeHtml(s.teacherEmail || '')})</span> — <strong>view only</strong>. Nothing can be changed.</span>
       <button id="cc-viewas-exit" class="btn" style="background:#fff; color:#7c2d12; font-weight:600;">↩ Return to my account</button>`;
     document.body.appendChild(bar);
-    document.body.style.paddingTop = (bar.offsetHeight + 4) + 'px';
+    document.body.style.paddingTop = (bar.offsetHeight + 4 + (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cc-credit-h')) || 0)) + 'px';
     bar.querySelector('#cc-viewas-exit').onclick = async () => {
       try { await fetch('/api/admin/view-as/exit', { method: 'POST', credentials: 'include' }); } catch (e) {}
       window.location.reload();
