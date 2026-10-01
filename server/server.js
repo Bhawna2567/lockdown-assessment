@@ -5707,26 +5707,75 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   }
 
   try {
-    const apiRes = await _ccClaudeFetch({ max_tokens: 16000, messages: [{ role: 'user', content: userContent }] }, 'smart');
-    if (!apiRes.ok) {
-      const errText = await apiRes.text().catch(() => '');
-      console.error('[ai-generate] API error', apiRes.status, errText);
-      let _apiMsg = '';
-      try { _apiMsg = (JSON.parse(errText).error || {}).message || ''; } catch {}
-      return res.status(502).json({ ok: false, error: 'AI service error: ' + apiRes.status + (_apiMsg ? ' — ' + _apiMsg : '') });
-    }
-    const data = await apiRes.json();
-    let text = (data.content || []).map((b) => b.type === 'text' ? b.text : '').join('').trim();
-    // Strip markdown fences if Claude included them.
-    text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
-    let parsed;
+    // The AI fills in a structured form (tool call), so its answer always
+    // arrives as valid data — Arabic, quotes and maths included. If the paper
+    // is too long for one reply, it is written in two halves and joined.
+    const _genTool = {
+      name: 'submit_assessment',
+      description: 'Submit the complete assessment.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' }, description: { type: 'string' }, audioScript: { type: 'string' },
+          sections: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, instructions: { type: 'string' }, passage: { type: 'string' } } } },
+          questions: { type: 'array', items: { type: 'object', properties: {
+            type: { type: 'string', enum: ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match'] },
+            prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } },
+            correctAnswer: {}, points: { type: 'number' }, sectionIndex: { type: 'integer' },
+            imageDescription: { type: 'string' }, skill: { type: 'string' }, explanation: { type: 'string' },
+            difficulty: { type: 'string' }, difficultyReason: { type: 'string' },
+            matchVariant: { type: 'string' }, pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
+          }, required: ['type', 'prompt'] } },
+        },
+        required: ['title', 'sections', 'questions'],
+      },
+    };
+    const _genOnce = async (content, maxTokens) => {
+      const r = await _ccClaudeFetch({ max_tokens: maxTokens, messages: [{ role: 'user', content }], tools: [_genTool], tool_choice: { type: 'tool', name: 'submit_assessment' } }, 'smart');
+      if (!r.ok) {
+        const errText = await r.text().catch(() => '');
+        console.error('[ai-generate] API error', r.status, errText.slice(0, 400));
+        let m = ''; try { m = (JSON.parse(errText).error || {}).message || ''; } catch {}
+        const e = new Error('AI service error: ' + r.status + (m ? ' — ' + m : '')); e.http = r.status; throw e;
+      }
+      const d = await r.json();
+      const blk = (d.content || []).find((b) => b.type === 'tool_use');
+      let input = blk && blk.input;
+      if (input && typeof input.questions === 'string') { try { input.questions = _ccParseModelJson(input.questions); } catch {} }
+      if (input && typeof input.sections === 'string') { try { input.sections = _ccParseModelJson(input.sections); } catch {} }
+      if (!input || !Array.isArray(input.questions)) {
+        // last resort: free text
+        const text = (d.content || []).map((b) => (b.type === 'text' ? b.text : '')).join('').trim();
+        try { const p = _ccParseModelJson(text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '')); if (p && Array.isArray(p.questions)) input = p; } catch {}
+      }
+      return { input: input && Array.isArray(input.questions) ? input : null, truncated: d.stop_reason === 'max_tokens' };
+    };
+    const SUBMIT_NOTE = { type: 'text', text: '\nIMPORTANT: submit the assessment by calling the submit_assessment tool (same fields as the schema above). Do not write JSON as text.' };
+    let parsed = null;
     try {
-      parsed = _ccParseModelJson(text);
-      if (!parsed) throw new Error('unparseable');
+      const first = await _genOnce(userContent.concat([SUBMIT_NOTE]), 32000);
+      if (first.input && !first.truncated && first.input.questions.length) parsed = first.input;
+      if (!parsed) {
+        console.warn('[ai-generate] reply incomplete (truncated=' + first.truncated + ') — generating in two halves');
+        const half = Math.ceil(requestedCount / 2);
+        const partA = await _genOnce(userContent.concat([{ type: 'text', text: `\nPART 1 OF 2: write the title, ALL sections (with any passages) and ONLY the first ${half} questions. Submit with the submit_assessment tool.` }]), 32000);
+        if (!partA.input || !partA.input.questions.length) throw new Error('empty part 1');
+        parsed = partA.input;
+        const rest = Math.max(0, requestedCount - parsed.questions.length);
+        if (rest > 0) {
+          const secList = (parsed.sections || []).map((x, k) => `${k}: ${x && x.title ? x.title : '(untitled)'}`).join(' | ');
+          const done = parsed.questions.map((q) => '- ' + String(q.prompt || '').slice(0, 140)).join('\n');
+          const partB = await _genOnce(userContent.concat([{ type: 'text', text:
+            `\nPART 2 OF 2: the title and sections are already written (sections by index → ${secList}). Write ONLY the remaining ${rest} questions, using sectionIndex for those sections. Do NOT repeat or rephrase these existing questions:\n${done}\nSubmit with the submit_assessment tool (title and sections may be copied unchanged).` }]), 32000);
+          if (partB.input && partB.input.questions.length) parsed.questions = parsed.questions.concat(partB.input.questions.slice(0, rest));
+        }
+      }
     } catch (e) {
-      console.error('[ai-generate] failed to parse JSON', text.slice(0, 400));
-      return res.status(502).json({ ok: false, error: 'AI returned an invalid response. Please try again.' });
+      if (e.http) return res.status(502).json({ ok: false, error: e.message });
+      console.error('[ai-generate] could not read the AI reply:', e.message);
+      return res.status(502).json({ ok: false, error: 'The AI could not finish this paper. Please try again — or ask for fewer questions at a time (e.g. 10).' });
     }
+    if (!parsed) return res.status(502).json({ ok: false, error: 'The AI could not finish this paper. Please try again — or ask for fewer questions at a time (e.g. 10).' });
 
     // Normalise the sections array. We pass these to the client with a
     // generated id so the builder can link questions to sections via id.
