@@ -8124,7 +8124,7 @@ const _prT = {
     title:  'INCONSISTENT PERFORMANCE — REPORT TO PARENTS',
     student:'Student', klass:'Class', subject:'Subject', term:'Term',
     dear:   'Dear Parent / Guardian of ',
-    intro:  (name, count) => `I hope this letter finds you well. This term ${name} has completed ${count} English assessments in our online platform. Whilst her overall average places her at a satisfactory level, her results have been `,
+    intro:  (name, count, subjectEn) => `I hope this letter finds you well. This term ${name} has completed ${count} ${subjectEn} assessments in our online platform. Whilst she has shown that she can do well on some assessments, her results have been `,
     inc:    'inconsistent',
     intro2: ' from week to week. I am writing to share what we have observed and, more importantly, what we will do about it and how you can help at home.',
     results:'HER RESULTS THIS TERM',
@@ -8150,6 +8150,30 @@ const _prT = {
     principal:'Ms. Fanda Salem Ahmed Helais Alkaabi', principal_role:'Principal',
     detach:'please detach and return this slip to the class teacher',
     slip_h:"PARENT'S RESPONSE",
+    skills_h:'SKILLS TO STRENGTHEN',
+
+    low: {
+      title:  'CONSISTENTLY LOW PERFORMANCE — REPORT TO PARENTS',
+      intro:  (name, count, subjectEn) => `I hope this letter finds you well. This term ${name} has completed ${count} ${subjectEn} assessments in our online platform. I am writing because her results have been `,
+      inc:    'consistently below the expected level',
+      intro2: '. I would like to share what we have observed, the support the school is putting in place, and how you can help at home. I would also welcome the chance to meet you.',
+      interp_h:'What these results tell us',
+      interp:(name)=>`${name}'s scores have stayed below the expected level in most of her assessments, rather than rising and falling. This tells us that some basic skills in the subject are not yet secure. These skills can be built step by step with regular, focused practice, and early support makes the biggest difference.`,
+      skills_h:'SKILLS SHE FINDS MOST DIFFICULT',
+      school_bullets:(name)=>[
+        `${name} has been placed in our targeted-support group, where she will practise the skills listed above in small steps.`,
+        'Her teacher will check her understanding during lessons and give her extra practice tasks every week.',
+        'She will complete a short weekly assessment so that we can measure her progress.',
+        'We will review her progress with you every two weeks.',
+      ],
+      home_bullets:(name)=>[
+        `Set a quiet, regular time of twenty to thirty minutes every day for ${name} to study and complete her practice tasks.`,
+        'Look at her homework and practice tasks with her, and praise her effort, not only her marks.',
+        'Encourage her to read for a few minutes every day, and to ask her teacher whenever something is unclear.',
+        'Please contact the class teacher to arrange a meeting, so that we can agree a plan together.',
+      ],
+      closing:(name)=>`${name} can make real progress. With steady support at school and at home, we expect to see her results rise step by step over the coming weeks. Thank you for working with us.`,
+    },
     slip:[['Student\'s name',''],['Parent\'s remarks','______________________________________________________________'],['','______________________________________________________________'],['Meet the teacher','☐ Yes     ☐ No'],['Parent name','______________________________________________________________'],['Signature / Date','________________________________  /  _____________']],
   },
   ar: {
@@ -8158,12 +8182,12 @@ const _prT = {
     title:  'تقرير الأداء غير المنتظم — إلى ولي الأمر',
     student:'اسم الطالبة', klass:'الصف', subject:'المادة', term:'الفصل الدراسي',
     dear:   'إلى ولي أمر الطالبة ',
-    intro:  (name, count) => `أتمنى أن تصلكم هذه الرسالة وأنتم بأفضل حال. أدّت ${name} هذا الفصل ${count} اختبارات في مادة اللغة الإنجليزية عبر منصتنا الإلكترونية. ومع أن متوسطها العام يقع في المستوى المقبول، فإن نتائجها كانت `,
+    intro:  (name, count, subjectEn, subjectAr) => `أتمنى أن تصلكم هذه الرسالة وأنتم بأفضل حال. أدّت ${name} هذا الفصل ${count} اختبارات في مادة ${subjectAr} عبر منصتنا الإلكترونية. ومع أنها أثبتت قدرتها على الأداء الجيد في بعض الاختبارات، فإن نتائجها كانت `,
     inc:    'غير منتظمة',
     intro2: ' من أسبوع إلى آخر. وأكتب إليكم لأشارككم ما لاحظناه، والأهم من ذلك ما سنقوم به من إجراءات، وكيف يمكنكم دعمها في المنزل.',
     results:'نتائجها هذا الفصل',
     date:'التاريخ', asmt:'الاختبار', score:'الدرجة', pct:'النسبة',
-    overall:'الإجمالي', avgLine:(rmin,rmax)=>`متوسط الاختبارات · النطاق: ${rmin}% – ${rmax}%`,
+    overall:'الإجمالي', avgLine:(rmin,rmax)=>`متوسط الاختبارات · النطاق: \u200E${rmin}% – ${rmax}%\u200E`,
     interp_h:'ما يخبرنا به هذا النمط',
     interp:(name)=>`تُبلي ${name} بلاءً حسناً في بعض الاختبارات، لكنها تُظهر ضعفاً واضحاً في اختبارات أخرى. وهذا التذبذب هو ما يقلقنا أكثر من متوسطها؛ فالطالبة التي تتذبذب نتائجها من أسبوع إلى آخر ليست فاقدة القدرة، بل تفتقر إلى تدريب يومي منتظم في المهارات الأضعف لديها.`,
     school_h:'ما ستقوم به المدرسة',
@@ -8184,10 +8208,35 @@ const _prT = {
     principal:'الأستاذة/ فندة سالم أحمد هليس الكعبي', principal_role:'مديرة المدرسة',
     detach:'يُرجى قص هذا الجزء وإعادته إلى معلمة الصف',
     slip_h:'رد ولي الأمر',
+    skills_h:'مهارات تحتاج إلى تعزيز',
+
+    low: {
+      title:  'تقرير الأداء المنخفض المستمر — إلى ولي الأمر',
+      intro:  (name, count, subjectEn, subjectAr) => `أتمنى أن تصلكم هذه الرسالة وأنتم بأفضل حال. أدّت ${name} هذا الفصل ${count} اختبارات في مادة ${subjectAr} عبر منصتنا الإلكترونية. وأكتب إليكم لأن نتائجها كانت `,
+      inc:    'دون المستوى المتوقع بشكل مستمر',
+      intro2: '. وأود أن أشارككم ما لاحظناه، والدعم الذي ستقدمه المدرسة، وكيف يمكنكم المساعدة في المنزل، ويسعدني أن ألتقي بكم.',
+      interp_h:'ما تخبرنا به هذه النتائج',
+      interp:(name)=>`بقيت درجات ${name} دون المستوى المتوقع في معظم اختباراتها، ولم تكن متذبذبة بين الارتفاع والانخفاض. وهذا يدل على أن بعض المهارات الأساسية في المادة لم تترسخ بعد. ويمكن بناء هذه المهارات خطوة بخطوة بالتدريب المنتظم والمركّز، والدعم المبكر هو الأكثر أثرًا.`,
+      skills_h:'المهارات التي تجد فيها صعوبة أكبر',
+      school_bullets:(name)=>[
+        `تم إدراج ${name} ضمن مجموعة الدعم الموجّه، حيث ستتدرب على المهارات المذكورة أعلاه بخطوات صغيرة.`,
+        'ستتابع المعلمة فهمها أثناء الحصص، وتقدّم لها مهام تدريبية إضافية كل أسبوع.',
+        'ستؤدي اختبارًا أسبوعيًا قصيرًا حتى نتمكن من قياس تقدمها.',
+        'سنراجع تقدمها معكم كل أسبوعين.',
+      ],
+      home_bullets:(name)=>[
+        `خصصوا وقتًا هادئًا ومنتظمًا من عشرين إلى ثلاثين دقيقة يوميًا لتدرس ${name} وتُنجز مهامها التدريبية.`,
+        'راجعوا معها واجباتها ومهامها التدريبية، وامدحوا جهدها لا درجاتها فقط.',
+        'شجّعوها على القراءة بضع دقائق كل يوم، وعلى سؤال معلمتها كلما لم يتضح لها أمر.',
+        'يُرجى التواصل مع معلمة الصف لتحديد موعد لقاء، حتى نتفق معًا على خطة.',
+      ],
+      closing:(name)=>`تستطيع ${name} أن تحقق تقدمًا حقيقيًا. ومع الدعم المستمر في المدرسة والمنزل، نتوقع أن نرى نتائجها ترتفع خطوة بخطوة في الأسابيع القادمة. شكرًا لتعاونكم معنا.`,
+    },
     slip:[['اسم الطالبة',''],['ملاحظات ولي الأمر','______________________________________________________________'],['','______________________________________________________________'],['أرغب في مقابلة المعلمة','☐ نعم     ☐ لا'],['اسم ولي الأمر','______________________________________________________________'],['التوقيع / التاريخ','________________________________  /  _____________']],
   },
 };
 
+const _prLtr = (t) => '\u200E' + String(t) + '\u200E';
 function _prRun(text, opts) {
   opts = opts || {};
   return new _prTextRun({
@@ -8225,8 +8274,8 @@ function _prBullet(text, opts) {
   });
 }
 
-function _prBuildReportDoc(lang, student, assessments, records) {
-  const L = _prT[lang];
+function _prBuildReportDoc(lang, student, assessments, records, kind, weakSkills) {
+  const L = kind === 'low' ? Object.assign({}, _prT[lang], _prT[lang].low) : _prT[lang];
   const rtl = (lang === 'ar');
   const first = String(student.name || 'Student').split(' ')[0];
   const full = student.name || 'Student';
@@ -8255,7 +8304,7 @@ function _prBuildReportDoc(lang, student, assessments, records) {
   const info = [
     [L.student, full],
     [L.klass, student.className || ''],
-    [L.subject, 'English'],
+    [L.subject, rtl ? (student.subjectAr || student.subject || 'English') : (student.subject || 'English')],
     [L.term, 'Term 1 – 2026/2027'],
   ];
   const infoCells = info.map(([lab, val]) => _prCell([
@@ -8276,7 +8325,7 @@ function _prBuildReportDoc(lang, student, assessments, records) {
   // Intro.
   children.push(new _prParagraph({
     children: [
-      _prRun(L.intro(first, records.length), { size: 21, color: _PR.DARK, rtl }),
+      _prRun(L.intro(first, records.length, student.subject || 'English', student.subjectAr || 'اللغة الإنجليزية'), { size: 21, color: _PR.DARK, rtl }),
       _prRun(L.inc,       { size: 21, bold: true, color: _PR.BURG, rtl }),
       _prRun(L.intro2,    { size: 21, color: _PR.DARK, rtl }),
     ],
@@ -8293,10 +8342,10 @@ function _prBuildReportDoc(lang, student, assessments, records) {
   const bodyRows = records.map((r, i) => {
     const bandCol = r.pct >= 70 ? _PR.GOLD : r.pct >= 50 ? 'B87333' : _PR.BURG;
     const cells = [
-      _prCell(_prPara([_prRun(r.date || '',  { size: 19, color: _PR.DARK, rtl })], { align: centre, rtl }),                                { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(rtl ? _prLtr(r.date || '') : (r.date || ''),  { size: 19, color: _PR.DARK })], { align: centre, rtl }),                                { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
       _prCell(_prPara([_prRun(r.title || '', { size: 19, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }),  { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
-      _prCell(_prPara([_prRun(r.scoreStr,    { size: 20, bold: true, color: _PR.DARK, rtl })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
-      _prCell(_prPara([_prRun(r.pct + '%',    { size: 20, bold: true, color: bandCol, rtl })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(rtl ? _prLtr(r.scoreStr) : r.scoreStr,    { size: 20, bold: true, color: _PR.DARK })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
+      _prCell(_prPara([_prRun(rtl ? _prLtr(r.pct + '%') : r.pct + '%',    { size: 20, bold: true, color: bandCol })], { align: centre, rtl }),                    { bg: i % 2 === 0 ? _PR.CREAM : undefined }),
     ];
     return new _prTableRow({ children: cells });
   });
@@ -8309,8 +8358,8 @@ function _prBuildReportDoc(lang, student, assessments, records) {
   const overallCells = [
     _prCell(_prPara([_prRun(L.overall,                { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
     _prCell(_prPara([_prRun(L.avgLine(rmin, rmax),    { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }), { bg: _PR.GOLD }),
-    _prCell(_prPara([_prRun(totalScore + ' / ' + totalMax, { size: 20, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
-    _prCell(_prPara([_prRun(avgPct + '%',              { size: 22, bold: true, color: 'FFFFFF', rtl })], { align: centre, rtl }), { bg: _PR.GOLD }),
+    _prCell(_prPara([_prRun(rtl ? _prLtr(totalScore + ' / ' + totalMax) : totalScore + ' / ' + totalMax, { size: 20, bold: true, color: 'FFFFFF' })], { align: centre, rtl }), { bg: _PR.GOLD }),
+    _prCell(_prPara([_prRun(rtl ? _prLtr(avgPct + '%') : avgPct + '%',              { size: 22, bold: true, color: 'FFFFFF' })], { align: centre, rtl }), { bg: _PR.GOLD }),
   ];
   children.push(new _prTable({
     rows: [new _prTableRow({ children: headCells }), ...bodyRows, new _prTableRow({ children: overallCells })],
@@ -8320,6 +8369,10 @@ function _prBuildReportDoc(lang, student, assessments, records) {
   // Interpretation.
   children.push(_prPara([_prRun(L.interp_h, { size: 22, bold: true, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200, after: 60 } }));
   children.push(_prPara([_prRun(L.interp(first), { size: 21, color: _PR.DARK, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl }));
+  if (Array.isArray(weakSkills) && weakSkills.length) {
+    children.push(_prPara([_prRun(L.skills_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
+    weakSkills.forEach(w => children.push(_prBullet(w.skill + ' — ' + (rtl ? _prLtr(w.pct + '%') : w.pct + '%'), { size: 21, color: _PR.DARK, rtl })));
+  }
 
   // What the school will do.
   children.push(_prPara([_prRun(L.school_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
@@ -8373,6 +8426,7 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
   const flagged = [];
   students.forEach(student => {
     const records = [];
+    const skillAgg = new Map();
     assessments.forEach(a => {
       const subs = _ccMpLoadSubmissions(a.id);
       const sid = String(student.id || student.email || '');
@@ -8393,6 +8447,16 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
         title: a.title || '',
         score: sc, max, scoreStr: sc + ' / ' + max, pct,
       });
+      // Skills: marks earned per tagged skill (used to name her weakest skills).
+      qs.forEach((q, i) => {
+        const sk = String((q && q.skill) || '').trim();
+        if (!sk) return;
+        const e = Number(_ccMpPointsEarned(sub, i, q));
+        if (!Number.isFinite(e)) return;
+        const m = _ccMpQuestionPoints(q);
+        const cur = skillAgg.get(sk) || { earned: 0, max: 0 };
+        cur.earned += e; cur.max += m; skillAgg.set(sk, cur);
+      });
     });
     if (records.length < need) return;
     // Sort chronologically.
@@ -8403,7 +8467,20 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
       if (r.pct < cutoff) { run++; if (run > maxRun) maxRun = run; }
       else run = 0;
     }
-    if (maxRun >= need) flagged.push({ student, records, reason: 'consecutive_low', consecutive: maxRun });
+    if (maxRun >= need) {
+      // Consistently low: (almost) every result below the cutoff and an average below it too.
+      const below = records.filter(r => r.pct < cutoff).length;
+      const tS = records.reduce((n, r) => n + (Number(r.score) || 0), 0), tM = records.reduce((n, r) => n + (Number(r.max) || 0), 0);
+      const avg = tM ? (tS / tM) * 100 : 0;
+      const kind = (below >= Math.max(need, Math.ceil(records.length * 0.8)) && avg < cutoff) ? 'low' : 'inconsistent';
+      const weakSkills = Array.from(skillAgg.entries())
+        .filter(([, v]) => v.max > 0)
+        .map(([skill, v]) => ({ skill: skill.slice(0, 90), pct: Math.round(v.earned / v.max * 100), max: v.max }))
+        .filter(x => x.pct < Math.max(cutoff, 60))
+        .sort((a, b) => a.pct - b.pct || b.max - a.max)
+        .slice(0, 4);
+      flagged.push({ student, records, reason: 'consecutive_low', consecutive: maxRun, kind, weakSkills });
+    }
   });
   return flagged;
 }
@@ -8411,7 +8488,7 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
 app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }), async (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
-    const { classId, language = 'both', threshold = 30, saveToFolder = true } = req.body || {};
+    const { classId, language = 'both', threshold = 30, saveToFolder = true, reportType = 'auto' } = req.body || {};
     if (!classId) return res.status(400).json({ error: 'classId required' });
 
     // Assessments in this class.
@@ -8449,11 +8526,19 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
       }));
       students = Array.from(seen.values());
     }
-    students.forEach(s => { s.className = className; });
+    const _subjCount = new Map();
+    assessments.forEach(a => { if (a.subject) _subjCount.set(a.subject, (_subjCount.get(a.subject) || 0) + 1); });
+    const _subj = Array.from(_subjCount.entries()).sort((x, y) => y[1] - x[1]).map(x => x[0])[0] || 'English';
+    const _SUBJ_AR = { English: 'اللغة الإنجليزية', Math: 'الرياضيات', Science: 'العلوم', Physics: 'الفيزياء', Chemistry: 'الكيمياء', Biology: 'الأحياء', Arabic: 'اللغة العربية', 'Islamic Studies': 'التربية الإسلامية', 'Social Studies': 'الدراسات الاجتماعية', French: 'اللغة الفرنسية', 'AI & Technology': 'الذكاء الاصطناعي والتكنولوجيا', 'Business Studies': 'دراسات الأعمال', 'Health Science': 'العلوم الصحية' };
+    students.forEach(s => { s.className = className; s.subject = _subj === 'Math' ? 'Maths' : _subj; s.subjectAr = _SUBJ_AR[_subj] || _subj; });
 
     // Detect inconsistent.
-    const flagged = _prDetectInconsistent(students, assessments, Number(threshold) || 60, Number(req.body.minConsecutive) || 2);
-    if (!flagged.length) return res.status(404).json({ error: 'No students met the inconsistency threshold. Try lowering the threshold.' });
+    const allFlagged = _prDetectInconsistent(students, assessments, Number(threshold) || 60, Number(req.body.minConsecutive) || 2);
+    const flagged = allFlagged.filter(f => reportType === 'low' ? f.kind === 'low' : reportType === 'inconsistent' ? f.kind === 'inconsistent' : true);
+    if (!flagged.length) {
+      const what = reportType === 'low' ? 'consistently low' : reportType === 'inconsistent' ? 'inconsistent' : 'flagged';
+      return res.status(404).json({ error: `No ${what} students found with this threshold. Try a different threshold or report type.` });
+    }
 
     // Zip the reports.
     const archive = _ccArchiver('zip', { zlib: { level: 6 } });
@@ -8464,8 +8549,8 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
 
     for (const f of flagged) {
       for (const lang of langs) {
-        const buf = await _prBuildReportDoc(lang, f.student, assessments, f.records);
-        const nm = _ccMpSlug((f.student.name || 'student') + '_' + lang) + '.docx';
+        const buf = await _prBuildReportDoc(lang, f.student, assessments, f.records, f.kind, f.weakSkills);
+        const nm = (f.kind === 'low' ? 'Low-performance_' : 'Inconsistent_') + _ccMpSlug((f.student.name || 'student') + '_' + lang) + '.docx';
         archive.append(buf, { name: nm });
       }
     }
@@ -8501,6 +8586,9 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
     res.setHeader('Content-Type', 'application/zip');
     res.setHeader('Content-Disposition', 'attachment; filename="' + fname + '"');
     res.setHeader('X-CC-Students-Flagged', String(flagged.length));
+    res.setHeader('X-CC-Low', String(flagged.filter(f => f.kind === 'low').length));
+    res.setHeader('X-CC-Inconsistent', String(flagged.filter(f => f.kind !== 'low').length));
+    res.setHeader('Access-Control-Expose-Headers', 'X-CC-Students-Flagged, X-CC-Low, X-CC-Inconsistent');
     if (savedInfo) res.setHeader('X-CC-Saved-Folder-Id', savedInfo.folderId);
     res.end(zipBuf);
     console.log('[parent-reports] class=' + classId + ' flagged=' + flagged.length + ' langs=' + langs.join(','));

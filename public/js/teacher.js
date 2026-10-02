@@ -2457,6 +2457,7 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
     if (type === 'tf') { q.correctAnswer = true; }
     if (type === 'tfng') { q.correctAnswer = 'true'; }
     if (type === 'short') { q.correctAnswer = ''; }
+    if (matchSeed) Object.assign(q, matchSeed);
     if (type === 'long') { q.points = 5; }
     if (type === 'essay') { q.points = 5; }
     if (type === 'writing') {
@@ -2854,7 +2855,8 @@ function renderQuestion(q, idx) {
     long: 'Long answer (manual)',
     essay: 'Essay (manual)',
     writing: 'Essay (auto-graded)',
-  }[q.type];
+    match: 'Match the following',
+  }[q.type] || q.type;
   let body = '';
   if (q.type === 'mc') {
     body = `
@@ -5389,8 +5391,8 @@ function wireMatchEditor(qWrap, q) {
   if (!origRender) return;
   window.renderQuestions = function () {
     origRender.apply(this, arguments);
-    document.querySelectorAll('[data-q-id]').forEach((row) => {
-      const id = row.getAttribute('data-q-id');
+    document.querySelectorAll('[data-q-id], .q-row[id^="q-"]').forEach((row) => {
+      const id = row.getAttribute('data-q-id') || row.id.slice(2);
       const q = questions.find((x) => x.id === id);
       if (!q || q.type !== 'match') return;
       if (!Array.isArray(q.pairs)) q.pairs = [{ left: '', right: '', rightImageUrl: '' }];
@@ -7983,7 +7985,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
     const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:640px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
     modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, '📄 Parent Reports'));
-    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Auto-detect students whose scores are inconsistent across the assessments in a class and generate one .docx per student for the parents. You can edit each before printing.'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Finds students who need support and writes one Word letter per student for the parents: an "Inconsistent performance" letter when results swing up and down, or a "Consistently low performance" letter when results stay below the level you set. Each letter lists her results and the skills she finds hardest. You can edit each before printing.'));
 
     const clsLbl = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Class');
     const clsSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
@@ -7996,12 +7998,17 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       langSel.appendChild(el('option', { value: o[0] }, o[1]));
     });
 
+    const typeLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Report type');
+    const typeSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
+    [['auto','Both — chosen automatically for each student'], ['low','Consistently low performance only'], ['inconsistent','Inconsistent performance only']].forEach(function(o){
+      typeSel.appendChild(el('option', { value: o[0] }, o[1]));
+    });
     const thrLbl = el('label', { style: 'display:block; font-weight:600; margin:16px 0 4px;' }, 'Poor performance if score < ');
     const thrVal = el('span', { id: 'cc-pr-thr-val', style: 'color:#4338CA;' }, '60%');
     thrLbl.appendChild(thrVal);
     const thrInp = el('input', { type: 'range', min: '30', max: '80', value: '60', style: 'width:100%;' });
     thrInp.oninput = function(){ thrVal.textContent = thrInp.value + '%'; };
-    const thrHelp = el('div', { style: 'font-size:12px; color:#6B7280; margin-top:4px;' }, 'Flags a student only if they have 2 or more consecutive assessments below this threshold.');
+    const thrHelp = el('div', { style: 'font-size:12px; color:#6B7280; margin-top:4px;' }, 'Flags a student who has 2 or more assessments in a row below this level. If almost all of her results are below it, she gets the "Consistently low" letter; otherwise the "Inconsistent" letter.');
     modal.__thrHelp = thrHelp;
 
     const saveLbl = el('label', { style: 'display:block; margin:16px 0; font-size:14px;' });
@@ -8027,6 +8034,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
             language: langSel.value,
             threshold: Number(thrInp.value),
             minConsecutive: 2,
+            reportType: typeSel.value,
             saveToFolder: saveCb.checked,
           }),
         });
@@ -8040,7 +8048,8 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
         a.download = m ? m[1] : 'parent_reports.zip';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
-        status.textContent = '✓ Downloaded. Flagged students: ' + flagged + '. ' + (saveCb.checked ? 'Also saved to your Parent Reports folder.' : '');
+        const nLow = r.headers.get('X-CC-Low'), nInc = r.headers.get('X-CC-Inconsistent');
+        status.textContent = '✓ Downloaded. Students: ' + flagged + (nLow != null ? ' (' + nLow + ' consistently low, ' + nInc + ' inconsistent)' : '') + '. ' + (saveCb.checked ? 'Also saved to your Parent Reports folder.' : '');
       } catch (e) {
         status.textContent = 'Failed: ' + (e.message || e);
       } finally {
@@ -8050,6 +8059,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
 
     modal.appendChild(clsLbl); modal.appendChild(clsSel);
     modal.appendChild(langLbl); modal.appendChild(langSel);
+    modal.appendChild(typeLbl); modal.appendChild(typeSel);
     modal.appendChild(thrLbl); modal.appendChild(thrInp); modal.appendChild(modal.__thrHelp);
     modal.appendChild(saveLbl);
     modal.appendChild(genBtn); modal.appendChild(closeBtn);
