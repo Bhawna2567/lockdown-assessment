@@ -1300,6 +1300,8 @@ const SUBJECT_TEMPLATES = [
     blurb: 'MCQs, True/False/Not Given on diagrams, long answers on processes (photosynthesis, respiration).' },
   { id: 'ai-technology', subject: 'AI & Technology', icon: '🤖',
     blurb: 'MCQs on AI concepts and e-safety, short answers on code output and algorithms, practical design questions.' },
+  { id: 'business-studies', subject: 'Business Studies', icon: '💼',
+    blurb: 'MCQs on key terms, short answers, data/chart questions and case-study “recommend & justify” answers.' },
   { id: 'health', subject: 'Health Science', icon: '🩺',
     blurb: 'Mix of MCQs, True/False, and short essays on case studies and ethics.' },
   { id: 'islamic', subject: 'Islamic Studies', icon: '☪️',
@@ -9297,7 +9299,14 @@ async function ccLoadCurriculumOptions() {
   st.textContent = 'Loading lessons…';
   try {
     const r = await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' });
-    const d = await r.json();
+    let d = await r.json();
+    if ((!d.available || !d.lessons.length) && parseInt(g, 10) >= 9 && streamSel) {
+      // Only the other stream has a curriculum (e.g. Business Studies is General only) — switch to it automatically.
+      const other = streamSel.value === 'A' ? 'G' : 'A';
+      q.set('stream', other);
+      const d2 = await (await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' })).json();
+      if (d2.available && d2.lessons.length) { streamSel.value = other; d = d2; }
+    }
     if (!d.available || !d.lessons.length) { st.textContent = 'No MOE curriculum is stored for this subject / grade / term yet — the AI will use your instructions only.'; return; }
     st.innerHTML = `📚 ${escapeHtml(d.source)} — tick the lessons to assess (${d.lessons.length} available). <a href="#" id="ai-cur-all">Select all</a> · <a href="#" id="ai-cur-none">None</a>`;
     let lastMod = null;

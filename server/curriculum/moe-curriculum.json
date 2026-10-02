@@ -7780,6 +7780,434 @@
     "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27 (same guide as Advanced)",
     "lang": "en",
     "withSLOs": true
+   },
+   "Business Studies": {
+    "strands": {
+     "U1 Introduction to Business Activity": [
+      "BUS.1.1.XX.101 — Examine how business activities satisfy individuals' needs and wants.",
+      "BUS.1.1.XX.101 — Examine how business activities satisfy individuals' needs and wants.",
+      "BUS.1.1.XX.102 — Examine the role of the factors of production in business.",
+      "BUS.1.1.XX.102 — Examine the role of the factors of production in business.",
+      "BUS.1.1.XX.102 — Examine the role of the factors of production in business."
+     ],
+     "U2 Business Structure": [
+      "BUS.1.2.XX.101 — Explain different business structures and how they affect the running of a business.",
+      "BUS.1.2.XX.101 — Explain different business structures and how they affect the running of a business.",
+      "BUS.1.2.XX.004 — Examine the challenges and benefits of business growth."
+     ],
+     "U3 Business Objectives": [
+      "BUS.1.3.XX.101 — Develop realistic and attainable business aims and objectives.",
+      "BUS.1.3.XX.101 — Develop realistic and attainable business aims and objectives."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1-W1-1",
+      "unit": "U1 Introduction to Business Activity",
+      "module": "U1 Introduction to Business Activity",
+      "lesson": "Needs and Wants",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "6-10",
+      "slos": [
+       {
+        "code": "BUS.1.1.XX.101",
+        "text": "Examine how business activities satisfy individuals' needs and wants.",
+        "priority": "",
+        "kpis": [
+         "Identify needs and wants of individuals and groups."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What do businesses need to succeed in satisfying customer needs and wants?"
+      ],
+      "vocabulary": [
+       "needs",
+       "wants"
+      ],
+      "assessmentCriteria": [
+       "Students can define needs and wants and identify them using familiar real-life examples."
+      ],
+      "masteryLevels": [
+       "WT: Recognise and list basic needs and wants using personal context.",
+       "WA: Differentiate between needs and wants using common examples. MGD: Analyse how needs and wants vary by age, culture, and circumstance."
+      ],
+      "formalAssessment": "Project End-of-Term (EOT) Quiz",
+      "note": "Financial literacy: Subtopic 1: Forms and Purposes of Money Subtopic 2: Payment Methods",
+      "focusQuestion": "What do businesses need to succeed in satisfying customer needs and wants?",
+      "objectives": "Students can define needs and wants and identify them using familiar real-life examples."
+     },
+     {
+      "code": "U1-W2-1",
+      "unit": "U1 Introduction to Business Activity",
+      "module": "U1 Introduction to Business Activity",
+      "lesson": "Goods and Services Factors of Production",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "11-14",
+      "slos": [
+       {
+        "code": "BUS.1.1.XX.101",
+        "text": "Examine how business activities satisfy individuals' needs and wants.",
+        "priority": "",
+        "kpis": [
+         "Distinguish between goods and services.",
+         "Identify the factors of production needed to make goods or provide services."
+        ]
+       },
+       {
+        "code": "BUS.1.1.XX.102",
+        "text": "Examine the role of the factors of production in business.",
+        "priority": "",
+        "kpis": [
+         "Distinguish between goods and services.",
+         "Identify the factors of production needed to make goods or provide services."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What do businesses need to succeed in satisfying customer needs and wants?",
+       "How do we decide how to use limited resources?"
+      ],
+      "vocabulary": [
+       "goods",
+       "services",
+       "land",
+       "labour",
+       "capital",
+       "enterprise"
+      ],
+      "assessmentCriteria": [
+       "Students can classify examples into goods and services and explain their purpose."
+      ],
+      "masteryLevels": [
+       "WT: Identify goods and services from images or examples.",
+       "WA: Explain the difference between goods and services using scenarios. MGD: Evaluate how businesses adapt goods/services to meet needs and wants."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "What do businesses need to succeed in satisfying customer needs and wants? How do we decide how to use limited resources?",
+      "objectives": "Students can classify examples into goods and services and explain their purpose."
+     },
+     {
+      "code": "U1-W3-1",
+      "unit": "U1 Introduction to Business Activity",
+      "module": "U1 Introduction to Business Activity",
+      "lesson": "Factors of Production",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "14-21",
+      "slos": [
+       {
+        "code": "BUS.1.1.XX.102",
+        "text": "Examine the role of the factors of production in business.",
+        "priority": "",
+        "kpis": [
+         "Analyse how the factors of production are combined.",
+         "Recommend ways to combine the factors of production."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How do we decide how to use limited resources?",
+       "In what ways do businesses rely on each other to produce and sell goods and services?",
+       "What are the consequences of combining the factors of production well – or badly?"
+      ],
+      "vocabulary": [
+       "combine",
+       "efficiency",
+       "productivity"
+      ],
+      "assessmentCriteria": [
+       "Students can name and describe the four factors of production using local examples."
+      ],
+      "masteryLevels": [
+       "WT: Define land, labour, capital, enterprise.",
+       "WA: Identify production factors in familiar businesses. MGD: Analyse how combining resources affects efficiency."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How do we decide how to use limited resources? In what ways do businesses rely on each other to produce and sell goods and services? What are the consequences of combining the factors of production well – or badly?",
+      "objectives": "Students can name and describe the four factors of production using local examples."
+     },
+     {
+      "code": "U1-W4-1",
+      "unit": "U1 Introduction to Business Activity",
+      "module": "U1 Introduction to Business Activity",
+      "lesson": "The Chain of Production Business Sectors",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "21-25",
+      "slos": [
+       {
+        "code": "BUS.1.1.XX.102",
+        "text": "Examine the role of the factors of production in business.",
+        "priority": "",
+        "kpis": [
+         "Identify parts of a chain of production for a product.",
+         "Describe what the chain of production is."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How do we decide how to use limited resources?",
+       "In what ways do businesses rely on each other to produce and sell goods and services?",
+       "What are the consequences of combining the factors of production well – or badly?"
+      ],
+      "vocabulary": [
+       "chain of production",
+       "primary",
+       "secondary",
+       "tertiary"
+      ],
+      "assessmentCriteria": [
+       "Students can classify examples of products by sector."
+      ],
+      "masteryLevels": [
+       "WT: Name stages and basic sector roles.",
+       "WA: Explain production chain and sector interdependence. MGD: Evaluate how disruption in one sector impacts others."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How do we decide how to use limited resources? In what ways do businesses rely on each other to produce and sell goods and services? What are the consequences of combining the factors of production well – or badly?",
+      "objectives": "Students can classify examples of products by sector."
+     },
+     {
+      "code": "U2-W5-1",
+      "unit": "U2 Business Structure",
+      "module": "U2 Business Structure",
+      "lesson": "Public and Private Business Sectors",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "30-33",
+      "slos": [
+       {
+        "code": "BUS.1.2.XX.101",
+        "text": "Explain different business structures and how they affect the running of a business.",
+        "priority": "",
+        "kpis": [
+         "Distinguish between public and private sector business."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How does the structure of a business influence its ability to grow and succeed?"
+      ],
+      "vocabulary": [
+       "public sector",
+       "private sector"
+      ],
+      "assessmentCriteria": [
+       "Students can classify businesses as public or private sector based on ownership and purpose."
+      ],
+      "masteryLevels": [
+       "WT: Identify public and private sector examples.",
+       "WA: Explain ownership and purpose differences. MGD: Evaluate the role of social enterprises in society."
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 3: Managing Transactions Subtopic 4: Value for Money",
+      "focusQuestion": "How does the structure of a business influence its ability to grow and succeed?",
+      "objectives": "Students can classify businesses as public or private sector based on ownership and purpose."
+     },
+     {
+      "code": "U2-W6-1",
+      "unit": "U2 Business Structure",
+      "module": "U2 Business Structure",
+      "lesson": "Sole Traders and Partnerships",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "34-37",
+      "slos": [
+       {
+        "code": "BUS.1.2.XX.101",
+        "text": "Explain different business structures and how they affect the running of a business.",
+        "priority": "",
+        "kpis": [
+         "Compare different ownership structures."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What are the risks and benefits of different types of ownership?"
+      ],
+      "vocabulary": [
+       "sole trader",
+       "partnership",
+       "ownership",
+       "limited liability"
+      ],
+      "assessmentCriteria": [
+       "Students can describe and compare the features of business structures such as sole trader and partnership."
+      ],
+      "masteryLevels": [
+       "WT: Match examples and features of sole traders and partnerships.",
+       "WA: Compare ownership, liability, and control. MGD: Recommend appropriate structure for business goals."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "What are the risks and benefits of different types of ownership?",
+      "objectives": "Students can describe and compare the features of business structures such as sole trader and partnership."
+     },
+     {
+      "code": "U2-W7-1",
+      "unit": "U2 Business Structure",
+      "module": "U2 Business Structure",
+      "lesson": "Private Limited Companies and Public Limited Companies Franchises and Joint Ventures",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "38-45",
+      "slos": [
+       {
+        "code": "BUS.1.2.XX.004",
+        "text": "Examine the challenges and benefits of business growth.",
+        "priority": "",
+        "kpis": [
+         "Recommend a choice of ownership structure."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "Why might some businesses choose to operate as a franchise or joint venture?",
+       "How do business goals (e.g., profit vs. social impact) influence structure decisions?"
+      ],
+      "vocabulary": [
+       "joint venture",
+       "franchise",
+       "shareholders",
+       "liability"
+      ],
+      "assessmentCriteria": [
+       "Students can describe features of private and public limited companies and their growth potential."
+      ],
+      "masteryLevels": [
+       "WT: Identify characteristics of limited companies.",
+       "WA: Explain differences in ownership, control, and capital raising. MGD: Evaluate suitability of different structures for business expansion."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "Why might some businesses choose to operate as a franchise or joint venture? How do business goals (e.g., profit vs. social impact) influence structure decisions?",
+      "objectives": "Students can describe features of private and public limited companies and their growth potential."
+     },
+     {
+      "code": "U3-W8-1",
+      "unit": "U3 Business Objectives",
+      "module": "U3 Business Objectives",
+      "lesson": "Business Objectives SMART Objectives",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "51-54",
+      "slos": [
+       {
+        "code": "BUS.1.3.XX.101",
+        "text": "Develop realistic and attainable business aims and objectives.",
+        "priority": "",
+        "kpis": [
+         "Explain different ways of measuring business size.",
+         "Identify different forms of business growth.",
+         "Identify different business objectives.",
+         "Evaluate objectives using the SMART tool."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "Why do businesses need objectives, and how do they measure success?",
+       "What makes a business objective clear and effective?"
+      ],
+      "vocabulary": [
+       "business size",
+       "market share",
+       "revenue",
+       "growth",
+       "objectives",
+       "SMART",
+       "aims"
+      ],
+      "assessmentCriteria": [
+       "Students can define and identify business objectives such as profit, growth, market share, CSR, survival. Students can use the SMART tool to evaluate business objectives."
+      ],
+      "masteryLevels": [
+       "WT: Identify common business objectives.",
+       "WA: Propose business objectives for a business MGD: Analyse business objectives for a specific business",
+       "WT: Identify SMART elements in a given goal.",
+       "WA: Evaluate sample objectives using SMART. MGD: Design and justify realistic SMART objectives."
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 5: Use of Payment Tools Subtopic 6: Types and Sources of Income",
+      "focusQuestion": "Why do businesses need objectives, and how do they measure success? What makes a business objective clear and effective?",
+      "objectives": "Students can define and identify business objectives such as profit, growth, market share, CSR, survival. Students can use the SMART tool to evaluate business objectives."
+     },
+     {
+      "code": "U3-W9-1",
+      "unit": "U3 Business Objectives",
+      "module": "U3 Business Objectives",
+      "lesson": "Business Stakeholders",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "55-59",
+      "slos": [
+       {
+        "code": "BUS.1.3.XX.101",
+        "text": "Develop realistic and attainable business aims and objectives.",
+        "priority": "",
+        "kpis": [
+         "Identify different business stakeholders and objectives they commonly have.",
+         "Recommend an objective for a business."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How do different stakeholders influence business goals?",
+       "Can a business meet all stakeholder needs at the same time?"
+      ],
+      "vocabulary": [
+       "stakeholders",
+       "interests",
+       "justification",
+       "evaluation"
+      ],
+      "assessmentCriteria": [
+       "Students can identify business stakeholders and objectives they commonly have."
+      ],
+      "masteryLevels": [
+       "WT: Recognise and list different types of stakeholders.",
+       "WA: Match objectives to stakeholder types and business examples. MGD: Analyse competing priorities and the impact on business decisions."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How do different stakeholders influence business goals? Can a business meet all stakeholder needs at the same time?",
+      "objectives": "Students can identify business stakeholders and objectives they commonly have."
+     },
+     {
+      "code": "All-W10 & 11-1",
+      "unit": "Revision",
+      "module": "Revision",
+      "lesson": "Revision and end-of-term assessment",
+      "weeks": "Week 10 & 11",
+      "periods": "",
+      "type": "review",
+      "coursebookPages": "55-59",
+      "slos": [],
+      "essentialQuestions": [],
+      "vocabulary": [],
+      "assessmentCriteria": [],
+      "masteryLevels": [],
+      "formalAssessment": "",
+      "note": ""
+     }
+    ],
+    "source": "MOE Business Studies Scheme of Work + Scope and Sequence, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -10107,6 +10535,749 @@
      }
     ],
     "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27 (same guide as Advanced)",
+    "lang": "en",
+    "withSLOs": true
+   },
+   "Business Studies": {
+    "strands": {
+     "U1 Introduction to Marketing": [
+      "BUS.4.1.XX.101 — Explain the purpose and process of marketing.",
+      "BUS.4.1.XX.102 — Recommend products and target markets based on market segmentation.",
+      "BUS.4.1.XX.103 — Discuss the role competition plays in business."
+     ],
+     "U2 Market Research": [
+      "BUS.4.2.XX.101 — Analyse market research.",
+      "BUS.4.2.XX.102 — Conduct market research.",
+      "BUS.4.2.XX.103 — Produce a graph or chart to display the results of market research."
+     ],
+     "U3 Marketing Mix: Product": [
+      "BUS.4.3.XX.101 — Analyse a product in terms of design, quality, performance and USP.",
+      "BUS.4.3.XX.102 — Create an effective brand.",
+      "BUS.4.3.XX.101 — Analyse a product in terms of design, quality, performance and USP."
+     ],
+     "U4 Marketing Mix: Price": [
+      "BUS.4.3.XX.103 — Identify an appropriate pricing method for a product.",
+      "BUS.4.3.XX.104 — Produce a demand chart."
+     ],
+     "U5 Marketing Mix: Place": [
+      "BUS.4.3.XX.105 — Identify a suitable location for a business.",
+      "BUS.4.3.XX.106 — Identify a suitable distribution channel for a business."
+     ],
+     "U6 Marketing Mix: Promotion": [
+      "BUS.4.3.XX.107 — Explain the role of promotion in the marketing mix.",
+      "BUS.4.3.XX.108 — Recommend an appropriate type of advertising.",
+      "BUS.4.3.XX.109 — Recommend an appropriate type of promotion.",
+      "BUS.4.3.XX.110 — Produce a cohesive marketing mix."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1-W1-1",
+      "unit": "U1 Introduction to Marketing",
+      "module": "U1 Introduction to Marketing",
+      "lesson": "What is Marketing? How markets change",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "6–9",
+      "slos": [
+       {
+        "code": "BUS.4.1.XX.101",
+        "text": "Explain the purpose and process of marketing.",
+        "priority": "",
+        "kpis": [
+         "Explain what marketing is."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "Why is marketing essential for business success?",
+       "How do businesses identify and satisfy customer needs through marketing?"
+      ],
+      "vocabulary": [
+       "marketing",
+       "needs",
+       "wants",
+       "target market",
+       "product",
+       "customer satisfaction"
+      ],
+      "assessmentCriteria": [
+       "Students can define marketing and describe how it supports business goals and customer satisfaction."
+      ],
+      "masteryLevels": [
+       "WT: Recognise marketing as promotion.",
+       "WA: Explain marketing helps businesses meet customer needs. MGD: Evaluate marketing’s strategic role."
+      ],
+      "formalAssessment": "Project End-of-Term (EOT) Quiz",
+      "note": "Financial literacy: Subtopic 1: Forms and Purposes of Money",
+      "focusQuestion": "Why is marketing essential for business success? How do businesses identify and satisfy customer needs through marketing?",
+      "objectives": "Students can define marketing and describe how it supports business goals and customer satisfaction."
+     },
+     {
+      "code": "U1-W2-1",
+      "unit": "U1 Introduction to Marketing",
+      "module": "U1 Introduction to Marketing",
+      "lesson": "Market Segmentation",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "10–15",
+      "slos": [
+       {
+        "code": "BUS.4.1.XX.102",
+        "text": "Recommend products and target markets based on market segmentation.",
+        "priority": "",
+        "kpis": [
+         "Describe different methods of market segmentation.",
+         "Identify needs and wants of different market segments."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What makes market segmentation a useful strategy for targeting customers?"
+      ],
+      "vocabulary": [
+       "segmentation",
+       "demographic",
+       "geographic",
+       "niche market",
+       "target audience"
+      ],
+      "assessmentCriteria": [
+       "Students can recommend suitable products for different market segments based on characteristics."
+      ],
+      "masteryLevels": [
+       "WT: Match products to simple segments.",
+       "WA: Recommend products using characteristics. MGD: Justify with examples and trends."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "What makes market segmentation a useful strategy for targeting customers?",
+      "objectives": "Students can recommend suitable products for different market segments based on characteristics."
+     },
+     {
+      "code": "U1-W2-2",
+      "unit": "U1 Introduction to Marketing",
+      "module": "U1 Introduction to Marketing",
+      "lesson": "Competition",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "16-19",
+      "slos": [
+       {
+        "code": "BUS.4.1.XX.103",
+        "text": "Discuss the role competition plays in business.",
+        "priority": "",
+        "kpis": [
+         "Identify instances where competition exists between businesses.",
+         "Describe the benefits and effects of competition.",
+         "Analyse competition between businesses."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How does competition shape the way businesses operate and innovate?"
+      ],
+      "vocabulary": [
+       "market share",
+       "direct/indirect competitors",
+       "competitive advantage"
+      ],
+      "assessmentCriteria": [
+       "Students can identify and analyse competition in business."
+      ],
+      "masteryLevels": [
+       "WT: Identify competitors of listed companies.",
+       "WA: Explain how competition encourages innovation. MGD: Propose strategies to outperform competitors."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How does competition shape the way businesses operate and innovate?",
+      "objectives": "Students can identify and analyse competition in business."
+     },
+     {
+      "code": "U2-W3-1",
+      "unit": "U2 Market Research",
+      "module": "U2 Market Research",
+      "lesson": "Market Research Primary Research Secondary Research",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "24-32",
+      "slos": [
+       {
+        "code": "BUS.4.2.XX.101",
+        "text": "Analyse market research.",
+        "priority": "",
+        "kpis": [
+         "Explain the purpose and process of market research.",
+         "Describe methods of market research.",
+         "Explain the advantages and disadvantages of market research methods.",
+         "Interpret graphs or charts that show the results of market research."
+        ]
+       },
+       {
+        "code": "BUS.4.2.XX.102",
+        "text": "Conduct market research.",
+        "priority": "",
+        "kpis": [
+         "Explain the advantages and disadvantages of market research methods.",
+         "Recommend an appropriate method of market research.",
+         "Recommend a product or target market based on market research."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "Why do businesses conduct market research?",
+       "How do different research methods support business goals?",
+       "What are the consequences of failing to conduct accurate and relevant market research?"
+      ],
+      "vocabulary": [
+       "primary research",
+       "secondary research",
+       "questionnaire",
+       "observation",
+       "interview",
+       "focus group",
+       "business records",
+       "industry reports",
+       "government reports"
+      ],
+      "assessmentCriteria": [
+       "Students can explain the purpose of market research and evaluate research methods."
+      ],
+      "masteryLevels": [
+       "WT: Name and define methods.",
+       "WA: Compare methods with pros/cons. MGD: Recommend with justification.",
+       "WT: Recognise and describe data",
+       "WA: Interpret data MGD: Evaluate data for business decisions"
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 2: Payment Methods",
+      "focusQuestion": "Why do businesses conduct market research? How do different research methods support business goals? What are the consequences of failing to conduct accurate and relevant market research?",
+      "objectives": "Students can explain the purpose of market research and evaluate research methods."
+     },
+     {
+      "code": "U2-W4-1",
+      "unit": "U2 Market Research",
+      "module": "U2 Market Research",
+      "lesson": "Presenting and analysing market research",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "33- 37",
+      "slos": [
+       {
+        "code": "BUS.4.2.XX.103",
+        "text": "Produce a graph or chart to display the results of market research.",
+        "priority": "",
+        "kpis": [
+         "Conduct market research.",
+         "Analyse the results of market research.",
+         "Produce graphs or charts that show the results of market research."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How can businesses use data presentation techniques to communicate findings effectively?"
+      ],
+      "vocabulary": [
+       "bar chart",
+       "pie chart",
+       "pictogram",
+       "data",
+       "interpretation",
+       "conclusion"
+      ],
+      "assessmentCriteria": [
+       "Students can create and interpret charts to support business decisions."
+      ],
+      "masteryLevels": [
+       "WT: Create simple bar chart.",
+       "WA: Interpret results. MGD: Recommend product using insights."
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How can businesses use data presentation techniques to communicate findings effectively?",
+      "objectives": "Students can create and interpret charts to support business decisions."
+     },
+     {
+      "code": "U3-W5-1",
+      "unit": "U3 Marketing Mix: Product",
+      "module": "U3 Marketing Mix: Product",
+      "lesson": "Introduction to the marketing mix",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "42-43",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.101",
+        "text": "Analyse a product in terms of design, quality, performance and USP.",
+        "priority": "",
+        "kpis": [
+         "Explain the role of the product in the marketing mix.",
+         "Identify the design, quality, performance and USP of a product."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What makes a product stand out in a crowded market?",
+       "How can design influence product success?"
+      ],
+      "vocabulary": [
+       "aesthetics",
+       "function",
+       "cost-effectiveness",
+       "USP",
+       "differentiation"
+      ],
+      "assessmentCriteria": [
+       "Students can describe product features and justify USPs using real-world examples."
+      ],
+      "masteryLevels": [
+       "WT: Identify features;",
+       "WA: Explain purpose of each design part; MGD: Justify USP effectiveness"
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 3: Managing Transactions",
+      "focusQuestion": "What makes a product stand out in a crowded market? How can design influence product success?",
+      "objectives": "Students can describe product features and justify USPs using real-world examples."
+     },
+     {
+      "code": "U3-W5-2",
+      "unit": "U3 Marketing Mix: Product",
+      "module": "U3 Marketing Mix: Product",
+      "lesson": "Product Design",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "44- 51",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.102",
+        "text": "Create an effective brand.",
+        "priority": "",
+        "kpis": [
+         "Describe the elements of a successful brand.",
+         "Explain how branding benefits a business.",
+         "Evaluate the effectiveness of a brand."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "In what ways do branding and USPs build customer loyalty?"
+      ],
+      "vocabulary": [
+       "brand",
+       "logo",
+       "slogan",
+       "packaging",
+       "loyalty",
+       "recognition"
+      ],
+      "assessmentCriteria": [
+       "Students can describe and apply key branding and packaging concepts effectively."
+      ],
+      "masteryLevels": [
+       "WT: List branding elements;",
+       "WA: Explain packaging roles; MGD: Evaluate branding impact on loyalty"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "In what ways do branding and USPs build customer loyalty?",
+      "objectives": "Students can describe and apply key branding and packaging concepts effectively."
+     },
+     {
+      "code": "U3-W5-3",
+      "unit": "U3 Marketing Mix: Product",
+      "module": "U3 Marketing Mix: Product",
+      "lesson": "The product life cycle",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "52- 53",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.101",
+        "text": "Analyse a product in terms of design, quality, performance and USP.",
+        "priority": "",
+        "kpis": [
+         "Recommend ways of extending the product life cycle."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How can businesses extend the life of a product to remain competitive?"
+      ],
+      "vocabulary": [
+       "product life cycle",
+       "introduction",
+       "growth",
+       "maturity",
+       "decline",
+       "extension strategy"
+      ],
+      "assessmentCriteria": [
+       "Students can explain stages and evaluate their implications for marketing decisions."
+      ],
+      "masteryLevels": [
+       "WT: List stages;",
+       "WA: Link to marketing actions; MGD: Recommend life cycle strategies"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How can businesses extend the life of a product to remain competitive?",
+      "objectives": "Students can explain stages and evaluate their implications for marketing decisions."
+     },
+     {
+      "code": "U4-W6-1",
+      "unit": "U4 Marketing Mix: Price",
+      "module": "U4 Marketing Mix: Price",
+      "lesson": "The role of price in the marketing mix Pricing strategy Methods of pricing",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "58= 66",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.103",
+        "text": "Identify an appropriate pricing method for a product.",
+        "priority": "",
+        "kpis": [
+         "Explain the role of price in the marketing mix.",
+         "Describe different price methods.",
+         "Explain the importance of setting the correct price for a product.",
+         "Calculate the selling price of a product.",
+         "Recommend an appropriate pricing method."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How does price influence the success of a product in the market?",
+       "Why do businesses choose different pricing strategies for different products?",
+       "What is the relationship between price and customer demand?",
+       "How can a business use pricing to communicate brand value or exclusivity?"
+      ],
+      "vocabulary": [
+       "cost-plus",
+       "price skimming",
+       "promotional",
+       "competitive",
+       "premium"
+      ],
+      "assessmentCriteria": [
+       "Students can choose and justify suitable pricing strategies based on product type and goals."
+      ],
+      "masteryLevels": [
+       "WT: Define strategies;",
+       "WA: Link to product types; MGD: Evaluate business outcomes"
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 4: Value for Money",
+      "focusQuestion": "How does price influence the success of a product in the market? Why do businesses choose different pricing strategies for different products? What is the relationship between price and customer demand? How can a business use pricing to communicate brand value or exclusivity?",
+      "objectives": "Students can choose and justify suitable pricing strategies based on product type and goals."
+     },
+     {
+      "code": "U4-W7-1",
+      "unit": "U4 Marketing Mix: Price",
+      "module": "U4 Marketing Mix: Price",
+      "lesson": "Price elasticity of demand",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "67- 70",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.104",
+        "text": "Produce a demand chart.",
+        "priority": "",
+        "kpis": [
+         "Explain the relationship between price and demand.",
+         "Calculate Price Elasticity of Demand.",
+         "Identify if Price Elasticity of Demand is elastic, unitary elastic or inelastic."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How do businesses use elasticity to inform pricing and profit strategies?"
+      ],
+      "vocabulary": [
+       "price elasticity of demand",
+       "elastic demand",
+       "inelastic demand",
+       "unitary elastic demand"
+      ],
+      "assessmentCriteria": [
+       "Students can calculate and analyse price elasticity of demand"
+      ],
+      "masteryLevels": [
+       "WT: define price elasticity of demand;",
+       "WA: calculate and classify price elasticty of demand; MGD: Justify pricing decisions using PED data"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How do businesses use elasticity to inform pricing and profit strategies?",
+      "objectives": "Students can calculate and analyse price elasticity of demand"
+     },
+     {
+      "code": "U5-W8-1",
+      "unit": "U5 Marketing Mix: Place",
+      "module": "U5 Marketing Mix: Place",
+      "lesson": "The role of place in the marketing mix Factors that affect place decisions",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "76-77, 80- 82",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.105",
+        "text": "Identify a suitable location for a business.",
+        "priority": "",
+        "kpis": [
+         "Explain the role of place in the marketing mix.",
+         "Explain the effect place decisions can have on a business."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How do place decisions influence a business’s success and customer experience?",
+       "What are the main distribution channels, and when should they be used?",
+       "How do product characteristics and customer profiles affect place decisions?"
+      ],
+      "vocabulary": [
+       "distribution channel",
+       "consumer goods",
+       "industrial goods"
+      ],
+      "assessmentCriteria": [
+       "Students can describe and apply key branding and packaging concepts effectively."
+      ],
+      "masteryLevels": [
+       "WT: List basic location factors;",
+       "WA: Explain how location affects business; MGD: Justify a location choice for a business"
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 5: Use of Payment Tools",
+      "focusQuestion": "How do place decisions influence a business’s success and customer experience? What are the main distribution channels, and when should they be used? How do product characteristics and customer profiles affect place decisions?",
+      "objectives": "Students can describe and apply key branding and packaging concepts effectively."
+     },
+     {
+      "code": "U5-W8-2",
+      "unit": "U5 Marketing Mix: Place",
+      "module": "U5 Marketing Mix: Place",
+      "lesson": "Distribution channels Online or offline distribution",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "77-80, 83- 84",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.106",
+        "text": "Identify a suitable distribution channel for a business.",
+        "priority": "",
+        "kpis": [
+         "Describe different distribution channels.",
+         "Recommend an appropriate distribution channel."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "What are the pros and cons of selling online versus offline?"
+      ],
+      "vocabulary": [
+       "consumer",
+       "intermediary",
+       "producer",
+       "retailer",
+       "wholesaler",
+       "agent",
+       "online marketplace",
+       "eCommerce website"
+      ],
+      "assessmentCriteria": [
+       "Students can define the role of place in marketing and explain key location factors."
+      ],
+      "masteryLevels": [
+       "WT: Name channels;",
+       "WA: Choose based on need; MGD: Justify using multiple factors"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "What are the pros and cons of selling online versus offline?",
+      "objectives": "Students can define the role of place in marketing and explain key location factors."
+     },
+     {
+      "code": "U6-W9-1",
+      "unit": "U6 Marketing Mix: Promotion",
+      "module": "U6 Marketing Mix: Promotion",
+      "lesson": "The role of promotion in the marketing mix",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "90- 92",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.107",
+        "text": "Explain the role of promotion in the marketing mix.",
+        "priority": "",
+        "kpis": [
+         "Describe the benefits of effective promotion.",
+         "Distinguish between advertising and sales promotion."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How does promotion influence consumer behaviour and brand recognition?",
+       "What are the key differences between advertising and sales promotion?"
+      ],
+      "vocabulary": [
+       "advertising",
+       "promotion",
+       "AIDA",
+       "brand awareness",
+       "sales techniques"
+      ],
+      "assessmentCriteria": [
+       "Students can create promotional materials that demonstrate understanding of AIDA and promotion types."
+      ],
+      "masteryLevels": [
+       "WT: Identify types;",
+       "WA: Apply AIDA; MGD: Analyse effectiveness of campaign"
+      ],
+      "formalAssessment": "",
+      "note": "Financial literacy: Subtopic 6: Types and Sources of Income",
+      "focusQuestion": "How does promotion influence consumer behaviour and brand recognition? What are the key differences between advertising and sales promotion?",
+      "objectives": "Students can create promotional materials that demonstrate understanding of AIDA and promotion types."
+     },
+     {
+      "code": "U6-W9-2",
+      "unit": "U6 Marketing Mix: Promotion",
+      "module": "U6 Marketing Mix: Promotion",
+      "lesson": "Advertising",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "92-98",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.108",
+        "text": "Recommend an appropriate type of advertising.",
+        "priority": "",
+        "kpis": [
+         "Describe different types of advertising.",
+         "Calculate the marketing return on investment."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "How can businesses use the AIDA model to design effective advertising?"
+      ],
+      "vocabulary": [
+       "social media",
+       "television",
+       "radio",
+       "cinema",
+       "newspaper",
+       "billboard",
+       "target audience",
+       "reach",
+       "return on investment (ROI)"
+      ],
+      "assessmentCriteria": [
+       "Students can describe types of adverising and calculate ROI accurately."
+      ],
+      "masteryLevels": [
+       "WT: List types of promotion;",
+       "WA: Calculate ROI; MGD: Justify media choices and intepret ROI"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "How can businesses use the AIDA model to design effective advertising?",
+      "objectives": "Students can describe types of adverising and calculate ROI accurately."
+     },
+     {
+      "code": "U6-W9-3",
+      "unit": "U6 Marketing Mix: Promotion",
+      "module": "U6 Marketing Mix: Promotion",
+      "lesson": "Sales promotion Combining the 4Ps",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "coursebookPages": "99- 104",
+      "slos": [
+       {
+        "code": "BUS.4.3.XX.109",
+        "text": "Recommend an appropriate type of promotion.",
+        "priority": "",
+        "kpis": [
+         "Describe different types of sales promotion.",
+         "Describe each element of the marketing mix.",
+         "Analyse the relationship between the elements of the marketing mix.",
+         "Recommend ways a marketing mix can be improved."
+        ]
+       },
+       {
+        "code": "BUS.4.3.XX.110",
+        "text": "Produce a cohesive marketing mix.",
+        "priority": "",
+        "kpis": [
+         "Describe different types of sales promotion.",
+         "Describe each element of the marketing mix.",
+         "Analyse the relationship between the elements of the marketing mix.",
+         "Recommend ways a marketing mix can be improved."
+        ]
+       }
+      ],
+      "essentialQuestions": [
+       "Why is it important for all elements of the marketing mix to align?"
+      ],
+      "vocabulary": [
+       "discounts",
+       "competitions",
+       "point of sale displays",
+       "free gifts",
+       "buy one get one free advertising",
+       "promotion",
+       "AIDA",
+       "brand awareness",
+       "sales techniques"
+      ],
+      "assessmentCriteria": [
+       "Students can describe types of sales promotion and justify a selected promotion. Students can create promotional materials that demonstrate understanding of AIDA and promotion types."
+      ],
+      "masteryLevels": [
+       "WT: types of promotion;",
+       "WA: make recommendations; MGD: Justify recommendations",
+       "WT: Name types;",
+       "WA: Apply AIDA; MGD: Analyse effectiveness of campaign"
+      ],
+      "formalAssessment": "",
+      "note": "",
+      "focusQuestion": "Why is it important for all elements of the marketing mix to align?",
+      "objectives": "Students can describe types of sales promotion and justify a selected promotion. Students can create promotional materials that demonstrate understanding of AIDA and promotion types."
+     },
+     {
+      "code": "All-W10 & 11-1",
+      "unit": "Revision",
+      "module": "Revision",
+      "lesson": "Revision and end-of-term assessment",
+      "weeks": "Week 10 & 11",
+      "periods": "",
+      "type": "review",
+      "coursebookPages": "99- 104",
+      "slos": [],
+      "essentialQuestions": [],
+      "vocabulary": [],
+      "assessmentCriteria": [],
+      "masteryLevels": [],
+      "formalAssessment": "",
+      "note": ""
+     }
+    ],
+    "source": "MOE Business Studies Scheme of Work + Scope and Sequence, Term 1 2026-27",
     "lang": "en",
     "withSLOs": true
    }

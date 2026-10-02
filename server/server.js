@@ -956,7 +956,7 @@ function normalizeGrade(g) {
 // Allowed subject values. Free-text 'Other' is allowed too — anything not in
 // this list gets stored as 'Other'.
 const SUBJECTS = new Set([
-  'Math', 'Science', 'Physics', 'Chemistry', 'Biology', 'AI & Technology',
+  'Math', 'Science', 'Physics', 'Chemistry', 'Biology', 'AI & Technology', 'Business Studies',
   'Health Science', 'Islamic Studies', 'Social Studies',
   'Arabic', 'French', 'English', 'Listening',
   'IELTS', 'PISA', 'TOEFL',
