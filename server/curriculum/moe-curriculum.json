@@ -24835,131 +24835,6 @@
     "source": "Masar (GitHub)",
     "lang": "en"
    },
-   "Physics": {
-    "strands": {
-     "A Physics Toolkit": [
-      "Methods of Science",
-      "Mathematics and Physics",
-      "Measurement",
-      "Graphing Data"
-     ],
-     "Representing Motion": [
-      "Picturing Motion",
-      "Where and When",
-      "Position-Time Graphs",
-      "How Fast?"
-     ],
-     "Accelerated Motion": [
-      "Acceleration",
-      "Motion with Constant Acceleration",
-      "Free Fall"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U1M1L1",
-      "unit": "Mechanics in One Dimension",
-      "module": "A Physics Toolkit",
-      "lesson": "Methods of Science",
-      "weeks": "Week 1 to week 3",
-      "periods": "3",
-      "type": "core"
-     },
-     {
-      "code": "U1M1L2",
-      "unit": "Mechanics in One Dimension",
-      "module": "A Physics Toolkit",
-      "lesson": "Mathematics and Physics",
-      "weeks": "Week 1 to week 3",
-      "periods": "3",
-      "type": "core"
-     },
-     {
-      "code": "U1M1L3",
-      "unit": "Mechanics in One Dimension",
-      "module": "A Physics Toolkit",
-      "lesson": "Measurement",
-      "weeks": "Week 1 to week 3",
-      "periods": "3",
-      "type": "core"
-     },
-     {
-      "code": "U1M1L4",
-      "unit": "Mechanics in One Dimension",
-      "module": "A Physics Toolkit",
-      "lesson": "Graphing Data",
-      "weeks": "Week 1 to week 3",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U1M2L1",
-      "unit": "Mechanics in One Dimension",
-      "module": "Representing Motion",
-      "lesson": "Picturing Motion",
-      "weeks": "Week 4 to week 7",
-      "periods": "3",
-      "type": "core"
-     },
-     {
-      "code": "U1M2L2",
-      "unit": "Mechanics in One Dimension",
-      "module": "Representing Motion",
-      "lesson": "Where and When",
-      "weeks": "Week 4 to week 7",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "U1M2L3",
-      "unit": "Mechanics in One Dimension",
-      "module": "Representing Motion",
-      "lesson": "Position-Time Graphs",
-      "weeks": "Week 4 to week 7",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "U1M2L4",
-      "unit": "Mechanics in One Dimension",
-      "module": "Representing Motion",
-      "lesson": "How Fast?",
-      "weeks": "Week 4 to week 7",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "U1M3L1",
-      "unit": "Mechanics in One Dimension",
-      "module": "Accelerated Motion",
-      "lesson": "Acceleration",
-      "weeks": "Week 7 to week 11",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "U1M3L2",
-      "unit": "Mechanics in One Dimension",
-      "module": "Accelerated Motion",
-      "lesson": "Motion with Constant Acceleration",
-      "weeks": "Week 7 to week 11",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "U1M3L3",
-      "unit": "Mechanics in One Dimension",
-      "module": "Accelerated Motion",
-      "lesson": "Free Fall",
-      "weeks": "Week 7 to week 11",
-      "periods": "4",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
-    "lang": "en"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -27811,6 +27686,435 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Advanced, English)",
     "lang": "en",
     "withSLOs": true
+   },
+   "Physics": {
+    "strands": {
+     "U1M1 A Physics Toolkit": [
+      "PHY.6.1.01.001 — Describe physics and the scientific method, and how scientists use physical models, and distinguish between a scientific theory and a scientific law",
+      "PHY.6.1.01.002 — Recognize physical quantities like time, mass, temperature, volume, density, and classify them into base and derived quantities and specify the dimension of each quantity in the SI - system of units",
+      "PHY.6.1.01.005 — Determine if an equation is dimensionally correct and compute differet quantities with the correct labelling of units and signifiant figures",
+      "PHY.6.1.01.003 — Measure the base quantities and some derived quantities using suitable measurement tools and record those measurements taking into account significant figures and scientific notation",
+      "PHY.6.1.01.004 — Determine the sources of error and distinguish between precision and accuracy",
+      "PHY.6.1.01.006 — Identify variables in tabulated data and represent them in a suitable graph to determine the relationship between the variables, and obtain the mathematical equation describing that relationship to determine the value of the dependent variable for a specific value of the independent variable and vice versa",
+      "PHY.6.1.01.007 — Identify the relationship between the average change of a function between two points and the slope of the secant joining these points, and relate the slope of the tangent to the curve at a point to the rate of change of the function at that point"
+     ],
+     "U1M2 Representing Motion": [
+      "PHY.6.1.01.035 — Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+      "PHY.6.1.01.035 — Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+      "PHY.6.1.01.013 — Classify physical quantities like distance, force, length, mass into vector and scalar quantities, and describe them",
+      "PHY.6.1.01.008 — Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+      "PHY.6.1.01.010 — Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+      "PHY.6.1.01.008 — Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+      "PHY.6.1.01.010 — Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems"
+     ],
+     "U1M3 Accelerated Motion": [
+      "PHY.6.1.01.035 — Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+      "PHY.6.1.01.008 — Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+      "PHY.6.1.01.010 — Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+      "PHY.6.1.01.010 — Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+      "PHY.6.1.01.008 — Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+      "PHY.6.1.01.012 — Develop mathematical models based on data obtained by digital meters, digital cameras or experiments to describe the free fall of objects ignoring air resistance, and measure the gravitational acceleration constant in the UAE",
+      "PHY.6.1.01.010 — Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1M1L1",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M1 A Physics Toolkit",
+      "lesson": "Methods of Science",
+      "weeks": "Weeks 01–03",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.001",
+        "text": "Describe physics and the scientific method, and how scientists use physical models, and distinguish between a scientific theory and a scientific law",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Classify Physics as a branch of science that involves the study of the physical world: energy, matter, and how they are related",
+         "Define the term scientific method",
+         "List the common steps of scientific method used in investigations",
+         "Define the term hypothesis and identify the ways in which a hypothesis can be tested",
+         "Explain why it is important for scientists to avoid bias",
+         "Explain why scientists use models and give some common examples of models",
+         "Differentiate between scientific theory and scientific law",
+         "Explain why a scientific theory cannot become a scientific law",
+         "Perform a simple investigation to employ and reinforce the methods of science"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "ScienKﬁc Method y z",
+       "Hypothesis ~",
+       "Model",
+       "ScienKﬁc theory „… ~",
+       "ScienKﬁc law y z",
+       "Physics …Š‹"
+      ],
+      "misconceptions": [
+       "Scientists are just fact ﬁnders."
+      ]
+     },
+     {
+      "code": "U1M1L2",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M1 A Physics Toolkit",
+      "lesson": "Mathematics and Physics",
+      "weeks": "Weeks 01–03",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.002",
+        "text": "Recognize physical quantities like time, mass, temperature, volume, density, and classify them into base and derived quantities and specify the dimension of each quantity in the SI - system of units",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain why scientists use the metric system of units",
+         "List the seven fundamental base quantities and their SI units",
+         "Classify common quantities into base and derived quantities with their SI units",
+         "Express the derived units for common quantities (like velocity, acceleration, force, pressure, volume, density) in terms of their SI base units",
+         "Identify the prefixes used with SI units and use them to convert units"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.005",
+        "text": "Determine if an equation is dimensionally correct and compute differet quantities with the correct labelling of units and signifiant figures",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Use dimensional analysis to validate equations and to choose the appropriate conversion factor when converting units",
+         "Identify the significant digits in a given number",
+         "Use appropriate significant figures to record answers from a mathematical operation, with the correct number of digits"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Dimensional Analysis ~ ‘",
+       "Signiﬁcant ﬁgures  ˜…"
+      ]
+     },
+     {
+      "code": "U1M1L3",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M1 A Physics Toolkit",
+      "lesson": "Measurement",
+      "weeks": "Weeks 01–03",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.003",
+        "text": "Measure the base quantities and some derived quantities using suitable measurement tools and record those measurements taking into account significant figures and scientific notation",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain the importance of making careful measurements",
+         "Explain why the results of measurements are often reported with an uncertainty",
+         "Conduct an experiment to measure the dimensions and masses of several objects, using SI units, and to use this information to determine the density of the object"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.004",
+        "text": "Determine the sources of error and distinguish between precision and accuracy",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Compare and contrast precision and accuracy with examples",
+         "State the common sources of error when making a measurement and state the good techniques of measurement"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M1L4",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M1 A Physics Toolkit",
+      "lesson": "Graphing Data",
+      "weeks": "Weeks 01–03",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.006",
+        "text": "Identify variables in tabulated data and represent them in a suitable graph to determine the relationship between the variables, and obtain the mathematical equation describing that relationship to determine the value of the dependent variable for a specific value of the independent variable and vice versa",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define and identify independent and dependent variables for a given data set",
+         "Explain how graphs make it easier to interpret data",
+         "Represent data in graphical form, draw the best fit line, and identify from the shape of the graph if the relationship between the variables is linear, quadratic or inverse",
+         "Explain how two variables are related in a linear relationship",
+         "Explain how two variables are related in a non-linear relationship (quadratic and inverse)"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.007",
+        "text": "Identify the relationship between the average change of a function between two points and the slope of the secant joining these points, and relate the slope of the tangent to the curve at a point to the rate of change of the function at that point",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Find the slope from the graph of a linear relationship",
+         "Identify the mathematical equations for linear, quadratic and inverse relations",
+         "Predict the unknown values in a linear relation using the slope and the intercept with the vertical axis",
+         "Conduct an experiment to investigate an object's motion by taking measurements and using data to describe the motion of the object"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Independent variable  Š‹",
+       "Dependent variable  Š‹",
+       "Line of best ﬁt ¨",
+       "Linear relationship  ~",
+       "Quadratic relationship ~~-",
+       "Inverse relationship  ~"
+      ]
+     },
+     {
+      "code": "U1M2L1",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M2 Representing Motion",
+      "lesson": "Picturing Motion",
+      "weeks": "Weeks 04–07",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.035",
+        "text": "Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify factors that describe an object’s motion",
+         "Represent changes in position through motion diagrams",
+         "Represent changes in position through particle model",
+         "Interpret the motion represented by motion diagrams and particle models",
+         "Conduct an investigation to show different kinds of motion using motion diagrams"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Motion diagram",
+       "Particle model"
+      ]
+     },
+     {
+      "code": "U1M2L2",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M2 Representing Motion",
+      "lesson": "Where and When",
+      "weeks": "Weeks 04–07",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.035",
+        "text": "Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define a coordinate system and identify the origin, position, and distance in a coordinate system",
+         "Differentiate between scalar and vector quantities with examples",
+         "Calculate the time interval for a given situation using the mathematical representation (∆𝑡= 𝑡 −𝑡) ! \"",
+         "Define displacement as the change in an object’s position",
+         "Differentiate between distance travelled and displacement",
+         "Determine displacement using vector addition or subtraction in one dimension",
+         "Perform an investigation using vector models to measure and calculate resultant vectors in one dimension"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.013",
+        "text": "Classify physical quantities like distance, force, length, mass into vector and scalar quantities, and describe them",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Classify physical quantities into vector and scalar quantities (distance, mass, displacement, speed, velocity, acceleration, force, work, energy, pressure)",
+         "Give examples on vector and scalar quantities"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M2L3",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M2 Representing Motion",
+      "lesson": "Position-Time Graphs",
+      "weeks": "Weeks 04–07",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.008",
+        "text": "Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Plot a position-time graph given position-time values.",
+         "Explain the meaning of instantaneous position for an object in motion",
+         "Convert a particle model to a position time graph and vice-versa"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.010",
+        "text": "Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Interpret a position-time graph that represents the motion of a single object",
+         "Interpret a position-time graph that represents the motion of multiple objects",
+         "Find slopes and intercepts of a position-time graph to analyze motion"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M2L4",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M2 Representing Motion",
+      "lesson": "How Fast?",
+      "weeks": "Weeks 04–07",
+      "periods": "7",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.008",
+        "text": "Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define and calculate the average speed using a suitable mathematical representation",
+         "Define and calculate the average velocity using a suitable mathematical representation",
+         "Differentiate between speed and velocity",
+         "Differentiate between average velocity and instantaneous velocity",
+         "Calculate average velocity (magnitude and direction) from the slope of a position-time graph during a certain time interval and instantaneous velocity from the slope of a position- time graph at a certain instant",
+         "Design and perform an experiment to investigate an object moving with constant speed."
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.010",
+        "text": "Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Analyze a position-time graph to describe an object’s motion",
+         "Apply the equation of motion, (x = v t + x)or (x - x = v t), in numerical problems to f avg i f i avg calculate the position or other physical quantities"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Average velocity",
+       "Average Speed",
+       "Instantaneous velocity"
+      ],
+      "misconceptions": [
+       "The terms average velocity and instantaneous velocity mean the same things."
+      ]
+     },
+     {
+      "code": "U1M3L1",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M3 Accelerated Motion",
+      "lesson": "Acceleration",
+      "weeks": "Weeks 07–11",
+      "periods": "7",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.035",
+        "text": "Express the motion of an object along a straight line (uniform and non-uniform) using motion and vector diagrams and describe the motion in own words",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between uniform and non-uniform motion",
+         "Recognize uniform or non-uniform motion from a motion diagram or a particle model"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.008",
+        "text": "Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Conduct an experiment to investigate an object's motion by determining how position, velocity, and acceleration change over time"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.010",
+        "text": "Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the motion of an object if its velocity and acceleration are either in the same directions or opposite directions, hence state if an object is slowing down or speeding up",
+         "Interpret the velocity-time graph for a single or multiple objects in motion",
+         "Find the slope and y-intercept of a velocity-time graph to describe the motion of an object",
+         "Define and calculate the average acceleration",
+         "Relate the slope of a velocity time graph to the average acceleration of the object in motion",
+         "Differentiate between average and instantaneous acceleration",
+         "Calculate the instantaneous acceleration from a velocity-time graph",
+         "Explain how an object can accelerate while moving at a constant speed"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M3L2",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M3 Accelerated Motion",
+      "lesson": "Motion with Constant Acceleration",
+      "weeks": "Weeks 07–11",
+      "periods": "7",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.010",
+        "text": "Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Identify the shape of a position-time and velocity-time graph for an object with constant acceleration",
+         "Calculate the acceleration from the slope of the velocity-time graph",
+         "Calculate the displacement as the area under the curve of a velocity-time graph",
+         "Apply the equation of motion relating the final velocity of an object to its initial velocity, uniform acceleration, and time (v = v + at) f i",
+         "Apply the equation of motion relating the final position of an object to its initial position, 2 initial velocity, uniform acceleration, and time (x = x + vt + (1/2)at ) f i i f f",
+         "Apply the alternative equation of motion relating an object's final velocity to its initial 2 2 velocity, its constant aceleration, and its initial and final positions (v = v + 2a(x - x)) f i f i",
+         "Solve problems using the combination of equations of motion for constant acceleration"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.008",
+        "text": "Analyze data obtained by digital meters to describe motion (uniform and nonuniform) on a straight line numerically using the suitable mathematical models and curves and describe the motion by own words",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Design and perform an experiment to investigate an object moving with constant acceleration"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M3L3",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M3 Accelerated Motion",
+      "lesson": "Free Fall",
+      "weeks": "Weeks 07–11",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.012",
+        "text": "Develop mathematical models based on data obtained by digital meters, digital cameras or experiments to describe the free fall of objects ignoring air resistance, and measure the gravitational acceleration constant in the UAE",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define free fall and free fall acceleration",
+         "Describe the motion of an object under free fall during its rising and falling motion",
+         "Apply the equations of motion for objects under free fall to calculate the unknown parameters",
+         "Perform an investigation to study the acceleration due to gravity for a system in free fall"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.010",
+        "text": "Analyze curves of position versus time graphs and velocity versus time graphs for an object moving along a straight line in uniform or non-uniform motion with constant or variable acceleration, and use the equations of motion to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Analyze the position-time, velocity-time, and acceleration-time graphs for an object under free fall",
+         "Apply the equations of motion for objects under free fall, to calculate the unknown parameters"
+        ]
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -27824,79 +28128,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Forces in One Dimension": [
-      "Force and Motion",
-      "Weight and Drag Force",
-      "Newton’s Third Law"
-     ],
-     "Vibrations and Waves": [
-      "Periodic Motion",
-      "Wave Properties",
-      "Wave Behavior"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U1M4L1",
-      "unit": "Mechanics in One Dimension",
-      "module": "Forces in One Dimension",
-      "lesson": "Force and Motion",
-      "weeks": "Week 1 to week 5",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U1M4L2",
-      "unit": "Mechanics in One Dimension",
-      "module": "Forces in One Dimension",
-      "lesson": "Weight and Drag Force",
-      "weeks": "Week 1 to week 5",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U1M4L3",
-      "unit": "Mechanics in One Dimension",
-      "module": "Forces in One Dimension",
-      "lesson": "Newton’s Third Law",
-      "weeks": "Week 1 to week 5",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "U4M13L1",
-      "unit": "Waves and Light",
-      "module": "Vibrations and Waves",
-      "lesson": "Periodic Motion",
-      "weeks": "Week 5 to week 10",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U4M13L2",
-      "unit": "Waves and Light",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Properties",
-      "weeks": "Week 5 to week 10",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U4M13L3",
-      "unit": "Waves and Light",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Behavior",
-      "weeks": "Week 5 to week 10",
-      "periods": "6",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
    },
    "Biology": {
@@ -28679,6 +28910,91 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "U1M4 Forces in One Dimension": [
+      "U1M4L1 — Force and Motion",
+      "U1M4L2 — Weight and Drag Force",
+      "U1M4L3 — Newton’s Third Law"
+     ],
+     "U4M13 Vibrations and Waves": [
+      "U4M13L1 — Periodic Motion",
+      "U4M13L2 — Wave Properties",
+      "U4M13L3 — Wave Behavior"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1M4L1",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M4 Forces in One Dimension",
+      "lesson": "Force and Motion",
+      "weeks": "Weeks 1–5",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M4L2",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M4 Forces in One Dimension",
+      "lesson": "Weight and Drag Force",
+      "weeks": "Weeks 1–5",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U1M4L3",
+      "unit": "U1 Mechanics in One Dimension",
+      "module": "U1M4 Forces in One Dimension",
+      "lesson": "Newton’s Third Law",
+      "weeks": "Weeks 1–5",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M13L1",
+      "unit": "U4 Waves and Light",
+      "module": "U4M13 Vibrations and Waves",
+      "lesson": "Periodic Motion",
+      "weeks": "Weeks 5–10",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M13L2",
+      "unit": "U4 Waves and Light",
+      "module": "U4M13 Vibrations and Waves",
+      "lesson": "Wave Properties",
+      "weeks": "Weeks 5–10",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M13L3",
+      "unit": "U4 Waves and Light",
+      "module": "U4M13 Vibrations and Waves",
+      "lesson": "Wave Behavior",
+      "weeks": "Weeks 5–10",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -28689,59 +29005,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Sound": [
-      "Properties and Detection of Sound",
-      "The Physics of Music"
-     ],
-     "Fundamentals of Light": [
-      "Illumination",
-      "The Wave Nature of Light"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U4M14L1",
-      "unit": "Waves and Light",
-      "module": "Sound",
-      "lesson": "Properties and Detection of Sound",
-      "weeks": "Week 1 to week 3",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U4M14L2",
-      "unit": "Waves and Light",
-      "module": "Sound",
-      "lesson": "The Physics of Music",
-      "weeks": "Week 1 to week 3",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "U4M15L1",
-      "unit": "Waves and Light",
-      "module": "Fundamentals of Light",
-      "lesson": "Illumination",
-      "weeks": "Week 4 to week 9",
-      "periods": "12",
-      "type": "core"
-     },
-     {
-      "code": "U4M15L2",
-      "unit": "Waves and Light",
-      "module": "Fundamentals of Light",
-      "lesson": "The Wave Nature of Light",
-      "weeks": "Week 4 to week 9",
-      "periods": "13",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
    },
    "Biology": {
@@ -29443,6 +29706,67 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "U4M14 Sound": [
+      "U4M14L1 — Properties and Detection of Sound",
+      "U4M14L2 — The Physics of Music"
+     ],
+     "U4M15 Fundamentals of Light": [
+      "U4M15L1 — Illumination",
+      "U4M15L2 — The Wave Nature of Light"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U4M14L1",
+      "unit": "U4 Waves and Light",
+      "module": "U4M14 Sound",
+      "lesson": "Properties and Detection of Sound",
+      "weeks": "Weeks 1–3",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M14L2",
+      "unit": "U4 Waves and Light",
+      "module": "U4M14 Sound",
+      "lesson": "The Physics of Music",
+      "weeks": "Weeks 1–3",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M15L1",
+      "unit": "U4 Waves and Light",
+      "module": "U4M15 Fundamentals of Light",
+      "lesson": "Illumination",
+      "weeks": "Weeks 4–9",
+      "periods": "12",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U4M15L2",
+      "unit": "U4 Waves and Light",
+      "module": "U4M15 Fundamentals of Light",
+      "lesson": "The Wave Nature of Light",
+      "weeks": "Weeks 4–9",
+      "periods": "13",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -29458,98 +29782,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "A Physics Toolkit": [
-      "Methods of Science",
-      "Mathematics and Physics",
-      "Measurement",
-      "Graphing Data"
-     ],
-     "Representing Motion": [
-      "Picturing Motion",
-      "Where and When?",
-      "Position-Time Graphs",
-      "How Fast?"
-     ],
-     "Accelerated Motion": [
-      "Acceleration",
-      "Motion with Constant Acceleration",
-      "Free-Fall"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "A Physics Toolkit",
-      "lesson": "Methods of Science",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "A Physics Toolkit",
-      "lesson": "Mathematics and Physics",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "A Physics Toolkit",
-      "lesson": "Measurement",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "module": "A Physics Toolkit",
-      "lesson": "Graphing Data",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Representing Motion",
-      "lesson": "Picturing Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Representing Motion",
-      "lesson": "Where and When?",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Representing Motion",
-      "lesson": "Position-Time Graphs",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "module": "Representing Motion",
-      "lesson": "How Fast?",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Accelerated Motion",
-      "lesson": "Acceleration",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Accelerated Motion",
-      "lesson": "Motion with Constant Acceleration",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Accelerated Motion",
-      "lesson": "Free-Fall",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
    },
    "Science": {
@@ -32118,6 +32350,98 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Physics": {
+    "strands": {
+     "A Physics Toolkit": [
+      "Methods of Science",
+      "Mathematics and Physics",
+      "Measurement",
+      "Graphing Data"
+     ],
+     "Representing Motion": [
+      "Picturing Motion",
+      "Where and When?",
+      "Position-Time Graphs",
+      "How Fast?"
+     ],
+     "Accelerated Motion": [
+      "Acceleration",
+      "Motion with Constant Acceleration",
+      "Free-Fall"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "Section 1",
+      "module": "A Physics Toolkit",
+      "lesson": "Methods of Science",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "A Physics Toolkit",
+      "lesson": "Mathematics and Physics",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "A Physics Toolkit",
+      "lesson": "Measurement",
+      "type": "core"
+     },
+     {
+      "code": "Section 4",
+      "module": "A Physics Toolkit",
+      "lesson": "Graphing Data",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Representing Motion",
+      "lesson": "Picturing Motion",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Representing Motion",
+      "lesson": "Where and When?",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "Representing Motion",
+      "lesson": "Position-Time Graphs",
+      "type": "core"
+     },
+     {
+      "code": "Section 4",
+      "module": "Representing Motion",
+      "lesson": "How Fast?",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Accelerated Motion",
+      "lesson": "Acceleration",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Accelerated Motion",
+      "lesson": "Motion with Constant Acceleration",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "Accelerated Motion",
+      "lesson": "Free-Fall",
+      "type": "core"
+     }
+    ],
+    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
+    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
+    "lang": "en"
    }
   },
   "2": {
@@ -32131,61 +32455,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Forces in One Dimension": [
-      "Force and Motion",
-      "Weight and Drag Force",
-      "Newton's Third Law"
-     ],
-     "Displacement and Force in Two Dimensions": [
-      "Vectors",
-      "Friction",
-      "Forces in Two Dimensions"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Forces in One Dimension",
-      "lesson": "Force and Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Forces in One Dimension",
-      "lesson": "Weight and Drag Force",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Forces in One Dimension",
-      "lesson": "Newton's Third Law",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Vectors",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Friction",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Forces in Two Dimensions",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
    },
    "Science": {
@@ -32567,6 +32836,61 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "Forces in One Dimension": [
+      "Force and Motion",
+      "Weight and Drag Force",
+      "Newton's Third Law"
+     ],
+     "Displacement and Force in Two Dimensions": [
+      "Vectors",
+      "Friction",
+      "Forces in Two Dimensions"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "Section 1",
+      "module": "Forces in One Dimension",
+      "lesson": "Force and Motion",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Forces in One Dimension",
+      "lesson": "Weight and Drag Force",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "Forces in One Dimension",
+      "lesson": "Newton's Third Law",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Displacement and Force in Two Dimensions",
+      "lesson": "Vectors",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Displacement and Force in Two Dimensions",
+      "lesson": "Friction",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "Displacement and Force in Two Dimensions",
+      "lesson": "Forces in Two Dimensions",
+      "type": "core"
+     }
+    ],
+    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
+    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
+    "lang": "en"
    }
   },
   "3": {
@@ -32577,107 +32901,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Work, Energy, and Machines": [
-      "Work and Energy",
-      "Machines"
-     ],
-     "Vibrations and Waves": [
-      "Periodic Motion",
-      "Wave Properties",
-      "Wave Behavior"
-     ],
-     "Solids, Liquids, and Gases": [
-      "Matter and Thermal Energy",
-      "Properties of Fluids",
-      "Behavior of Gases"
-     ],
-     "Matter - Properties and change": [
-      "Properties of Matter",
-      "Changes in Matter",
-      "Elemetns and compounds",
-      "Mixture and Matter"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Work, Energy, and Machines",
-      "lesson": "Work and Energy",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Work, Energy, and Machines",
-      "lesson": "Machines",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Vibrations and Waves",
-      "lesson": "Periodic Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Properties",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Behavior",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Matter and Thermal Energy",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Properties of Fluids",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Behavior of Gases",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 1",
-      "module": "Matter - Properties and change",
-      "lesson": "Properties of Matter",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 2",
-      "module": "Matter - Properties and change",
-      "lesson": "Changes in Matter",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 3",
-      "module": "Matter - Properties and change",
-      "lesson": "Elemetns and compounds",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 4",
-      "module": "Matter - Properties and change",
-      "lesson": "Mixture and Matter",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
    },
    "Science": {
@@ -33108,84 +33331,112 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "Work, Energy, and Machines": [
+      "Work and Energy",
+      "Machines"
+     ],
+     "Vibrations and Waves": [
+      "Periodic Motion",
+      "Wave Properties",
+      "Wave Behavior"
+     ],
+     "Solids, Liquids, and Gases": [
+      "Matter and Thermal Energy",
+      "Properties of Fluids",
+      "Behavior of Gases"
+     ],
+     "Matter - Properties and change": [
+      "Properties of Matter",
+      "Changes in Matter",
+      "Elemetns and compounds",
+      "Mixture and Matter"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "Section 1",
+      "module": "Work, Energy, and Machines",
+      "lesson": "Work and Energy",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Work, Energy, and Machines",
+      "lesson": "Machines",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Vibrations and Waves",
+      "lesson": "Periodic Motion",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Vibrations and Waves",
+      "lesson": "Wave Properties",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Vibrations and Waves",
+      "lesson": "Wave Behavior",
+      "type": "core"
+     },
+     {
+      "code": "Section 1",
+      "module": "Solids, Liquids, and Gases",
+      "lesson": "Matter and Thermal Energy",
+      "type": "core"
+     },
+     {
+      "code": "Section 2",
+      "module": "Solids, Liquids, and Gases",
+      "lesson": "Properties of Fluids",
+      "type": "core"
+     },
+     {
+      "code": "Section 3",
+      "module": "Solids, Liquids, and Gases",
+      "lesson": "Behavior of Gases",
+      "type": "core"
+     },
+     {
+      "code": "Lesson 1",
+      "module": "Matter - Properties and change",
+      "lesson": "Properties of Matter",
+      "type": "core"
+     },
+     {
+      "code": "Lesson 2",
+      "module": "Matter - Properties and change",
+      "lesson": "Changes in Matter",
+      "type": "core"
+     },
+     {
+      "code": "Lesson 3",
+      "module": "Matter - Properties and change",
+      "lesson": "Elemetns and compounds",
+      "type": "core"
+     },
+     {
+      "code": "Lesson 4",
+      "module": "Matter - Properties and change",
+      "lesson": "Mixture and Matter",
+      "type": "core"
+     }
+    ],
+    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
+    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
+    "lang": "en"
    }
   }
  },
  "10A": {
   "1": {
-   "Physics": {
-    "strands": {
-     "Reflection and Refraction": [
-      "Reflection of Light",
-      "Curved Mirrors",
-      "Refraction of Light",
-      "Convex and Concave Lenses"
-     ],
-     "Interference and Diffraction": [
-      "Interference",
-      "Diffraction"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U4M16L1",
-      "unit": "Waves and Light",
-      "module": "Reflection and Refraction",
-      "lesson": "Reflection of Light",
-      "weeks": "Week 1 to week 6",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U4M16L2",
-      "unit": "Waves and Light",
-      "module": "Reflection and Refraction",
-      "lesson": "Curved Mirrors",
-      "weeks": "Week 1 to week 6",
-      "periods": "9",
-      "type": "core"
-     },
-     {
-      "code": "U4M16L3",
-      "unit": "Waves and Light",
-      "module": "Reflection and Refraction",
-      "lesson": "Refraction of Light",
-      "weeks": "Week 1 to week 6",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U4M16L4",
-      "unit": "Waves and Light",
-      "module": "Reflection and Refraction",
-      "lesson": "Convex and Concave Lenses",
-      "weeks": "Week 1 to week 6",
-      "periods": "9",
-      "type": "core"
-     },
-     {
-      "code": "U4M17L1",
-      "unit": "Waves and Light",
-      "module": "Interference and Diffraction",
-      "lesson": "Interference",
-      "weeks": "Week 7 to week 11",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U4M17L2",
-      "unit": "Waves and Light",
-      "module": "Interference and Diffraction",
-      "lesson": "Diffraction",
-      "weeks": "Week 7 to week 11",
-      "periods": "10",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G10_Advanced_EN.xlsx",
-    "lang": "en"
-   },
    "Chemistry": {
     "strands": {
      "Electrons in Atoms": [
@@ -35399,82 +35650,395 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Advanced, English)",
     "lang": "en",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Physics": {
     "strands": {
-     "Displacement and Force in Two Dimensions": [
-      "Vectors",
-      "Friction",
-      "Forces in Two Dimensions"
+     "U4M16 Reflection and Refraction": [
+      "PHY.6.3.02.004 — Specify and describe some physical properties of light in everyday life like reflection, refraction and diffraction, and conclude that incident light may be reflected, absorbed or transmitted from objects depending on the physical properties of the object and on the frequency of light",
+      "PHY.6.3.02.005 — Analyze data obtained from simple experiments to deduce the two laws of light reflection",
+      "PHY.6.3.02.006 — Develop a model, as a sketch, to show the difference between specular and diffuse reflection from surfaces, and give examples on use of each kind like in road signs, boards and mirrors",
+      "PHY.6.3.02.007 — Explore theoretically and experimentally, the properties of images formed by reflection of light from plane mirrors",
+      "PHY.6.3.02.008 — Draw ray diagrams to determine the position and properties of images resulting from the reflection of light rays from concave and convex mirrors, and deduce the equation that relates the object distance, the image distance, and the focal length for spherical mirrors",
+      "PHY.6.3.02.009 — Use the mirror equation (which relates the object distance, the image distance, and the focal length) and the magnification equation to solve for relevant unknown physical quantities",
+      "PHY.6.3.02.010 — Use data obtained from an experiment or a simulation to arrive at Snell's law that relates the angle of refraction to the angle of incidence",
+      "PHY.6.3.02.011 — Develop a tool, experiment or simulation, to determine the condition for total internal reflection, express that in a mathematical equation and use it to solve relevant problems",
+      "PHY.6.3.02.012 — Explain some natural phenomena related to refraction of light and total internal reflection",
+      "PHY.6.3.03.003 — Analyze observations recorded through a simulation to explain the mechanism of transmitting light in optical fibers",
+      "PHY.6.3.02.013 — Draw ray diagrams to determine the position and properties of images resulting from refraction of light rays passing through thin concave and convex lenses, and solve relevant problems using magnification and lens equation",
+      "PHY.6.3.03.001 — Study the anatomy of the eye specifying its parts, and discuss vision disorders that humans may have, nearsightedness and farsightedness, and describe ways of vision correction",
+      "PHY.6.3.03.002 — Design and build some simple optical kits that enhance observation of far and small objects"
      ],
-     "Motion in Two Dimensions": [
-      "Projectile Motion",
-      "Circular Motion",
-      "Relative Velocity"
+     "U4M17 Interference and Diffraction": [
+      "PHY.6.3.01.006 — Develop a model, sketches or a simulation to determine the condition for constructive and destructive interference of light waves to occur, and determine the positions of the resulting light and dark fringes",
+      "PHY.6.3.02.002 — Explain the importance of the diffraction of light as a proof of the wave nature of light, and explain how dyes and pigments determine the color of an object",
+      "PHY.6.3.01.008 — Develop a mathematical equation to obtain the positions of light and dark fringes of monochromatic light beam passing a diffraction grating",
+      "PHY.6.3.01.007 — Use the spectrometer and the diffraction grating to split white light into its constituent colors and measure their wavelengths",
+      "PHY.6.3.01.004 — Explore experimentally the reflection, refraction, and diffraction of waves in two dimensions for example, waves traveling on the surface of water, and determine the conditions of occurrence using pictures and data obtained from the experiment"
      ]
     },
     "lessons": [
      {
-      "code": "U2M5L1",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Vectors",
-      "weeks": "Week 1 to week 5",
+      "code": "U4M16L1",
+      "unit": "U4 Waves and Light",
+      "module": "U4M16 Reflection and Refraction",
+      "lesson": "Reflection of Light",
+      "weeks": "Weeks 01–06",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.02.004",
+        "text": "Specify and describe some physical properties of light in everyday life like reflection, refraction and diffraction, and conclude that incident light may be reflected, absorbed or transmitted from objects depending on the physical properties of the object and on the frequency of light",
+        "priority": "Support Outcomes (Basic)",
+        "kpis": [
+         "Specify some examples from daily life related to the reflection of light."
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.005",
+        "text": "Analyze data obtained from simple experiments to deduce the two laws of light reflection",
+        "priority": "Support Outcomes (Basic)",
+        "kpis": [
+         "Describe the law of reflection.",
+         "Apply the law of reflection in drawing ray diagrams and solving numerical"
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.006",
+        "text": "Develop a model, as a sketch, to show the difference between specular and diffuse reflection from surfaces, and give examples on use of each kind like in road signs, boards and mirrors",
+        "priority": "Support Outcomes (Basic)",
+        "kpis": [
+         "p4r. oDbilfefemresn.tiate between diffuse and specular reflection and give examples."
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.007",
+        "text": "Explore theoretically and experimentally, the properties of images formed by reflection of light from plane mirrors",
+        "priority": "Power Outcomes",
+        "kpis": [
+         "Define a plane mirror.",
+         "Describe the properties of an image formed by a plane mirror.",
+         "Draw a ray diagram to locate the position of an image formed by a plane mirror, showing its properties.",
+         "Represent mathematically the relation between image position and object position, as well as the image height and object height for a plane mirror.",
+         "Conduct simple experiments to describe images formed by a plane mirror."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "misconceptions": [
+       "Light that is not directed toward your eyes can be seen."
+      ],
+      "objectives": "Explore the law of reflection and images formed by plane mirrors, to understand that that plane mirrors can be used to direct light.",
+      "focusQuestion": "Why does light reflected from a mirror make an image while light reflected from a piece of paper does not?"
+     },
+     {
+      "code": "U4M16L2",
+      "unit": "U4 Waves and Light",
+      "module": "U4M16 Reflection and Refraction",
+      "lesson": "Curved Mirrors",
+      "weeks": "Weeks 01–06",
+      "periods": "9",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.02.008",
+        "text": "Draw ray diagrams to determine the position and properties of images resulting from the reflection of light rays from concave and convex mirrors, and deduce the equation that relates the object distance, the image distance, and the focal length for spherical mirrors",
+        "priority": "Power Outcomes",
+        "kpis": [
+         "Describe the types and properties of spherical or curved mirrors.",
+         "Define the principal axis, the focal point, and the focal length of a spherical mirror.",
+         "Relate the focal length to the radius of curvature of a spherical mirror.",
+         "Describe the reflection of light rays that are parallel to the principal axis or pass (or appear to pass) through the focal point of a concave mirror, and sketch that in a ray diagram.",
+         "Distinguish between a real image and a virtual image.",
+         "Draw a ray diagram to find the image of an object located at a distance greater than twice the focal length of a concave mirror, and determine the properties of the formed image.",
+         "Draw a ray diagram to find the image of an object located between the focal length and twice the focal length of a concave mirror, and determine the properties of the formed image.",
+         "Draw a ray diagram to find the image of an object located at a distance smaller than the focal length of a concave mirror, and determine the properties of the formed image.",
+         "Describe that no image is formed when an object is placed at the focal point of a concave mirror.",
+         "Describe defects in concave mirrors, such as spherical aberration, and how they can be corrected.",
+         "Describe the reflection of light rays that are parallel to the principal axis or appear to pass through the focal point of a convex mirror, and sketch that in a ray diagram.",
+         "Draw a ray diagram to find the image of an object formed by a convex mirror and determine the properties of the formed image.",
+         "Identify that rays reflected from a convex mirror always diverge and that images formed are only virtual and smaller than the object.",
+         "Explain how convex mirrors increase the field of view and why objects are much closer than they appear.",
+         "List some of the uses of concave and convex mirrors.",
+         "Compare and contrast plane, concave, and convex mirrors regaridng the properties of images formed and the algebraic signs for different quantities involved.",
+         "Conduct an experiment to investigate the formation and properties of images by spherical mirrors."
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.009",
+        "text": "Use the mirror equation (which relates the object distance, the image distance, and the focal length) and the magnification equation to solve for relevant unknown physical quantities",
+        "priority": "Power Outcomes",
+        "kpis": [
+         "Apply the mirror equation to calculate the image distance, the object distance, or the focal length of a spherical mirror using appropriate algebraic signs for focal length and corresponding distances.",
+         "Define magnification as the ratio of the image height to the object height.",
+         "Calculate the magnification produced by a spherical mirror.",
+         "Infer the type, orientation, and size of an image from the magnitude and algebraic sign of magnification."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Principal Axis",
+       "Focal Point",
+       "Focal Length",
+       "Concave Mirror",
+       "Convex Mirror",
+       "Magnification",
+       "Real Image",
+       "Spherical Aberration"
+      ],
+      "misconceptions": [
+       "It is necessary for an object to be on the principal axis of a concave mirror for the mirror to be able to form an image."
+      ],
+      "objectives": "Explore how curved mirrors form a variety of images, to understand that curved mirrors can be used to create both real and virtual images in everyday situations.",
+      "focusQuestion": "What are some advantages and disadvantages of curved mirrors compared to plane mirrors?"
+     },
+     {
+      "code": "U4M16L3",
+      "unit": "U4 Waves and Light",
+      "module": "U4M16 Reflection and Refraction",
+      "lesson": "Refraction of Light",
+      "weeks": "Weeks 01–06",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.02.010",
+        "text": "Use data obtained from an experiment or a simulation to arrive at Snell's law that relates the angle of refraction to the angle of incidence",
+        "priority": "Power Outcomes",
+        "kpis": [
+         "Describe refraction of light (or a wave) as it crosses the boundary between two different mediums, and represent that in a ray diagram.",
+         "Identify that during refraction, the wavelength and speed of light (or a wave) change but frequency remains the same.",
+         "Describe that the amount of refraction depends on the properties of the mediums.",
+         "Define the index of refraction of a medium and relate it to the properties of the medium.",
+         "Calculate the refractive index of a medium using a suitable mathematical representation ( 𝑛 = 𝑐 / 𝑣 ).",
+         "State and apply Snell’s law of refraction.",
+         "Define the critical angle as the angle of incidence at which the refracted light ray lies along the boundary of the two mediums.",
+         "Calculate the critical angle using Snell’s law.",
+         "Conduct an experiment to investigate refraction of light and verify theoretical data."
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.011",
+        "text": "Develop a tool, experiment or simulation, to determine the condition for total internal reflection, express that in a mathematical equation and use it to solve relevant problems",
+        "priority": "Support Outcomes (Basic)",
+        "kpis": [
+         "Describe total internal reflection and the conditions under which total internal reflection takes place.",
+         "Apply the concepts of refraction, critical angle, and total internal reflection to solve numerical problems."
+        ]
+       },
+       {
+        "code": "PHY.6.3.02.012",
+        "text": "Explain some natural phenomena related to refraction of light and total internal reflection",
+        "priority": "Support Outcomes (Basic)",
+        "kpis": [
+         "Define dispersion and explain the dispersion of light through a prism.",
+         "Explain some natural phenomena, such as the formation of mirage or rainbows or others, which involve optical phenomena like reflection, refraction, total internal reflection, or dispersion of light."
+        ]
+       },
+       {
+        "code": "PHY.6.3.03.003",
+        "text": "Analyze observations recorded through a simulation to explain the mechanism of transmitting light in optical fibers",
+        "priority": "Support Outcomes (Supplementary)",
+        "kpis": [
+         "Describe some applications of total internal reflection."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Index of Refraction",
+       "Critical Angle",
+       "Total Internal Reflection",
+       "Dispersion"
+      ],
+      "misconceptions": [
+       "Light always bends toward the normal when it enters a material and away from the normal as it exits the material."
+      ],
+      "objectives": "Explore Snell's law of refraction, total internal reflection, and the dispersion of light, to understand that fiber optic cables in communications networks use total internal reflection.",
+      "focusQuestion": "What happens to light when it enters a new medium?"
+     },
+     {
+      "code": "U4M16L4",
+      "unit": "U4 Waves and Light",
+      "module": "U4M16 Reflection and Refraction",
+      "lesson": "Convex and Concave Lenses",
+      "weeks": "Weeks 01–06",
+      "periods": "9",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.02.013",
+        "text": "Draw ray diagrams to determine the position and properties of images resulting from refraction of light rays passing through thin concave and convex lenses, and solve relevant problems using magnification and lens equation",
+        "priority": "Power Outcomes",
+        "kpis": [
+         "Define a lens.",
+         "Distinguish between a convex (converging) lens and a concave (diverging) lense.",
+         "Identify the principal axis, the focal points, and the focal length of a convex or a concave lens.",
+         "Describe the refraction of light rays that are parallel to the principal axis or pass (or appear to pass) through the focal point of a convex lens, and sketch that in a ray diagram considering the thin lens model.",
+         "Draw a ray diagram (using at least one light ray that is parallel to the principal axis and another ray that passes or appears to pass through the focal point) to find the image of an object located at diffrent distances from a convex lens (greater than or equal twice the focal length, between the focal length and twice the focal length, and smaller than the focal length), and determine the location and properties of the formed image.",
+         "Describe that no image is formed when an object is placed at the focal point of a convex lens.",
+         "Describe how a convex lens acts as a magnifier.",
+         "Describe the refraction of light rays that are parallel to the principal axis or appear to pass through the focal point of a concave lens, and sketch that in a ray diagram.",
+         "Draw a ray diagram to find the image of an object formed by a concave lens and determine the properties of the formed image.",
+         "Identify that rays refracted by a concave lens always diverge and that images formed are always virtual, reduced, and on the object's side of the lens.",
+         "Apply the thin lens equation to calculate the image distance, the object distance, or the focal length of a convex or a concave lens using appropriate algebraic signs for focal length and corresponding distances.",
+         "Calculate the magnification produced by a thin convex or concave lens.",
+         "Infer the type, orientation, and size of an image from the magnitude and algebraic sign of magnification.",
+         "Compare and contrast convex and concave lenses regaridng the properties of images formed and the algebraic signs for different quantities involved.",
+         "Explain defects in spherical lenses such as spherical aberration and chromatic aberration and how they can be corrected.",
+         "Solve problems related to thin lenses.",
+         "Conduct an experiment to investigate the formation and properties of images by a convex lens."
+        ]
+       },
+       {
+        "code": "PHY.6.3.03.001",
+        "text": "Study the anatomy of the eye specifying its parts, and discuss vision disorders that humans may have, nearsightedness and farsightedness, and describe ways of vision correction",
+        "priority": "Support Outcomes (Supplementary)",
+        "kpis": [
+         "Describe the process by which your eye focuses light and forms an image.",
+         "Define nearsightedness (Myopia) and farsightedness (Hyperopia).",
+         "Describe the formation of image in case of nearsightedness and farsightedness and how defects in vision are corrected using concave and convex lenses."
+        ]
+       },
+       {
+        "code": "PHY.6.3.03.002",
+        "text": "Design and build some simple optical kits that enhance observation of far and small objects",
+        "priority": "Support Outcomes (Supplementary)",
+        "kpis": [
+         "Describe the optical systems and formation of images in common optical instruments."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Lens",
+       "Concave Lens",
+       "Convex Lens",
+       "Thin Lens Equation",
+       "Chromatic Aberration",
+       "Achromatic Lens",
+       "Farsightedness"
+      ],
+      "objectives": "Explore how lenses, including those in the human eye and in optical equipment, are used to form images, to understand that lenses can be used in a variety of optical devices.",
+      "focusQuestion": "How are systems of lenses used to make optical devices?"
+     },
+     {
+      "code": "U4M17L1",
+      "unit": "U4 Waves and Light",
+      "module": "U4M17 Interference and Diffraction",
+      "lesson": "Interference",
+      "weeks": "Weeks 07–11",
       "periods": "10",
-      "type": "core"
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.01.006",
+        "text": "Develop a model, sketches or a simulation to determine the condition for constructive and destructive interference of light waves to occur, and determine the positions of the resulting light and dark fringes",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define coherent and incoherent light.",
+         "Differentiate between incoherent and coherent waves by giving examples like rain or water droplets falling on the surface of water.",
+         "Recall the concepts of constructive and destructive interference and define interference fringes of light.",
+         "Define a monochromatic light.",
+         "Explain how bright and dark interference fringes are created in a double-slit interference investigation with monochromatic light.",
+         "Show that the intensity of bright bands decreases as you go farther from the central band (double slit interference with monochromatic light).",
+         "Explain the formation of a colored spectra when white light is used in a double-slit investigation.",
+         "Explain how coherent light is generated by passing monochromatic light through slits .",
+         "Derive the relation of the wavelength from double-slit investigation (𝜆=𝑥d/L) where '𝑥' is the distance on the screen from the central bright fringe to the first bright band, 'd' is the distance between the slits, and 'L' is the distance from the slits to the screen.",
+         "Apply the relation (𝜆=𝑥d/L) to calculate the wavelength or to find an unknown distance in a double-slit investigation given the other values.",
+         "Explain that constructive interference occurs at locations 𝑥 on either side of the m central bright band such that m𝜆=𝑥 d/L where m=0, 1, 2... m",
+         "Define the phenomenon of thin-film interference.",
+         "Explain the phenomenon of thin-film interference.",
+         "Explain how the refractive indexes of the mediums that make the thin film control wave inversion.",
+         "Explain the problem-solving strategy for solving thin-film interference problems.",
+         "Discuss some examples of light interference in nature.",
+         "Solve problems on interfernce of light."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Incoherent light",
+       "Coherent light",
+       "Interference fringes",
+       "Monochromatic light",
+       "Thin-film interference"
+      ],
+      "misconceptions": [
+       "There is no light hitting the dark fringes."
+      ]
      },
      {
-      "code": "U2M5L2",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Friction",
-      "weeks": "Week 1 to week 5",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "U2M5L3",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Forces in Two Dimensions",
-      "weeks": "Week 1 to week 5",
-      "periods": "8",
-      "type": "core"
-     },
-     {
-      "code": "U2M6L1",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Motion in Two Dimensions",
-      "lesson": "Projectile Motion",
-      "weeks": "Week 6 to week 10",
-      "periods": "8",
-      "type": "core"
-     },
-     {
-      "code": "U2M6L2",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Motion in Two Dimensions",
-      "lesson": "Circular Motion",
-      "weeks": "Week 6 to week 10",
-      "periods": "6",
-      "type": "core"
-     },
-     {
-      "code": "U2M6L3",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Motion in Two Dimensions",
-      "lesson": "Relative Velocity",
-      "weeks": "Week 6 to week 10",
-      "periods": "6",
-      "type": "core"
+      "code": "U4M17L2",
+      "unit": "U4 Waves and Light",
+      "module": "U4M17 Interference and Diffraction",
+      "lesson": "Diffraction",
+      "weeks": "Weeks 07–11",
+      "periods": "10",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.3.02.002",
+        "text": "Explain the importance of the diffraction of light as a proof of the wave nature of light, and explain how dyes and pigments determine the color of an object",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define diffraction as the bending of a wave as it passes the edge of a barrier.",
+         "Explain diffraction of light.",
+         "Explain that according to Huygen's principle, all the points of a wavefront of light can be thought of as new sources of smaller waves called wavelets.",
+         "Define a diffraction pattern.",
+         "Explain the diffraction pattern that is created when light (green, red, white..) passes through a single slit.",
+         "Illustrate diffraction patterns with Huygen's wavelets.",
+         "Develop the equation for the width of the central bright band produced by a single slit diffraction (2𝑥 =2𝜆L/w), where (2𝑥 ) is the width of the central bright band, (𝜆) is 1 1 the wavelength, (L) is the distance to the screen, and (w) is the width of the slit.",
+         "Apply the equation (2𝑥 =2𝜆L/w) to solve relevant problems on single-slit diffraction. 1",
+         "Compare the bright and dark bands from Young's Double Slit investigation with the diffraction pattern from Single Slit Diffraction regarding the band spacing, light sources, width of bands, and intensity of created bands.",
+         "Explain diffraction through circular appertures and discuss resolving of images using the Rayleigh criterion."
+        ]
+       },
+       {
+        "code": "PHY.6.3.01.008",
+        "text": "Develop a mathematical equation to obtain the positions of light and dark fringes of monochromatic light beam passing a diffraction grating",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define a diffraction grating.",
+         "Discuss the production and use of diffraction grating.",
+         "Define a reflection grating and give examples.",
+         "Explain how optical discs act as diffraction gratings.",
+         "Explain how information is read or stored in a disc.",
+         "Explain that constrcuctive interference from a diffraction grating occurs at angles on either side of the central bright line given by the equation m𝜆= dsinθ where m=1,2,3.."
+        ]
+       },
+       {
+        "code": "PHY.6.3.01.007",
+        "text": "Use the spectrometer and the diffraction grating to split white light into its constituent colors and measure their wavelengths",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define a grating spectroscope.",
+         "Explain how a grating spectroscope works.",
+         "Give examples on the applications of diffraction gratings like in spectroscopes used for gemstone analysis or others."
+        ]
+       },
+       {
+        "code": "PHY.6.3.01.004",
+        "text": "Explore experimentally the reflection, refraction, and diffraction of waves in two dimensions for example, waves traveling on the surface of water, and determine the conditions of occurrence using pictures and data obtained from the experiment",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Conduct an experiment to investigate interference and diffraction."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Diffraction pattern",
+       "Diffraction grating",
+       "Rayleigh criterion"
+      ],
+      "misconceptions": [
+       "A double-slit interference pattern consists only of the alternating bright and dark bands."
+      ]
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G10_Advanced_EN.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true
+   }
+  },
+  "2": {
    "Chemistry": {
     "strands": {
      "Chemical reactions": [
@@ -36132,72 +36696,94 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Physics": {
     "strands": {
-     "Gravitation": [
-      "Planetary Motion and Gravitation",
-      "Using the Law of Universal Gravitation"
+     "U2M5 Displacement and Force in Two Dimensions": [
+      "U2M5L1 — Vectors",
+      "U2M5L2 — Friction",
+      "U2M5L3 — Forces in Two Dimensions"
      ],
-     "Rotational Motion": [
-      "Describing Rotational Motion",
-      "Rotational Dynamics",
-      "Equilibrium"
+     "U2M6 Motion in Two Dimensions": [
+      "U2M6L1 — Projectile Motion",
+      "U2M6L2 — Circular Motion",
+      "U2M6L3 — Relative Velocity"
      ]
     },
     "lessons": [
      {
-      "code": "U2M7L1",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Gravitation",
-      "lesson": "Planetary Motion and Gravitation",
-      "weeks": "Week 1 to week 3",
+      "code": "U2M5L1",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M5 Displacement and Force in Two Dimensions",
+      "lesson": "Vectors",
+      "weeks": "Weeks 1–5",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M5L2",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M5 Displacement and Force in Two Dimensions",
+      "lesson": "Friction",
+      "weeks": "Weeks 1–5",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M5L3",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M5 Displacement and Force in Two Dimensions",
+      "lesson": "Forces in Two Dimensions",
+      "weeks": "Weeks 1–5",
       "periods": "8",
-      "type": "core"
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      },
      {
-      "code": "U2M7L2",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Gravitation",
-      "lesson": "Using the Law of Universal Gravitation",
-      "weeks": "Week 1 to week 3",
-      "periods": "7",
-      "type": "core"
+      "code": "U2M6L1",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M6 Motion in Two Dimensions",
+      "lesson": "Projectile Motion",
+      "weeks": "Weeks 6–10",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      },
      {
-      "code": "U2M8L1",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Describing Rotational Motion",
-      "weeks": "Week 4 to week 9",
-      "periods": "7",
-      "type": "core"
+      "code": "U2M6L2",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M6 Motion in Two Dimensions",
+      "lesson": "Circular Motion",
+      "weeks": "Weeks 6–10",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      },
      {
-      "code": "U2M8L2",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Rotational Dynamics",
-      "weeks": "Week 4 to week 9",
-      "periods": "11",
-      "type": "core"
-     },
-     {
-      "code": "U2M8L3",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Equilibrium",
-      "weeks": "Week 4 to week 9",
-      "periods": "7",
-      "type": "core"
+      "code": "U2M6L3",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M6 Motion in Two Dimensions",
+      "lesson": "Relative Velocity",
+      "weeks": "Weeks 6–10",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G10_Advanced_EN.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Chemistry": {
     "strands": {
      "Stoichiometry": [
@@ -37032,6 +37618,79 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "U2M7 Gravitation": [
+      "U2M7L1 — Planetary Motion and Gravitation",
+      "U2M7L2 — Using the Law of Universal Gravitation"
+     ],
+     "U2M8 Rotational Motion": [
+      "U2M8L1 — Describing Rotational Motion",
+      "U2M8L2 — Rotational Dynamics",
+      "U2M8L3 — Equilibrium"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M7L1",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M7 Gravitation",
+      "lesson": "Planetary Motion and Gravitation",
+      "weeks": "Weeks 1–3",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M7L2",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M7 Gravitation",
+      "lesson": "Using the Law of Universal Gravitation",
+      "weeks": "Weeks 1–3",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M8L1",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Describing Rotational Motion",
+      "weeks": "Weeks 4–9",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M8L2",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Rotational Dynamics",
+      "weeks": "Weeks 4–9",
+      "periods": "11",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U2M8L3",
+      "unit": "U2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Equilibrium",
+      "weeks": "Weeks 4–9",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -40764,69 +41423,6 @@
  },
  "11A": {
   "1": {
-   "Physics": {
-    "strands": {
-     "Rotational Motion": [
-      "Describing Rotational Motion",
-      "Rotational Dynamics",
-      "Equilibrium"
-     ],
-     "Momentum and Its Conservation": [
-      "Impulse and Momentum",
-      "Conservation of Momentum"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U2M8L1",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Describing Rotational Motion",
-      "weeks": "Week 1 to week 6",
-      "periods": "8",
-      "type": "core"
-     },
-     {
-      "code": "U2M8L2",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Rotational Dynamics",
-      "weeks": "Week 1 to week 6",
-      "periods": "12",
-      "type": "core"
-     },
-     {
-      "code": "U2M8L3",
-      "unit": "Mechanics in Two Dimensions",
-      "module": "Rotational Motion",
-      "lesson": "Equilibrium",
-      "weeks": "Week 1 to week 6",
-      "periods": "8",
-      "type": "core"
-     },
-     {
-      "code": "U3M9L1",
-      "unit": "Momentum and Energy",
-      "module": "Momentum and Its Conservation",
-      "lesson": "Impulse and Momentum",
-      "weeks": "Week 6 to week 11",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U3M9L2",
-      "unit": "Momentum and Energy",
-      "module": "Momentum and Its Conservation",
-      "lesson": "Conservation of Momentum",
-      "weeks": "Week 6 to week 11",
-      "periods": "12",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G11_Advanced_EN_ADV.PHY.P.101.xlsx",
-    "lang": "en"
-   },
    "Chemistry": {
     "strands": {
      "Energy and Chemical Change": [
@@ -43196,104 +43792,371 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Advanced, English)",
     "lang": "en",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Physics": {
     "strands": {
-     "Energy and Its Conservation": [
-      "Work and Energy",
-      "The Many Forms of Energy",
-      "Conservation of Energy",
-      "Machines"
+     "U2M8 Rotational Motion": [
+      "PHY.6.1.01.024 — Describe quantities of angular motion (angular displacement, angular velocity, angular acceleration...) and relate to them to the corresponding quantities of the linear motion and apply these relations in solving relevant problems",
+      "PHY.6.1.01.025 — Give physical reasoning of why angular quantities have the same value at all points of a rotating rigid object",
+      "PHY.6.1.01.027 — Develop an experiment or animation to explore the relationship between tangential speed and the radius of rotation",
+      "PHY.6.1.02.053 — Develop a mathematical model to define the effect of torque, turning effect of force, on a rigid object and apply it to solve numerical problems",
+      "PHY.6.1.02.051 — Demonstrate that the moment of inertia of an object represents the tendency to resist the change in rotational motion and apply the suitable mathematical equations to calculate the moment of inertia of different objects or systems",
+      "PHY.6.1.02.078 — Apply Newton's Second Law for rotational motion, and use it to solve relevant problems",
+      "PHY.6.1.02.031 — Design a kit, sketch, a simulation, or experimental procedure to find the center of mass of objects of different shapes",
+      "PHY.6.1.02.032 — Determine (geometrically or through a mathematical equation) the center of mass of an extended object and the center of mass for a system of many objects",
+      "PHY.6.1.02.048 — Determine the conditions for static equilibrium and distinguish between stable and unstable equilibrium relating that to the place of the center of mass",
+      "PHY.6.1.02.080 — Describe rotating frames of reference and forces in such frames like the centrifugal force and the coriolis force, and use that to explain the method of separating blood contents"
      ],
-     "Thermal Energy": [
-      "Temperature, Heat, and Thermal Energy",
-      "Changes of State and Thermodynamics"
-     ],
-     "States of Matter": [
-      "Properties of Fluids",
-      "Forces Within Liquids"
+     "U3M9 Momentum and Its Conservation": [
+      "PHY.6.1.02.049 — Define the impulse of a force on an object, and demonstrate it in an equation form",
+      "PHY.6.1.02.034 — Evaluate the impulse of a force (constant or variable) on a system",
+      "PHY.6.1.02.033 — Define linear momentum of a moving object, express it in an equation form, and apply it to find the linear momentum of different systems",
+      "PHY.6.1.02.035 — Design an experiment to demonstrate the relationship between impulse of a force on an object and the change of its momentum",
+      "PHY.6.1.02.037 — Explain how safety measure kits in cars, like shock absorbers and air bags, work",
+      "PHY.6.1.02.038 — Design a kit that reduces the effect of collision hazards like using elastic bumpers",
+      "PHY.6.1.02.045 — Define the angular momentum of an object or a point particle, relate the change in angular momentum to the torque on an object, and apply that to solve relevant problems",
+      "PHY.6.1.02.049 — Define the impulse of a force on an object, and demonstrate it in an equation form",
+      "PHY.6.1.02.039 — Explore the law of conservation of linear momentum in a system of particles colliding due to internal forces between them using digital data recorders",
+      "PHY.6.1.02.040 — Design a model (descriptive and mathematical equation) to describe the law of conservation of linear momentum for a system of two colliding objects in one and two dimensions",
+      "PHY.6.1.02.046 — Show evidence, gathered from observation of a demonstration, on the principle of conservation of angular momentum and express that in a mathematical equation"
      ]
     },
     "lessons": [
      {
-      "code": "U3M10L1",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Work and Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L2",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "The Many Forms of Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L3",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Conservation of Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L4",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Machines",
-      "weeks": "Week 1 to week 3",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "U3M11L1",
-      "unit": "Momentum and Energy",
-      "module": "Thermal Energy",
-      "lesson": "Temperature, Heat, and Thermal Energy",
-      "weeks": "Week 4 to week 7",
+      "code": "U2M8L1",
+      "unit": "2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Describing Rotational Motion",
+      "weeks": "Weeks 01–06",
       "periods": "8",
-      "type": "core"
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.01.024",
+        "text": "Describe quantities of angular motion (angular displacement, angular velocity, angular acceleration...) and relate to them to the corresponding quantities of the linear motion and apply these relations in solving relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define a radian and convert degrees to radians and vice-versa",
+         "Define angular displacement",
+         "Identify that counterclockwise motion is in the positive direction and clockwise motion is in the negative direction",
+         "Apply the relationship between angular displacement and the initial and final angular positions",
+         "Relate the arc length (x) to the angular displacement (𝜽) and the distance (r) from the axis of rotation",
+         "Define angular velocity",
+         "Apply the relationship between average angular velocity, angular displacement, and the time interval for that displacement",
+         "Relate the linear velocity (v) to the angular velocity (𝜔) and the distance (r) from the axis of rotation",
+         "Define angular acceleration",
+         "Apply the relationship between average angular acceleration, change in angular velocity, and the time interval for that change",
+         "Relate the linear acceleration (a) to the angular acceleration (𝛼) and the distance (r) from the axis of rotation",
+         "Compare the angular velocity and angular acceleration of a rotating body",
+         "Define angular frequency and relate the frequency (f) to angular frequency (𝜔)",
+         "Solve problems related to rotational variables"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.025",
+        "text": "Give physical reasoning of why angular quantities have the same value at all points of a rotating rigid object",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Describe a rigid body as a solid body in which deformation can be neglected, and so the distance between any two points on the body remains constant",
+         "Show that different points of a a rotating rigid object (Earth is an example) do not move the same distance but rotate through the same angle",
+         "Explain that different points of a rigid object rotate at the same rate"
+        ]
+       },
+       {
+        "code": "PHY.6.1.01.027",
+        "text": "Develop an experiment or animation to explore the relationship between tangential speed and the radius of rotation",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Perform an experiment to investigate the factors affecting a rolling object",
+         "Verify experimentally the relation between the tangential speed and the radius of rotation (v = r𝜔)"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Radian",
+       "Angular displacement",
+       "Angular velocity",
+       "Angular acceleration"
+      ],
+      "misconceptions": [
+       "There is no difference between average velocity and instantaneous velocity."
+      ]
      },
      {
-      "code": "U3M11L2",
-      "unit": "Momentum and Energy",
-      "module": "Thermal Energy",
-      "lesson": "Changes of State and Thermodynamics",
-      "weeks": "Week 4 to week 7",
+      "code": "U2M8L2",
+      "unit": "2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Rotational Dynamics",
+      "weeks": "Weeks 01–06",
       "periods": "12",
-      "type": "core"
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.02.053",
+        "text": "Develop a mathematical model to define the effect of torque, turning effect of force, on a rigid object and apply it to solve numerical problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the term torque",
+         "Identify that a torque on a body involves a force and a lever arm which is the perpendicular distance from the axis of rotation to the point where the force is applied",
+         "Apply the relation (𝜏 = Frsin𝜃) to calculate the matnitude of torque (𝜏) for a force force of magnitude (F) where (r) is the distance from the axis of rotation to the point where the force is exerted, and 𝜃 is the angle between the force and the radius from the axis of rotation to the point where the force is applied",
+         "Identify that a rotation axis must always be specified to calculate a torque",
+         "Identify that a torque is assigned a positive or negative sign depending on the direction it tends to make the body rotate about a specified rotation axis: “clocks are negative”",
+         "Calculate the net torque when more than one torque acts on a body about a rotation axis",
+         "Perform an experiment or a set of experiments to measure torque and specify its direction and demonstrate the relationship between torgue and the lever arm",
+         "Solve poblems that involve torque"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.051",
+        "text": "Demonstrate that the moment of inertia of an object represents the tendency to resist the change in rotational motion and apply the suitable mathematical equations to calculate the moment of inertia of different objects or systems",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define moment of inertia as the resistance to rotation",
+         "Calculate the moment of inertia (rotational inertia) of a single point mass 2 rotating about an axis(I=mr )",
+         "Find the total moment of inertia due to many point masses",
+         "Determine the moment of inertia of extended objects like the hoop, solid uniform cylinder, uniform sphere, long uniform rod and rectangular plate",
+         "Demonstrate how the moment of inertia of an extended object depends on the location and direction of the rotational axis"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.078",
+        "text": "Apply Newton's Second Law for rotational motion, and use it to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "State newton's second law for rotational motion which relates the net torque on a body to the body’s moment of inertia and rotational acceleration, all calculated relative to a specified axis of rotation",
+         "Apply newton’s second law for rotation to solve problems"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "lever arm",
+       "torque",
+       "moment of inertia",
+       "Newton’s second law for"
+      ],
+      "misconceptions": [
+       "Moment of inertia and toque are the same thing."
+      ]
      },
      {
-      "code": "U3M12L1",
-      "unit": "Momentum and Energy",
-      "module": "States of Matter",
-      "lesson": "Properties of Fluids",
-      "weeks": "Week 8 to week 10",
-      "periods": "7",
-      "type": "core"
+      "code": "U2M8L3",
+      "unit": "2 Mechanics in Two Dimensions",
+      "module": "U2M8 Rotational Motion",
+      "lesson": "Equilibrium",
+      "weeks": "Weeks 01–06",
+      "periods": "8",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.02.031",
+        "text": "Design a kit, sketch, a simulation, or experimental procedure to find the center of mass of objects of different shapes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain the meaning of center of mass",
+         "Locate experimentally the center of mass of an object by suspending it from different points",
+         "Explain how the location of the center of mass affects the stability of an object",
+         "Conduct an investigation to show how the center of mass is related to rotational inertia"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.032",
+        "text": "Determine (geometrically or through a mathematical equation) the center of mass of an extended object and the center of mass for a system of many objects",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain the meaning of center of mass",
+         "Locate the center of mass of an extended symmetric object by using the symmetry"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.048",
+        "text": "Determine the conditions for static equilibrium and distinguish between stable and unstable equilibrium relating that to the place of the center of mass",
+        "priority": "Power Outcome",
+        "kpis": [
+         "State the conditions for an object to be in static equilibrium- both translational and rotational equilibrium",
+         "Solve problems related to objects in equilibrium",
+         "Conduct an experiment to show the conditions for equilibrium to occur"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.080",
+        "text": "Describe rotating frames of reference and forces in such frames like the centrifugal force and the coriolis force, and use that to explain the method of separating blood contents",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Describe the centrifugal force as an apparent force in a non-inertial frame of reference, such as a rotating frame, which appears to push an object outward.",
+         "Describe the coriolis force as an apparent force in a rotating frame of reference, which appears to deflect an object from its path."
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Center of mass",
+       "Centrifugal “force",
+       "Coriolis “force"
+      ],
+      "misconceptions": [
+       "Apparent forces are real forces."
+      ]
      },
      {
-      "code": "U3M12L2",
-      "unit": "Momentum and Energy",
-      "module": "States of Matter",
-      "lesson": "Forces Within Liquids",
-      "weeks": "Week 8 to week 10",
-      "periods": "3",
-      "type": "core"
+      "code": "U3M9L1",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M9 Momentum and Its Conservation",
+      "lesson": "Impulse and Momentum",
+      "weeks": "Weeks 06–11",
+      "periods": "10",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.02.049",
+        "text": "Define the impulse of a force on an object, and demonstrate it in an equation form",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain what happens when a player hits a ball in terms of the acting forces and their effects on the colliding objects before, during, and after collision.",
+         "Define impulse as the product of average force on an object and the time interval over which it acts",
+         "Derive impulse expression from Newton's Second Law of motion and specify its unit"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.034",
+        "text": "Evaluate the impulse of a force (constant or variable) on a system",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Calculate the impulse in case of a constant force and in case when the force is not constant by using the average force multiplied by the time interval over which it acts or by finding the area under a force-time graph",
+         "Solve problems involving impulse"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.033",
+        "text": "Define linear momentum of a moving object, express it in an equation form, and apply it to find the linear momentum of different systems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the linear momentum of an object as the product of the object's mass and the object's velocity and specify its unit",
+         "Apply the linear momentum equation to calcuate the linear momentum of different systems"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.035",
+        "text": "Design an experiment to demonstrate the relationship between impulse of a force on an object and the change of its momentum",
+        "priority": "Power Outcome",
+        "kpis": [
+         "State the impulse-momentum theorem and write it in equation form FΔt = P -P f i",
+         "Apply the impuse-momentum theorem to solve relevant problems",
+         "Conduct experiments or simulations that demonstrate change in velocities and momentum during collision"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.037",
+        "text": "Explain how safety measure kits in cars, like shock absorbers and air bags, work",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Explain how impulse-momentum theorem is used to save lives in case of car air bags"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.038",
+        "text": "Design a kit that reduces the effect of collision hazards like using elastic bumpers",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Investigate some applications of impulse-momentum theorem in every day life"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.045",
+        "text": "Define the angular momentum of an object or a point particle, relate the change in angular momentum to the torque on an object, and apply that to solve relevant problems",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the angular momentum of an object as the product of the object's moment of inertia and the object's angular velocity and write in in equation form L= I𝜔 and specify its unit",
+         "State the angular impulse-angular momentum theorem and write it in equation form 𝜏Δt = L -L f i",
+         "Relate Newton's Second Law for rotational motion to the angular impulse-angular momentum theorem",
+         "Explain that an object's angular velocity can change if its shape changes even if no torques act on it and its angular momentum is constant",
+         "Discuss some examples where angular impulse-angular momentum theorem is involved like diving into a pool or during ice-skating",
+         "Solve problems involving angular momentum"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Impulse",
+       "Momentum",
+       "Impulse-momentum theorem",
+       "Angular momentum",
+       "Angular impulse-angular momentum"
+      ],
+      "misconceptions": [
+       "Momentum is the same as velocity."
+      ]
+     },
+     {
+      "code": "U3M9L2",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M9 Momentum and Its Conservation",
+      "lesson": "Conservation of Momentum",
+      "weeks": "Weeks 06–11",
+      "periods": "12",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.02.049",
+        "text": "Define the impulse of a force on an object, and demonstrate it in an equation form",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Discuss the forces and impulses exerted on one another in case of two-particle collision in one dimension."
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.039",
+        "text": "Explore the law of conservation of linear momentum in a system of particles colliding due to internal forces between them using digital data recorders",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Show that the total momentum of a system of two colliding objects is not changed using the impulse definition, the impulse relation with change of momentum, and Newton's Third law",
+         "Define a closed system as a system that does not gain or lose mass",
+         "Define an isolated system as a closed system where the net of external forces is zero"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.040",
+        "text": "Design a model (descriptive and mathematical equation) to describe the law of conservation of linear momentum for a system of two colliding objects in one and two dimensions",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the law of conservation of linear momentum",
+         "Explain the law of conservation of linear mumentum and express it in equation form",
+         "Define the system and apply the law of conservation of linear momentum to different situations in one dimension like recoil, propulsion in space, or others to calculate different physical quantities",
+         "Define the system, establish a coordinate system (x, y), and apply the law of conservation of linear momentum (along x and y directions) to different situations in two dimensions to calculate different physical quantities",
+         "Conduct an experiment or a simulation to investigate the law of conservation of linear momentum"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.046",
+        "text": "Show evidence, gathered from observation of a demonstration, on the principle of conservation of angular momentum and express that in a mathematical equation",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the law of conservation of angular momentum",
+         "Explain the law of conservation of angular mumentum and express it in equation form L = L f i",
+         "Define the system and apply the law of conservation of angular momentum to solve relevant problems",
+         "Discuss different examples that involve the law of conservation of angular momentum like in ice skating, tops, gyroscopes, and others",
+         "Solve problems involving the conservation of angular momentum",
+         "Conduct an experiment or a simulation to investigate the law of conservation of angular momentum"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Closed System",
+       "Isolated System",
+       "Law of Conservation of Momentum",
+       "Law of Conservation of Angular"
+      ],
+      "misconceptions": [
+       "Systems consist of a single body only.",
+       "Expelled gases from rockets push on air, and that is why rockets move."
+      ],
+      "objectives": "Explore the conservation of momentum in a variety of situations, including collisions, recoil, and gyroscopes to understand that rockets can move in space using recoil.",
+      "focusQuestion": "What is recoil and how is it useful?"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G11_Advanced_EN_ADV.PHY.P.101.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true
+   }
+  },
+  "2": {
    "Chemistry": {
     "strands": {
      "Reaction Rates": [
@@ -44340,82 +45203,120 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Physics": {
     "strands": {
-     "States of Matter": [
-      "Fluids at Rest and in Motion",
-      "Solids"
+     "U3M10 Energy and Its Conservation": [
+      "U3M10L1 — Work and Energy",
+      "U3M10L2 — The Many Forms of Energy",
+      "U3M10L3 — Conservation of Energy",
+      "U3M10L4 — Machines"
      ],
-     "Electrostatics": [
-      "Electric Charge",
-      "Electrostatic Force",
-      "Measuring Electric Fields",
-      "Applications of Electric Fields"
+     "U3M11 Thermal Energy": [
+      "U3M11L1 — Temperature, Heat, and Thermal Energy",
+      "U3M11L2 — Changes of State and Thermodynamics"
+     ],
+     "U3M12 States of Matter": [
+      "U3M12L1 — Properties of Fluids",
+      "U3M12L2 — Forces Within Liquids"
      ]
     },
     "lessons": [
      {
-      "code": "U3M12L3",
-      "unit": "Momentum and Energy",
-      "module": "States of Matter",
-      "lesson": "Fluids at Rest and in Motion",
-      "weeks": "Week 1 to week 3",
-      "periods": "8",
-      "type": "core"
+      "code": "U3M10L1",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Work and Energy",
+      "weeks": "Weeks 1–3",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      },
      {
-      "code": "U3M12L4",
-      "unit": "Momentum and Energy",
-      "module": "States of Matter",
-      "lesson": "Solids",
-      "weeks": "Week 1 to week 3",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "U5M18L1",
-      "unit": "Electricity and Magnetism",
-      "module": "Electrostatics",
-      "lesson": "Electric Charge",
-      "weeks": "Week 3 to week 9",
+      "code": "U3M10L2",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "The Many Forms of Energy",
+      "weeks": "Weeks 1–3",
       "periods": "5",
-      "type": "core"
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      },
      {
-      "code": "U5M18L2",
-      "unit": "Electricity and Magnetism",
-      "module": "Electrostatics",
-      "lesson": "Electrostatic Force",
-      "weeks": "Week 3 to week 9",
-      "periods": "8",
-      "type": "core"
-     },
-     {
-      "code": "U5M18L3",
-      "unit": "Electricity and Magnetism",
-      "module": "Electrostatics",
-      "lesson": "Measuring Electric Fields",
-      "weeks": "Week 3 to week 9",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "U5M18L4",
-      "unit": "Electricity and Magnetism",
-      "module": "Electrostatics",
-      "lesson": "Applications of Electric Fields",
-      "weeks": "Week 3 to week 9",
+      "code": "U3M10L3",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Conservation of Energy",
+      "weeks": "Weeks 1–3",
       "periods": "10",
-      "type": "core"
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M10L4",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Machines",
+      "weeks": "Weeks 1–3",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M11L1",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M11 Thermal Energy",
+      "lesson": "Temperature, Heat, and Thermal Energy",
+      "weeks": "Weeks 4–7",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M11L2",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M11 Thermal Energy",
+      "lesson": "Changes of State and Thermodynamics",
+      "weeks": "Weeks 4–7",
+      "periods": "12",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M12L1",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M12 States of Matter",
+      "lesson": "Properties of Fluids",
+      "weeks": "Weeks 8–10",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M12L2",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M12 States of Matter",
+      "lesson": "Forces Within Liquids",
+      "weeks": "Weeks 8–10",
+      "periods": "3",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G11_Advanced_EN_ADV.PHY.P.101.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Chemistry": {
     "strands": {
      "Acids and Bases": [
@@ -45189,6 +46090,91 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "U3M12 States of Matter": [
+      "U3M12L3 — Fluids at Rest and in Motion",
+      "U3M12L4 — Solids"
+     ],
+     "U5M18 Electrostatics": [
+      "U5M18L1 — Electric Charge",
+      "U5M18L2 — Electrostatic Force",
+      "U5M18L3 — Measuring Electric Fields",
+      "U5M18L4 — Applications of Electric Fields"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U3M12L3",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M12 States of Matter",
+      "lesson": "Fluids at Rest and in Motion",
+      "weeks": "Weeks 1–3",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M12L4",
+      "unit": "3 Momentum and Energy",
+      "module": "U3M12 States of Matter",
+      "lesson": "Solids",
+      "weeks": "Weeks 1–3",
+      "periods": "4",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5M18L1",
+      "unit": "5 Electricity and Magnetism",
+      "module": "U5M18 Electrostatics",
+      "lesson": "Electric Charge",
+      "weeks": "Weeks 3–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5M18L2",
+      "unit": "5 Electricity and Magnetism",
+      "module": "U5M18 Electrostatics",
+      "lesson": "Electrostatic Force",
+      "weeks": "Weeks 3–9",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5M18L3",
+      "unit": "5 Electricity and Magnetism",
+      "module": "U5M18 Electrostatics",
+      "lesson": "Measuring Electric Fields",
+      "weeks": "Weeks 3–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5M18L4",
+      "unit": "5 Electricity and Magnetism",
+      "module": "U5M18 Electrostatics",
+      "lesson": "Applications of Electric Fields",
+      "weeks": "Weeks 3–9",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -49516,99 +50502,6 @@
     "source": "Masar (GitHub)",
     "lang": "en"
    },
-   "Physics": {
-    "strands": {
-     "Energy and Its Conservation": [
-      "Work and Energy",
-      "The Many Forms of Energy",
-      "Conservation of Energy",
-      "Machines"
-     ],
-     "Quantum Theory and The Atom": [
-      "A Particle Model of Waves",
-      "Matter Waves",
-      "Bohr’s Model of the Atom",
-      "The Quantum Model of the Atom"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U3M10L1",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Work and Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L2",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "The Many Forms of Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L3",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Conservation of Energy",
-      "weeks": "Week 1 to week 3",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U3M10L4",
-      "unit": "Momentum and Energy",
-      "module": "Energy and Its Conservation",
-      "lesson": "Machines",
-      "weeks": "Week 1 to week 3",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "U6M22L1",
-      "unit": "Subatomic Physics",
-      "module": "Quantum Theory and The Atom",
-      "lesson": "A Particle Model of Waves",
-      "weeks": "Week 4 to week 11",
-      "periods": "11",
-      "type": "core"
-     },
-     {
-      "code": "U6M22L2",
-      "unit": "Subatomic Physics",
-      "module": "Quantum Theory and The Atom",
-      "lesson": "Matter Waves",
-      "weeks": "Week 4 to week 11",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "U6M22L3",
-      "unit": "Subatomic Physics",
-      "module": "Quantum Theory and The Atom",
-      "lesson": "Bohr’s Model of the Atom",
-      "weeks": "Week 4 to week 11",
-      "periods": "17",
-      "type": "core"
-     },
-     {
-      "code": "U6M22L4",
-      "unit": "Subatomic Physics",
-      "module": "Quantum Theory and The Atom",
-      "lesson": "The Quantum Model of the Atom",
-      "weeks": "Week 4 to week 11",
-      "periods": "3",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
-    "lang": "en"
-   },
    "Biology": {
     "strands": {
      "U3M10 Introduction to genetics and patterns of inheritance": [
@@ -51911,6 +52804,364 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Advanced, English)",
     "lang": "en",
     "withSLOs": true
+   },
+   "Physics": {
+    "strands": {
+     "U3M10 Energy and Its Conservation": [
+      "U3M10L1 — Work and Energy",
+      "PHY.6.2.03.002 — Develop an experiment or a simulation to explore the relationship between mechanical work done on an object and its kinetic energy, work - energy theorem",
+      "PHY.6.1.02.047 — Develop a mathematical model to evaluate the rotational kinetic energy of a rigid object, like a rolling sphere or cylinder or a rolling tire of a vehicle",
+      "PHY.6.2.03.003 — Develop a mathematical equation to obtain the mechanical work done by the gravitational force on an object moving in the gravitational field",
+      "PHY.6.2.03.004 — Describe the mechanical work of a conservative force in terms of the change in potential energy, and the mechanical work done by a nonconservative force in terms of the change in total mechanical energy",
+      "PHY.6.2.03.005 — Analyze data obtained by digital data recorders to model the principle of conservation of mechanical energy in a mathematical equation",
+      "PHY.6.1.02.041 — Classify collisions as elastic or inelastic depending on the change of the kinetic energy of the system, and explain the loss of kinetic energy in inelastic collisions using the law of conservation of energy",
+      "U3M10L4 — Machines"
+     ],
+     "U6M22 Quantum Theory and The Atom": [
+      "PHY.6.2.05.001 — Employ a tool, simulation, presentation, graphs or verbal explanations to describe the black body radiation, identifying the successes and failures of classical theory (specifically the Ultraviolet Catastrophe) in explaining how the intensity of radiation varies with wavelength",
+      "PHY.6.2.05.011 — Explain that energy exchanges between matter and electromagnetic waves are quantized",
+      "PHY.6.2.05.002 — Explain the photoelectric effect interpreting the relationship between the maximum kinetic energy of the electrons released from the surface of a metal and the frequency of the incident photons",
+      "PHY.6.2.05.003 — Explain how the Compton effect experiment supports the particle theory of light",
+      "PHY.6.2.05.004 — Show evidence, based on experimental observations, to support the results obtained by de Broglie on the dual nature of matter",
+      "PHY.6.2.05.010 — Explain the limitation of simultaneously measuring a particle's position and momentum using the Heisenberg Uncertainty Principle",
+      "PHY.6.2.05.005 — Explain the Bohr model of the atom and the basis used by Bohr to build his model and the limitations of this model",
+      "PHY.6.2.05.006 — Conclude that emission of electromagnetic radiation from matter is a result of energy release due to the drop of electrons from higher to lower energy levels of the atoms, and explain how emission and absorption spectra can be used to identify unknown samples",
+      "PHY.6.2.05.007 — Explore and study experimentally the emission spectra of different sources of light like sunlight, sodium and mercury lamps, fluorescent tubes and emitting diodes",
+      "PHY.6.2.05.012 — Based on Bohr model, calculate the electron orbital radius and energy of a Hydrogen atom for a given principal quantum number \"n\", and explain the different spectral series of Hydrogen resulting from electron transitions between energy levels",
+      "PHY.6.2.05.013 — Describe the current view of electrons in the quantum model of the atom, and Illustrate how De Broglie’s wave–particle duality and Heisenberg’s Uncertainty Principle shape this model",
+      "PHY.6.2.05.009 — Explain the role of subatomic particles, such as electrons and neutrons, in modern equipment and tools, including lasers, electron microscopes, and neutron diffraction instruments"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U3M10L1",
+      "unit": "U3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Work and Energy",
+      "weeks": "Weeks 1–3",
+      "periods": "0",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M10L2",
+      "unit": "U3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "The Many Forms of Energy",
+      "weeks": "Weeks 01–03",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.03.002",
+        "text": "Develop an experiment or a simulation to explore the relationship between mechanical work done on an object and its kinetic energy, work - energy theorem",
+        "priority": "Support Outcome (Basic) (Note: Considerd basic as it was mostly covered in previous lesson)",
+        "kpis": [
+         "Recall that when an agent performs work on a system, the system’s energy increases, and vice versa.",
+         "Classify kinetic energy into translational or rotational kinetic energy",
+         "Recall that the translational kinetic energy is proportional to the square of the object’s speed"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.047",
+        "text": "Develop a mathematical model to evaluate the rotational kinetic energy of a rigid object, like a rolling sphere or cylinder or a rolling tire of a vehicle",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Relate the rotational kinetic energy to the object’s moment of inertia and it’s angular I𝜔2 velocity: KE = ½ rot",
+         "Calculate the translational and rotational kinetic energies for objects",
+         "Solve problems involving translational and rotational kinetic energy"
+        ]
+       },
+       {
+        "code": "PHY.6.2.03.003",
+        "text": "Develop a mathematical equation to obtain the mechanical work done by the gravitational force on an object moving in the gravitational field",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Calculate the work done by the gravitational force (W ) when an object is lifted or g lowered from a reference level (W =mg(h-h)) g i f"
+        ]
+       },
+       {
+        "code": "PHY.6.2.03.004",
+        "text": "Describe the mechanical work of a conservative force in terms of the change in potential energy, and the mechanical work done by a nonconservative force in terms of the change in total mechanical energy",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define potential energy as the energy stored due to interactions between objects in a system",
+         "Define the term gravitational potential energy",
+         "Relate the gravitational potential energy to the mass of the object and its height above or below a reference level (GPE=mgh)",
+         "Show that the amount of work done by gravity on a body is opposite to the change in the gravitational potential energy of the system (body-Earth) as the body moves from an anitial position to a final position (W =mg(h-h)=−mg(h−h)=−∆(GPE)). g i f f i",
+         "Discuss energy transformations in situations where an object moves vertically upward or downward",
+         "Define the term elastic potential energy and give examples",
+         "Interpret mass as a form of energy called rest energy which is equal is to the mass 2 multiplied by the speed of light squared (E = mc )",
+         "Identify other forms of energy like chemical, nuclear, thermal, electrical, and radiant energy and give examples"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M10L3",
+      "unit": "U3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Conservation of Energy",
+      "weeks": "Weeks 01–03",
+      "periods": "10",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.03.005",
+        "text": "Analyze data obtained by digital data recorders to model the principle of conservation of mechanical energy in a mathematical equation",
+        "priority": "Power Outcome",
+        "kpis": [
+         "State and explain the law of conservation of energy",
+         "Define mechanical energy as the sum of all kinetic and potential energies of the system; ME = KE + PE",
+         "Apply the law of conservation of mechanical energy ( 𝐾 𝐸 + 𝑃 𝐸 = 𝐾 𝐸 + 𝑃 𝐸 ) to solve ! ! \" \" problems on different physical situations like roller coaster rides, skiing on ski slopes, motion on inclined planes/ hills, motion of pendulums, or others.",
+         "Conduct an experiment to investigate the conservation of mechanical energy.",
+         "Key Performance Indicators (KPIs)"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.041",
+        "text": "Classify collisions as elastic or inelastic depending on the change of the kinetic energy of the system, and explain the loss of kinetic energy in inelastic collisions using the law of conservation of energy",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Compare elastic collision and inelastic collisions",
+         "Explain the loss of kinetic energy in the case of inelastic collisions",
+         "Analyze one-dimensional collisions to calculate momenta, velocities, kinetic energies, and other physical quantities before or after the collision"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3M10L4",
+      "unit": "U3 Momentum and Energy",
+      "module": "U3M10 Energy and Its Conservation",
+      "lesson": "Machines",
+      "weeks": "Weeks 1–3",
+      "periods": "0",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M22L1",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M22 Quantum Theory and The Atom",
+      "lesson": "A Particle Model of Waves",
+      "weeks": "Weeks 04–11",
+      "periods": "11",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.05.001",
+        "text": "Employ a tool, simulation, presentation, graphs or verbal explanations to describe the black body radiation, identifying the successes and failures of classical theory (specifically the Ultraviolet Catastrophe) in explaining how the intensity of radiation varies with wavelength",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Describe the emission of electromagnetic radiation from an object, and relate it to its temperature (thermal radiation).",
+         "Define the emission spectrum of an element or an object.",
+         "Interpret the emission spectrum of an object, and relate the frequency at which the emission spectrum peaks to the temperature of the object.",
+         "Describe how classical electromagnetic wave theory agrees with experimental data for thermal radiation at long wavelengths, but fails to explain the emission spectrum at short wavelengths."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.011",
+        "text": "Explain that energy exchanges between matter and electromagnetic waves are quantized",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain Planck's concept of quantization of energy, in which the energy of an oscillator (such as atoms vibrating in a solid) exists only in bundles of specific amount and can have only discrete values ( 𝐸 = 𝑛 ℎ 𝑓 ) , where n is an integer, h is Planck's constant ( ℎ = 6 . 6 3 × 1 0 \" # $ J / H z ), and f is the frequency of vibration.",
+         "Describe that, according to Planck, the energy of radiation emitted or absorbed by an atom in a solid is equal to the change in the vibrational energy of the atom.",
+         "Calculate the energy emitted or absorbed by a vibrating atom in a solid using the equation ( 𝐸 = 𝑛 ℎ 𝑓 ) ."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.002",
+        "text": "Explain the photoelectric effect interpreting the relationship between the maximum kinetic energy of the electrons released from the surface of a metal and the frequency of the incident photons",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define the photoelectric effect.",
+         "Explain how the photoelectric effect occurs when light shines on a metal surface such as in a photocell.",
+         "State that electrons ejected from a metal by electromagnetic radiation due to the photoelectric effect are called photoeletrons.",
+         "Explain that electrons are ejected from the surface of a metal only if the frequency of the incident radiation is greater than a threshold frequency ( 𝑓 ) which is characteristic of the metal. !",
+         "Define a photon.",
+         "Define the electron volt (eV) as a unit of energy used with atomic-sized systems such that ( 1 𝑒 𝑉 = 1 . 6 × 1 0 \" % & 𝐽 𝑜 𝑢 𝑙 𝑒 𝑠 ) . ℎ𝑐",
+         "Calculate the energy of a photon given its wavelength or frequency ( 𝐸 = ℎ 𝑓 = ) . 𝜆",
+         "Calculate the maximum kinetic energy of an electron ejected due to the photoelectric effect ( 𝐾 𝐸 = ℎ 𝑓 − ℎ 𝑓 ) . !",
+         "Define the work function of a metal, and calculate its value ( ℎ 𝑓 ) . !",
+         "Explain that the maximum kinetic energy of photoelectrons is independant of the intensity of incident electromagnetic radiation.",
+         "Explain that the current due to photoelectrons (photoelectric current) is proportional to the intensity of incident electromagnetic radiation.",
+         "Describe how the photoelectric effect provides evidence for the particle nature of electromagnetic radiation.",
+         "Define the stopping potential as the potential difference applied between the emitter (cathode) and the collector (anode) of a photocell at which the photocurrent becomes zero.",
+         "Explain that at the stopping potential, no electrons ejected from the emitter (cathode) have enough kinetic energy to reach the collector (anode), and that the maximum kinetic energy of a photoelectron equals the work done by the electric field to stop it.",
+         "Calculate the maximum kinetic energy of photoelectrons using the relation, KE =−e∆V , where KE is the maximum max 0 max −19 kinetic energy of a photoelectron at the emitter (cathode), e is the charge of the electron (−1.6 × 10 C), and ∆V is the 0 magnitude of the stopping potential in volts (J/C).",
+         "Interpret the graph of maximum kinetic energy of an electron ejected from a metal versus the frequency of incident photon, and determine graphically the threshold frequency and Planck's constant.",
+         "Describe some applications of the photoelectric effect."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.003",
+        "text": "Explain how the Compton effect experiment supports the particle theory of light",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "ℎ𝑓 ℎ",
+         "Calcuate the momentum of a photon ( 𝑝 = = ) . 𝑐 𝜆",
+         "Explain the Compton effect.",
+         "Describe that collisions between photons and particles obey the laws of conservation of energy and momentum."
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M22L2",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M22 Quantum Theory and The Atom",
+      "lesson": "Matter Waves",
+      "weeks": "Weeks 04–11",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.05.004",
+        "text": "Show evidence, based on experimental observations, to support the results obtained by de Broglie on the dual nature of matter",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe de Broglie's hypothesis of the wave nature of matter.",
+         "State that de Broglie's hypothesis is verified by experiments such as electron diffraction.",
+         "Describe the de Broglie wavelength as the wavelength associated with a moving particle.",
+         "Calculate the de Broglie wavelength for a moving particle ( 𝜆 = ' = ' ) . ( )*"
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.010",
+        "text": "Explain the limitation of simultaneously measuring a particle's position and momentum using the Heisenberg Uncertainty Principle",
+        "priority": "Power Outcome",
+        "kpis": [
+         "State Heisenberg uncertainty principle.",
+         "Describe that the more precisely a particle's position is measured, the more the uncertainty in simultaneously measuring the particle's momentum, and vice versa."
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M22L3",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M22 Quantum Theory and The Atom",
+      "lesson": "Bohr’s Model of the Atom",
+      "weeks": "Weeks 04–11",
+      "periods": "17",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.05.005",
+        "text": "Explain the Bohr model of the atom and the basis used by Bohr to build his model and the limitations of this model",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the electron distribution within the atom according to Thomson's model.",
+         "Describe how Rutherford's alpha particles scattering experiment led to the revision of Thomson's model of the atom and the introduction of the atomic nucleus.",
+         "Describe Rutherford's nuclear model of the atom, as a small dense positively charged nucleus surrounded by orbiting electrons (planetory model), and explain why this model cannot explain the stability and the observed line emission spectra of atoms.",
+         "Describe that Bohr combined Planck's ideas on quantized energy with Einstein's theory on photons and Rutherford's nuclear model to arrive at his model of the atom.",
+         "Explain how Bohr resolved the instability of the planetary model by postulating that electrons in stable orbits do not radiate energy and are found in stationary states each of which has a specific amount of energy.",
+         "Identify that electrons in atoms have quantized amounts of energy each of which is called an energy level.",
+         "Describe that, similar to a flight of stairs (with decrteasing-height steps), an electron's energy cannot have a value between allowed energy levels.",
+         "Define the ground state as the state in which an atom has the smallest allowable amount of energy.",
+         "Describe an excited state of an atom as any energy level higher than the ground state.",
+         "Explain that in Bohr's model, electrons move in circular orbits around the nucleus under the influence of the electric force of attraction ( 𝐹 = − + , ! ) , and have specific quantized energy levels. -!",
+         "Explain that an atom transitions from the ground state to an excited state by absorbing energy, causing one or more electrons to jump to a higher energy levels and occupy an orbit farther from the nucleus.",
+         "Explain that an atom can transition from an initial energy state to a final energy state by absorbing or emitting a photon whose energy equals the difference between the two states.",
+         "Calculate the change in an atom's energy as it transitions from an initial state 𝐸 to a final state 𝐸 using the equation . / ( ∆ 𝐸 = 𝐸 − 𝐸 ) . 012) / .",
+         "Calculate the energy, frequency, and wavelength of an emitted or absorbed photon as an atom transitions from an initial energy level 𝐸 to a final energy level 𝐸 using the equations: . / '8 (𝐸 =ℎ𝑓 =−∆𝐸 =𝐸 −𝐸 ; 𝐸 = ℎ𝑓=∆𝐸 =𝐸 −𝐸 ), 𝐸 = ('2123,1-035).11,6 012) . / ('2123,0752-7,6 012) / . ('2123 9",
+         "Describe limitations of the Bohr model, including its restriction to hydrogen and hydrogen-like ions, its inability to explain why orbiting electrons do not continuously emit radiation, and its violation of Heisenberg Uncertainty Principle."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.006",
+        "text": "Conclude that emission of electromagnetic radiation from matter is a result of energy release due to the drop of electrons from higher to lower energy levels of the atoms, and explain how emission and absorption spectra can be used to identify unknown samples",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain that the emission spectrum of an element is a unique pattern, which serves as a finger print of that element.",
+         "Explain how the composition of an unknown gas sample can be determined by comparing its emission spectrum to reference spectra of known elements.",
+         "Define the absorption spectrum of an element or a gas.",
+         "Explain that the absorption spectrum of an element is a unique pattern, which serves as a finger print of that element.",
+         "Identify that the bright lines of the emission spectrum and the dark lines of the absorption spectrum, for an element or a gas, occur at the same wavelengths.",
+         "Explain how the composition of an unknown gas sample can be determined from the wavelengths of the dark lines of its absorption spectrum.",
+         "Describe spectroscopy as the branch of science that studies spectra and list some of its applications."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.007",
+        "text": "Explore and study experimentally the emission spectra of different sources of light like sunlight, sodium and mercury lamps, fluorescent tubes and emitting diodes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Describe that atoms in a gas-discharge tube can be made to emit light when a large potential difference is applied across the gas.",
+         "List some examples of real-world applications that make use of emission sepctra of atoms.",
+         "Describe a spectroscope as an instrument used to split light into its component colors, using a prism or a diffraction grating, and allows to study an emission (or absorption) spectrum.",
+         "Distinguish between the continuous emission spectrum, due to thermal radiation, of an incandescent solid (such as a lighbulb filament) and the discrete line spectrum of a gas in a discharge tube."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.012",
+        "text": "Based on Bohr model, calculate the electron orbital radius and energy of a Hydrogen atom for a given principal quantum number \"n\", and explain the different spectral series of Hydrogen resulting from electron transitions between energy levels",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe that, in the Bohr model, the radii of allowed electron orbits in the Hydrogen atom have discrete values, and are therefore quantized. '!3!",
+         "Calculate the electron orbital radius in Hydrogen using the equation ( 𝑟 3 = $ : ! ; ) \" , ! ) , where n is an integer called the principal quantum number (𝑛=1,2,3,...), h is planck's constant, K is the Coulomb's constant ( 𝐾 = 9 . 0 × 1 0 & 𝑁 . 𝑚 < / 𝐶 < ) , m e is the mass of an electron ( 𝑚 , = 9 . 1 1 × 1 0 \" # % 𝑘 𝑔 ) , and e is the elementary charge ( 𝑒 = 1 . 6 × 1 0 \" % & 𝐶 ) .",
+         "Explain that total energy of the Hydrogen atom (the sum of the electron's kinetic energy and the proton-electron electric potential energy) takes discrete values and is therefore quantized. %#.> ,@",
+         "Calculate the total energy of a Hydrogen atom using the equation ( 𝐸 = − ) , where n is the principal quantum 3 3! number (𝑛=1,2,3,...). 𝑛2",
+         "Describe that the radius of the electron's orbit in Hydrogen atom is proportional to , while the energy of the atom is inversly proportional to 𝑛2 , and that the difference between successive energy levels decreases as 𝑛 increases.",
+         "Explain that the lowest allowed energy level, the ground state, corresponds to (𝑛=1) such that for Hydrogen this energy is ( 𝐸 = − 1 3 . 6 𝑒 𝑉 ) and the corresponding electron orbit has the smallest radius, called the Bohr radius. %",
+         "Describe that the zero energy reference level for the Hydrogen atom is defined as the energy of the atom when the electron is infinitly far from the nucleus and has no kinetic energy (i.e the atom is ionized where the electron has been removed completely from the atom). %#.> ,@",
+         "Explain that the negative sign in the Hydrogen total energy formula ( 𝐸 = − ) signifies a bound electron-proton 3 3! system, indicating that positive energy (work) must be supplied to ionize the atom.",
+         "Explain that the Lyman series corresponds to transitions from energy levels of principal quantum number 𝑛=2 or higher to the energy level 𝑛=1, such that the Hydrogen atom emits ultraviolet radiation.",
+         "Explain that the Balmer series corresponds to transitions from energy levels of principal quantum number 𝑛=3 or higher to the energy level 𝑛=2, such that the Hydrogen atom emits visible light.",
+         "Explain that the Paschen series corresponds to transitions from energy levels of principal quantum number 𝑛=4 or higher to the energy level 𝑛=3, such that the Hydrogen atom emits infrared radiation."
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M22L4",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M22 Quantum Theory and The Atom",
+      "lesson": "The Quantum Model of the Atom",
+      "weeks": "Weeks 04–11",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.05.013",
+        "text": "Describe the current view of electrons in the quantum model of the atom, and Illustrate how De Broglie’s wave–particle duality and Heisenberg’s Uncertainty Principle shape this model",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Recall de Broglie's hypothesis regarding the wave properties of particles.",
+         "Illustrate that, in the Bohr model, the circumference of a stable electron obit must be an integer multiple of the de Broglie wavelength (2𝜋r=n𝜆), as a result of combining de Broglie and Bohr ideas.",
+         "Define the electron cloud as the region of space around the nucleus where there is a high probability of finding an electron.",
+         "Describe how the concept of de Broglie wavelength (electrons behaving as waves) and the Heisenberg uncertainty principle (the impossibility of knowing an electron’s exact position and momentum at the same time) lead to the replacement of Bohr’s circular orbits with the concept of the electron cloud in the quantum model of the atom.",
+         "Describe the quantum model of the atom, in which electrons are described by probability distributions (electron clouds) around the nucleus.",
+         "Define quantum mechanics as the branch of physics that studies the behavior of matter and energy at the atomic and subatomic scales."
+        ]
+       },
+       {
+        "code": "PHY.6.2.05.009",
+        "text": "Explain the role of subatomic particles, such as electrons and neutrons, in modern equipment and tools, including lasers, electron microscopes, and neutron diffraction instruments",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Recall the definition of coherent and incoherent light.",
+         "Describe spontaneous emission as a natural process by which an atom in an excited state makes a transition to a lower energy level by emitting a photon.",
+         "Describe stimulated emission as a process by which an atom in an excited state is struck by a photon whose energy equals the energy difference between the excited state and the ground state, causing the atom to return to the ground state and emit a second photon with the same energy (and hence wavelength and frequency) as the incident photon.",
+         "Describe a laser as a device that uses stimulated emission to produce coherent light.",
+         "List some of the applications of lasers in various fields such as medicine, research, communication, and industry."
+        ]
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -51926,139 +53177,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Nuclear and Particle Physics": [
-      "The Nucleus",
-      "Nuclear Decay and Reactions",
-      "The Building Blocks of Matter"
-     ],
-     "Motion in a Straight Line": [
-      "Introduction to Kinematics",
-      "Position Vector, Displacement Vector, and Distance",
-      "Velocity Vector, Average Velocity, and Speed",
-      "Acceleration Vector",
-      "Computer Solutions and Difference Formulas",
-      "Finding Displacement and Velocity from Acceleration",
-      "Motion with Constant Acceleration",
-      "Free Fall",
-      "Reducing Motion in More Than One Dimension to One Dimension"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U6M24L1",
-      "unit": "Subatomic Physics",
-      "module": "Nuclear and Particle Physics",
-      "lesson": "The Nucleus",
-      "weeks": "Week 1 to week 5",
-      "periods": "10",
-      "type": "core"
-     },
-     {
-      "code": "U6M24L2",
-      "unit": "Subatomic Physics",
-      "module": "Nuclear and Particle Physics",
-      "lesson": "Nuclear Decay and Reactions",
-      "weeks": "Week 1 to week 5",
-      "periods": "13",
-      "type": "core"
-     },
-     {
-      "code": "U6M24L3",
-      "unit": "Subatomic Physics",
-      "module": "Nuclear and Particle Physics",
-      "lesson": "The Building Blocks of Matter",
-      "weeks": "Week 1 to week 5",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Introduction to Kinematics",
-      "weeks": "Week 6 to week 10",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Position Vector, Displacement Vector, and Distance",
-      "weeks": "Week 6 to week 10",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Velocity Vector, Average Velocity, and Speed",
-      "weeks": "Week 6 to week 10",
-      "periods": "3",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Acceleration Vector",
-      "weeks": "Week 6 to week 10",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 5",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Computer Solutions and Difference Formulas",
-      "weeks": "Week 6 to week 10",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "Section 6",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Finding Displacement and Velocity from Acceleration",
-      "weeks": "Week 6 to week 10",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 7",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Motion with Constant Acceleration",
-      "weeks": "Week 6 to week 10",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "Section 8",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Free Fall",
-      "weeks": "Week 6 to week 10",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "Section 9",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in a Straight Line",
-      "lesson": "Reducing Motion in More Than One Dimension to One Dimension",
-      "weeks": "Week 6 to week 10",
-      "periods": "0",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
     "lang": "en"
    },
    "Biology": {
@@ -52817,6 +53935,163 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "U6M24 Nuclear and Particle Physics": [
+      "U6M24L1 — The Nucleus",
+      "U6M24L2 — Nuclear Decay and Reactions",
+      "U6M24L3 — The Building Blocks of Matter"
+     ],
+     "Chapter 2 Motion in a Straight Line": [
+      "Section 1 — Introduction to Kinematics",
+      "Section 2 — Position Vector, Displacement Vector, and Distance",
+      "Section 3 — Velocity Vector, Average Velocity, and Speed",
+      "Section 4 — Acceleration Vector",
+      "Section 5 — Computer Solutions and Difference Formulas",
+      "Section 6 — Finding Displacement and Velocity from Acceleration",
+      "Section 7 — Motion with Constant Acceleration",
+      "Section 8 — Free Fall",
+      "Section 9 — Reducing Motion in More Than One Dimension to One Dimension"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U6M24L1",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M24 Nuclear and Particle Physics",
+      "lesson": "The Nucleus",
+      "weeks": "Weeks 1–5",
+      "periods": "10",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M24L2",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M24 Nuclear and Particle Physics",
+      "lesson": "Nuclear Decay and Reactions",
+      "weeks": "Weeks 1–5",
+      "periods": "13",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6M24L3",
+      "unit": "U6 Subatomic Physics",
+      "module": "U6M24 Nuclear and Particle Physics",
+      "lesson": "The Building Blocks of Matter",
+      "weeks": "Weeks 1–5",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 1",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Introduction to Kinematics",
+      "weeks": "Weeks 6–10",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 2",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Position Vector, Displacement Vector, and Distance",
+      "weeks": "Weeks 6–10",
+      "periods": "",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 3",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Velocity Vector, Average Velocity, and Speed",
+      "weeks": "Weeks 6–10",
+      "periods": "3",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 4",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Acceleration Vector",
+      "weeks": "Weeks 6–10",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 5",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Computer Solutions and Difference Formulas",
+      "weeks": "Weeks 6–10",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 6",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Finding Displacement and Velocity from Acceleration",
+      "weeks": "Weeks 6–10",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 7",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Motion with Constant Acceleration",
+      "weeks": "Weeks 6–10",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 8",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Free Fall",
+      "weeks": "Weeks 6–10",
+      "periods": "4",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 9",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 2 Motion in a Straight Line",
+      "lesson": "Reducing Motion in More Than One Dimension to One Dimension",
+      "weeks": "Weeks 6–10",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -52828,159 +54103,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Physics": {
-    "strands": {
-     "Motion in Two and Three Dimensions": [
-      "Three-Dimensional Coordinate Systems",
-      "Velocity and Acceleration in Two or Three Dimensions",
-      "Ideal Projectile Motion",
-      "Maximum Height and Range of a Projectile",
-      "Realistic Projectile Motion",
-      "Relative Motion"
-     ],
-     "Force": [
-      "Types of Forces",
-      "Gravitational Force Vector, Weight, and Mass",
-      "Net Force",
-      "Newton’s Laws",
-      "Ropes and Pulleys",
-      "Applying Newton’s Laws",
-      "Friction Force",
-      "Applications of the Friction Force"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Three-Dimensional Coordinate Systems",
-      "weeks": "Week 1 to week 4",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Velocity and Acceleration in Two or Three Dimensions",
-      "weeks": "Week 1 to week 4",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Ideal Projectile Motion",
-      "weeks": "Week 1 to week 4",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Maximum Height and Range of a Projectile",
-      "weeks": "Week 1 to week 4",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "Section 5",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Realistic Projectile Motion",
-      "weeks": "Week 1 to week 4",
-      "periods": "0",
-      "type": "core"
-     },
-     {
-      "code": "Section 6",
-      "unit": "Mechanics of Point Particles",
-      "module": "Motion in Two and Three Dimensions",
-      "lesson": "Relative Motion",
-      "weeks": "Week 1 to week 4",
-      "periods": "7",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Types of Forces",
-      "weeks": "Week 4 to week 9",
-      "periods": "1",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Gravitational Force Vector, Weight, and Mass",
-      "weeks": "Week 4 to week 9",
-      "periods": "1",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Net Force",
-      "weeks": "Week 4 to week 9",
-      "periods": "1",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Newton’s Laws",
-      "weeks": "Week 4 to week 9",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 5",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Ropes and Pulleys",
-      "weeks": "Week 4 to week 9",
-      "periods": "2",
-      "type": "core"
-     },
-     {
-      "code": "Section 6",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Applying Newton’s Laws",
-      "weeks": "Week 4 to week 9",
-      "periods": "4",
-      "type": "core"
-     },
-     {
-      "code": "Section 7",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Friction Force",
-      "weeks": "Week 4 to week 9",
-      "periods": "5",
-      "type": "core"
-     },
-     {
-      "code": "Section 8",
-      "unit": "Mechanics of Point Particles",
-      "module": "Force",
-      "lesson": "Applications of the Friction Force",
-      "weeks": "Week 4 to week 9",
-      "periods": "6",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
     "lang": "en"
    },
    "Biology": {
@@ -53949,6 +55071,187 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "Chapter 3 Motion in Two and Three Dimensions": [
+      "Section 1 — Three-Dimensional Coordinate Systems",
+      "Section 2 — Velocity and Acceleration in Two or Three Dimensions",
+      "Section 3 — Ideal Projectile Motion",
+      "Section 4 — Maximum Height and Range of a Projectile",
+      "Section 5 — Realistic Projectile Motion",
+      "Section 6 — Relative Motion"
+     ],
+     "Chapter 4 Force": [
+      "Section 1 — Types of Forces",
+      "Section 2 — Gravitational Force Vector, Weight, and Mass",
+      "Section 3 — Net Force",
+      "Section 4 — Newton’s Laws",
+      "Section 5 — Ropes and Pulleys",
+      "Section 6 — Applying Newton’s Laws",
+      "Section 7 — Friction Force",
+      "Section 8 — Applications of the Friction Force"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "Section 1",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Three-Dimensional Coordinate Systems",
+      "weeks": "Weeks 1–4",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 2",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Velocity and Acceleration in Two or Three Dimensions",
+      "weeks": "Weeks 1–4",
+      "periods": "",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 3",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Ideal Projectile Motion",
+      "weeks": "Weeks 1–4",
+      "periods": "4",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 4",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Maximum Height and Range of a Projectile",
+      "weeks": "Weeks 1–4",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 5",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Realistic Projectile Motion",
+      "weeks": "Weeks 1–4",
+      "periods": "0",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 6",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 3 Motion in Two and Three Dimensions",
+      "lesson": "Relative Motion",
+      "weeks": "Weeks 1–4",
+      "periods": "7",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 1",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Types of Forces",
+      "weeks": "Weeks 4–9",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 2",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Gravitational Force Vector, Weight, and Mass",
+      "weeks": "Weeks 4–9",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 3",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Net Force",
+      "weeks": "Weeks 4–9",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 4",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Newton’s Laws",
+      "weeks": "Weeks 4–9",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 5",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Ropes and Pulleys",
+      "weeks": "Weeks 4–9",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 6",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Applying Newton’s Laws",
+      "weeks": "Weeks 4–9",
+      "periods": "4",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 7",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Friction Force",
+      "weeks": "Weeks 4–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "Section 8",
+      "unit": "Part 1 Mechanics of Point Particles",
+      "module": "Chapter 4 Force",
+      "lesson": "Applications of the Friction Force",
+      "weeks": "Weeks 4–9",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -54036,47 +55339,6 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
     "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
     "lang": "ar"
-   },
-   "Physics": {
-    "strands": {
-     "Static Electricity": [
-      "Electric Charge",
-      "Electrostatic Force"
-     ],
-     "Electric Fields": [
-      "Measuring Electric Fields",
-      "Applications of Electric Fields"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Static Electricity",
-      "lesson": "Electric Charge",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Static Electricity",
-      "lesson": "Electrostatic Force",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Electric Fields",
-      "lesson": "Measuring Electric Fields",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Electric Fields",
-      "lesson": "Applications of Electric Fields",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26",
-    "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
-    "lang": "en"
    },
    "AI & Technology": {
     "strands": {
@@ -56631,6 +57893,253 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Physics": {
+    "strands": {
+     "1 المجالات الكهربائية": [
+      "PHY.6.1.02.056 — Define the electric field vector at a point in space as the quotient of the electrostatic force vector acting on a positive test charge at this point divided by the test charge يعرّف شدة المجال الكهربائي عند نقطة على أنها ناتج قسمة القوة الكهروستاتيكية المؤثرة في شحنة اختبار، شحنة صغيرة جدا وموجبة، ‬موضوعة عند النقطة على كمية شحنة الاختبار",
+      "PHY.6.1.02.057 — Develop a tool, sketches, descriptive text or presentation to show the morphology of electric field lines of a single or multiple charge system with positive and/or negative charges يطور وسيلة كرسوم تخطيطية، تعبيرات لفظية، عرض تقديمي، ليظهر خطوط المجال الكهربائي المحيط بنظام من الشحنات الكهربائية كشحنة نقطية موجبة، شحنة نقطية سالبة، شحنتان نقطيتان متشابهتان، شحنتان نقطيتان مختلفتان‭",
+      "PHY.6.1.02.058 — Develop a mathematical equation to evaluate the electric field strength at a point due to a point charge يطور نموذجا رياضيا كمعادلة، ‬ليحسب شدة المجال الكهربائي عند نقطة في المجال الكهربائي لشحنة نقطية",
+      "PHY.6.1.02.059 — Develop a tool, equation or sketch, to obtain the resultant electric field strength at a point generated by a nearby system of point charges using the superposition principle يطور وسيلة كمعادلة رياضية، رسوم تخطيطية، ‬ليوظف مبدأ التراكب، ويحسب محصلة شدة المجال الكهربائي عند نقطة بتأثير عدة شحنات نقطية‭‬",
+      "PHY.6.2.01.002 — Compare the change of electrostatic energy stored in a positive charge moving in an electric field with that of a mass moving in the earth gravitational field, and relate that to the work done by the field to move a particle in a uniform and a nonuniform field يقارن بين حركة شحنة في مجال كهربائي بحركة جسم صغير في مجال جاذبية الأرض، ‬ليربط التغير في طاقة الوضع الكهروستاتيكية بالشغل الذي يبذله المجال في تحريك الشحنة من نقطة إلى أخرى في المجال الكهربائي، منتظم وغير منتظم",
+      "PHY.6.2.01.001 — Show evidence, based on gathered information, that an electric charge placed in an electric field possesses potential energy which depends on the position of the charge within the field, and is called electrostatic potential energy يقدم الأدلة معتمدا على الملاحظات التي يجمعها أن الشحنة الكهربائية الموضوعة في مجال كهربائي تمتلك طاقة وضع تعتمد على موضع الشحنة في المجال تسمى طاقة وضع كهروستاتيكية‭‬",
+      "PHY.6.2.01.003 — Define the electric potential as the electrostatic potential energy stored in a test charge (quotient of dividing the electrostatic potential energy by the test charge), and show that in equation يعرّف الجهد الكهربائي على أنه ناتج قسمة طاقة الوضع الكهروستاتيكية لشحنة اختبار موضوعة في النقطة مقسومة على كمية شحنة الاختبار نفسها، ويعبر عنها بالمعادلة",
+      "PHY.6.2.01.004 — Develop a mathematical equation to describe, quantitatively, the potential difference between two points inside a uniform electric field يطور نموذجا رياضيا، معادلة، ليصف كميا فرق الجهد الكهربائي بين نقطتين في مجال كهربائي منتظم‭‬",
+      "PHY.6.2.01.006 — Define the electric capacitance of a conductor as the quotient of division of the electric charge on the conductor by the electric potential on the conductor, and express that in an equation يعرّف السعة الكهربائية لموصل على أنها ناتج قسمة كمية الشحنة التي يحملها الموصل على جهد الموصل الكهربائي الناتج عن تلك الشحنة، ويعبر عنها بمعادلة"
+     ],
+     "2 التيار الكهريائي": [
+      "PHY.6.2.02.013 — Explore connecting resistors in series and in parallel and determine the properties and uses of each kind of connection by studying the electric current and the potential difference across each resistor يخطط وينفذ استقصاء علميا، ‬ليتعرف خواص توصيل المقاومات على التوالي وخواص توصيلها على التوازي، من حيث شدة التيار المار في كل منها وفرق الجهد بين طرفي كل منها",
+      "PHY.6.2.02.009 — Analyze simple electrical circuits that contain combinations of resistors and batteries, and evaluate the current passing each resistor and the potential difference across it يحلل شبكات كهربائية بسيطة، تشتمل على مجموعة مركبة من المقاومات وبطارية واحدة أو مجموعة بطاريات متصلة على التوالي، ليحسب فرق الجهد وشدة التيار المار في كل مقاوم‭‬",
+      "PHY.6.2.02.017 — Develop a tool, sketches, graphs or qualitative description to compare Ohmic and non ohmic resistors and determine the factors that affect electrical resistance of a conducting wire يطور وسيلة كرسوم بيانية أو تعبيرات لفظية مناسبة، ليقارن بين المقاوم الأومي والمقاوم غير الأومي مستقصيا العوامل التي تتعتمد عليها المقاومة الكهربائية لسلك فلزي",
+      "PHY.6.2.02.008 — Make estimates of household electrical energy consumption in units of kW.hr, estimate the cost and suggest ways of going green by reducing consumption of electricity يحسب الطاقة الكهربائية التي تستهلكها الأجهزة في المنازل بوحدة الكيلووات ساعة، ويحسب تكاليف استهلاكها محددا طرائق يمكن توظيفها أو استخدامها لتقليل استهلاك الطاقة الكهربائية في المنازل والمصانع بما يحقق الاستدامة‭‬",
+      "PHY.6.2.02.008 — Make estimates of household electrical energy consumption in units of kW.hr, estimate the cost and suggest ways of going green by reducing consumption of electricity يحسب الطاقة الكهربائية التي تستهلكها الأجهزة في المنازل بوحدة الكيلووات ساعة، ويحسب تكاليف استهلاكها محددا طرائق يمكن توظيفها أو استخدامها لتقليل استهلاك الطاقة الكهربائية في المنازل والمصانع بما يحقق الاستدامة‭‬"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "1",
+      "unit": "",
+      "module": "1 المجالات الكهربائية",
+      "lesson": "قياس المجالات الكهربائية",
+      "weeks": "Weeks 01–06 الأسبوع 1 حتى 6",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.1.02.056",
+        "text": "Define the electric field vector at a point in space as the quotient of the electrostatic force vector acting on a positive test charge at this point divided by the test charge يعرّف شدة المجال الكهربائي عند نقطة على أنها ناتج قسمة القوة الكهروستاتيكية المؤثرة في شحنة اختبار، شحنة صغيرة جدا وموجبة، ‬موضوعة عند النقطة على كمية شحنة الاختبار",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يعرّف المجال الكهربائي بأنه خاصية من خصائص الفراغ حول جسم مشحون يبذل قوة على أجسام أخرى مشحونة",
+         "يعرّف شدة المجال الكهربائي بالقوة الكهربائية المبذولة لكل وحدة شحنة وتقاس بوحدة كولوم/نيوتن",
+         "يطبّق العلاقة بين كل من شدة المجال الكهربائي والقوة الكهربائية والشحنة في حل مسائل عددية",
+         "يشتق شدة المجال الكهربائي لشحنة نقطية باستخدام قانون كولوم ومفهوم شدة المجال الكهربائي",
+         "يحسب شدة المجال الكهربائي عند نقطة بالقرب من شحنة نقطية مفردة"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.057",
+        "text": "Develop a tool, sketches, descriptive text or presentation to show the morphology of electric field lines of a single or multiple charge system with positive and/or negative charges يطور وسيلة كرسوم تخطيطية، تعبيرات لفظية، عرض تقديمي، ليظهر خطوط المجال الكهربائي المحيط بنظام من الشحنات الكهربائية كشحنة نقطية موجبة، شحنة نقطية سالبة، شحنتان نقطيتان متشابهتان، شحنتان نقطيتان مختلفتان‭",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يظهر فهما انه بالرغم من ان المجالات الكهربائية غير مرئية لكنها تتفاعل مع المادة",
+         "يحدد المجال الكهربائي ككمية متجهة ويوضح خطوط المجال الكهربائي على أنها خطوط القوة التي يكون اتجاهها في أي نقطة باتجاه مماس المجال عند تلك النقطة",
+         "يحدد اتجاه المجال الكهربائي على أنه اتجاه القوة الكهربائية المؤثرة في شحنة اختبار موجبة موضوعة في ذلك المجال",
+         "يرسم خطوط المجال لنمذجة المجال الكهربائي حول شحنة نقطية واحدة (موجبة أو سالبة) ولشحنتين نقطيتين",
+         "يظهر فهماً بأن المسافات بين خطوط المجال الكهربائي تشير إلى شدة المجال الكهربائي في منطقة معينة"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.058",
+        "text": "Develop a mathematical equation to evaluate the electric field strength at a point due to a point charge يطور نموذجا رياضيا كمعادلة، ‬ليحسب شدة المجال الكهربائي عند نقطة في المجال الكهربائي لشحنة نقطية",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يعرّف المجال الكهربائي بأنه خاصية من خصائص الفراغ حول جسم مشحون يبذل قوة على أجسام أخرى مشحونة",
+         "يعرّف شدة المجال الكهربائي بالقوة الكهربائية المبذولة لكل وحدة شحنة وتقاس بوحدة كولوم/نيوتن",
+         "يطبّق العلاقة بين كل من شدة المجال الكهربائي والقوة الكهربائية والشحنة في حل مسائل عددية"
+        ]
+       },
+       {
+        "code": "PHY.6.1.02.059",
+        "text": "Develop a tool, equation or sketch, to obtain the resultant electric field strength at a point generated by a nearby system of point charges using the superposition principle يطور وسيلة كمعادلة رياضية، رسوم تخطيطية، ‬ليوظف مبدأ التراكب، ويحسب محصلة شدة المجال الكهربائي عند نقطة بتأثير عدة شحنات نقطية‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يستخدم جمع المتجهات لحساب محصلة المجال الكهربائي عند نقطة بتأثير عدة شحنات نقطية"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "2",
+      "unit": "",
+      "module": "1 المجالات الكهربائية",
+      "lesson": "تطبيقات المجالات الكهربائية",
+      "weeks": "Weeks 01–06 الأسبوع 1 حتى 6",
+      "periods": "10",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.01.002",
+        "text": "Compare the change of electrostatic energy stored in a positive charge moving in an electric field with that of a mass moving in the earth gravitational field, and relate that to the work done by the field to move a particle in a uniform and a nonuniform field يقارن بين حركة شحنة في مجال كهربائي بحركة جسم صغير في مجال جاذبية الأرض، ‬ليربط التغير في طاقة الوضع الكهروستاتيكية بالشغل الذي يبذله المجال في تحريك الشحنة من نقطة إلى أخرى في المجال الكهربائي، منتظم وغير منتظم",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يوضح، من خلال التشبيه بمجال الجاذبية، أن الشحنة الكهربائية الموضوعة في مجال كهربائي تمتلك طاقة وضع تعتمد على موضع الشحنة داخل المجال وتسمى طاقة الوضع الكهربائية"
+        ]
+       },
+       {
+        "code": "PHY.6.2.01.001",
+        "text": "Show evidence, based on gathered information, that an electric charge placed in an electric field possesses potential energy which depends on the position of the charge within the field, and is called electrostatic potential energy يقدم الأدلة معتمدا على الملاحظات التي يجمعها أن الشحنة الكهربائية الموضوعة في مجال كهربائي تمتلك طاقة وضع تعتمد على موضع الشحنة في المجال تسمى طاقة وضع كهروستاتيكية‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يظهر فهما أن الشغل المبذول عند تحريك جسيم مشحون في مجال كهربائي يمكن أن يؤدي إلى اكتساب الجسيم لطاقة وضع كهربائية أو طاقة حركية أو كليهما",
+         "يوضح طاقة الوضع الكهربائية المفقودة أو المكتسبة عند تحريك شحنة بين نقطتين في مجال كهربائي محدد"
+        ]
+       },
+       {
+        "code": "PHY.6.2.01.003",
+        "text": "Define the electric potential as the electrostatic potential energy stored in a test charge (quotient of dividing the electrostatic potential energy by the test charge), and show that in equation يعرّف الجهد الكهربائي على أنه ناتج قسمة طاقة الوضع الكهروستاتيكية لشحنة اختبار موضوعة في النقطة مقسومة على كمية شحنة الاختبار نفسها، ويعبر عنها بالمعادلة",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يعرّف فرق الجهد الكهربائي على أنه الشغل اللازم لتحريك شحنة اختبار موجبة من نقطة إلى أخرى مقسومًا على مقدار شحنة الاختبار",
+         "يطبّق العلاقة بين الشغل والجهد الكهربائي والشحنة لحل مسائل عددية",
+         "يحدد الحالات التي يكون فيها فرق الجهد الكهربائي موجبًا أو سالبًا",
+         "يشرح معنى تساوي الجهد"
+        ]
+       },
+       {
+        "code": "PHY.6.2.01.004",
+        "text": "Develop a mathematical equation to describe, quantitatively, the potential difference between two points inside a uniform electric field يطور نموذجا رياضيا، معادلة، ليصف كميا فرق الجهد الكهربائي بين نقطتين في مجال كهربائي منتظم‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يوضح أن فرق الجهد الكهربائي يمثل الفولتية او الفرق في الجهد بين نقطتين في مجال كهربائي",
+         "يربط فرق الجهد الكهربائي بين نقطتين في مجال كهربائي منتظم بناتج ضرب شدة المجال الكهربائي والمسافة بين النقطتين الموازية لاتجاه المجال",
+         "يحسب فرق الجهد الكهربائي في مجال كهربائي منتظم",
+         "يرسم خطوط المجال الكهربائي المنتظم بين صفيحتين متوازيتين ومشحونتين ويشرح كيف يتغير الجهد الكهربائي بين الصفيحتين",
+         "يوضح تجربة قطرة الزيت لمليكان ويشرح كيف أثبتت أن الشحنة موجودة بكميات محددة، وهي عبارة عن مضاعفات صحيحة من الشحنة الأساسية",
+         "يطبق المعادلات المستخدمة في تجربة قطرة الزيت لميليكان لحل مسائل عددية"
+        ]
+       },
+       {
+        "code": "PHY.6.2.01.006",
+        "text": "Define the electric capacitance of a conductor as the quotient of division of the electric charge on the conductor by the electric potential on the conductor, and express that in an equation يعرّف السعة الكهربائية لموصل على أنها ناتج قسمة كمية الشحنة التي يحملها الموصل على جهد الموصل الكهربائي الناتج عن تلك الشحنة، ويعبر عنها بمعادلة",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يوضح توزيع الشحنة على جسم كروي موصل وجسم كروي موصل مجوف وعلى سطح موصل غير منتظم",
+         "يشرح سبب حماية الركاب داخل سيارة إذا اصابها البرق",
+         "يوضح كيف تعمل مانعات الصواعق",
+         "يعرّف المكثف كجهاز لتخزين الطاقة الكهربائية",
+         "يعرّف السعة بأنها نسبة مقدار الشحنة الكلية على إحدى صفيحتي المكثف إلى فرق الجهد بين الصفيحتين وتقاس بوحدة الفاراد",
+         "يُطبق معادلة السعة لحل المسائل العددية",
+         "يوجد سعة المكثف والشغل المبذول لشحن المكثف من خلال منحنى (الشحنة – فرق الجهد)",
+         "يجري تجربة لاستقصاء كيفية تخزين الشحنة في المكثف"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "1",
+      "unit": "",
+      "module": "2 التيار الكهريائي",
+      "lesson": "التيار الكهربائي والدوائر الكهربائيّة",
+      "weeks": "Weeks 06–11 الأسبوع 6 حتى 11",
+      "periods": "9",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.02.013",
+        "text": "Explore connecting resistors in series and in parallel and determine the properties and uses of each kind of connection by studying the electric current and the potential difference across each resistor يخطط وينفذ استقصاء علميا، ‬ليتعرف خواص توصيل المقاومات على التوالي وخواص توصيلها على التوازي، من حيث شدة التيار المار في كل منها وفرق الجهد بين طرفي كل منها",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يعرّف التيار الكهربائي ويحدد وحدة القياس الخاصة به في النظام الدولي للوحدات SI على أنها أمبير (A)",
+         "يحدد اتجاه التيار الاصطلاحي باعتباره اتجاه حركة الشحنات الموجبة أو عكس اتجاه تدفق الإلكترونات",
+         "يحدد شدة التيار الكهربائي بدلالة معدل تدفق الشحنة الكهربائية (I = q/t)",
+         "يميّز بين التوصيل على التوالي والتوصيل على التوازي"
+        ]
+       },
+       {
+        "code": "PHY.6.2.02.009",
+        "text": "Analyze simple electrical circuits that contain combinations of resistors and batteries, and evaluate the current passing each resistor and the potential difference across it يحلل شبكات كهربائية بسيطة، تشتمل على مجموعة مركبة من المقاومات وبطارية واحدة أو مجموعة بطاريات متصلة على التوالي، ليحسب فرق الجهد وشدة التيار المار في كل مقاوم‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعرف الدائرة الكهربائية ويصف تدفق الشحنات من خلالها",
+         "يوضح استخدام أجهزة الأميتر والفولتميتر وكيفية توصيلها",
+         "يحدد رموز الدوائر الكهربائية شائعة الاستخدام",
+         "يرسم مخططات الدوائر الكهربائية بمكونات مختلفة متضمنه الأميتر والفولتميتر وموصلة بشكل صحيح لقياس التيار وفرق الجهد",
+         "يذكر طريقتين للتحكم في شدة التيار في دائرة بسيطة",
+         "يوضح المقاومات المتغيرة ويشرح كيف يمكن للريوستات أن يغير التيار في الدائرة الكهربائية",
+         "يوضح من خلال التجارب أو المحاكاة كيفية تركيب دوائر كهربائية وتوصيل الأميتر والفولتميتر وحقيقة أن التيار الكهربائي يتدفق عبر دائرة مغلقة فقط وقانون أوم والعوامل التي تعتمد عليها المقاومة"
+        ]
+       },
+       {
+        "code": "PHY.6.2.02.017",
+        "text": "Develop a tool, sketches, graphs or qualitative description to compare Ohmic and non ohmic resistors and determine the factors that affect electrical resistance of a conducting wire يطور وسيلة كرسوم بيانية أو تعبيرات لفظية مناسبة، ليقارن بين المقاوم الأومي والمقاوم غير الأومي مستقصيا العوامل التي تتعتمد عليها المقاومة الكهربائية لسلك فلزي",
+        "priority": "Support (Basic)",
+        "kpis": [
+         "يعرّف مفهوم المقاومة ويحدد وحدتها في النظام الدولي للوحدات SI على أنها الأوم (Ω)",
+         "يذكر نص قانون أوم ويطبقه على الدوائر الكهربائية البسيطة",
+         "يوضح ويذكر العوامل (مثل الطول ومساحة المقطع العرضي ودرجة الحرارة ومادة الموصل) التي تؤثر على مقاومة الموصل",
+         "يتعرّف على الأجهزة التي تخضع لقانون أوم",
+         "يعرّف المقاومة النوعية ويوضح أنها خاصية للمادة حيث تظل ثابتة لأي بعد",
+         "يعرّف المقاوم كجهاز مصمم لكي يكون له مقاومة معينة"
+        ]
+       },
+       {
+        "code": "PHY.6.2.02.008",
+        "text": "Make estimates of household electrical energy consumption in units of kW.hr, estimate the cost and suggest ways of going green by reducing consumption of electricity يحسب الطاقة الكهربائية التي تستهلكها الأجهزة في المنازل بوحدة الكيلووات ساعة، ويحسب تكاليف استهلاكها محددا طرائق يمكن توظيفها أو استخدامها لتقليل استهلاك الطاقة الكهربائية في المنازل والمصانع بما يحقق الاستدامة‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يوضح تحولات الطاقة التي تحدث في الدوائر ذات المكونات المختلفة",
+         "يشرح كيف يتم حفظ الشحنة والطاقة في الدائرة الكهربائية",
+         "يربط القدرة الكهربائية أو معدل نقل الطاقة بشدة التيار الكهربائي وفرق الجهد (P = IΔV)",
+         "يطبق العلاقة بين القدرة الكهربائية وشدة التيار الكهربائي وفرق الجهد لحل المسائل العددية"
+        ]
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "2",
+      "unit": "",
+      "module": "2 التيار الكهريائي",
+      "lesson": "استخدام الطاقة الكهربائية",
+      "weeks": "Weeks 06–11 الأسبوع 6 حتى 11",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "PHY.6.2.02.008",
+        "text": "Make estimates of household electrical energy consumption in units of kW.hr, estimate the cost and suggest ways of going green by reducing consumption of electricity يحسب الطاقة الكهربائية التي تستهلكها الأجهزة في المنازل بوحدة الكيلووات ساعة، ويحسب تكاليف استهلاكها محددا طرائق يمكن توظيفها أو استخدامها لتقليل استهلاك الطاقة الكهربائية في المنازل والمصانع بما يحقق الاستدامة‭‬",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يشرح كيفية تحويل الطاقة الكهربائية إلى طاقة حرارية في المقاوم",
+         "يعيد صياغة المعادلة المستخدمة لحساب القدرة باستخدام قانون أوم: القدرة تساوي ناتج ضرب مربع شدة التيار في المقاومة (P = I²R)",
+         "يطبق المعادلة (P = I²R) في حل المسائل العددية",
+         "يعيد صياغة المعادلة المستخدمة لحساب القدرة باستخدام قانون أوم: القدرة تساوي ناتج قسمة مربع فرق الجهد على المقاومة (P = (ΔV)²/R)",
+         "يطبق المعادلة (P = (ΔV)²/R) في حل المسائل العددية",
+         "يحسب كمية الطاقة الكهربائية المحوّلة لطاقة حرارية في المقاوم (تحوّل القدرة بمعدل ثابت) باستخدام المعادلة (E = Pt = I²Rt = ((ΔV)²/R)t)",
+         "يشرح كيفية تعديل التيار في خطوط النقل لتقليل التحولات إلى الطاقة الحرارية",
+         "يعرّف الكيلوواط-ساعة كوحدة قياس للطاقة الكهربائية وتساوي 1000 واط يتم نقله باستمرار لمدة 3600 s",
+         "يحوّل الطاقة من وحدة الجول إلى وحدة الكيلوواط-ساعة ويحسب كمية استهلاك الطاقة الكهربائية المستخدمة في أجهزة كهربائية مختلفة وتكلفة استهلاكها",
+         "يجري تجربة ليوضّح قانون حفظ الطاقة وتحوّل الطاقة من الطاقة الكهربائية إلى الطاقة الحرارية"
+        ]
+       },
+       {
+        "code": "2.LO2",
+        "text": "يظهر معرفة بشحن الأجسام والشحن الكهروستاتيكي ويفرّق بين الموصلات والعوازل",
+        "priority": "",
+        "kpis": [
+         "يعرّف الموصلات فائقة التوصيل ويوضح أهميتها"
+        ]
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs",
+    "lang": "ar",
+    "withSLOs": true
    }
   },
   "2": {
@@ -56676,31 +58185,6 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
     "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
     "lang": "ar"
-   },
-   "Physics": {
-    "strands": {
-     "Electric Current": [
-      "Current and Circuits",
-      "Using Electrical Energy"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Electric Current",
-      "lesson": "Current and Circuits",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Electric Current",
-      "lesson": "Using Electrical Energy",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26",
-    "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
-    "lang": "en"
    },
    "Health Science": {
     "strands": {
@@ -57523,6 +59007,55 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "3 دوائر التوالي والتوازي": [
+      "1 — الدوائر الكهربائية البسيطة",
+      "2 — تطبيقات الدوائر الكهربائية"
+     ],
+     "4 المجالات المغناطيسية": [
+      "1 — فهم المغناطيسية"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "1",
+      "unit": "",
+      "module": "3 دوائر التوالي والتوازي",
+      "lesson": "الدوائر الكهربائية البسيطة",
+      "weeks": "الأسبوع 1 حتى 6",
+      "periods": "12",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "2",
+      "unit": "",
+      "module": "3 دوائر التوالي والتوازي",
+      "lesson": "تطبيقات الدوائر الكهربائية",
+      "weeks": "الأسبوع 1 حتى 6",
+      "periods": "6",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "1",
+      "unit": "",
+      "module": "4 المجالات المغناطيسية",
+      "lesson": "فهم المغناطيسية",
+      "weeks": "الأسبوع 7 حتى 10",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
    }
   },
   "3": {
@@ -57566,47 +59099,6 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
     "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
     "lang": "ar"
-   },
-   "Physics": {
-    "strands": {
-     "Series and Parallel Circuits": [
-      "Simple Circuits",
-      "Applications of Circuits"
-     ],
-     "Magnetic Fields": [
-      "Understanding Magnetism",
-      "Applying Magnetic Forces"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Series and Parallel Circuits",
-      "lesson": "Simple Circuits",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Series and Parallel Circuits",
-      "lesson": "Applications of Circuits",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Magnetic Fields",
-      "lesson": "Understanding Magnetism",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Magnetic Fields",
-      "lesson": "Applying Magnetic Forces",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26",
-    "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
-    "lang": "en"
    },
    "Health Science": {
     "strands": {
@@ -58367,6 +59859,55 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Physics": {
+    "strands": {
+     "4 المجالات المغناطيسية": [
+      "2 — تطبيق القوى المغناطيسية"
+     ],
+     "5 الحث الكهرومغناطيسي": [
+      "1 — التيارات المستحثة",
+      "2 — تطبيقات التيارات المستحثة"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "2",
+      "unit": "",
+      "module": "4 المجالات المغناطيسية",
+      "lesson": "تطبيق القوى المغناطيسية",
+      "weeks": "الأسبوع 1 حتى 3",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "1",
+      "unit": "",
+      "module": "5 الحث الكهرومغناطيسي",
+      "lesson": "التيارات المستحثة",
+      "weeks": "الأسبوع 3 حتى 9",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "2",
+      "unit": "",
+      "module": "5 الحث الكهرومغناطيسي",
+      "lesson": "تطبيقات التيارات المستحثة",
+      "weeks": "الأسبوع 3 حتى 9",
+      "periods": "8",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     }
+    ],
+    "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
    }
   }
  },
