@@ -9868,3 +9868,98 @@ async function ccAiWeekInfo() {
 }
 document.addEventListener('change', (e) => { if (e.target && e.target.id === 'ai-week-date') ccAiWeekInfo(); });
 document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('#new-btn')) setTimeout(ccAiWeekInfo, 100); });
+
+
+// ═══════════════════════════════════════════════════════════════════════
+//  🎬 Training videos inside the User Guide (English + Arabic, 14 chapters)
+//  Files live in /videos/<en|ar>/<NN>.mp4 (streamed, not cached offline).
+// ═══════════════════════════════════════════════════════════════════════
+const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 96, "dar": 117}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 100}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 92, "dar": 121}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 94, "dar": 119}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages and parent reports", "ar": "متوسطات الصف وتقارير أولياء الأمور", "den": 115, "dar": 147}, {"n": 12, "en": "Outcome coverage", "ar": "تغطية نواتج التعلم", "den": 30, "dar": 38}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
+function ccFmtDur(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function ccTrainingVideosEnhance() {
+  const overlay = document.getElementById('cc-user-guide-overlay');
+  const body = document.getElementById('cc-ug-body');
+  if (!overlay || !body || document.getElementById('cc-ug-tabs')) return;
+  const tabs = document.createElement('div');
+  tabs.id = 'cc-ug-tabs';
+  tabs.style.cssText = 'display:flex; gap:6px; padding:10px 22px 0; border-bottom:1px solid #e5e7eb; background:#f8fafc;';
+  const tabBtn = (id, label) => `<button data-ug-tab="${id}" style="padding:9px 16px; border:1px solid #e5e7eb; border-bottom:none; border-radius:10px 10px 0 0; background:#fff; cursor:pointer; font-weight:600; font-size:14px; color:#475569;">${label}</button>`;
+  tabs.innerHTML = tabBtn('videos', '🎬 Training videos') + tabBtn('guide', '📖 Written guide');
+  body.parentNode.insertBefore(tabs, body);
+  const vids = document.createElement('div');
+  vids.id = 'cc-ug-videos';
+  vids.style.cssText = 'overflow-y:auto; padding:16px 22px 20px; color:#1a1e33; display:none;';
+  body.parentNode.insertBefore(vids, body.nextSibling);
+  let lang = 'en';
+  try { lang = localStorage.getItem('cc_tv_lang') || ((localStorage.getItem('cc_ug_lang') || '') === 'ar' ? 'ar' : 'en'); } catch (e) {}
+  let cur = 1;
+  try { cur = Number(localStorage.getItem('cc_tv_ch_' + lang)) || 1; } catch (e) {}
+  let playAll = true;
+  const T = {
+    en: { title: 'ClassCurio teacher training', sub: 'Watch a chapter, or play all chapters in order.', all: 'Play the next chapter automatically', ch: 'Chapter', min: 'min', total: 'Total' },
+    ar: { title: 'تدريب المعلمين على ClassCurio', sub: 'شاهدوا فصلًا واحدًا، أو شغّلوا جميع الفصول بالترتيب.', all: 'تشغيل الفصل التالي تلقائيًا', ch: 'الفصل', min: 'دقيقة', total: 'المجموع' },
+  };
+  function render(autoplay) {
+    const t = T[lang];
+    const rtl = lang === 'ar';
+    const tot = CC_TRAINING_CHAPTERS.reduce((n, c) => n + (lang === 'ar' ? c.dar : c.den), 0);
+    const c = CC_TRAINING_CHAPTERS.find((x) => x.n === cur) || CC_TRAINING_CHAPTERS[0];
+    const nn = String(c.n).padStart(2, '0');
+    vids.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;" dir="${rtl ? 'rtl' : 'ltr'}">
+        <div style="flex:1; min-width:220px;"><div style="font-weight:700; font-size:17px;">${t.title}</div><div style="font-size:13px; color:#64748b;">${t.sub} · ${t.total} ${Math.round(tot / 60)} ${t.min}</div></div>
+        <div style="display:flex; border:1px solid #c7d2fe; border-radius:999px; overflow:hidden;">
+          <button data-tv-lang="en" style="padding:6px 14px; border:none; cursor:pointer; font-weight:600; ${lang === 'en' ? 'background:#4338ca; color:#fff;' : 'background:#fff; color:#4338ca;'}">English</button>
+          <button data-tv-lang="ar" style="padding:6px 14px; border:none; cursor:pointer; font-weight:600; ${lang === 'ar' ? 'background:#4338ca; color:#fff;' : 'background:#fff; color:#4338ca;'}">العربية</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
+        <div style="flex:1 1 520px; min-width:280px;">
+          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4"></video>
+          <div style="margin-top:6px; font-weight:600;" dir="${rtl ? 'rtl' : 'ltr'}">${t.ch} ${c.n} · ${rtl ? c.ar : c.en}</div>
+          <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; margin-top:6px; text-transform:none; letter-spacing:0; font-weight:400;" dir="${rtl ? 'rtl' : 'ltr'}"><input type="checkbox" id="cc-tv-all" ${playAll ? 'checked' : ''} style="width:auto;"> ${t.all}</label>
+        </div>
+        <div style="flex:1 1 240px; min-width:220px; max-height:60vh; overflow:auto; border:1px solid #e5e7eb; border-radius:10px;" dir="${rtl ? 'rtl' : 'ltr'}">
+          ${CC_TRAINING_CHAPTERS.map((x) => `<button data-tv-ch="${x.n}" style="display:flex; gap:8px; width:100%; text-align:${rtl ? 'right' : 'left'}; padding:9px 12px; border:none; border-bottom:1px solid #f1f5f9; cursor:pointer; font-size:13px; ${x.n === c.n ? 'background:#eef2ff; color:#3730a3; font-weight:700;' : 'background:#fff; color:#1a1e33;'}">
+            <span style="min-width:22px; color:#94a3b8;">${x.n}</span><span style="flex:1;">${rtl ? x.ar : x.en}</span><span style="color:#94a3b8;">${ccFmtDur(lang === 'ar' ? x.dar : x.den)}</span></button>`).join('')}
+        </div>
+      </div>`;
+    const v = vids.querySelector('#cc-tv-player');
+    v.addEventListener('ended', () => {
+      if (!playAll) return;
+      const next = CC_TRAINING_CHAPTERS.find((x) => x.n === cur + 1);
+      if (next) { cur = next.n; save(); render(true); }
+    });
+    if (autoplay) v.play().catch(() => {});
+    vids.querySelectorAll('[data-tv-lang]').forEach((b) => { b.onclick = () => { lang = b.getAttribute('data-tv-lang'); try { localStorage.setItem('cc_tv_lang', lang); cur = Number(localStorage.getItem('cc_tv_ch_' + lang)) || 1; } catch (e) {} render(false); }; });
+    vids.querySelectorAll('[data-tv-ch]').forEach((b) => { b.onclick = () => { cur = Number(b.getAttribute('data-tv-ch')); save(); render(true); }; });
+    const cb = vids.querySelector('#cc-tv-all'); cb.onchange = () => { playAll = cb.checked; };
+  }
+  function save() { try { localStorage.setItem('cc_tv_ch_' + lang, String(cur)); } catch (e) {} }
+  function show(which) {
+    tabs.querySelectorAll('[data-ug-tab]').forEach((b) => {
+      const on = b.getAttribute('data-ug-tab') === which;
+      b.style.background = on ? '#fff' : '#f1f5f9'; b.style.color = on ? '#4338ca' : '#64748b'; b.style.borderColor = on ? '#c7d2fe' : '#e5e7eb';
+      b.style.marginBottom = on ? '-1px' : '0';
+    });
+    body.style.display = which === 'guide' ? '' : 'none';
+    vids.style.display = which === 'videos' ? '' : 'none';
+    const p = vids.querySelector('#cc-tv-player'); if (p && which !== 'videos') p.pause();
+    try { localStorage.setItem('cc_ug_tab', which); } catch (e) {}
+  }
+  tabs.querySelectorAll('[data-ug-tab]').forEach((b) => { b.onclick = () => show(b.getAttribute('data-ug-tab')); });
+  render(false);
+  let start = 'videos';
+  try { start = localStorage.getItem('cc_ug_tab') || 'videos'; } catch (e) {}
+  show(start);
+  // Stop the video when the guide is closed.
+  const stop = () => { const p = document.getElementById('cc-tv-player'); if (p) p.pause(); };
+  const closeBtn = document.getElementById('cc-ug-close'); if (closeBtn) closeBtn.addEventListener('click', stop);
+}
+(function ccHookUserGuideVideos() {
+  const orig = openUserGuide;
+  const wrapped = function () { orig.apply(this, arguments); try { ccTrainingVideosEnhance(); } catch (e) { console.warn('[training videos]', e); } };
+  window.openUserGuide = wrapped;
+  const btn = document.getElementById('open-user-guide');
+  if (btn) btn.onclick = wrapped;
+})();
