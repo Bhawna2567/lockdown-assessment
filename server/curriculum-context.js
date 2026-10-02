@@ -80,6 +80,9 @@ function contextFor({ subject, grade, stream, term, keys }) {
   if (isSci && fw) {
     out.push(`- Science: include some questions that use science and engineering practices (${fw.sep.join('; ')}), e.g. interpreting data, a model or diagram, or an investigation's variables.`);
   }
+  const guide = (CUR.__assessment_guides || {})[subject];
+  if (guide && Array.isArray(guide.rules)) { out.push(`- From the ${guide.source}:`); for (const r of guide.rules) out.push(`  • ${r}`); }
+  if (isSci && fw && fw.threeDimensional) out.push('- ' + fw.threeDimensional);
   if (isTech) out.push('- AI & Technology: include practical items where they fit — reading or predicting the output of short code/pseudocode, spotting a bug, choosing the right algorithm or component, interpreting a CAD/technical drawing description, and scenario questions on AI ethics, data and e-safety.');
   return out.join('\n');
 }

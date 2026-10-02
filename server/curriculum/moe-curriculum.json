@@ -5301,556 +5301,6 @@
     "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
    },
-   "Biology": {
-    "strands": {
-     "U2M6 Chemistry in biology": [
-      "U2M6L1 — Matter (enrichment)",
-      "BIO.3.1.02.022 — Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
-      "BIO.3.1.02.021 — Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
-      "BIO.3.1.02.031 — Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
-      "BIO.3.1.02.020 — Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
-      "BIO.3.1.02.018 — Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
-      "BIO.3.1.02.023 — Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
-      "BIO.3.1.02.019 — Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
-      "BIO.3.1.02.024 — Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells"
-     ],
-     "U2M7 Cellular structure and function": [
-      "BIO.3.1.01.075 — Identify that all Living things are composed of cells",
-      "BIO.3.1.01.076 — Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
-      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
-      "BIO.3.1.01.057 — Explain the processes of diffusion and osmosis and their roles within a cell",
-      "BIO.3.1.01.048 — Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
-      "BIO.3.1.01.071 — Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
-      "BIO.3.1.01.043 — Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
-      "BIO.3.1.01.054 — Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
-      "BIO.3.1.01.044 — Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
-      "BIO.3.1.01.073 — Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
-      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
-      "BIO.3.1.01.066 — Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
-      "BIO.3.1.01.069 — Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
-     ],
-     "U5M19 Introduction to plants": [
-      "U5M19L1 — Plant evolution and diversity (enrichment)",
-      "BIO.3.1.01.078 — Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
-      "BIO.3.1.01.082 — Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
-      "BIO.3.1.01.085 — Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
-      "BIO.3.1.01.081 — Explain about plant hormones and their function in a plant's responses to its environment",
-      "U5M19L3 — Plant reproduction (enrichment)"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U2M6L1",
-      "unit": "U2 The Cell",
-      "module": "U2M6 Chemistry in biology",
-      "lesson": "Matter",
-      "weeks": "Weeks 1–4",
-      "periods": "",
-      "type": "enrichment",
-      "slos": []
-     },
-     {
-      "code": "U2M6L2",
-      "unit": "U2 The Cell",
-      "module": "U2M6 Chemistry in biology",
-      "lesson": "Chemical reactions",
-      "weeks": "Weeks 1–4",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.02.022",
-        "text": "Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Define a chemical reaction",
-         "Identify the parts of a chemical equation: reactants and products",
-         "Define activation energy",
-         "Explain with a diagram the energy changes that take place during a chemical reaction"
-        ]
-       },
-       {
-        "code": "BIO.3.1.02.021",
-        "text": "Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Describe the function of a catalyst",
-         "Describe the function of enzymes as biological catalysts and their importance in living organisms",
-         "Explain the specificity of enzymes",
-         "Identify factors that affect enzyme activity",
-         "Explore and investigate factors that affect enzyme activity"
-        ]
-       },
-       {
-        "code": "BIO.3.1.02.031",
-        "text": "Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Differentiate between graphs showing the activation energy of chemical reactions with and without enzymes"
-        ]
-       }
-      ],
-      "objectives": "Explore the differences between physical and chemical change. Understand how mass is conserved.",
-      "focusQuestion": "How do enzymes facilitate life?",
-      "misconceptions": [
-       "Compounds that cannot be seen are not part of chemical reactions."
-      ],
-      "vocabulary": [
-       "Chemical reaction",
-       "Reactants",
-       "Products",
-       "Activation energy",
-       "Catalyst",
-       "Enzymes",
-       "Substrates",
-       "Active site"
-      ]
-     },
-     {
-      "code": "U2M6L3",
-      "unit": "U2 The Cell",
-      "module": "U2M6 Chemistry in biology",
-      "lesson": "Water and its solutions",
-      "weeks": "Weeks 1–4",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.02.020",
-        "text": "Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Identify solubility as the ability of a solute to dissolve in a solvent",
-         "Describe the polarity of water",
-         "Discuss the adhesive and cohesive properties of water",
-         "Explain how the structure of water makes it a good solvent",
-         "Describe how water maintains homeostasis"
-        ]
-       },
-       {
-        "code": "BIO.3.1.02.018",
-        "text": "Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Differentiate between the two types of mixtures: homogenous and heterogenous",
-         "Compare and contrast solutions, suspensions and colloids"
-        ]
-       },
-       {
-        "code": "BIO.3.1.02.023",
-        "text": "Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Compare and contrast acidic, basic and neutral solutions",
-         "Define pH and illustrate the pH scale",
-         "Identify the function of buffers",
-         "Investigate the pH of various acidic, basic and neutral solutions"
-        ]
-       }
-      ],
-      "objectives": "Explore the structure of water, the differences between solutions and suspensions, and the differences between acids and bases. understand how these interactions function in living organisms.",
-      "focusQuestion": "Why do things dissolve in water?",
-      "misconceptions": [
-       "Different phases of water have different chemical formulas."
-      ],
-      "vocabulary": [
-       "Polar molecules",
-       "Van der Waals forces",
-       "Hydrogen bond",
-       "Mixture",
-       "Solution",
-       "Solvent",
-       "Solute",
-       "Acids",
-       "Bases",
-       "pH",
-       "Buffers"
-      ]
-     },
-     {
-      "code": "U2M6L4",
-      "unit": "U2 The Cell",
-      "module": "U2M6 Chemistry in biology",
-      "lesson": "The building blocks of life",
-      "weeks": "Weeks 1–4",
-      "periods": "6",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.02.019",
-        "text": "Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Explain the importance of carbon in living organisms",
-         "Determine the relationship between macromolecules and polymers",
-         "Identify the four major groups/families of biological macromolecules",
-         "Illustrate/draw/model/construct the four types of macromolecules"
-        ]
-       },
-       {
-        "code": "BIO.3.1.02.024",
-        "text": "Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Discuss the structural and functional characteristics of carbohydrates",
-         "Discuss the structural and functional characteristics of lipids",
-         "Discuss the structural and functional characteristics of proteins",
-         "Discuss the structural and functional characteristics of nucleic acids",
-         "Investigate the presence of macromolecules using biochemical tests"
-        ]
-       }
-      ],
-      "objectives": "Explore the role of carbon in living organisms and the four major families of biological macromolecules. Understand the function of each biological macromolecule.",
-      "focusQuestion": "Why is carbon essential to life?",
-      "misconceptions": [
-       "The term \"organic\" as it refers to molecules means the same as when it refers to foods."
-      ],
-      "vocabulary": [
-       "Macromolecules",
-       "Polymers",
-       "Carbohydrates",
-       "Lipids",
-       "Protein",
-       "Amino acids",
-       "Nucleic acids",
-       "Nucleotides"
-      ]
-     },
-     {
-      "code": "U2M7L1",
-      "unit": "U2 The Cell",
-      "module": "U2M7 Cellular structure and function",
-      "lesson": "Cell discovery and theory",
-      "weeks": "Weeks 5–9",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.01.075",
-        "text": "Identify that all Living things are composed of cells",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Identify the principles of the cell theory",
-         "Differentiate between eukaryotic and prokaryotic cells",
-         "Investigate three different types of cells: Prokaryotic, Eukaryotic (Plant and Animal)"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.076",
-        "text": "Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
-        "priority": "Support Outcome (Supplementary)",
-        "kpis": [
-         "Explain how advances in microscope technology relate to discoveries about cells",
-         "Identify the parts of the light microscope and the function of each part",
-         "Calculate the total magnification power of a light microscope",
-         "Compare and contrast compound light microscopes and electron microscopes"
-        ]
-       }
-      ],
-      "objectives": "Recognize the discoveries that contributed to the cell theory and understand the principles of the cell theory and the differences between prokaryotic and eukaryotic cells.",
-      "focusQuestion": "How did the invention of the microscope lead to the discovery of cells?",
-      "misconceptions": [
-       "Magnification, not resolution, determines the quality of a microscope image."
-      ],
-      "vocabulary": [
-       "Cell",
-       "Cell theory",
-       "Plasma membrane",
-       "Organelles",
-       "Eukaryotic cells",
-       "Nucleus",
-       "Prokaryotic cells"
-      ]
-     },
-     {
-      "code": "U2M7L2",
-      "unit": "U2 The Cell",
-      "module": "U2M7 Cellular structure and function",
-      "lesson": "The plasma membrane",
-      "weeks": "Weeks 5–9",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.01.050",
-        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Explain the functions of the plasma membrane (cell membrane), including homeostasis",
-         "Describe, using diagrams, the general structures of the plasma membrane to include phospholipid bilayer, proteins, carbohydrates and cholesterol",
-         "Relate phospholipid properties and water-lipid interactions (hydrophobic and hydrophilic) to the cell membrane function",
-         "Identify the role of proteins, carbohydrates and cholesterol in the plasma membrane",
-         "Describe, using visuals, the Fluid Mosaic Model of the cell membrane"
-        ]
-       }
-      ],
-      "objectives": "Explore the roles of the plasma membrane, proteins, carbohydrates, and cholesterol, and understand how cells maintain homeostasis.",
-      "focusQuestion": "Why is the plasma membrane an important structure of the cell?",
-      "misconceptions": [
-       "Substances can only enter, and not leave, cells."
-      ],
-      "vocabulary": [
-       "Phospholipid bilayer",
-       "Transport protein",
-       "Fluid Mosaic Model",
-       "Selective permeability"
-      ]
-     },
-     {
-      "code": "U2M7L3",
-      "unit": "U2 The Cell",
-      "module": "U2M7 Cellular structure and function",
-      "lesson": "Cellular transport",
-      "weeks": "Weeks 5–9",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.01.057",
-        "text": "Explain the processes of diffusion and osmosis and their roles within a cell",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Identify, using visuals, the different forms of passive transport including diffusion, facilitated diffusion and osmosis",
-         "Compare and contrast osmosis and diffusion"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.048",
-        "text": "Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Investigate osmosis and verify the movement of molecules through the membrane, according to the scientific method"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.071",
-        "text": "Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Distinguish the differences between hypotonic, hypertonic and isotonic solutions",
-         "Explain the effect of a hypertonic, hypotonic or isotonic solution on a cell"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.043",
-        "text": "Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Compare and contrast different forms of active transport including protein pumps, endocytosis and exocytosis",
-         "Compare and contrast active and passive transport"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.054",
-        "text": "Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Investigate the movement of substances through a selectively permeable (dialysis) membrane"
-        ]
-       }
-      ],
-      "objectives": "Explore the processes of passive and active transport and understand how cells respond to changes in the environment.",
-      "focusQuestion": "What processes enable substances to move into or out of a cell?",
-      "misconceptions": [
-       "Diffusion is the only way in which substances can cross the cell membrane.",
-       "Diffusion only occurs when there is some sort of stimulus."
-      ],
-      "vocabulary": [
-       "Diffusion",
-       "Dynamic equilibrium",
-       "Facilitated diffusion",
-       "Osmosis",
-       "Isotonic solution",
-       "Hypotonic solution",
-       "Hypertonic solution",
-       "Active transport",
-       "Endocytosis",
-       "Exocytosis"
-      ]
-     },
-     {
-      "code": "U2M7L4",
-      "unit": "U2 The Cell",
-      "module": "U2M7 Cellular structure and function",
-      "lesson": "Structures and organelles",
-      "weeks": "Weeks 5–9",
-      "periods": "5",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.01.044",
-        "text": "Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Investigate three different types of cells and their components; Prokaryotic, Eukaryotic (Plant and Animal)"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.073",
-        "text": "Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Compare and contrast plant, animal and prokaryotic cells, in terms of the type, shape and position of their organelles"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.050",
-        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Describe the functions of the key organelles in the cell including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall",
-         "Relate, using diagrams/models/simulations, between the structure and function of key cell organelles including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.066",
-        "text": "Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
-        "priority": "Support Outcome (Supplementary)",
-        "kpis": [
-         "Design and create a model of a cell using materials or applications of their choice"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.069",
-        "text": "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
-        ]
-       }
-      ],
-      "objectives": "Explore the structures of a typical eukaryotic cell and what functions each structure serves and understand the differences between plant and animal cells.",
-      "focusQuestion": "What are the structures and their functions in prokaryotic and eukaryotic cells.",
-      "misconceptions": [
-       "Cell walls are impermeable.",
-       "Plant cells do not have mitochondria."
-      ],
-      "vocabulary": [
-       "Cytoplasm",
-       "Cytoskeleton",
-       "Centrioles",
-       "Cilia",
-       "Flagella",
-       "Cell wall",
-       "Nucleolus",
-       "Mitochondria",
-       "Chloroplasts",
-       "Ribosome",
-       "Endoplasmic reticulum",
-       "Golgi apparatus",
-       "Vacuole",
-       "Lysosomes"
-      ]
-     },
-     {
-      "code": "U5M19L1",
-      "unit": "U5 The diversity of life",
-      "module": "U5M19 Introduction to plants",
-      "lesson": "Plant evolution and diversity",
-      "weeks": "Weeks 10–11",
-      "periods": "",
-      "type": "enrichment",
-      "slos": []
-     },
-     {
-      "code": "U5M19L2",
-      "unit": "U5 The diversity of life",
-      "module": "U5M19 Introduction to plants",
-      "lesson": "Plant structure and function",
-      "weeks": "Weeks 10–11",
-      "periods": "8",
-      "type": "core",
-      "slos": [
-       {
-        "code": "BIO.3.1.01.078",
-        "text": "Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
-        "priority": "Support Outcome (Basic)",
-        "kpis": [
-         "Compare and contrast the major types of plant cells to include parenchyma, collenchyma and sclerenchyma",
-         "Observe and identify major types of plant cells to include parenchyma, collenchyma and sclerenchyma using the microscope",
-         "Identify the structures of roots, stems and leaves",
-         "Observe and draw diagrams of plant tissues in roots, stems and leaves using a microscope or a model"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.082",
-        "text": "Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
-        "priority": "Power Outcome",
-        "kpis": [
-         "Identify the major types of plant tissues to include meristematic, dermal, vascular and ground",
-         "Describe and illustrate the structure of the major types of plant tissues to include meristematic, dermal, vascular and ground",
-         "Describe the adaptations of dermal tissue to include stomata, trichomes and root hairs and explain their functions",
-         "Explain the structure and function of the specialized cells forming xylem and phloem (vascular tissues)",
-         "Identify the various characteristics and functions of ground tissue",
-         "Describe the different types of roots and stems",
-         "Sequence the tissues through which water passes as it moves from a root hair to xylem tissue of a root",
-         "Describe the leaves characteristics and modifications/adaptations",
-         "Explain how the structures of roots, stems, and leaves are adapted to their functions",
-         "Describe the role and formation of annual growth rings in the stem",
-         "Compare the structures and functions of roots, stems and leaves"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.085",
-        "text": "Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
-        "priority": "Support Outcome (Supplementary)",
-        "kpis": [
-         "Research and present the use of plants in modern day medicine or industry"
-        ]
-       },
-       {
-        "code": "BIO.3.1.01.081",
-        "text": "Explain about plant hormones and their function in a plant's responses to its environment",
-        "priority": "",
-        "kpis": [
-         "Distinguish between the different types of plant responses"
-        ]
-       }
-      ],
-      "objectives": "Understand the major types of plant cells and organs, plants tissues and their functions, and plant responses. Understand plant structure and function",
-      "focusQuestion": "What are the structures and functions of plant cells and tissues?",
-      "misconceptions": [
-       "All plant cells are green.",
-       "All plant roots grow into the soil.",
-       "A celery stalk is a stem."
-      ],
-      "vocabulary": [
-       "Epidermis",
-       "Guard cell",
-       "Xylem",
-       "Vessel element",
-       "Tracheid",
-       "Phloem",
-       "Sieve tube member",
-       "Companion cell",
-       "Ground tissue",
-       "Root cap",
-       "Cortex",
-       "Endodermis",
-       "Pericycle",
-       "Petiole",
-       "Palisade mesophyll",
-       "Spongy mesophyll",
-       "Transpiration",
-       "Nastic response",
-       "Tropism"
-      ]
-     },
-     {
-      "code": "U5M19L3",
-      "unit": "U5 The diversity of life",
-      "module": "U5M19 Introduction to plants",
-      "lesson": "Plant reproduction",
-      "weeks": "Weeks 10–11",
-      "periods": "",
-      "type": "enrichment",
-      "slos": []
-     }
-    ],
-    "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
-    "lang": "en",
-    "withSLOs": true
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -6404,6 +5854,556 @@
      }
     ],
     "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
+   },
+   "Biology": {
+    "strands": {
+     "U2M6 Chemistry in biology": [
+      "U2M6L1 — Matter (enrichment)",
+      "BIO.3.1.02.022 — Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
+      "BIO.3.1.02.021 — Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
+      "BIO.3.1.02.031 — Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
+      "BIO.3.1.02.020 — Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
+      "BIO.3.1.02.018 — Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
+      "BIO.3.1.02.023 — Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
+      "BIO.3.1.02.019 — Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
+      "BIO.3.1.02.024 — Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells"
+     ],
+     "U2M7 Cellular structure and function": [
+      "BIO.3.1.01.075 — Identify that all Living things are composed of cells",
+      "BIO.3.1.01.076 — Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
+      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+      "BIO.3.1.01.057 — Explain the processes of diffusion and osmosis and their roles within a cell",
+      "BIO.3.1.01.048 — Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
+      "BIO.3.1.01.071 — Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
+      "BIO.3.1.01.043 — Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
+      "BIO.3.1.01.054 — Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
+      "BIO.3.1.01.044 — Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
+      "BIO.3.1.01.073 — Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
+      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+      "BIO.3.1.01.066 — Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
+      "BIO.3.1.01.069 — Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
+     ],
+     "U5M19 Introduction to plants": [
+      "U5M19L1 — Plant evolution and diversity (enrichment)",
+      "BIO.3.1.01.078 — Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
+      "BIO.3.1.01.082 — Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
+      "BIO.3.1.01.085 — Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
+      "BIO.3.1.01.081 — Explain about plant hormones and their function in a plant's responses to its environment",
+      "U5M19L3 — Plant reproduction (enrichment)"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M6L1",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Matter",
+      "weeks": "Weeks 1–4",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     },
+     {
+      "code": "U2M6L2",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Chemical reactions",
+      "weeks": "Weeks 1–4",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.022",
+        "text": "Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define a chemical reaction",
+         "Identify the parts of a chemical equation: reactants and products",
+         "Define activation energy",
+         "Explain with a diagram the energy changes that take place during a chemical reaction"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.021",
+        "text": "Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the function of a catalyst",
+         "Describe the function of enzymes as biological catalysts and their importance in living organisms",
+         "Explain the specificity of enzymes",
+         "Identify factors that affect enzyme activity",
+         "Explore and investigate factors that affect enzyme activity"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.031",
+        "text": "Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between graphs showing the activation energy of chemical reactions with and without enzymes"
+        ]
+       }
+      ],
+      "objectives": "Explore the differences between physical and chemical change. Understand how mass is conserved.",
+      "focusQuestion": "How do enzymes facilitate life?",
+      "misconceptions": [
+       "Compounds that cannot be seen are not part of chemical reactions."
+      ],
+      "vocabulary": [
+       "Chemical reaction",
+       "Reactants",
+       "Products",
+       "Activation energy",
+       "Catalyst",
+       "Enzymes",
+       "Substrates",
+       "Active site"
+      ]
+     },
+     {
+      "code": "U2M6L3",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Water and its solutions",
+      "weeks": "Weeks 1–4",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.020",
+        "text": "Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify solubility as the ability of a solute to dissolve in a solvent",
+         "Describe the polarity of water",
+         "Discuss the adhesive and cohesive properties of water",
+         "Explain how the structure of water makes it a good solvent",
+         "Describe how water maintains homeostasis"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.018",
+        "text": "Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between the two types of mixtures: homogenous and heterogenous",
+         "Compare and contrast solutions, suspensions and colloids"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.023",
+        "text": "Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Compare and contrast acidic, basic and neutral solutions",
+         "Define pH and illustrate the pH scale",
+         "Identify the function of buffers",
+         "Investigate the pH of various acidic, basic and neutral solutions"
+        ]
+       }
+      ],
+      "objectives": "Explore the structure of water, the differences between solutions and suspensions, and the differences between acids and bases. understand how these interactions function in living organisms.",
+      "focusQuestion": "Why do things dissolve in water?",
+      "misconceptions": [
+       "Different phases of water have different chemical formulas."
+      ],
+      "vocabulary": [
+       "Polar molecules",
+       "Van der Waals forces",
+       "Hydrogen bond",
+       "Mixture",
+       "Solution",
+       "Solvent",
+       "Solute",
+       "Acids",
+       "Bases",
+       "pH",
+       "Buffers"
+      ]
+     },
+     {
+      "code": "U2M6L4",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "The building blocks of life",
+      "weeks": "Weeks 1–4",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.019",
+        "text": "Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain the importance of carbon in living organisms",
+         "Determine the relationship between macromolecules and polymers",
+         "Identify the four major groups/families of biological macromolecules",
+         "Illustrate/draw/model/construct the four types of macromolecules"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.024",
+        "text": "Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Discuss the structural and functional characteristics of carbohydrates",
+         "Discuss the structural and functional characteristics of lipids",
+         "Discuss the structural and functional characteristics of proteins",
+         "Discuss the structural and functional characteristics of nucleic acids",
+         "Investigate the presence of macromolecules using biochemical tests"
+        ]
+       }
+      ],
+      "objectives": "Explore the role of carbon in living organisms and the four major families of biological macromolecules. Understand the function of each biological macromolecule.",
+      "focusQuestion": "Why is carbon essential to life?",
+      "misconceptions": [
+       "The term \"organic\" as it refers to molecules means the same as when it refers to foods."
+      ],
+      "vocabulary": [
+       "Macromolecules",
+       "Polymers",
+       "Carbohydrates",
+       "Lipids",
+       "Protein",
+       "Amino acids",
+       "Nucleic acids",
+       "Nucleotides"
+      ]
+     },
+     {
+      "code": "U2M7L1",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Cell discovery and theory",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.075",
+        "text": "Identify that all Living things are composed of cells",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify the principles of the cell theory",
+         "Differentiate between eukaryotic and prokaryotic cells",
+         "Investigate three different types of cells: Prokaryotic, Eukaryotic (Plant and Animal)"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.076",
+        "text": "Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Explain how advances in microscope technology relate to discoveries about cells",
+         "Identify the parts of the light microscope and the function of each part",
+         "Calculate the total magnification power of a light microscope",
+         "Compare and contrast compound light microscopes and electron microscopes"
+        ]
+       }
+      ],
+      "objectives": "Recognize the discoveries that contributed to the cell theory and understand the principles of the cell theory and the differences between prokaryotic and eukaryotic cells.",
+      "focusQuestion": "How did the invention of the microscope lead to the discovery of cells?",
+      "misconceptions": [
+       "Magnification, not resolution, determines the quality of a microscope image."
+      ],
+      "vocabulary": [
+       "Cell",
+       "Cell theory",
+       "Plasma membrane",
+       "Organelles",
+       "Eukaryotic cells",
+       "Nucleus",
+       "Prokaryotic cells"
+      ]
+     },
+     {
+      "code": "U2M7L2",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "The plasma membrane",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.050",
+        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain the functions of the plasma membrane (cell membrane), including homeostasis",
+         "Describe, using diagrams, the general structures of the plasma membrane to include phospholipid bilayer, proteins, carbohydrates and cholesterol",
+         "Relate phospholipid properties and water-lipid interactions (hydrophobic and hydrophilic) to the cell membrane function",
+         "Identify the role of proteins, carbohydrates and cholesterol in the plasma membrane",
+         "Describe, using visuals, the Fluid Mosaic Model of the cell membrane"
+        ]
+       }
+      ],
+      "objectives": "Explore the roles of the plasma membrane, proteins, carbohydrates, and cholesterol, and understand how cells maintain homeostasis.",
+      "focusQuestion": "Why is the plasma membrane an important structure of the cell?",
+      "misconceptions": [
+       "Substances can only enter, and not leave, cells."
+      ],
+      "vocabulary": [
+       "Phospholipid bilayer",
+       "Transport protein",
+       "Fluid Mosaic Model",
+       "Selective permeability"
+      ]
+     },
+     {
+      "code": "U2M7L3",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Cellular transport",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.057",
+        "text": "Explain the processes of diffusion and osmosis and their roles within a cell",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify, using visuals, the different forms of passive transport including diffusion, facilitated diffusion and osmosis",
+         "Compare and contrast osmosis and diffusion"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.048",
+        "text": "Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate osmosis and verify the movement of molecules through the membrane, according to the scientific method"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.071",
+        "text": "Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Distinguish the differences between hypotonic, hypertonic and isotonic solutions",
+         "Explain the effect of a hypertonic, hypotonic or isotonic solution on a cell"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.043",
+        "text": "Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Compare and contrast different forms of active transport including protein pumps, endocytosis and exocytosis",
+         "Compare and contrast active and passive transport"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.054",
+        "text": "Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate the movement of substances through a selectively permeable (dialysis) membrane"
+        ]
+       }
+      ],
+      "objectives": "Explore the processes of passive and active transport and understand how cells respond to changes in the environment.",
+      "focusQuestion": "What processes enable substances to move into or out of a cell?",
+      "misconceptions": [
+       "Diffusion is the only way in which substances can cross the cell membrane.",
+       "Diffusion only occurs when there is some sort of stimulus."
+      ],
+      "vocabulary": [
+       "Diffusion",
+       "Dynamic equilibrium",
+       "Facilitated diffusion",
+       "Osmosis",
+       "Isotonic solution",
+       "Hypotonic solution",
+       "Hypertonic solution",
+       "Active transport",
+       "Endocytosis",
+       "Exocytosis"
+      ]
+     },
+     {
+      "code": "U2M7L4",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Structures and organelles",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.044",
+        "text": "Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate three different types of cells and their components; Prokaryotic, Eukaryotic (Plant and Animal)"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.073",
+        "text": "Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Compare and contrast plant, animal and prokaryotic cells, in terms of the type, shape and position of their organelles"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.050",
+        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the functions of the key organelles in the cell including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall",
+         "Relate, using diagrams/models/simulations, between the structure and function of key cell organelles including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.066",
+        "text": "Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Design and create a model of a cell using materials or applications of their choice"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.069",
+        "text": "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
+        ]
+       }
+      ],
+      "objectives": "Explore the structures of a typical eukaryotic cell and what functions each structure serves and understand the differences between plant and animal cells.",
+      "focusQuestion": "What are the structures and their functions in prokaryotic and eukaryotic cells.",
+      "misconceptions": [
+       "Cell walls are impermeable.",
+       "Plant cells do not have mitochondria."
+      ],
+      "vocabulary": [
+       "Cytoplasm",
+       "Cytoskeleton",
+       "Centrioles",
+       "Cilia",
+       "Flagella",
+       "Cell wall",
+       "Nucleolus",
+       "Mitochondria",
+       "Chloroplasts",
+       "Ribosome",
+       "Endoplasmic reticulum",
+       "Golgi apparatus",
+       "Vacuole",
+       "Lysosomes"
+      ]
+     },
+     {
+      "code": "U5M19L1",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant evolution and diversity",
+      "weeks": "Weeks 10–11",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     },
+     {
+      "code": "U5M19L2",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant structure and function",
+      "weeks": "Weeks 10–11",
+      "periods": "8",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.078",
+        "text": "Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Compare and contrast the major types of plant cells to include parenchyma, collenchyma and sclerenchyma",
+         "Observe and identify major types of plant cells to include parenchyma, collenchyma and sclerenchyma using the microscope",
+         "Identify the structures of roots, stems and leaves",
+         "Observe and draw diagrams of plant tissues in roots, stems and leaves using a microscope or a model"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.082",
+        "text": "Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Identify the major types of plant tissues to include meristematic, dermal, vascular and ground",
+         "Describe and illustrate the structure of the major types of plant tissues to include meristematic, dermal, vascular and ground",
+         "Describe the adaptations of dermal tissue to include stomata, trichomes and root hairs and explain their functions",
+         "Explain the structure and function of the specialized cells forming xylem and phloem (vascular tissues)",
+         "Identify the various characteristics and functions of ground tissue",
+         "Describe the different types of roots and stems",
+         "Sequence the tissues through which water passes as it moves from a root hair to xylem tissue of a root",
+         "Describe the leaves characteristics and modifications/adaptations",
+         "Explain how the structures of roots, stems, and leaves are adapted to their functions",
+         "Describe the role and formation of annual growth rings in the stem",
+         "Compare the structures and functions of roots, stems and leaves"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.085",
+        "text": "Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Research and present the use of plants in modern day medicine or industry"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.081",
+        "text": "Explain about plant hormones and their function in a plant's responses to its environment",
+        "priority": "",
+        "kpis": [
+         "Distinguish between the different types of plant responses"
+        ]
+       }
+      ],
+      "objectives": "Understand the major types of plant cells and organs, plants tissues and their functions, and plant responses. Understand plant structure and function",
+      "focusQuestion": "What are the structures and functions of plant cells and tissues?",
+      "misconceptions": [
+       "All plant cells are green.",
+       "All plant roots grow into the soil.",
+       "A celery stalk is a stem."
+      ],
+      "vocabulary": [
+       "Epidermis",
+       "Guard cell",
+       "Xylem",
+       "Vessel element",
+       "Tracheid",
+       "Phloem",
+       "Sieve tube member",
+       "Companion cell",
+       "Ground tissue",
+       "Root cap",
+       "Cortex",
+       "Endodermis",
+       "Pericycle",
+       "Petiole",
+       "Palisade mesophyll",
+       "Spongy mesophyll",
+       "Transpiration",
+       "Nastic response",
+       "Tropism"
+      ]
+     },
+     {
+      "code": "U5M19L3",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant reproduction",
+      "weeks": "Weeks 10–11",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
     "lang": "en",
     "withSLOs": true
    }
@@ -14330,6 +14330,20 @@
    "Arguing a position",
    "Constructing explanation"
   ],
-  "assessmentRules": "Cycle 3 science (Physics, Chemistry, Biology): Performance tasks are 40% of the term’s continuous-assessment score — at least one performance task and one lab per module, varied task types across modules. Dedicate 60–80% of assessment to Power outcomes and 20–40% to Support outcomes (Basic and Supplementary)."
+  "assessmentRules": "Cycle 3 science (Physics, Chemistry, Biology): Performance tasks are 40% of the term’s continuous-assessment score — at least one performance task and one lab per module, varied task types across modules. Dedicate 60–80% of assessment to Power outcomes and 20–40% to Support outcomes (Basic and Supplementary).",
+  "threeDimensional": "Three-dimensional learning: questions should combine a science & engineering practice, a disciplinary core idea and a crosscutting concept, and preferably explain a phenomenon or solve a problem (Performance Expectation style)."
+ },
+ "__assessment_guides": {
+  "Biology": {
+   "source": "Biology School-based Assessment Guide, Cycle 3, 2026-27 (summary)",
+   "rules": [
+    "Assess across Bloom’s levels: remember/understand (MCQ, matching, labelling diagrams, short answer, sorting), apply (practical/lab-based or paper-based scenarios), analyse/evaluate (explanations, comparing, judging claims), create (design or research-style tasks).",
+    "Balance selected-response items (recall of concepts and simple procedures) with constructed-response items (explain, show working, demonstrate deeper understanding).",
+    "Quizzes and tasks should match the rigour and challenge of the end-of-term exams for the grade.",
+    "Diagnostic tests (Term 1, weeks 2–3): sections at increasing difficulty, 2–3 questions per key outcome, about 20–30 questions, including prerequisite outcomes from earlier grades.",
+    "Diagnostic tiers by score: Tier 1 80–100 (ready to be challenged), Tier 2 45–79 (needs some support), Tier 3 0–44 (needs prerequisite skills).",
+    "School-based Summative Assessment (Grades 9–12, Term 2): exam-style, focused on Term 2 outcomes, a variety of question types across difficulty levels and Bloom’s levels so results spread normally; keep papers, mark schemes and specification tables."
+   ]
+  }
  }
 }
