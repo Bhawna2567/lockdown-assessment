@@ -756,5 +756,5 @@ module.exports = function specTable(app, d) {
       res.status(500).json({ error: 'Could not build the file: ' + e.message });
     }
   });
-  return { buildModel, buildXlsx, weekOf, curriculumOutcomes, quickChecks, saveSettings, getSettings, tagsFor, upsertTags, tagJob, JOBS };
+  return { buildModel, buildXlsx, weekOf, curriculumOutcomes, quickChecks, saveSettings, getSettings, tagsFor, upsertTags, tagJob, JOBS, MIX, LEVEL_PLAN };
 };

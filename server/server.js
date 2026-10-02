@@ -3274,7 +3274,7 @@ app.post('/api/ai/tag-skills', requireTeacher, async (req, res) => {
       content.push({ type: 'text', text: (used.size ? 'Skill names already used in this assessment (reuse them where they fit): ' + Array.from(used).join(' | ') + '\n\n' : '') + JSON.stringify(list) });
       let arr = null, err = null;
       for (let t = 0; t < 2 && !Array.isArray(arr); t++) {
-        try { arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS }); } catch (e) { err = e; }
+        try { arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS, tier: 'bg' }); } catch (e) { err = e; }
       }
       if (!Array.isArray(arr)) throw err || new Error('AI reply could not be read');
       const ids = new Set(chunk.map((q) => String(q.id)));
@@ -3432,8 +3432,10 @@ const _CC_DIFF_DEFS = `  - easy: recall or recognise, one step (a definition, a 
   - medium: apply a known method to a familiar problem, two or three steps, or a straightforward inference.
   - hard: multi-step reasoning, unfamiliar context, analysing / evaluating / justifying, or combining several skills.`;
 
-function _ccDiffRulesGenerate(count, reproducing) {
-  const c = _ccDiffTargetCounts(count);
+function _ccDiffRulesGenerate(count, reproducing, pct) {
+  pct = pct || { easy: 30, medium: 50, hard: 20 };
+  const e0 = Math.round(count * pct.easy / 100), h0 = Math.round(count * pct.hard / 100);
+  const c = { easy: e0, medium: Math.max(0, count - e0 - h0), hard: h0 };
   return `
 DIFFICULTY (internal only — NEVER mention difficulty, "easy", "hard" etc. in any title, instruction or question text)
 - Give EVERY question "difficulty": "easy" | "medium" | "hard" and "difficultyReason": one short sentence.
@@ -3441,7 +3443,7 @@ ${_CC_DIFF_DEFS}` + (reproducing
     ? `
 - The teacher uploaded a paper to reproduce: do NOT change or reorder its questions — only label each one honestly.`
     : `
-- Target mix by MARKS: 30% easy, 50% medium, 20% hard. With equal marks that is exactly ${c.easy} easy, ${c.medium} medium and ${c.hard} hard out of ${count}. Build each difficulty genuinely (not just longer wording).
+- Target mix by MARKS: ${pct.easy}% easy, ${pct.medium}% medium, ${pct.hard}% hard. With equal marks that is exactly ${c.easy} easy, ${c.medium} medium and ${c.hard} hard out of ${count}. Build each difficulty genuinely (not just longer wording).
 - Within each section, order the questions from easy to hard.`);
 }
 const _CC_DIFF_RULES_LABEL = `
@@ -3508,7 +3510,7 @@ async function _ccClassifyDifficulty(a, qs) {
       correctAnswer: q.correctAnswer,
       passage: q.sectionId ? String(((a.sections || []).find((s) => s.id === q.sectionId) || {}).passage || '').slice(0, 1500) || undefined : undefined,
     }));
-    const arr = await _ccClaudeList({ system, maxTokens: 8000, itemProps: _CC_DIFF_PROPS, user: JSON.stringify(batch) });
+    const arr = await _ccClaudeList({ system, maxTokens: 8000, itemProps: _CC_DIFF_PROPS, user: JSON.stringify(batch), tier: 'bg' });
     if (Array.isArray(arr)) for (const x of arr) {
       const level = _ccNormLevel(x && x.difficulty);
       if (x && x.id && level) out.push({ questionId: String(x.id), level, reason: String(x.difficultyReason || '').slice(0, 300), source: 'ai' });
@@ -3568,8 +3570,10 @@ function _ccDiffMix(a, recs) {
   const lm = marks.easy + marks.medium + marks.hard;
   const pct = {};
   for (const l of _CC_DIFF_LEVELS) pct[l] = lm ? Math.round((marks[l] / lm) * 100) : 0;
-  const offBy = lm ? Math.max(..._CC_DIFF_LEVELS.map((l) => Math.abs(pct[l] - _CC_DIFF_TARGET[l]))) : null;
-  return { pct, counts, labelled, questions: (a.questions || []).length, offBy, flag: offBy != null && offBy > 15 };
+  const tgt = a.scheduledDate ? _ccDiffTargetFor(a.scheduledDate) : null;
+  const T = tgt && tgt.level ? tgt.pct : _CC_DIFF_TARGET;
+  const offBy = lm ? Math.max(..._CC_DIFF_LEVELS.map((l) => Math.abs(pct[l] - T[l]))) : null;
+  return { pct, counts, labelled, questions: (a.questions || []).length, offBy, flag: offBy != null && offBy > 15, target: T, week: tgt && tgt.level ? tgt.label : '' };
 }
 
 // ── Admin endpoints ──────────────────────────────────────────────────
@@ -3606,7 +3610,7 @@ app.get('/api/admin/difficulty/:id', requireTeacher, (req, res) => {
     return { n: i + 1, id: q.id, type: q.type, points: q.points, prompt: _ccLatexToPlain(String(q.prompt || '')).slice(0, 300), skill: q.skill || '',
       level: r ? r.level : null, reason: r ? r.reason : '', source: r ? r.source : null, pctCorrect, answered: marks.length, check };
   });
-  res.json({ id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', target: _CC_DIFF_TARGET, mix: _ccDiffMix(a, recs), questions });
+  { const _mx = _ccDiffMix(a, recs); res.json({ id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', target: _mx.target, week: _mx.week, mix: _mx, questions }); }
 });
 
 app.put('/api/admin/difficulty/:id/:qid', requireTeacher, (req, res) => {
@@ -3728,7 +3732,7 @@ async function _ccTagMissingSkills(aid) {
         let arr = null, lastErr = null;
         for (let attempt = 0; attempt < 3 && !Array.isArray(arr); attempt++) {
           try {
-            arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS });
+            arr = await _ccClaudeList({ system, content, maxTokens: 8000, itemProps: _CC_SKILL_PROPS, tier: 'bg' });
             if (!Array.isArray(arr)) lastErr = new Error('AI reply could not be read');
           } catch (e) {
             lastErr = e; console.warn('[skills] batch attempt failed:', e.message, e.detail || '');
@@ -3874,13 +3878,185 @@ try {
     tagMissingSkills: (aid) => _ccTagMissingSkills(aid),
     diffFor: (aid) => _ccDiffFor(aid), diffUpsert: (aid, e) => _ccDiffUpsert(aid, e),
     normLevel: (v) => _ccNormLevel(v), imageBlock: (u) => _ccImageBlock(u),
-    claudeList: (o) => _ccClaudeList(o),
+    claudeList: (o) => _ccClaudeList(Object.assign({ tier: 'bg' }, o)),
   });
 } catch (e) { console.error('[spec] module failed to load:', e); }
 // ── Learning-outcome coverage per class section (teachers + admin report) ──
 try {
   if (_ccSpec) require('./coverage')(app, { readAll, writeAll, ADMIN_EMAILS, spec: _ccSpec });
 } catch (e) { console.error('[coverage] module failed to load:', e); }
+
+// ════════════════════════════════════════════════════════════════════════
+//  Weekly difficulty plan (teachers)
+//  Each teaching week has a level (Easy / Medium / Difficult week, see
+//  LEVEL_PLAN in spec-table.js). The mix of question difficulty in an
+//  assessment should match its week's target (by marks). Teachers get an
+//  alert when it doesn't, and can swap a question for an AI alternative at
+//  the level that is needed. Students never see any difficulty label.
+// ════════════════════════════════════════════════════════════════════════
+const _CC_WEEK_NAME = { E: 'Easy', M: 'Medium', D: 'Difficult' };
+function _ccDiffTargetFor(dateStr) {
+  const date = String(dateStr || new Date().toISOString().slice(0, 10)).slice(0, 10);
+  const w = _ccSpec && _ccSpec.weekOf ? _ccSpec.weekOf(date) : null;
+  const mix = w && w.level && _ccSpec.MIX ? _ccSpec.MIX[w.level] : null;
+  if (!mix) return { date, term: w ? w.term : null, week: w ? w.week : null, level: null, label: 'Standard mix (no weekly level for this date)', pct: { easy: 30, medium: 50, hard: 20 } };
+  return { date, term: w.term, week: w.week, level: w.level, label: `Term ${w.term} · Week ${w.week} — ${_CC_WEEK_NAME[w.level]} week`,
+    pct: { easy: Math.round(mix.easy * 100), medium: Math.round(mix.medium * 100), hard: Math.round(mix.hard * 100) } };
+}
+// Which questions to change so the mix (by marks) fits the target.
+function _ccDiffPlanCheck(questions, levels, target) {
+  const marks = { easy: 0, medium: 0, hard: 0 };
+  let total = 0, maxPts = 1, labelled = 0;
+  for (const q of questions) {
+    const p = Number(q.points) || 1; maxPts = Math.max(maxPts, p);
+    const l = levels[q.id];
+    if (!l) continue;
+    total += p; labelled++; marks[l] += p;
+  }
+  const want = {}, pct = {};
+  for (const l of _CC_DIFF_LEVELS) { want[l] = (target.pct[l] / 100) * total; pct[l] = total ? Math.round(marks[l] / total * 100) : 0; }
+  const pts = questions.filter((q) => levels[q.id]).map((q) => Number(q.points) || 1).sort((a, b) => a - b);
+  const med = pts.length ? pts[Math.floor(pts.length / 2)] : 1;
+  const tol = Math.max(0.1 * total, med / 2 + 0.01);
+  const ok = _CC_DIFF_LEVELS.every((l) => Math.abs(marks[l] - want[l]) <= tol);
+  const suggestions = [];
+  if (!ok) {
+    const cur = Object.assign({}, marks);
+    const used = new Set();
+    for (let guard = 0; guard < 40; guard++) {
+      const over = _CC_DIFF_LEVELS.filter((l) => cur[l] - want[l] > tol / 2).sort((a, b) => (cur[b] - want[b]) - (cur[a] - want[a]));
+      const under = _CC_DIFF_LEVELS.filter((l) => want[l] - cur[l] > tol / 2).sort((a, b) => (want[b] - cur[b]) - (want[a] - cur[a]));
+      if (!over.length || !under.length) break;
+      const o = over[0], u = under[0];
+      const gap = Math.min(cur[o] - want[o], want[u] - cur[u]);
+      const cand = questions.filter((q) => levels[q.id] === o && !used.has(q.id) && q.type !== 'writing')
+        .sort((a, b) => Math.abs((Number(a.points) || 1) - gap) - Math.abs((Number(b.points) || 1) - gap));
+      if (!cand.length) break;
+      const q = cand[0], p = Number(q.points) || 1;
+      if (p > gap * 2 + tol) break;   // swapping would overshoot
+      used.add(q.id); cur[o] -= p; cur[u] += p;
+      suggestions.push({ id: q.id, from: o, to: u });
+    }
+  }
+  const need = {};
+  for (const l of _CC_DIFF_LEVELS) need[l] = Math.round((want[l] - marks[l]) * 10) / 10;
+  return { ok, total, labelled, marks, pct, need, suggestions };
+}
+
+app.get('/api/difficulty/plan', requireTeacher, (req, res) => {
+  const t = _ccDiffTargetFor(req.query.date);
+  const plan = _ccSpec && _ccSpec.LEVEL_PLAN ? _ccSpec.LEVEL_PLAN : {};
+  res.json({ target: t, plan, mix: _ccSpec && _ccSpec.MIX ? _ccSpec.MIX : null });
+});
+
+app.post('/api/difficulty/check', requireTeacher, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const qs = (Array.isArray(b.questions) ? b.questions : []).slice(0, 120).filter((q) => q && q.id);
+    const target = _ccDiffTargetFor(b.scheduledDate);
+    const tid = req.session.user.id;
+    const saved = new Map();
+    if (b.assessmentId) {
+      const a = readAll('assessments.json').find((x) => x.id === b.assessmentId && x.teacherId === tid);
+      if (a) {
+        const prompts = new Map((a.questions || []).map((q) => [q.id, String(q.prompt || '')]));
+        for (const r of _ccDiffFor(a.id)) if (prompts.has(r.questionId)) saved.set(r.questionId, { level: r.level, reason: r.reason, prompt: prompts.get(r.questionId) });
+      }
+    }
+    const levels = {}, reasons = {}, todo = [];
+    for (const q of qs) {
+      const key = _ccDiffKey(tid, q.prompt);
+      const p = _ccDiffPending.get(key);
+      const s = saved.get(q.id);
+      if (p) { levels[q.id] = p.level; reasons[q.id] = p.reason; }
+      else if (s && s.prompt === String(q.prompt || '')) { levels[q.id] = s.level; reasons[q.id] = s.reason; }
+      else if (String(q.prompt || '').trim() || q.imageUrl) todo.push(q);
+    }
+    if (todo.length) {
+      if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings — difficulty cannot be checked.' });
+      const found = await _ccClassifyDifficulty({ subject: b.subject, grade: b.grade, sections: b.sections || [] }, todo);
+      const now = Date.now();
+      const byId = new Map(todo.map((q) => [q.id, q]));
+      for (const f of found) {
+        levels[f.questionId] = f.level; reasons[f.questionId] = f.reason;
+        const q = byId.get(f.questionId);
+        if (q) _ccDiffPending.set(_ccDiffKey(tid, q.prompt), { level: f.level, reason: f.reason, source: 'ai', at: now });
+      }
+    }
+    const r = _ccDiffPlanCheck(qs, levels, target);
+    res.json(Object.assign({ target, levels, reasons, unlabelled: qs.filter((q) => !levels[q.id]).map((q) => q.id) }, r));
+  } catch (e) {
+    console.error('[difficulty/check]', e);
+    res.status(500).json({ error: 'Could not check the difficulty: ' + (e.message || e) });
+  }
+});
+
+app.post('/api/difficulty/alternatives', requireTeacher, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const q = b.question || {};
+    const level = _ccNormLevel(b.level);
+    if (!level) return res.status(400).json({ error: 'level must be easy, medium or hard' });
+    if (!String(q.prompt || '').trim() && !q.imageUrl) return res.status(400).json({ error: 'The question is empty.' });
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const type = ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'match'].includes(q.type) ? q.type : 'short';
+    const language = String(b.language || '').slice(0, 60) || 'the same language as the original question';
+    const system = [
+      'You are an experienced teacher and assessment writer.',
+      `Write 3 ALTERNATIVE questions to replace one question in a ${b.subject || ''} assessment for Grade ${b.grade || '?'}.`,
+      `Each alternative must be a genuinely ${level.toUpperCase()} question for this grade:`,
+      _CC_DIFF_DEFS,
+      '- Assess the SAME skill / learning outcome and the same topic as the original — only the difficulty changes.',
+      `- Keep the same question type ("${type}") and the same marks (${Number(q.points) || 1}).`,
+      '- Make the 3 alternatives clearly different from each other (different context, numbers or angle).',
+      '- If the original refers to a passage, the alternatives must be answerable from the SAME passage.',
+      '- "mc": exactly 4 options and correctAnswer = 0-based index of the right option; plausible distractors based on common mistakes.',
+      '- "tf": correctAnswer true/false. "tfng": correctAnswer "true" | "false" | "ng". "short": a concise correctAnswer. "long"/"essay": no correctAnswer.',
+      '- "match": give pairs [{left, right}] instead of options.',
+      `- skill: keep the original skill text${q.skill ? ` ("${String(q.skill).slice(0, 80)}")` : ''}. explanation: 1–2 sentences of feedback for students.`,
+      '- difficultyReason: one short sentence on why it is ' + level + '.',
+      '- NEVER mention difficulty, "easy", "hard" etc. in the question text.',
+      `- Write everything in ${language}.`,
+      _ccMathRulesFor('generate'),
+    ].join('\n');
+    const user = JSON.stringify({
+      original: { type, prompt: String(q.prompt || '').slice(0, 3000), options: Array.isArray(q.options) && q.options.length ? q.options : undefined,
+        correctAnswer: q.correctAnswer, points: Number(q.points) || 1, skill: q.skill || undefined, pairs: Array.isArray(q.pairs) ? q.pairs : undefined,
+        imageDescription: q.imageDescription || (q.imageUrl ? 'The original question has a picture (not shown).' : undefined) },
+      sectionInstructions: String(b.instructions || '').slice(0, 600) || undefined,
+      passage: String(b.passage || '').slice(0, 6000) || undefined,
+      currentLevel: _ccNormLevel(b.from) || undefined, wantedLevel: level,
+    });
+    const items = await _ccClaudeList({ system, user, maxTokens: 6000, itemProps: {
+      type: { type: 'string' }, prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } }, correctAnswer: {},
+      pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
+      points: { type: 'number' }, skill: { type: 'string' }, explanation: { type: 'string' }, difficultyReason: { type: 'string' } },
+      required: ['prompt'] });
+    const out = (Array.isArray(items) ? items : []).filter((x) => x && String(x.prompt || '').trim()).slice(0, 3).map((x) => {
+      const o = { type, prompt: String(x.prompt), points: Number(q.points) || 1, skill: String(x.skill || q.skill || '').slice(0, 80),
+        explanation: String(x.explanation || '').slice(0, 1500), difficulty: level, difficultyReason: String(x.difficultyReason || '').slice(0, 300) };
+      if (type === 'mc') {
+        o.options = (Array.isArray(x.options) ? x.options : []).map(String).slice(0, 6);
+        let ci = Number(x.correctAnswer);
+        if (!Number.isInteger(ci)) ci = o.options.findIndex((t) => t === String(x.correctAnswer));
+        o.correctAnswer = ci >= 0 && ci < o.options.length ? ci : 0;
+      } else if (type === 'tf') o.correctAnswer = x.correctAnswer === true || /^(true|صح|صحيح)$/i.test(String(x.correctAnswer));
+      else if (type === 'tfng') { const s = String(x.correctAnswer || '').toLowerCase(); o.correctAnswer = /^(ng|not)/.test(s) ? 'ng' : (/^f/.test(s) ? 'false' : 'true'); }
+      else if (type === 'short') o.correctAnswer = x.correctAnswer == null ? '' : String(x.correctAnswer);
+      else if (type === 'match') { o.pairs = (Array.isArray(x.pairs) ? x.pairs : []).map((p) => ({ left: String(p.left || ''), right: String(p.right || '') })); if (q.matchVariant) o.matchVariant = q.matchVariant; }
+      else o.correctAnswer = null;
+      return o;
+    }).filter((o) => o.type !== 'mc' || o.options.length >= 2);
+    if (!out.length) return res.status(502).json({ error: 'The AI did not return usable questions — please try again.' });
+    // Remember their level so it is attached when the teacher saves.
+    _ccStashDifficulty(req, out.map((o) => Object.assign({}, o)), 'ai-alternative');
+    res.json({ level, alternatives: out.map((o) => { const c = Object.assign({}, o); delete c.difficulty; return c; }) });
+  } catch (e) {
+    console.error('[difficulty/alternatives]', e);
+    res.status(500).json({ error: 'Could not write alternatives: ' + (e.message || e) });
+  }
+});
+
 
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
@@ -5028,7 +5204,17 @@ app.get('/api/settings/grading', requireTeacher, (req, res) => {
   res.json({
     aiGradingEnabled: hasKey,
     rubricStages: ['7', '8'],
+    bgModel: _ccBgModelMode(),
+    isAdmin: _ccIsAdminReq(req),
   });
+});
+// Admin: which model the background jobs use ('haiku' = cheaper, 'sonnet' = best).
+app.post('/api/settings/ai-model', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Admins only.' });
+  const m = req.body && req.body.bgModel === 'sonnet' ? 'sonnet' : 'haiku';
+  const cfg = loadConfig(); cfg.bgModel = m; saveConfig(cfg);
+  console.log('[settings] background AI model set to', m, 'by', req.session.user.email);
+  res.json({ ok: true, bgModel: m });
 });
 
 // POST — accept an API key from the teacher and persist it to data/config.json.
@@ -5167,9 +5353,15 @@ const _ccWorkingModel = {};
 
 // POST to the Messages API, trying each model in the tier until one is
 // accepted. Returns the fetch Response (same shape callers already use).
+// Background jobs (skill tags, difficulty labels, outcome / Bloom tagging) use
+// the cheaper Haiku model unless the admin chose Sonnet in Settings. If Haiku
+// is not available on the account, the next models in the list (Sonnet) are used.
+const _CC_HAIKU = 'claude-haiku-4-5-20251001';
+function _ccBgModelMode() { try { return loadConfig().bgModel === 'sonnet' ? 'sonnet' : 'haiku'; } catch { return 'haiku'; } }
 async function _ccClaudeFetch(body, tier) {
   const apiKey = readApiKey();
-  const base = _CC_MODEL_TIERS[tier || 'smart'] || _CC_MODEL_TIERS.smart;
+  if (tier === 'bg') tier = _ccBgModelMode() === 'sonnet' ? 'smart' : 'bg-haiku';
+  const base = tier === 'bg-haiku' ? [_CC_HAIKU].concat(_CC_MODEL_TIERS.smart) : (_CC_MODEL_TIERS[tier || 'smart'] || _CC_MODEL_TIERS.smart);
   const list = _ccWorkingModel[tier] ? [_ccWorkingModel[tier]].concat(base.filter((m) => m !== _ccWorkingModel[tier])) : base;
   let last = null;
   for (const model of list) {
@@ -5208,7 +5400,7 @@ function _ccLenientItems(text, keys) {
   }
   return out.length ? out : null;
 }
-async function _ccClaudeList({ system, user, content, maxTokens, itemProps, required }) {
+async function _ccClaudeList({ system, user, content, maxTokens, itemProps, required, tier }) {
   const _msgContent = Array.isArray(content) && content.length ? content : user;
   const tool = {
     name: 'submit_items',
@@ -5217,7 +5409,7 @@ async function _ccClaudeList({ system, user, content, maxTokens, itemProps, requ
   };
   let why = '';
   try {
-    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system: system + '\nYou are filling in a form, not writing JSON: write LaTeX with SINGLE backslashes, e.g. \\(\\frac{1}{2}\\).', messages: [{ role: 'user', content: _msgContent }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, 'smart');
+    const r = await _ccClaudeFetch({ max_tokens: maxTokens, system: system + '\nYou are filling in a form, not writing JSON: write LaTeX with SINGLE backslashes, e.g. \\(\\frac{1}{2}\\).', messages: [{ role: 'user', content: _msgContent }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_items' } }, tier || 'smart');
     if (r && r.ok) {
       const data = await r.json();
       const blk = (data.content || []).find((b) => b.type === 'tool_use');
@@ -5671,7 +5863,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '',
     _ccMathRulesFor('generate'),
     _ccSkillRules(),
-    _ccDiffRulesGenerate(requestedCount, files.length > 0),
+    _ccDiffRulesGenerate(requestedCount, files.length > 0, _ccDiffTargetFor(req.body && req.body.weekDate).pct),
     _ccLangRulesFor(language),
     '',
     'G. LANGUAGE',

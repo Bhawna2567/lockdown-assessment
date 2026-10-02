@@ -2212,6 +2212,7 @@ if (els.aiGenerateBtn) {
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
       try { const _cur = ccCurriculumSelection(); if (_cur) fd.append('curriculum', JSON.stringify(_cur)); } catch (e) {}
+      try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd) fd.append('weekDate', _wd); } catch (e) {}
       // Multipart standard: same field name repeated for each file. Multer
       // collects them as req.files = [...] on the server.
       for (const f of fileList) fd.append('schemeOfWork', f);
@@ -2295,6 +2296,7 @@ if (els.aiGenerateBtn) {
         if (fake.classId && els.builderClass && Array.from(els.builderClass.options).some((o) => o.value === fake.classId)) els.builderClass.value = fake.classId;
         if (fake.grade && els.grade) els.grade.value = fake.grade;
         if (fake.term && els.term) els.term.value = fake.term;
+        try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd && els.scheduledDate && !els.scheduledDate.value) { els.scheduledDate.value = _wd; ccDiffBanner(); } } catch (e) {}
         // Pre-fill the assessment language so students see the correct
         // "Please answer in: …" banner. The dropdown values match what the
         // AI panel uses (free-text language names).
@@ -4126,6 +4128,18 @@ async function refreshApiKeyState() {
   if (!els.apiKeyState) return;
   try {
     const data = await api('/api/settings/grading');
+    try {
+      const f = document.getElementById('bg-model-field'), sel = document.getElementById('bg-model-select');
+      if (f && sel) {
+        f.style.display = data.isAdmin ? '' : 'none';
+        sel.value = data.bgModel || 'haiku';
+        sel.onchange = async () => {
+          const st = document.getElementById('bg-model-status');
+          try { const r = await api('/api/settings/ai-model', { method: 'POST', body: { bgModel: sel.value } }); if (st) st.textContent = '✓ Saved — ' + (r.bgModel === 'sonnet' ? 'Sonnet' : 'Haiku') + ' is used from now on.'; }
+          catch (e) { if (st) st.textContent = '⚠ ' + e.message; }
+        };
+      }
+    } catch (e) {}
     els.apiKeyState.innerHTML = data.aiGradingEnabled
       ? '<span class="badge green">Auto-grading ON</span>'
       : '<span class="badge">Auto-grading OFF (no key)</span>';
@@ -9645,3 +9659,202 @@ document.addEventListener('click', (e) => {
     ccOpenAdminCoverage({});
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ⚖ Weekly difficulty plan (Easy / Medium / Difficult weeks)
+//  • Builder banner shows the week's target mix.
+//  • "⚖ Difficulty check" (and an automatic check when saving) alerts the
+//    teacher if the easy / medium / hard mix doesn't match the week, and
+//    offers AI alternatives at the needed level to swap in.
+// ═══════════════════════════════════════════════════════════════════════
+const CC_LVL = { easy: { name: 'Easy', bg: '#dcfce7', fg: '#166534' }, medium: { name: 'Medium', bg: '#fef3c7', fg: '#92400e' }, hard: { name: 'Difficult', bg: '#fee2e2', fg: '#991b1b' } };
+function ccLvlChip(l) { const x = CC_LVL[l]; return x ? `<span style="display:inline-block; font-size:11px; padding:1px 8px; border-radius:999px; background:${x.bg}; color:${x.fg}; font-weight:600;">${x.name}</span>` : '<span class="muted" style="font-size:11px;">not labelled</span>'; }
+function ccDiffDate() { const v = els.scheduledDate && els.scheduledDate.value; return v || new Date().toISOString().slice(0, 10); }
+async function ccDiffBanner() {
+  const host = document.getElementById('cc-diff-banner');
+  if (!host) return;
+  try {
+    const r = await api('/api/difficulty/plan?date=' + encodeURIComponent(ccDiffDate()));
+    const t = r.target;
+    host.innerHTML = `<div style="margin:8px 0 2px; padding:8px 12px; border-radius:8px; background:#f5f3ff; border:1px solid #ddd6fe; font-size:13px;">
+      ⚖ <strong>${escapeHtml(t.label)}</strong>${els.scheduledDate && els.scheduledDate.value ? '' : ' <span class="muted">(today — set the scheduled date to plan another week)</span>'}
+      → aim for <strong>${t.pct.easy}%</strong> easy · <strong>${t.pct.medium}%</strong> medium · <strong>${t.pct.hard}%</strong> difficult (by marks).</div>`;
+  } catch (e) { host.innerHTML = ''; }
+}
+function ccDiffPayload() {
+  return {
+    assessmentId: (typeof editingId !== 'undefined' && editingId) || null,
+    scheduledDate: ccDiffDate(),
+    subject: els.subject ? els.subject.value : '', grade: els.grade ? els.grade.value : '',
+    sections: (sections || []).map((s) => ({ id: s.id, passage: String(s.passage || '').slice(0, 1500) })),
+    questions: (questions || []).map((q) => ({ id: q.id, type: q.type, prompt: q.prompt || '', options: q.options, correctAnswer: q.correctAnswer, points: q.points, sectionId: q.sectionId, imageUrl: q.imageUrl ? 'yes' : '' })),
+  };
+}
+async function ccOpenDiffCheck(opts) {
+  opts = opts || {};
+  let ov = document.getElementById('cc-diffcheck');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'cc-diffcheck';
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(980px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"></div>';
+    document.body.appendChild(ov);
+  }
+  ov._opts = opts;
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  box.innerHTML = '<div class="muted">⚖ Checking the difficulty of each question…</div>';
+  let d;
+  try { d = await api('/api/difficulty/check', { method: 'POST', body: ccDiffPayload() }); }
+  catch (e) {
+    if (opts.gate) { ov.remove(); opts.onSave && opts.onSave(); return; }
+    box.innerHTML = `<div class="error">${esc(e.message)}</div><button class="btn" id="cc-dc-x">Close</button>`;
+    box.querySelector('#cc-dc-x').onclick = () => ov.remove(); return;
+  }
+  if (opts.gate && d.ok) { ov.remove(); opts.onSave && opts.onSave(); return; }
+  ov._d = d;
+  const t = d.target;
+  const bar = (l) => `<div style="display:flex; align-items:center; gap:8px; margin:3px 0; font-size:13px;">
+      <div style="width:70px;">${ccLvlChip(l)}</div>
+      <div style="flex:1; position:relative; background:#f1f5f9; border-radius:6px; height:16px;">
+        <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(100, d.pct[l])}%; background:${CC_LVL[l].fg}; opacity:.75; border-radius:6px;"></div>
+        <div title="Target" style="position:absolute; top:-3px; bottom:-3px; left:calc(${t.pct[l]}% - 1px); width:3px; background:#111827;"></div></div>
+      <div style="width:150px;">now <strong>${d.pct[l]}%</strong> · target ${t.pct[l]}%</div></div>`;
+  const qIndex = new Map((questions || []).map((q, i) => [q.id, i]));
+  const sugg = d.suggestions.filter((s) => qIndex.has(s.id));
+  const need = ['easy', 'medium', 'hard'].filter((l) => Math.abs(d.need[l]) >= 0.5).map((l) => `${d.need[l] > 0 ? '+' : ''}${d.need[l]} marks ${CC_LVL[l].name.toLowerCase()}`).join(' · ');
+  const qRow = (q, s) => {
+    const i = qIndex.get(q.id);
+    const lvl = d.levels[q.id];
+    const plain = String(q.prompt || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return `<div style="border:1px solid ${s ? '#fca5a5' : '#e5e7eb'}; background:${s ? '#fff7f7' : '#fff'}; border-radius:10px; padding:10px 12px; margin:8px 0;" data-dc-q="${esc(q.id)}">
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <div style="font-weight:700; min-width:34px;">Q${i + 1}</div>
+        <div style="flex:1;" dir="auto">${esc(plain.slice(0, 260))}${plain.length > 260 ? '…' : ''}${q.imageUrl ? ' <span class="muted">[picture]</span>' : ''}
+          <div style="margin-top:4px; font-size:12px;">${ccLvlChip(lvl)} <span class="muted">${esc(q.points || 1)} mark${Number(q.points) === 1 ? '' : 's'}${d.reasons[q.id] ? ' · ' + esc(d.reasons[q.id]) : ''}</span></div></div>
+        <div style="white-space:nowrap; text-align:right;">
+          ${s ? `<button class="btn primary" data-dc-alt="${esc(q.id)}" data-dc-to="${s.to}">🔄 Show ${CC_LVL[s.to].name.toLowerCase()} alternatives</button>`
+              : `<select data-dc-pick="${esc(q.id)}" style="width:auto; font-size:12px;"><option value="">Replace with…</option>${['easy', 'medium', 'hard'].filter((l) => l !== lvl).map((l) => `<option value="${l}">${CC_LVL[l].name} question</option>`).join('')}</select>`}
+        </div></div>
+      <div data-dc-alts="${esc(q.id)}"></div></div>`;
+  };
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;">
+      <h2 style="margin:0; flex:1;">⚖ Difficulty check</h2>
+      <button class="btn" id="cc-dc-close">${opts.gate ? 'Back to editing' : 'Close'}</button>
+    </div>
+    <div style="font-size:14px; margin-bottom:8px;"><strong>${esc(t.label)}</strong> · ${esc(t.date)} — target ${t.pct.easy}% easy · ${t.pct.medium}% medium · ${t.pct.hard}% difficult (by marks)</div>
+    <div style="padding:10px 12px; border-radius:10px; background:${d.ok ? '#ecfdf5' : '#fef2f2'}; border:1px solid ${d.ok ? '#a7f3d0' : '#fecaca'}; margin-bottom:10px;">
+      ${d.ok ? '✅ <strong>The difficulty mix matches this week.</strong>'
+        : `⚠ <strong>The difficulty mix does not match this week.</strong> ${need ? 'Needed: ' + esc(need) + '.' : ''} ${sugg.length ? `Replace the <strong>${sugg.length}</strong> question${sugg.length === 1 ? '' : 's'} marked below with alternatives at the right level.` : 'Change some questions to the needed level (use “Replace with…”).'}`}
+      ${d.unlabelled.length ? `<div class="muted" style="font-size:12px; margin-top:4px;">${d.unlabelled.length} question(s) could not be labelled (empty text).</div>` : ''}
+      <div style="margin-top:8px;">${bar('easy')}${bar('medium')}${bar('hard')}</div>
+    </div>
+    ${sugg.length ? `<h3 style="margin:10px 0 4px;">Suggested changes</h3>${sugg.map((s) => qRow(questions[qIndex.get(s.id)], s)).join('')}` : ''}
+    <details ${sugg.length ? '' : 'open'} style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600;">All questions (${questions.length})</summary>
+      ${questions.filter((q) => !sugg.some((s) => s.id === q.id)).map((q) => qRow(q, null)).join('')}</details>
+    <div class="row" style="gap:8px; margin-top:14px; justify-content:flex-end;">
+      ${opts.gate ? `<button class="btn" id="cc-dc-saveanyway">Save anyway</button>` : ''}
+      ${opts.gate && d.ok ? '' : ''}
+      <button class="btn primary" id="cc-dc-done">${opts.gate ? (d.ok ? '💾 Save now' : 'Fix questions first') : 'Done'}</button>
+    </div>
+    <div class="muted" style="font-size:12px; margin-top:6px;">Labels are for teachers only — students never see them. The weekly level comes from the school plan (Easy / Medium / Difficult weeks).</div>`;
+  const close = () => ov.remove();
+  box.querySelector('#cc-dc-close').onclick = close;
+  const done = box.querySelector('#cc-dc-done');
+  done.onclick = () => { close(); if (opts.gate && d.ok && opts.onSave) opts.onSave(); };
+  const sa = box.querySelector('#cc-dc-saveanyway'); if (sa) sa.onclick = () => { close(); opts.onSave && opts.onSave(); };
+  box.querySelectorAll('[data-dc-alt]').forEach((b) => { b.onclick = () => ccDiffShowAlternatives(b.getAttribute('data-dc-alt'), b.getAttribute('data-dc-to'), d.levels[b.getAttribute('data-dc-alt')]); });
+  box.querySelectorAll('[data-dc-pick]').forEach((s) => { s.onchange = () => { if (s.value) ccDiffShowAlternatives(s.getAttribute('data-dc-pick'), s.value, d.levels[s.getAttribute('data-dc-pick')]); }; });
+}
+async function ccDiffShowAlternatives(qid, to, from) {
+  const host = document.querySelector(`[data-dc-alts="${CSS.escape(qid)}"]`);
+  const q = (questions || []).find((x) => x.id === qid);
+  if (!host || !q) return;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  host.innerHTML = `<div class="muted" style="margin-top:8px;">✨ Writing 3 ${CC_LVL[to].name.toLowerCase()} alternatives…</div>`;
+  const sec = (sections || []).find((s) => s.id === q.sectionId) || {};
+  let r;
+  try {
+    r = await api('/api/difficulty/alternatives', { method: 'POST', body: {
+      question: { type: q.type, prompt: q.prompt, options: q.options, correctAnswer: q.correctAnswer, points: q.points, skill: q.skill, pairs: q.pairs, matchVariant: q.matchVariant, imageDescription: q.imageDescription, imageUrl: q.imageUrl ? 'yes' : '' },
+      level: to, from, subject: els.subject ? els.subject.value : '', grade: els.grade ? els.grade.value : '',
+      language: els.assessmentLanguage ? els.assessmentLanguage.value : '', passage: sec.passage || '', instructions: sec.instructions || '' } });
+  } catch (e) { host.innerHTML = `<div class="error" style="margin-top:8px;">${esc(e.message)} <button class="btn" data-dc-retry>Try again</button></div>`; host.querySelector('[data-dc-retry]').onclick = () => ccDiffShowAlternatives(qid, to, from); return; }
+  const ansHtml = (a) => {
+    if (a.type === 'mc') return `<ol type="A" style="margin:4px 0 0 18px; padding:0;">${a.options.map((o, i) => `<li style="${i === a.correctAnswer ? 'font-weight:700; color:#166534;' : ''}" dir="auto">${esc(o)}${i === a.correctAnswer ? ' ✓' : ''}</li>`).join('')}</ol>`;
+    if (a.type === 'match') return `<div style="font-size:13px; margin-top:4px;">${(a.pairs || []).map((p) => `${esc(p.left)} → ${esc(p.right)}`).join('<br>')}</div>`;
+    if (a.correctAnswer === null || a.correctAnswer === undefined || a.correctAnswer === '') return '';
+    return `<div style="font-size:13px; margin-top:4px; color:#166534;">Answer: <strong dir="auto">${esc(a.correctAnswer === true ? 'True' : a.correctAnswer === false ? 'False' : a.correctAnswer)}</strong></div>`;
+  };
+  host.innerHTML = `<div style="margin-top:8px; display:grid; gap:8px;">${r.alternatives.map((a, k) => `
+    <div style="border:1px dashed #a5b4fc; border-radius:8px; padding:8px 10px; background:#f8faff;">
+      <div style="display:flex; gap:8px; align-items:flex-start;"><div style="flex:1;" dir="auto"><strong>Option ${k + 1}</strong> ${ccLvlChip(to)}<div style="margin-top:4px; white-space:pre-wrap;">${esc(a.prompt)}</div>${ansHtml(a)}
+        ${a.difficultyReason ? `<div class="muted" style="font-size:12px; margin-top:4px;">Why ${CC_LVL[to].name.toLowerCase()}: ${esc(a.difficultyReason)}</div>` : ''}</div>
+        <button class="btn primary" data-dc-use="${k}">Use this question</button></div></div>`).join('')}
+    <div><button class="btn" data-dc-more>↻ Other alternatives</button> <button class="btn" data-dc-keep>Keep the original</button></div></div>`;
+  host.querySelector('[data-dc-more]').onclick = () => ccDiffShowAlternatives(qid, to, from);
+  host.querySelector('[data-dc-keep]').onclick = () => { host.innerHTML = ''; };
+  host.querySelectorAll('[data-dc-use]').forEach((b) => {
+    b.onclick = () => {
+      const a = r.alternatives[Number(b.getAttribute('data-dc-use'))];
+      const i = questions.findIndex((x) => x.id === qid);
+      if (i < 0) return;
+      const old = questions[i];
+      const nq = Object.assign({}, old, { id: uid(), type: a.type, prompt: a.prompt, points: a.points || old.points, skill: a.skill || old.skill || '', explanation: a.explanation || '' });
+      if (a.type === 'mc') { nq.options = a.options; nq.correctAnswer = a.correctAnswer; }
+      else if (a.type === 'match') { nq.pairs = a.pairs; }
+      else nq.correctAnswer = a.correctAnswer;
+      if (old.imageUrl) { nq.imageUrl = ''; nq.imageDescription = ''; }
+      questions[i] = nq;
+      try { renderQuestions(); } catch (e) { console.warn(e); }
+      ccOpenDiffCheck(document.getElementById('cc-diffcheck') && document.getElementById('cc-diffcheck')._opts || {});
+    };
+  });
+}
+// Builder button + banner
+(function ccDiffInit() {
+  const row = document.getElementById('tag-skills-btn');
+  if (row && !document.getElementById('cc-diff-btn')) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.id = 'cc-diff-btn';
+    b.style.cssText = 'margin-left:8px; background:#f5f3ff; border-color:#ddd6fe; color:#5b21b6;';
+    b.title = 'Check the easy / medium / difficult mix against this week’s level';
+    b.textContent = '⚖ Difficulty check';
+    row.insertAdjacentElement('afterend', b);
+    b.onclick = () => { if (!questions.length) { alert('Add some questions first.'); return; } ccOpenDiffCheck({}); };
+    const banner = document.createElement('div'); banner.id = 'cc-diff-banner';
+    const panel = document.getElementById('builder-questions-panel');
+    const qs = document.getElementById('questions');
+    if (panel && qs) panel.insertBefore(banner, qs);
+  }
+  if (els.scheduledDate) els.scheduledDate.addEventListener('change', ccDiffBanner);
+  const nb = document.getElementById('new-btn');
+  document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('[data-edit], #new-btn, .cc-edit-btn')) setTimeout(ccDiffBanner, 400); });
+  const bv = document.getElementById('builder-view');
+  if (bv && window.MutationObserver) new MutationObserver(() => { if (bv.style.display !== 'none') ccDiffBanner(); }).observe(bv, { attributes: true, attributeFilter: ['style'] });
+})();
+// Automatic check when the teacher saves
+(function ccDiffSaveGate() {
+  if (!els.saveBtn || els.saveBtn._ccDiffWrapped) return;
+  const original = els.saveBtn.onclick;
+  if (typeof original !== 'function') return;
+  els.saveBtn._ccDiffWrapped = true;
+  els.saveBtn.onclick = async (ev) => {
+    if (window._ccDiffSkip || !questions || questions.length < 3) return original.call(els.saveBtn, ev);
+    els.saveStatus.textContent = 'Checking the difficulty mix…';
+    await ccOpenDiffCheck({ gate: true, onSave: () => { window._ccDiffSkip = true; Promise.resolve(original.call(els.saveBtn, ev)).finally(() => { window._ccDiffSkip = false; }); } });
+    if (els.saveStatus.textContent === 'Checking the difficulty mix…') els.saveStatus.textContent = '';
+  };
+})();
+// AI panel: assessment date → weekly level used for generation
+async function ccAiWeekInfo() {
+  const inp = document.getElementById('ai-week-date'), info = document.getElementById('ai-week-info');
+  if (!inp || !info) return;
+  if (!inp.value) inp.value = new Date().toISOString().slice(0, 10);
+  try {
+    const r = await api('/api/difficulty/plan?date=' + encodeURIComponent(inp.value));
+    info.innerHTML = `⚖ ${escapeHtml(r.target.label)} → the AI will write about <strong>${r.target.pct.easy}%</strong> easy · <strong>${r.target.pct.medium}%</strong> medium · <strong>${r.target.pct.hard}%</strong> difficult.`;
+  } catch (e) { info.textContent = ''; }
+}
+document.addEventListener('change', (e) => { if (e.target && e.target.id === 'ai-week-date') ccAiWeekInfo(); });
+document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('#new-btn')) setTimeout(ccAiWeekInfo, 100); });

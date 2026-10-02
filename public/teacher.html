@@ -251,6 +251,15 @@
             <span id="api-key-state" style="margin-left: 6px;"></span>
           </div>
         </div>
+        <div class="field" id="bg-model-field" style="display:none; border:1px solid #ddd6fe; background:#f5f3ff; border-radius:10px; padding:10px 12px;">
+          <label>🤖 AI model for background jobs (admin)</label>
+          <select id="bg-model-select" style="width:auto;">
+            <option value="haiku">Haiku — cheaper (about half the cost)</option>
+            <option value="sonnet">Sonnet — best quality</option>
+          </select>
+          <span id="bg-model-status" class="muted" style="margin-left:6px; font-size:12px;"></span>
+          <div class="muted" style="margin-top:6px; font-size:12px;">Used for skill tags, difficulty labels and checks, Bloom’s levels and outcome matching. Generating assessments, alternative questions and essay marking always use Sonnet.</div>
+        </div>
         <div class="row">
           <button id="settings-close" class="btn ghost">Close</button>
           <div class="spacer"></div>
@@ -389,6 +398,12 @@
           <div id="ai-cov-summary"></div>
           <div id="ai-cur-status" class="muted" style="font-size:12px; margin-top:6px;">Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons this assessment should cover.</div>
           <div id="ai-cur-list" style="max-height:260px; overflow:auto; margin-top:6px;"></div>
+        </div>
+
+        <div class="field">
+          <label>📅 Date of this assessment (sets the weekly difficulty level)</label>
+          <input type="date" id="ai-week-date" style="width:auto;" />
+          <div id="ai-week-info" class="muted" style="font-size:12px; margin-top:4px;"></div>
         </div>
 
         <div class="field">
