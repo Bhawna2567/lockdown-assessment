@@ -55,6 +55,9 @@ function contextFor({ subject, grade, stream, term, keys }) {
     out.push(`LESSON ${l.key}: ${l.lesson}${l.module ? ` (${l.module})` : ''}${l.weeks ? ` — ${l.weeks}` : ''}${l.type === 'enrichment' ? ' [enrichment]' : ''}`);
     if (l.objectives) out.push(`  Lesson objectives: ${l.objectives}`);
     if (l.focusQuestion) out.push(`  Focus question: ${l.focusQuestion}`);
+    if (l.focus) out.push(`  Skill focus: ${l.focus}`);
+    if (l.grammar) out.push(`  Grammar: ${l.grammar}`);
+    if (l.functionalLanguage) out.push(`  Functional language: ${l.functionalLanguage}`);
     if (Array.isArray(l.slos) && l.slos.length) {
       for (const s of l.slos) {
         out.push(`  OUTCOME ${s.code}${s.priority ? ` [${s.priority}]` : ''}: ${s.text}`);
@@ -84,6 +87,7 @@ function contextFor({ subject, grade, stream, term, keys }) {
   const guide = (CUR.__assessment_guides || {})[subject];
   if (guide && Array.isArray(guide.rules)) { out.push(`- From the ${guide.source}:`); for (const r of guide.rules) out.push(`  • ${r}`); }
   if (isSci && fw && fw.threeDimensional) out.push('- ' + fw.threeDimensional);
+  if (subject === 'English') out.push('- English: match each question to its lesson\'s skill focus — reading/listening items need a short original text or transcript at the right level; grammar and functional-language items should test the listed grammar points in context; writing tasks should follow the lesson goal. Set skill to the outcome code (Main SLOs first).');
   if (isBus) out.push('- Business Studies: use short realistic business case studies (UAE contexts where natural), include some data/chart interpretation and simple calculations where the outcomes allow, and "recommend/justify" questions for higher marks. Use the performance criteria (KPIs) and the lesson mastery levels to pitch difficulty.');
   if (isTech) out.push('- AI & Technology: include practical items where they fit — reading or predicting the output of short code/pseudocode, spotting a bug, choosing the right algorithm or component, interpreting a CAD/technical drawing description, and scenario questions on AI ethics, data and e-safety.');
   return out.join('\n');
