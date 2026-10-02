@@ -21002,6 +21002,597 @@
       "text": "Interpret and describe reliably the overall trends, main points and detailed information in complex visuals, diagrams and charts on concrete and some abstract topics using simple and complex language and expressions in writing, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
      }
     ]
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 1: Introduction to health": [
+      "HSC1.1.01.001 — Explain the concept of health and illness.",
+      "HSC1.1.01.002 — Identify the dimensions of health (physical, social, mental and emotional).",
+      "HSC1.1.01.003 — Describe the factors that contribute to physical health.",
+      "HSC1.1.01.004 — Describe the factors that contribute to social health.",
+      "HSC1.1.01.005 — Describe the factors that contribute to mental health.",
+      "HSC1.1.01.006 — Describe the factors that contribute to emotional health.",
+      "HSC1.1.01.007 — Define the stages of human growth and development."
+     ],
+     "Unit 2: First Aid": [
+      "HSC.3.1.01.001 — Explain the purpose of first aid and identify who can provide it.",
+      "HSC.3.1.01.002 — List the contents of a first aid kit.",
+      "HSC.3.1.01.003 — Demonstrate the initial steps to take at the scene of an emergency.",
+      "HSC.3.1.01.004 — Apply the principles of hygiene and infection control to first aid.",
+      "HSC.3.1.01.005 — Differentiate between arterial, venous and capillary bleeding.",
+      "HSC.3.1.01.006 — Identify different types of open soft tissue injuries.",
+      "HSC.3.1.01.007 — Demonstrate simple wound dressings."
+     ],
+     "Unit 3: Anatomy and physiology": [
+      "HSC5.1.01.001 — Explain the concept of homeostasis.",
+      "HSC5.1.01.002 — Describe the different types of tissues and their function.",
+      "HSC5.1.01.003 — Describe the structure and function of the musculoskeletal system.",
+      "HSC5.1.01.005 — Describe the structure and function of the circulatory system.",
+      "HSC5.1.01.006 — Describe the structure and function of the respiratory system.",
+      "HSC5.1.01.007 — Describe the structure and function of the nervous system.",
+      "HSC5.1.01.008 — Describe the structure and function of the digestive system.",
+      "HSC5.1.01.009 — Describe the components and function of the immune system."
+     ],
+     "Unit 4: Healthcare and ethics": [
+      "HSC3.2.01.002 — List the types of healthcare professionals and their roles.",
+      "HSC3.2.01.001 — Identify different health services available in the community.",
+      "HSC3.2.01.007 — Compare and contrast inpatient and outpatient care.",
+      "HSC3.2.01.003 — Explain patient’s rights and responsibilities in healthcare.",
+      "HSC3.2.01.008 — Define ethics in relation to healthcare.",
+      "HSC3.2.01.005 — Identify the legal and ethical regulations that apply to healthcare.",
+      "HSC3.2.01.009 — Explain the moral basis of patient confidentiality.",
+      "HSC3.2.01.006 — Identify the major principles of patient safety and harm prevention."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.1 Health and illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.001",
+        "text": "Explain the concept of health and illness.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L2",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.2 The dimensions of health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.002",
+        "text": "Identify the dimensions of health (physical, social, mental and emotional).",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L3",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.3 Physical health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.003",
+        "text": "Describe the factors that contribute to physical health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (1.3 merged with 1.4 - taught over 1 period)"
+     },
+     {
+      "code": "U1L4",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.4 Social health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.004",
+        "text": "Describe the factors that contribute to social health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U1L5",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.5 Mental health",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC1.1.01.005",
+        "text": "Describe the factors that contribute to mental health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U1L6",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.6 Emotional Health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.006",
+        "text": "Describe the factors that contribute to emotional health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L7",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.7 Human growth and development",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.007",
+        "text": "Define the stages of human growth and development.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U2L1",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.1 First aid",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.001",
+        "text": "Explain the purpose of first aid and identify who can provide it.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 2.1 with 2.2 - 1 period)"
+     },
+     {
+      "code": "U2L2",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.2 First aid kits",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.002",
+        "text": "List the contents of a first aid kit.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L3",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.3 Attending the scene of an emergency",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.003",
+        "text": "Demonstrate the initial steps to take at the scene of an emergency.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L4",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.4 Hygiene and infection control",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.004",
+        "text": "Apply the principles of hygiene and infection control to first aid.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U2L5",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.5 Bleeding",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.005",
+        "text": "Differentiate between arterial, venous and capillary bleeding.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (2.5 merged with 2.6 - taught over 1 period)"
+     },
+     {
+      "code": "U2L6",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.6 Soft tissue injuries",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.006",
+        "text": "Identify different types of open soft tissue injuries.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L7",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.7 Wound dressings",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.007",
+        "text": "Demonstrate simple wound dressings.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.1 Homeostasis",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.001",
+        "text": "Explain the concept of homeostasis.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.2 Human tissue",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.002",
+        "text": "Describe the different types of tissues and their function.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U3L3",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.3 The musculoskeletal system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.003",
+        "text": "Describe the structure and function of the musculoskeletal system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L4",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.4 The circulatory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.005",
+        "text": "Describe the structure and function of the circulatory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L5",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.5 The respiratory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.006",
+        "text": "Describe the structure and function of the respiratory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L6",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.6 The nervous system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.007",
+        "text": "Describe the structure and function of the nervous system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L7",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.7 The digestive system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.008",
+        "text": "Describe the structure and function of the digestive system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L8",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.8 The immune system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.009",
+        "text": "Describe the components and function of the immune system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L1",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.1 Healthcare professionals",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.002",
+        "text": "List the types of healthcare professionals and their roles.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.1 merged with 4.2 - taught over 1 period)"
+     },
+     {
+      "code": "U4L2",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.2 Health services",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.001",
+        "text": "Identify different health services available in the community.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L3",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.3 Outpatient and inpatient care",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.007",
+        "text": "Compare and contrast inpatient and outpatient care.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L4",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.4 Patient rights and responsibilities",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.003",
+        "text": "Explain patient’s rights and responsibilities in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L5",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.5 Ethics in healthcare",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.008",
+        "text": "Define ethics in relation to healthcare.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "HSC3.2.01.005",
+        "text": "Identify the legal and ethical regulations that apply to healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U4L6",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.6 Patient confidentiality",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.009",
+        "text": "Explain the moral basis of patient confidentiality.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L7",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.7 Patient safety",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.006",
+        "text": "Identify the major principles of patient safety and harm prevention.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 + Comprehensive Curriculum Guides (outcomes & standards) · 11 teaching weeks",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -21215,6 +21806,392 @@
     "source": "MOE Biology 2026-27: Scope & Sequence",
     "lang": "en",
     "withSLOs": false
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 5: Health Promotion": [
+      "U5L1 — 5.1 Health promotion and health education",
+      "U5L2 — 5.2 Principles of health promotion (enrichment)",
+      "U5L3 — 5.3 Approaches to health promotion (enrichment)",
+      "U5L4 — 5.4 Contemporary health problems",
+      "U5L5 — 5.5 Health promotion in the UAE",
+      "U5L6 — 5.6 Planning a health promotion campaign",
+      "U5L7 — 5.7 Public health and medicine",
+      "U5L8 — 5.8 Healthcare professionals as health educators"
+     ],
+     "Unit 6: Introduction to nutrition": [
+      "U6L1 — 6.1 The food groups",
+      "U6L2 — 6.2 Nutrients",
+      "U6L3 — 6.3 Nutrition and immunity",
+      "U6L4 — 6.4 Calories",
+      "U6L5 — 6.5 Energy and nutrient needs",
+      "U6L6 — 6.6 Serving sizes and portion control",
+      "U6L7 — 6.7 Healthy food choices and dietary guidelines",
+      "U6L8 — 6.8 Food labels"
+     ],
+     "Unit 7: Cardiopulmonary resuscitation (CPR)": [
+      "U7L1 — 7.1 Patient assessment",
+      "U7L2 — 7.2 The heart",
+      "U7L3 — 7.3 The purpose of CPR",
+      "U7L4 — 7.4 The initial steps before providing CPR",
+      "U7L5 — 7.5 Administering CPR",
+      "U7L6 — 7.6 CPR for children and infants"
+     ],
+     "Unit 8: Mental and emotional health": [
+      "U8L1 — 8.1 Self-esteem",
+      "U8L2 — 8.2 Peer pressure",
+      "U8L3 — 8.3 Mental, behavioural and neurodevelopmental disorders",
+      "U8L4 — 8.4 Diagnosing mental health disorders",
+      "U8L5 — 8.5 Eating disorders",
+      "U8L6 — 8.6 Treatment for eating disorders",
+      "U8L7 — 8.7 Looking after your mental health"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U5L1",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.1 Health promotion and health education",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L2",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.2 Principles of health promotion",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U5L3",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.3 Approaches to health promotion",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U5L4",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.4 Contemporary health problems",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L5",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.5 Health promotion in the UAE",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L6",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.6 Planning a health promotion campaign",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L7",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.7 Public health and medicine",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 5.7 with 5.8 - taught over 1 period)"
+     },
+     {
+      "code": "U5L8",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.8 Healthcare professionals as health educators",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L1",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.1 The food groups",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 6.1 with 6.2 - 1 period)"
+     },
+     {
+      "code": "U6L2",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.2 Nutrients",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L3",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.3 Nutrition and immunity",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (6.3 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U6L4",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.4 Calories",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L5",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.5 Energy and nutrient needs",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L6",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.6 Serving sizes and portion control",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L7",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.7 Healthy food choices and dietary guidelines",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U6L8",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.8 Food labels",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7L1",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.1 Patient assessment",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.1 used to be Enrichment)"
+     },
+     {
+      "code": "U7L2",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.2 The heart",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 7.2 with 7.3 - 1 period)"
+     },
+     {
+      "code": "U7L3",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.3 The purpose of CPR",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U7L4",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.4 The initial steps before providing CPR",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7L5",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.5 Administering CPR",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Increased from 1 period to 2 periods to allow sufficient time for application of knowledge and skills.)"
+     },
+     {
+      "code": "U7L6",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.6 CPR for children and infants",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Increased from 1 period to 2 periods to allow sufficient time for application of knowledge and skills.)"
+     },
+     {
+      "code": "U8L1",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.1 Self-esteem",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.1 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U8L2",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.2 Peer pressure",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.2 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U8L3",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.3 Mental, behavioural and neurodevelopmental disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L4",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.4 Diagnosing mental health disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U8L5",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.5 Eating disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.5 merged with 8.6 - taught over 1 period)"
+     },
+     {
+      "code": "U8L6",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.6 Treatment for eating disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L7",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.7 Looking after your mental health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 10 teaching weeks",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -21415,6 +22392,303 @@
      }
     ],
     "source": "MOE Biology 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 9: Digital health": [
+      "U9L1 — 9.1 Social media",
+      "U9L2 — 9.2 The negatives of social media",
+      "U9L3 — 9.3 Social media and healthcare",
+      "U9L4 — 9.4 Online presence and digital footprint",
+      "U9L5 — 9.5 Finding reliable online information"
+     ],
+     "Unit 10: Psychology": [
+      "U10L1 — 10.1 Psychology",
+      "U10L2 — 10.2 Basic cognitive processes",
+      "U10L3 — 10.3 Higher cognitive processes",
+      "U10L4 — 10.4 Lifespan psychology and developmental theories (enrichment)",
+      "U10L5 — 10.5 Stress and coping mechanisms",
+      "U10L6 — 10.6 Scientific report writing (enrichment)"
+     ],
+     "Unit 11: Physiotherapy and rehabilitation": [
+      "U11L1 — 11.1 The purpose of physiotherapy",
+      "U11L2 — 11.2 Physiotherapy treatments",
+      "U11L3 — 11.3 Physiotherapy for medical conditions",
+      "U11L4 — 11.4 The principals of proper body mechanics",
+      "U11L5 — 11.5 Patient positioning, transfer and ambulation",
+      "U11L6 — 11.6 The patient rehabilitation journey"
+     ],
+     "Unit 12: Environmental health": [
+      "U12L1 — 12.1 The environment and ecosystems",
+      "U12L2 — 12.2 Global environmental issues",
+      "U12L3 — 12.3 Environmental pollution and health",
+      "U12L4 — 12.4 Reducing environmental pollution",
+      "U12L5 — 12.5 The UAE's policies on environmental protection"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U9L1",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.1 Social media",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U9L2",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.2 The negatives of social media",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U9L3",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.3 Social media and healthcare",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.3 merged with 9.4 - taught over 1 period)"
+     },
+     {
+      "code": "U9L4",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.4 Online presence and digital footprint",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L5",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.5 Finding reliable online information",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L1",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.1 Psychology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L2",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.2 Basic cognitive processes",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L3",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.3 Higher cognitive processes",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L4",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.4 Lifespan psychology and developmental theories",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U10L5",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.5 Stress and coping mechanisms",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L6",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.6 Scientific report writing",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U11L1",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.1 The purpose of physiotherapy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.1 merged with 11.2 - taught over 1 period)"
+     },
+     {
+      "code": "U11L2",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.2 Physiotherapy treatments",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L3",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.3 Physiotherapy for medical conditions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.3 and 11.4 used to be merged to be taught over 1 period / now separate each 1 period)"
+     },
+     {
+      "code": "U11L4",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.4 The principals of proper body mechanics",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U11L5",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.5 Patient positioning, transfer and ambulation",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U11L6",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.6 The patient rehabilitation journey",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.6 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U12L1",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.1 The environment and ecosystems",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L2",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.2 Global environmental issues",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L3",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.3 Environmental pollution and health",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L4",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.4 Reducing environmental pollution",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (12.4 merged with 12.5 - taught over 1 period)"
+     },
+     {
+      "code": "U12L5",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.5 The UAE's policies on environmental protection",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 9 teaching weeks",
     "lang": "en",
     "withSLOs": false
    }
@@ -22901,6 +24175,597 @@
       "text": "Interpret and describe the overall trends, main points and detailed information in visuals, diagrams and charts on familiar and unfamiliar concrete topics using simple and a wide range of complex language and expressions in writing, although there may be some inaccuracies, especially with more complex language, and some repetition of language and structures."
      }
     ]
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 1: Introduction to health": [
+      "HSC1.1.01.001 — Explain the concept of health and illness.",
+      "HSC1.1.01.002 — Identify the dimensions of health (physical, social, mental and emotional).",
+      "HSC1.1.01.003 — Describe the factors that contribute to physical health.",
+      "HSC1.1.01.004 — Describe the factors that contribute to social health.",
+      "HSC1.1.01.005 — Describe the factors that contribute to mental health.",
+      "HSC1.1.01.006 — Describe the factors that contribute to emotional health.",
+      "HSC1.1.01.007 — Define the stages of human growth and development."
+     ],
+     "Unit 2: First Aid": [
+      "HSC.3.1.01.001 — Explain the purpose of first aid and identify who can provide it.",
+      "HSC.3.1.01.002 — List the contents of a first aid kit.",
+      "HSC.3.1.01.003 — Demonstrate the initial steps to take at the scene of an emergency.",
+      "HSC.3.1.01.004 — Apply the principles of hygiene and infection control to first aid.",
+      "HSC.3.1.01.005 — Differentiate between arterial, venous and capillary bleeding.",
+      "HSC.3.1.01.006 — Identify different types of open soft tissue injuries.",
+      "HSC.3.1.01.007 — Demonstrate simple wound dressings."
+     ],
+     "Unit 3: Anatomy and physiology": [
+      "HSC5.1.01.001 — Explain the concept of homeostasis.",
+      "HSC5.1.01.002 — Describe the different types of tissues and their function.",
+      "HSC5.1.01.003 — Describe the structure and function of the musculoskeletal system.",
+      "HSC5.1.01.005 — Describe the structure and function of the circulatory system.",
+      "HSC5.1.01.006 — Describe the structure and function of the respiratory system.",
+      "HSC5.1.01.007 — Describe the structure and function of the nervous system.",
+      "HSC5.1.01.008 — Describe the structure and function of the digestive system.",
+      "HSC5.1.01.009 — Describe the components and function of the immune system."
+     ],
+     "Unit 4: Healthcare and ethics": [
+      "HSC3.2.01.002 — List the types of healthcare professionals and their roles.",
+      "HSC3.2.01.001 — Identify different health services available in the community.",
+      "HSC3.2.01.007 — Compare and contrast inpatient and outpatient care.",
+      "HSC3.2.01.003 — Explain patient’s rights and responsibilities in healthcare.",
+      "HSC3.2.01.008 — Define ethics in relation to healthcare.",
+      "HSC3.2.01.005 — Identify the legal and ethical regulations that apply to healthcare.",
+      "HSC3.2.01.009 — Explain the moral basis of patient confidentiality.",
+      "HSC3.2.01.006 — Identify the major principles of patient safety and harm prevention."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.1 Health and illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.001",
+        "text": "Explain the concept of health and illness.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L2",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.2 The dimensions of health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.002",
+        "text": "Identify the dimensions of health (physical, social, mental and emotional).",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L3",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.3 Physical health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.003",
+        "text": "Describe the factors that contribute to physical health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (1.3 merged with 1.4 - taught over 1 period)"
+     },
+     {
+      "code": "U1L4",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.4 Social health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.004",
+        "text": "Describe the factors that contribute to social health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U1L5",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.5 Mental health",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC1.1.01.005",
+        "text": "Describe the factors that contribute to mental health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U1L6",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.6 Emotional Health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.006",
+        "text": "Describe the factors that contribute to emotional health.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L7",
+      "unit": "Unit 1: Introduction to health",
+      "module": "Unit 1: Introduction to health",
+      "lesson": "1.7 Human growth and development",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC1.1.01.007",
+        "text": "Define the stages of human growth and development.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U2L1",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.1 First aid",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.001",
+        "text": "Explain the purpose of first aid and identify who can provide it.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 2.1 with 2.2 - 1 period)"
+     },
+     {
+      "code": "U2L2",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.2 First aid kits",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.002",
+        "text": "List the contents of a first aid kit.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L3",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.3 Attending the scene of an emergency",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.003",
+        "text": "Demonstrate the initial steps to take at the scene of an emergency.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L4",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.4 Hygiene and infection control",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.004",
+        "text": "Apply the principles of hygiene and infection control to first aid.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U2L5",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.5 Bleeding",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.005",
+        "text": "Differentiate between arterial, venous and capillary bleeding.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (2.5 merged with 2.6 - taught over 1 period)"
+     },
+     {
+      "code": "U2L6",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.6 Soft tissue injuries",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.006",
+        "text": "Identify different types of open soft tissue injuries.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L7",
+      "unit": "Unit 2: First Aid",
+      "module": "Unit 2: First Aid",
+      "lesson": "2.7 Wound dressings",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.1.01.007",
+        "text": "Demonstrate simple wound dressings.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.1 Homeostasis",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.001",
+        "text": "Explain the concept of homeostasis.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.2 Human tissue",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.002",
+        "text": "Describe the different types of tissues and their function.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U3L3",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.3 The musculoskeletal system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.003",
+        "text": "Describe the structure and function of the musculoskeletal system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L4",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.4 The circulatory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.005",
+        "text": "Describe the structure and function of the circulatory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L5",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.5 The respiratory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.006",
+        "text": "Describe the structure and function of the respiratory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L6",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.6 The nervous system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.007",
+        "text": "Describe the structure and function of the nervous system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L7",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.7 The digestive system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.008",
+        "text": "Describe the structure and function of the digestive system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L8",
+      "unit": "Unit 3: Anatomy and physiology",
+      "module": "Unit 3: Anatomy and physiology",
+      "lesson": "3.8 The immune system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC5.1.01.009",
+        "text": "Describe the components and function of the immune system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L1",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.1 Healthcare professionals",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.002",
+        "text": "List the types of healthcare professionals and their roles.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.1 merged with 4.2 - taught over 1 period)"
+     },
+     {
+      "code": "U4L2",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.2 Health services",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.001",
+        "text": "Identify different health services available in the community.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L3",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.3 Outpatient and inpatient care",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.007",
+        "text": "Compare and contrast inpatient and outpatient care.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L4",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.4 Patient rights and responsibilities",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.003",
+        "text": "Explain patient’s rights and responsibilities in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L5",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.5 Ethics in healthcare",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.008",
+        "text": "Define ethics in relation to healthcare.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "HSC3.2.01.005",
+        "text": "Identify the legal and ethical regulations that apply to healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U4L6",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.6 Patient confidentiality",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.009",
+        "text": "Explain the moral basis of patient confidentiality.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L7",
+      "unit": "Unit 4: Healthcare and ethics",
+      "module": "Unit 4: Healthcare and ethics",
+      "lesson": "4.7 Patient safety",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC3.2.01.006",
+        "text": "Identify the major principles of patient safety and harm prevention.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 + Comprehensive Curriculum Guides (outcomes & standards) · 11 teaching weeks",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -23011,6 +24876,392 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
     "lang": "ar"
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 5: Health Promotion": [
+      "U5L1 — 5.1 Health promotion and health education",
+      "U5L2 — 5.2 Principles of health promotion (enrichment)",
+      "U5L3 — 5.3 Approaches to health promotion (enrichment)",
+      "U5L4 — 5.4 Contemporary health problems",
+      "U5L5 — 5.5 Health promotion in the UAE",
+      "U5L6 — 5.6 Planning a health promotion campaign",
+      "U5L7 — 5.7 Public health and medicine",
+      "U5L8 — 5.8 Healthcare professionals as health educators"
+     ],
+     "Unit 6: Introduction to nutrition": [
+      "U6L1 — 6.1 The food groups",
+      "U6L2 — 6.2 Nutrients",
+      "U6L3 — 6.3 Nutrition and immunity",
+      "U6L4 — 6.4 Calories",
+      "U6L5 — 6.5 Energy and nutrient needs",
+      "U6L6 — 6.6 Serving sizes and portion control",
+      "U6L7 — 6.7 Healthy food choices and dietary guidelines",
+      "U6L8 — 6.8 Food labels"
+     ],
+     "Unit 7: Cardiopulmonary resuscitation (CPR)": [
+      "U7L1 — 7.1 Patient assessment",
+      "U7L2 — 7.2 The heart",
+      "U7L3 — 7.3 The purpose of CPR",
+      "U7L4 — 7.4 The initial steps before providing CPR",
+      "U7L5 — 7.5 Administering CPR",
+      "U7L6 — 7.6 CPR for children and infants"
+     ],
+     "Unit 8: Mental and emotional health": [
+      "U8L1 — 8.1 Self-esteem",
+      "U8L2 — 8.2 Peer pressure",
+      "U8L3 — 8.3 Mental, behavioural and neurodevelopmental disorders",
+      "U8L4 — 8.4 Diagnosing mental health disorders",
+      "U8L5 — 8.5 Eating disorders",
+      "U8L6 — 8.6 Treatment for eating disorders",
+      "U8L7 — 8.7 Looking after your mental health"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U5L1",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.1 Health promotion and health education",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L2",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.2 Principles of health promotion",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U5L3",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.3 Approaches to health promotion",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U5L4",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.4 Contemporary health problems",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L5",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.5 Health promotion in the UAE",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L6",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.6 Planning a health promotion campaign",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L7",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.7 Public health and medicine",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 5.7 with 5.8 - taught over 1 period)"
+     },
+     {
+      "code": "U5L8",
+      "unit": "Unit 5: Health Promotion",
+      "module": "Unit 5: Health Promotion",
+      "lesson": "5.8 Healthcare professionals as health educators",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L1",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.1 The food groups",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 6.1 with 6.2 - 1 period)"
+     },
+     {
+      "code": "U6L2",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.2 Nutrients",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L3",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.3 Nutrition and immunity",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (6.3 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U6L4",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.4 Calories",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L5",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.5 Energy and nutrient needs",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L6",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.6 Serving sizes and portion control",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L7",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.7 Healthy food choices and dietary guidelines",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U6L8",
+      "unit": "Unit 6: Introduction to nutrition",
+      "module": "Unit 6: Introduction to nutrition",
+      "lesson": "6.8 Food labels",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7L1",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.1 Patient assessment",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.1 used to be Enrichment)"
+     },
+     {
+      "code": "U7L2",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.2 The heart",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 7.2 with 7.3 - 1 period)"
+     },
+     {
+      "code": "U7L3",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.3 The purpose of CPR",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U7L4",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.4 The initial steps before providing CPR",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7L5",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.5 Administering CPR",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Increased from 1 period to 2 periods to allow sufficient time for application of knowledge and skills.)"
+     },
+     {
+      "code": "U7L6",
+      "unit": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "module": "Unit 7: Cardiopulmonary resuscitation (CPR)",
+      "lesson": "7.6 CPR for children and infants",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Increased from 1 period to 2 periods to allow sufficient time for application of knowledge and skills.)"
+     },
+     {
+      "code": "U8L1",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.1 Self-esteem",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.1 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U8L2",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.2 Peer pressure",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.2 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U8L3",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.3 Mental, behavioural and neurodevelopmental disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L4",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.4 Diagnosing mental health disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U8L5",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.5 Eating disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (8.5 merged with 8.6 - taught over 1 period)"
+     },
+     {
+      "code": "U8L6",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.6 Treatment for eating disorders",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L7",
+      "unit": "Unit 8: Mental and emotional health",
+      "module": "Unit 8: Mental and emotional health",
+      "lesson": "8.7 Looking after your mental health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 10 teaching weeks",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -23083,6 +25334,303 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
     "lang": "ar"
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 9: Digital health": [
+      "U9L1 — 9.1 Social media",
+      "U9L2 — 9.2 The negatives of social media",
+      "U9L3 — 9.3 Social media and healthcare",
+      "U9L4 — 9.4 Online presence and digital footprint",
+      "U9L5 — 9.5 Finding reliable online information"
+     ],
+     "Unit 10: Psychology": [
+      "U10L1 — 10.1 Psychology",
+      "U10L2 — 10.2 Basic cognitive processes",
+      "U10L3 — 10.3 Higher cognitive processes",
+      "U10L4 — 10.4 Lifespan psychology and developmental theories (enrichment)",
+      "U10L5 — 10.5 Stress and coping mechanisms",
+      "U10L6 — 10.6 Scientific report writing (enrichment)"
+     ],
+     "Unit 11: Physiotherapy and rehabilitation": [
+      "U11L1 — 11.1 The purpose of physiotherapy",
+      "U11L2 — 11.2 Physiotherapy treatments",
+      "U11L3 — 11.3 Physiotherapy for medical conditions",
+      "U11L4 — 11.4 The principals of proper body mechanics",
+      "U11L5 — 11.5 Patient positioning, transfer and ambulation",
+      "U11L6 — 11.6 The patient rehabilitation journey"
+     ],
+     "Unit 12: Environmental health": [
+      "U12L1 — 12.1 The environment and ecosystems",
+      "U12L2 — 12.2 Global environmental issues",
+      "U12L3 — 12.3 Environmental pollution and health",
+      "U12L4 — 12.4 Reducing environmental pollution",
+      "U12L5 — 12.5 The UAE's policies on environmental protection"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U9L1",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.1 Social media",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U9L2",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.2 The negatives of social media",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U9L3",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.3 Social media and healthcare",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.3 merged with 9.4 - taught over 1 period)"
+     },
+     {
+      "code": "U9L4",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.4 Online presence and digital footprint",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L5",
+      "unit": "Unit 9: Digital health",
+      "module": "Unit 9: Digital health",
+      "lesson": "9.5 Finding reliable online information",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L1",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.1 Psychology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L2",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.2 Basic cognitive processes",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L3",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.3 Higher cognitive processes",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L4",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.4 Lifespan psychology and developmental theories",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U10L5",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.5 Stress and coping mechanisms",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U10L6",
+      "unit": "Unit 10: Psychology",
+      "module": "Unit 10: Psychology",
+      "lesson": "10.6 Scientific report writing",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U11L1",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.1 The purpose of physiotherapy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.1 merged with 11.2 - taught over 1 period)"
+     },
+     {
+      "code": "U11L2",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.2 Physiotherapy treatments",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L3",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.3 Physiotherapy for medical conditions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.3 and 11.4 used to be merged to be taught over 1 period / now separate each 1 period)"
+     },
+     {
+      "code": "U11L4",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.4 The principals of proper body mechanics",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U11L5",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.5 Patient positioning, transfer and ambulation",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U11L6",
+      "unit": "Unit 11: Physiotherapy and rehabilitation",
+      "module": "Unit 11: Physiotherapy and rehabilitation",
+      "lesson": "11.6 The patient rehabilitation journey",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.6 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U12L1",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.1 The environment and ecosystems",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L2",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.2 Global environmental issues",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L3",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.3 Environmental pollution and health",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L4",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.4 Reducing environmental pollution",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (12.4 merged with 12.5 - taught over 1 period)"
+     },
+     {
+      "code": "U12L5",
+      "unit": "Unit 12: Environmental health",
+      "module": "Unit 12: Environmental health",
+      "lesson": "12.5 The UAE's policies on environmental protection",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 9 teaching weeks",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -24417,6 +26965,641 @@
       "text": "Interpret and describe reliably the overall trends, main points and detailed information in complex visuals, diagrams and charts on concrete and some abstract topics using simple and complex language and expressions in writing, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
      }
     ]
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 1: Medical terminology": [
+      "HSC.3.5.01.001 — Explain the rationale for understanding basic medical terminology.",
+      "HSC.3.5.01.002 — Interpret simple medical root words, prefixes, suffixes and combining vowels.",
+      "HSC.3.5.01.003 — Identify medical terminology used in medical record reports.",
+      "HSC.3.5.01.004 — Respond appropriately to instructions which contain medical terminology.",
+      "HSC.3.5.01.005 — Spell and pronounce medical terminology correctly."
+     ],
+     "Unit 2: Diseases of the body systems": [
+      "HSC.5.3.01.009 — Define disease.",
+      "HSC.5.3.01.001 — Explain the difference between communicable and non-communicable diseases.",
+      "HSC.5.3.01.002 — Describe diseases of the musculoskeletal system.",
+      "HSC.5.3.01.003 — Describe diseases of the nervous system.",
+      "HSC.5.3.01.004 — Describe diseases of the respiratory system.",
+      "HSC.5.3.01.005 — Describe diseases of the digestive system.",
+      "HSC.5.3.01.006 — Describe diseases of the circulatory system.",
+      "HSC.5.3.01.007 — Describe diseases of the immune system."
+     ],
+     "Unit 3: Technology in healthcare": [
+      "HSC.5.4.01.001 — Describe the role of technology in healthcare.",
+      "HSC.5.4.01.006 — Explain the function of various smart medical devices and wearables.",
+      "HSC.5.4.01.003 — List the healthcare-related mobile applications and e-services used in the United Arab Emirates.",
+      "HSC.5.4.01.007 — Describe how augmented reality (AR) and virtual reality (VR) are used in healthcare.",
+      "HSC.5.4.01.002 — Describe how artificial intelligence (AI) is used in healthcare.",
+      "HSC.5.4.01.008 — Evaluate the usefulness of telemedicine services.",
+      "HSC.5.4.01.009 — Analyse how the use of 5G can transform healthcare."
+     ],
+     "Unit 4: Medical emergencies": [
+      "HSC.3.6.01.001 — Explain how to provide emergency care for a head or spine injury.",
+      "HSC.3.6.01.002 — Explain how to provide emergency care for a stroke.",
+      "HSC.3.6.01.003 — Explain how to provide emergency care for a diabetic episode.",
+      "HSC.3.6.01.004 — Explain how to provide emergency care for seizures.",
+      "HSC.3.6.01.005 — Explain how to provide emergency care for an allergic reaction",
+      "HSC.3.6.01.006 — Explain how to provide emergency care for poisoning.",
+      "HSC.3.6.01.007 — Explain how to provide emergency care for burns.",
+      "HSC.3.6.01.008 — Explain how to provide emergency care for an electrical injury.",
+      "HSC.3.6.01.009 — Explain how to provide emergency care for a suspected fracture.",
+      "HSC.3.6.01.010 — Explain how to provide emergency care for dehydration and heat related illness.",
+      "HSC.3.6.01.011 — Explain how to provide emergency care for insect stings and bites.",
+      "HSC.3.6.01.012 — Explain how to provide emergency care for choking and foreign body airway obstruction."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.1 Introduction to medical terminology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.001",
+        "text": "Explain the rationale for understanding basic medical terminology.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Merged 1.1 with 1.2 - 2 periods)"
+     },
+     {
+      "code": "U1L2",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.2 Medical root words, prefixes, suffixes and combining vowels",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.002",
+        "text": "Interpret simple medical root words, prefixes, suffixes and combining vowels.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U1L3",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.3 Medical record reports",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.003",
+        "text": "Identify medical terminology used in medical record reports.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U1L4",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.4 Responding to medical instructions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.004",
+        "text": "Respond appropriately to instructions which contain medical terminology.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 1.4 with 1.5 - 1 period)"
+     },
+     {
+      "code": "U1L5",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.5 Spelling and pronunciation",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.005",
+        "text": "Spell and pronounce medical terminology correctly.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L1",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.1 What are diseases?",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.009",
+        "text": "Define disease.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "HSC.5.3.01.001",
+        "text": "Explain the difference between communicable and non-communicable diseases.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 2.1 with 2.2 - 1 period)"
+     },
+     {
+      "code": "U2L2",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.2 Diseases of the musculoskeletal system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.002",
+        "text": "Describe diseases of the musculoskeletal system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L3",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.3 Diseases of the nervous system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.003",
+        "text": "Describe diseases of the nervous system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U2L4",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.4 Diseases of the respiratory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.004",
+        "text": "Describe diseases of the respiratory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L5",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.5 Diseases of the digestive system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.005",
+        "text": "Describe diseases of the digestive system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L6",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.6 Diseases of the circulatory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.006",
+        "text": "Describe diseases of the circulatory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L7",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.7 Diseases of the immune system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.007",
+        "text": "Describe diseases of the immune system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U3L1",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.1 The role of technology in healthcare",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.001",
+        "text": "Describe the role of technology in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.2 Smart medical devices and wearables",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.006",
+        "text": "Explain the function of various smart medical devices and wearables.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 3.2 with 3.3 - 1 period)"
+     },
+     {
+      "code": "U3L3",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.3 Mobile applications and e-services",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.003",
+        "text": "List the healthcare-related mobile applications and e-services used in the United Arab Emirates.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U3L4",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.4 Augmented reality (AR) and virtual reality (VR)",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.007",
+        "text": "Describe how augmented reality (AR) and virtual reality (VR) are used in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 3.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U3L5",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.5 Artificial intelligence (AI)",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.002",
+        "text": "Describe how artificial intelligence (AI) is used in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U3L6",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.6 Telemedicine",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.008",
+        "text": "Evaluate the usefulness of telemedicine services.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U3L7",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.7 5G",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.009",
+        "text": "Analyse how the use of 5G can transform healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L1",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.1 Head and spinal injury",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.001",
+        "text": "Explain how to provide emergency care for a head or spine injury.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L2",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.2 Stroke",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.002",
+        "text": "Explain how to provide emergency care for a stroke.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L3",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.3 Diabetic episode",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.003",
+        "text": "Explain how to provide emergency care for a diabetic episode.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.4 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L4",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.4 Seizures",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.004",
+        "text": "Explain how to provide emergency care for seizures.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L5",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.5 Allergic reaction",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.005",
+        "text": "Explain how to provide emergency care for an allergic reaction",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.5 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U4L6",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.6 Poisoning",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.006",
+        "text": "Explain how to provide emergency care for poisoning.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L7",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.7 Burns",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.007",
+        "text": "Explain how to provide emergency care for burns.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.8 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L8",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.8 Electrical injury",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.008",
+        "text": "Explain how to provide emergency care for an electrical injury.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L9",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.9 Fracture",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.009",
+        "text": "Explain how to provide emergency care for a suspected fracture.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L10",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.10 Dehydration and heat-related illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.010",
+        "text": "Explain how to provide emergency care for dehydration and heat related illness.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.11 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L11",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.11 Insect bites and stings",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.011",
+        "text": "Explain how to provide emergency care for insect stings and bites.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L12",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.12 Choking and foreign body airway obstruction",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.012",
+        "text": "Explain how to provide emergency care for choking and foreign body airway obstruction.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.11 and 4.12 previously enrichment, now direct learning)"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 + Comprehensive Curriculum Guides (outcomes & standards) · 11 teaching weeks",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -24638,6 +27821,417 @@
      }
     ],
     "source": "MOE Biology 2026-27: Scope & Sequence (Scenario ADV.BIO.C.101)",
+    "lang": "en",
+    "withSLOs": false
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 5: Disease prevention": [
+      "U5L1 — 5.1 The causes of disease and illness",
+      "U5L2 — 5.2 Modifiable and non-modifiable risk factors",
+      "U5L3 — 5.3 Personal health behaviours for disease prevention",
+      "U5L4 — 5.4 Physical activity and disease prevention",
+      "U5L5 — 5.5 Medical approaches to disease prevention",
+      "U5L6 — 5.6 Infection control for disease prevention"
+     ],
+     "Unit 6: Assessment of nutritional status": [
+      "U6L1 — 6.1 The importance of nutritional assessment",
+      "U6L2 — 6.2 Anthropometry",
+      "U6L3 — 6.3 Body mass index (BMI) and body fat percentage",
+      "U6L4 — 6.4 Biochemical methods",
+      "U6L5 — 6.5 Clinical methods",
+      "U6L6 — 6.6 Dietary methods",
+      "U6L7 — 6.7 Environmental factors (enrichment)"
+     ],
+     "Unit 7 (girls): Healthy pregnancy": [
+      "U7 (girls)L1 — 7.1 Stages of pregnancy",
+      "U7 (girls)L2 — 7.2 Healthy diet and nutritional requirements during pregnancy",
+      "U7 (girls)L3 — 7.3 Exercise during pregnancy",
+      "U7 (girls)L4 — 7.4 Medical care during pregnancy",
+      "U7 (girls)L5 — 7.5 Care for a newborn",
+      "U7 (girls)L6 — 7.6 Postnatal mental health"
+     ],
+     "Unit 7 (boys): Road and fire safety": [
+      "U7 (boys)L1 — 7.1 Types of fires and how to deal with them",
+      "U7 (boys)L2 — 7.2 Emergency evacuation",
+      "U7 (boys)L3 — 7.3 The importance of road traffic safety",
+      "U7 (boys)L4 — 7.4 UAE road traffic accident statistics (enrichment)",
+      "U7 (boys)L5 — 7.5 The importance of using seatbelts",
+      "U7 (boys)L6 — 7.6 Safe driving practices"
+     ],
+     "Unit 8: Behaviour change": [
+      "U8L1 — 8.1 The importance of behaviour in relation to health",
+      "U8L2 — 8.2 Factors that influence behaviour",
+      "U8L3 — 8.3 Behaviour change interventions",
+      "U8L4 — 8.4 Supporting behaviour change",
+      "U8L5 — 8.5 Goal setting",
+      "U8L6 — 8.6 Advocacy and empowerment (enrichment)"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U5L1",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.1 The causes of disease and illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.1 merged with 5.2 - taught together in 1 period - previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L2",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.2 Modifiable and non-modifiable risk factors",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L3",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.3 Personal health behaviours for disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.3 merged with 5.4 - taught together in 1 period. Previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L4",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.4 Physical activity and disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L5",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.5 Medical approaches to disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.5 merged with 5.6 - taught together in 1 period. Previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L6",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.6 Infection control for disease prevention",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L1",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.1 The importance of nutritional assessment",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L2",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.2 Anthropometry",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L3",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.3 Body mass index (BMI) and body fat percentage",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U6L4",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.4 Biochemical methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (6.4 merged with 6.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U6L5",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.5 Clinical methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L6",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.6 Dietary methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L7",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.7 Environmental factors",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U7 (girls)L1",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.1 Stages of pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L2",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.2 Healthy diet and nutritional requirements during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L3",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.3 Exercise during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L4",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.4 Medical care during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L5",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.5 Care for a newborn",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.5 merged with 7.6 - taught together in 1 period)"
+     },
+     {
+      "code": "U7 (girls)L6",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.6 Postnatal mental health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U7 (boys)L1",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.1 Types of fires and how to deal with them",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L2",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.2 Emergency evacuation",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L3",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.3 The importance of road traffic safety",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L4",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.4 UAE road traffic accident statistics",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U7 (boys)L5",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.5 The importance of using seatbelts",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.5 merged with 7.6 - taught together in 1 period)"
+     },
+     {
+      "code": "U7 (boys)L6",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.6 Safe driving practices",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L1",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.1 The importance of behaviour in relation to health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L2",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.2 Factors that influence behaviour",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L3",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.3 Behaviour change interventions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merge 8.3 with 8.4 - 1 period)"
+     },
+     {
+      "code": "U8L4",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.4 Supporting behaviour change",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L5",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.5 Goal setting",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U8L6",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.6 Advocacy and empowerment",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 10 teaching weeks",
     "lang": "en",
     "withSLOs": false
    }
@@ -24940,6 +28534,329 @@
      }
     ],
     "source": "MOE Biology 2026-27: Scope & Sequence (Scenario ADV.BIO.C.101)",
+    "lang": "en",
+    "withSLOs": false
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 9: Pharmacy": [
+      "U9L1 — 9.1 History of Pharmacy",
+      "U9L2 — 9.2 Pharmacology",
+      "U9L3 — 9.3 Routes of administration",
+      "U9L4 — 9.4 Antibiotics",
+      "U9L5 — 9.5 Latin abbreviations in pharmacy",
+      "U9L6 — 9.6 Measurements and formulas",
+      "U9L7 — 9.7 Safety measures in drug administration"
+     ],
+     "Unit 10: Food safety and hygiene": [
+      "U10L1 — 10.1 Foodborne illness",
+      "U10L2 — 10.2 Cross-contamination",
+      "U10L3 — 10.3 Preventing foodbourne illness",
+      "U10L4 — 10.4 Food allergies and intolerances"
+     ],
+     "Unit 11: Clinical nutrition": [
+      "U11L1 — 11.1 Therapeutic diets",
+      "U11L2 — 11.2 Diet for overweight",
+      "U11L3 — 11.3 Diabetes",
+      "U11L4 — 11.4 Blood glucose monitoring",
+      "U11L5 — 11.5 Diet for diabetes",
+      "U11L6 — 11.6 Diet for renal disease",
+      "U11L7 — 11.7 Diet for bone disease",
+      "U11L8 — 11.8 Diet for heart disease"
+     ],
+     "Unit 12: Mass casualty incidents": [
+      "U12L1 — 12.1 Mass casualty incidents",
+      "U12L2 — 12.2 Mass casualty management",
+      "U12L3 — 12.3 Triage",
+      "U12L4 — 12.4 Actions to take during a disaster",
+      "U12L5 — 12.5 Actions to take after a disaster"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U9L1",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.1 History of Pharmacy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U9L2",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.2 Pharmacology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.2 merged with 9.3 - taught together in 1 period)"
+     },
+     {
+      "code": "U9L3",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.3 Routes of administration",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L4",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.4 Antibiotics",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.4 merged with 9.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U9L5",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.5 Latin abbreviations in pharmacy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L6",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.6 Measurements and formulas",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U9L7",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.7 Safety measures in drug administration",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L1",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.1 Foodborne illness",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L2",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.2 Cross-contamination",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (10.2 merged with 10.3 - taught together in 1 period)"
+     },
+     {
+      "code": "U10L3",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.3 Preventing foodbourne illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U10L4",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.4 Food allergies and intolerances",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L1",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.1 Therapeutic diets",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U11L2",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.2 Diet for overweight",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U11L3",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.3 Diabetes",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.3 and 11.4 merged with 11.5 - taught in 1 period)"
+     },
+     {
+      "code": "U11L4",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.4 Blood glucose monitoring",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U11L5",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.5 Diet for diabetes",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L6",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.6 Diet for renal disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.6 merged with 11.7 - taught in 1 period)"
+     },
+     {
+      "code": "U11L7",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.7 Diet for bone disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L8",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.8 Diet for heart disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U12L1",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.1 Mass casualty incidents",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L2",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.2 Mass casualty management",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L3",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.3 Triage",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L4",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.4 Actions to take during a disaster",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (12.4 merged with 12.5 - taught in 1 period)"
+     },
+     {
+      "code": "U12L5",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.5 Actions to take after a disaster",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 9 teaching weeks",
     "lang": "en",
     "withSLOs": false
    }
@@ -26288,6 +30205,641 @@
       "text": "Interpret and describe reliably the overall trends, main points and detailed information in complex visuals, diagrams and charts on concrete and some abstract topics using simple and complex language and expressions in writing, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
      }
     ]
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 1: Medical terminology": [
+      "HSC.3.5.01.001 — Explain the rationale for understanding basic medical terminology.",
+      "HSC.3.5.01.002 — Interpret simple medical root words, prefixes, suffixes and combining vowels.",
+      "HSC.3.5.01.003 — Identify medical terminology used in medical record reports.",
+      "HSC.3.5.01.004 — Respond appropriately to instructions which contain medical terminology.",
+      "HSC.3.5.01.005 — Spell and pronounce medical terminology correctly."
+     ],
+     "Unit 2: Diseases of the body systems": [
+      "HSC.5.3.01.009 — Define disease.",
+      "HSC.5.3.01.001 — Explain the difference between communicable and non-communicable diseases.",
+      "HSC.5.3.01.002 — Describe diseases of the musculoskeletal system.",
+      "HSC.5.3.01.003 — Describe diseases of the nervous system.",
+      "HSC.5.3.01.004 — Describe diseases of the respiratory system.",
+      "HSC.5.3.01.005 — Describe diseases of the digestive system.",
+      "HSC.5.3.01.006 — Describe diseases of the circulatory system.",
+      "HSC.5.3.01.007 — Describe diseases of the immune system."
+     ],
+     "Unit 3: Technology in healthcare": [
+      "HSC.5.4.01.001 — Describe the role of technology in healthcare.",
+      "HSC.5.4.01.006 — Explain the function of various smart medical devices and wearables.",
+      "HSC.5.4.01.003 — List the healthcare-related mobile applications and e-services used in the United Arab Emirates.",
+      "HSC.5.4.01.007 — Describe how augmented reality (AR) and virtual reality (VR) are used in healthcare.",
+      "HSC.5.4.01.002 — Describe how artificial intelligence (AI) is used in healthcare.",
+      "HSC.5.4.01.008 — Evaluate the usefulness of telemedicine services.",
+      "HSC.5.4.01.009 — Analyse how the use of 5G can transform healthcare."
+     ],
+     "Unit 4: Medical emergencies": [
+      "HSC.3.6.01.001 — Explain how to provide emergency care for a head or spine injury.",
+      "HSC.3.6.01.002 — Explain how to provide emergency care for a stroke.",
+      "HSC.3.6.01.003 — Explain how to provide emergency care for a diabetic episode.",
+      "HSC.3.6.01.004 — Explain how to provide emergency care for seizures.",
+      "HSC.3.6.01.005 — Explain how to provide emergency care for an allergic reaction",
+      "HSC.3.6.01.006 — Explain how to provide emergency care for poisoning.",
+      "HSC.3.6.01.007 — Explain how to provide emergency care for burns.",
+      "HSC.3.6.01.008 — Explain how to provide emergency care for an electrical injury.",
+      "HSC.3.6.01.009 — Explain how to provide emergency care for a suspected fracture.",
+      "HSC.3.6.01.010 — Explain how to provide emergency care for dehydration and heat related illness.",
+      "HSC.3.6.01.011 — Explain how to provide emergency care for insect stings and bites.",
+      "HSC.3.6.01.012 — Explain how to provide emergency care for choking and foreign body airway obstruction."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.1 Introduction to medical terminology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.001",
+        "text": "Explain the rationale for understanding basic medical terminology.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 2 period(s) (Merged 1.1 with 1.2 - 2 periods)"
+     },
+     {
+      "code": "U1L2",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.2 Medical root words, prefixes, suffixes and combining vowels",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.002",
+        "text": "Interpret simple medical root words, prefixes, suffixes and combining vowels.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U1L3",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.3 Medical record reports",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.003",
+        "text": "Identify medical terminology used in medical record reports.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U1L4",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.4 Responding to medical instructions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.004",
+        "text": "Respond appropriately to instructions which contain medical terminology.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 1.4 with 1.5 - 1 period)"
+     },
+     {
+      "code": "U1L5",
+      "unit": "Unit 1: Medical terminology",
+      "module": "Unit 1: Medical terminology",
+      "lesson": "1.5 Spelling and pronunciation",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.5.01.005",
+        "text": "Spell and pronounce medical terminology correctly.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L1",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.1 What are diseases?",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.009",
+        "text": "Define disease.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "HSC.5.3.01.001",
+        "text": "Explain the difference between communicable and non-communicable diseases.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 2.1 with 2.2 - 1 period)"
+     },
+     {
+      "code": "U2L2",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.2 Diseases of the musculoskeletal system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.002",
+        "text": "Describe diseases of the musculoskeletal system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U2L3",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.3 Diseases of the nervous system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.003",
+        "text": "Describe diseases of the nervous system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U2L4",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.4 Diseases of the respiratory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.004",
+        "text": "Describe diseases of the respiratory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L5",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.5 Diseases of the digestive system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.005",
+        "text": "Describe diseases of the digestive system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L6",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.6 Diseases of the circulatory system",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.006",
+        "text": "Describe diseases of the circulatory system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L7",
+      "unit": "Unit 2: Diseases of the body systems",
+      "module": "Unit 2: Diseases of the body systems",
+      "lesson": "2.7 Diseases of the immune system",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.3.01.007",
+        "text": "Describe diseases of the immune system.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s)"
+     },
+     {
+      "code": "U3L1",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.1 The role of technology in healthcare",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.001",
+        "text": "Describe the role of technology in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.2 Smart medical devices and wearables",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.006",
+        "text": "Explain the function of various smart medical devices and wearables.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged 3.2 with 3.3 - 1 period)"
+     },
+     {
+      "code": "U3L3",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.3 Mobile applications and e-services",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.003",
+        "text": "List the healthcare-related mobile applications and e-services used in the United Arab Emirates.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U3L4",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.4 Augmented reality (AR) and virtual reality (VR)",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.007",
+        "text": "Describe how augmented reality (AR) and virtual reality (VR) are used in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 3.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U3L5",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.5 Artificial intelligence (AI)",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.002",
+        "text": "Describe how artificial intelligence (AI) is used in healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U3L6",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.6 Telemedicine",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.008",
+        "text": "Evaluate the usefulness of telemedicine services.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U3L7",
+      "unit": "Unit 3: Technology in healthcare",
+      "module": "Unit 3: Technology in healthcare",
+      "lesson": "3.7 5G",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "HSC.5.4.01.009",
+        "text": "Analyse how the use of 5G can transform healthcare.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U4L1",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.1 Head and spinal injury",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.001",
+        "text": "Explain how to provide emergency care for a head or spine injury.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L2",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.2 Stroke",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.002",
+        "text": "Explain how to provide emergency care for a stroke.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L3",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.3 Diabetic episode",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.003",
+        "text": "Explain how to provide emergency care for a diabetic episode.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.4 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L4",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.4 Seizures",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.004",
+        "text": "Explain how to provide emergency care for seizures.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L5",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.5 Allergic reaction",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.005",
+        "text": "Explain how to provide emergency care for an allergic reaction",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.5 previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U4L6",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.6 Poisoning",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.006",
+        "text": "Explain how to provide emergency care for poisoning.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L7",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.7 Burns",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.007",
+        "text": "Explain how to provide emergency care for burns.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.8 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L8",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.8 Electrical injury",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.008",
+        "text": "Explain how to provide emergency care for an electrical injury.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L9",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.9 Fracture",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.009",
+        "text": "Explain how to provide emergency care for a suspected fracture.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L10",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.10 Dehydration and heat-related illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.010",
+        "text": "Explain how to provide emergency care for dehydration and heat related illness.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merged with 4.11 - taught together in 1 period)"
+     },
+     {
+      "code": "U4L11",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.11 Insect bites and stings",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.011",
+        "text": "Explain how to provide emergency care for insect stings and bites.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U4L12",
+      "unit": "Unit 4: Medical emergencies",
+      "module": "Unit 4: Medical emergencies",
+      "lesson": "4.12 Choking and foreign body airway obstruction",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "HSC.3.6.01.012",
+        "text": "Explain how to provide emergency care for choking and foreign body airway obstruction.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (4.11 and 4.12 previously enrichment, now direct learning)"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 + Comprehensive Curriculum Guides (outcomes & standards) · 11 teaching weeks",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -26379,6 +30931,417 @@
     "source": "MOE Scope & Sequence 2025-26",
     "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
     "lang": "en"
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 5: Disease prevention": [
+      "U5L1 — 5.1 The causes of disease and illness",
+      "U5L2 — 5.2 Modifiable and non-modifiable risk factors",
+      "U5L3 — 5.3 Personal health behaviours for disease prevention",
+      "U5L4 — 5.4 Physical activity and disease prevention",
+      "U5L5 — 5.5 Medical approaches to disease prevention",
+      "U5L6 — 5.6 Infection control for disease prevention"
+     ],
+     "Unit 6: Assessment of nutritional status": [
+      "U6L1 — 6.1 The importance of nutritional assessment",
+      "U6L2 — 6.2 Anthropometry",
+      "U6L3 — 6.3 Body mass index (BMI) and body fat percentage",
+      "U6L4 — 6.4 Biochemical methods",
+      "U6L5 — 6.5 Clinical methods",
+      "U6L6 — 6.6 Dietary methods",
+      "U6L7 — 6.7 Environmental factors (enrichment)"
+     ],
+     "Unit 7 (girls): Healthy pregnancy": [
+      "U7 (girls)L1 — 7.1 Stages of pregnancy",
+      "U7 (girls)L2 — 7.2 Healthy diet and nutritional requirements during pregnancy",
+      "U7 (girls)L3 — 7.3 Exercise during pregnancy",
+      "U7 (girls)L4 — 7.4 Medical care during pregnancy",
+      "U7 (girls)L5 — 7.5 Care for a newborn",
+      "U7 (girls)L6 — 7.6 Postnatal mental health"
+     ],
+     "Unit 7 (boys): Road and fire safety": [
+      "U7 (boys)L1 — 7.1 Types of fires and how to deal with them",
+      "U7 (boys)L2 — 7.2 Emergency evacuation",
+      "U7 (boys)L3 — 7.3 The importance of road traffic safety",
+      "U7 (boys)L4 — 7.4 UAE road traffic accident statistics (enrichment)",
+      "U7 (boys)L5 — 7.5 The importance of using seatbelts",
+      "U7 (boys)L6 — 7.6 Safe driving practices"
+     ],
+     "Unit 8: Behaviour change": [
+      "U8L1 — 8.1 The importance of behaviour in relation to health",
+      "U8L2 — 8.2 Factors that influence behaviour",
+      "U8L3 — 8.3 Behaviour change interventions",
+      "U8L4 — 8.4 Supporting behaviour change",
+      "U8L5 — 8.5 Goal setting",
+      "U8L6 — 8.6 Advocacy and empowerment (enrichment)"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U5L1",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.1 The causes of disease and illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.1 merged with 5.2 - taught together in 1 period - previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L2",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.2 Modifiable and non-modifiable risk factors",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L3",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.3 Personal health behaviours for disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.3 merged with 5.4 - taught together in 1 period. Previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L4",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.4 Physical activity and disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U5L5",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.5 Medical approaches to disease prevention",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (5.5 merged with 5.6 - taught together in 1 period. Previously enrichment, now direct learning)"
+     },
+     {
+      "code": "U5L6",
+      "unit": "Unit 5: Disease prevention",
+      "module": "Unit 5: Disease prevention",
+      "lesson": "5.6 Infection control for disease prevention",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L1",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.1 The importance of nutritional assessment",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L2",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.2 Anthropometry",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L3",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.3 Body mass index (BMI) and body fat percentage",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U6L4",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.4 Biochemical methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (6.4 merged with 6.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U6L5",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.5 Clinical methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U6L6",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.6 Dietary methods",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U6L7",
+      "unit": "Unit 6: Assessment of nutritional status",
+      "module": "Unit 6: Assessment of nutritional status",
+      "lesson": "6.7 Environmental factors",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U7 (girls)L1",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.1 Stages of pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L2",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.2 Healthy diet and nutritional requirements during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L3",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.3 Exercise during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L4",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.4 Medical care during pregnancy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (girls)L5",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.5 Care for a newborn",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.5 merged with 7.6 - taught together in 1 period)"
+     },
+     {
+      "code": "U7 (girls)L6",
+      "unit": "Unit 7 (girls): Healthy pregnancy",
+      "module": "Unit 7 (girls): Healthy pregnancy",
+      "lesson": "7.6 Postnatal mental health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U7 (boys)L1",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.1 Types of fires and how to deal with them",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L2",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.2 Emergency evacuation",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L3",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.3 The importance of road traffic safety",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U7 (boys)L4",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.4 UAE road traffic accident statistics",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U7 (boys)L5",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.5 The importance of using seatbelts",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (7.5 merged with 7.6 - taught together in 1 period)"
+     },
+     {
+      "code": "U7 (boys)L6",
+      "unit": "Unit 7 (boys): Road and fire safety",
+      "module": "Unit 7 (boys): Road and fire safety",
+      "lesson": "7.6 Safe driving practices",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L1",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.1 The importance of behaviour in relation to health",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L2",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.2 Factors that influence behaviour",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U8L3",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.3 Behaviour change interventions",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Merge 8.3 with 8.4 - 1 period)"
+     },
+     {
+      "code": "U8L4",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.4 Supporting behaviour change",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U8L5",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.5 Goal setting",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods)"
+     },
+     {
+      "code": "U8L6",
+      "unit": "Unit 8: Behaviour change",
+      "module": "Unit 8: Behaviour change",
+      "lesson": "8.6 Advocacy and empowerment",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 10 teaching weeks",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -26490,6 +31453,329 @@
     "source": "MOE Scope & Sequence 2025-26",
     "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
     "lang": "en"
+   },
+   "Health Science": {
+    "strands": {
+     "Unit 9: Pharmacy": [
+      "U9L1 — 9.1 History of Pharmacy",
+      "U9L2 — 9.2 Pharmacology",
+      "U9L3 — 9.3 Routes of administration",
+      "U9L4 — 9.4 Antibiotics",
+      "U9L5 — 9.5 Latin abbreviations in pharmacy",
+      "U9L6 — 9.6 Measurements and formulas",
+      "U9L7 — 9.7 Safety measures in drug administration"
+     ],
+     "Unit 10: Food safety and hygiene": [
+      "U10L1 — 10.1 Foodborne illness",
+      "U10L2 — 10.2 Cross-contamination",
+      "U10L3 — 10.3 Preventing foodbourne illness",
+      "U10L4 — 10.4 Food allergies and intolerances"
+     ],
+     "Unit 11: Clinical nutrition": [
+      "U11L1 — 11.1 Therapeutic diets",
+      "U11L2 — 11.2 Diet for overweight",
+      "U11L3 — 11.3 Diabetes",
+      "U11L4 — 11.4 Blood glucose monitoring",
+      "U11L5 — 11.5 Diet for diabetes",
+      "U11L6 — 11.6 Diet for renal disease",
+      "U11L7 — 11.7 Diet for bone disease",
+      "U11L8 — 11.8 Diet for heart disease"
+     ],
+     "Unit 12: Mass casualty incidents": [
+      "U12L1 — 12.1 Mass casualty incidents",
+      "U12L2 — 12.2 Mass casualty management",
+      "U12L3 — 12.3 Triage",
+      "U12L4 — 12.4 Actions to take during a disaster",
+      "U12L5 — 12.5 Actions to take after a disaster"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U9L1",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.1 History of Pharmacy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U9L2",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.2 Pharmacology",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.2 merged with 9.3 - taught together in 1 period)"
+     },
+     {
+      "code": "U9L3",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.3 Routes of administration",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L4",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.4 Antibiotics",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (9.4 merged with 9.5 - taught together in 1 period)"
+     },
+     {
+      "code": "U9L5",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.5 Latin abbreviations in pharmacy",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U9L6",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.6 Measurements and formulas",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U9L7",
+      "unit": "Unit 9: Pharmacy",
+      "module": "Unit 9: Pharmacy",
+      "lesson": "9.7 Safety measures in drug administration",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L1",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.1 Foodborne illness",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U10L2",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.2 Cross-contamination",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (10.2 merged with 10.3 - taught together in 1 period)"
+     },
+     {
+      "code": "U10L3",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.3 Preventing foodbourne illness",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U10L4",
+      "unit": "Unit 10: Food safety and hygiene",
+      "module": "Unit 10: Food safety and hygiene",
+      "lesson": "10.4 Food allergies and intolerances",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L1",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.1 Therapeutic diets",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U11L2",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.2 Diet for overweight",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U11L3",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.3 Diabetes",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.3 and 11.4 merged with 11.5 - taught in 1 period)"
+     },
+     {
+      "code": "U11L4",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.4 Blood glucose monitoring",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     },
+     {
+      "code": "U11L5",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.5 Diet for diabetes",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L6",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.6 Diet for renal disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (11.6 merged with 11.7 - taught in 1 period)"
+     },
+     {
+      "code": "U11L7",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.7 Diet for bone disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U11L8",
+      "unit": "Unit 11: Clinical nutrition",
+      "module": "Unit 11: Clinical nutrition",
+      "lesson": "11.8 Diet for heart disease",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: Enrichment"
+     },
+     {
+      "code": "U12L1",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.1 Mass casualty incidents",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L2",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.2 Mass casualty management",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": []
+     },
+     {
+      "code": "U12L3",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.3 Triage",
+      "weeks": "",
+      "periods": "2",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (Reduced from 2 periods to 1 period)"
+     },
+     {
+      "code": "U12L4",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.4 Actions to take during a disaster",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: 1 period(s) (12.4 merged with 12.5 - taught in 1 period)"
+     },
+     {
+      "code": "U12L5",
+      "unit": "Unit 12: Mass casualty incidents",
+      "module": "Unit 12: Mass casualty incidents",
+      "lesson": "12.5 Actions to take after a disaster",
+      "weeks": "",
+      "periods": "1",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Advanced 3rd-language schools: taught together with the previous lesson"
+     }
+    ],
+    "source": "MOE Health Sciences Scope & Sequence 2026-27 · 9 teaching weeks",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
