@@ -2255,8 +2255,15 @@ if (els.aiGenerateBtn) {
           sectionId: q.sectionId || defaultSecId,
           imageUrl: '',
           imageDescription: q.imageDescription || '',
+          skill: q.skill || '',
+          explanation: q.explanation || '',
         })),
       };
+      // Keep the class / grade / term chosen in the curriculum picker on the new assessment.
+      try {
+        const _c = ccCurriculumSelection();
+        if (_c) { if (_c.classId) fake.classId = _c.classId; fake.grade = _c.grade; fake.term = _c.term; }
+      } catch (e) {}
       // Build a friendly status that mentions how many files Claude actually
       // used and whether any were skipped (too big, unsupported type, etc.).
       const fp = data.filesProcessed || { text: 0, images: 0, skipped: [] };
@@ -2285,6 +2292,9 @@ if (els.aiGenerateBtn) {
         if (els.description) els.description.value = fake.description;
         if (els.passage) els.passage.value = fake.passage;
         if (els.subject && fake.subject) els.subject.value = fake.subject;
+        if (fake.classId && els.builderClass && Array.from(els.builderClass.options).some((o) => o.value === fake.classId)) els.builderClass.value = fake.classId;
+        if (fake.grade && els.grade) els.grade.value = fake.grade;
+        if (fake.term && els.term) els.term.value = fake.term;
         // Pre-fill the assessment language so students see the correct
         // "Please answer in: …" banner. The dropdown values match what the
         // AI panel uses (free-text language names).
@@ -9277,52 +9287,361 @@ document.addEventListener('click', (e) => {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
 })();
 
-// ── AI panel: MOE curriculum lesson picker ──────────────────────────────
+// ── AI panel: MOE curriculum lesson picker → see "Learning-outcome coverage" at the end of this file.
+document.addEventListener('change', (e) => {
+  const id = e.target && e.target.id;
+  if (['ai-subject', 'ai-cur-grade', 'ai-cur-stream', 'ai-cur-term'].includes(id)) ccLoadCurriculumOptions();
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+//  🎯 Learning-outcome coverage (per class section)
+//  • AI panel: pick a class → each MOE outcome shows whether it has been
+//    assessed in an assessment that students actually took; tick the gaps.
+//  • Dashboard: "🎯 Outcome coverage" window for the active class.
+//  • Admin: coverage report for every teacher / class + Excel download.
+// ═══════════════════════════════════════════════════════════════════════
+const CC_COV_SUBJECTS = ['Math', 'Science', 'Physics', 'Chemistry', 'Biology', 'English', 'AI & Technology', 'Business Studies', 'Health Science'];
+function ccCovChip(o) {
+  if (!o) return '';
+  const up = o.taught ? '' : ' <span style="color:#64748b;">· not taught yet</span>';
+  const base = 'display:inline-block; font-size:11px; padding:1px 7px; border-radius:999px; margin-left:6px; white-space:nowrap;';
+  if (o.status === 'met') return `<span style="${base} background:#dcfce7; color:#166534;" title="${escapeHtml(o.assessments.join(' · '))}">🟢 assessed ×${o.count}</span>${up}`;
+  if (o.status === 'partial') return `<span style="${base} background:#fef3c7; color:#92400e;" title="Power outcome — assessed in ${o.count} of 2 assessments">🟠 ${o.count} of 2</span>${up}`;
+  if (o.status === 'optional') return `<span style="${base} background:#f1f5f9; color:#475569;">⚪ enrichment</span>${up}`;
+  return `<span style="${base} background:#fee2e2; color:#991b1b;">🔴 not assessed</span>${up}`;
+}
+function ccCovPowerTag(p) { return /power|أولوية|main slo/i.test(String(p || '')) ? ' <span style="font-size:10px; color:#7c3aed; font-weight:600;">POWER</span>' : ''; }
+
+// ── AI panel: curriculum picker with per-outcome coverage ───────────────
+function ccCovFillClassSelect() {
+  const sel = document.getElementById('ai-cov-class');
+  if (!sel || typeof classes === 'undefined') return;
+  const cur = sel.value || sel.getAttribute('data-want') || getActiveClassId() || '';
+  sel.innerHTML = '<option value="">— no class (don\'t show coverage) —</option>' + classes.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  if (classes.find((c) => c.id === cur)) sel.value = cur;
+  sel.removeAttribute('data-want');
+}
 function ccCurriculumSelection() {
   const g = (document.getElementById('ai-cur-grade') || {}).value;
   if (!g) return null;
   const keys = Array.from(document.querySelectorAll('#ai-cur-list input[data-cur-key]:checked')).map((x) => x.getAttribute('data-cur-key'));
-  if (!keys.length) return null;
+  const outs = Array.from(document.querySelectorAll('#ai-cur-list input[data-cur-out]:checked')).map((x) => x.getAttribute('data-cur-out'));
+  if (!keys.length && !outs.length) return null;
+  const gap = outs.some((c) => { const o = (window._ccCovMap || {})[c]; return o && o.status !== 'met'; });
   return { grade: g, stream: parseInt(g, 10) >= 9 ? (document.getElementById('ai-cur-stream') || {}).value || 'A' : '',
-    term: (document.getElementById('ai-cur-term') || {}).value || '1', keys };
+    term: (document.getElementById('ai-cur-term') || {}).value || '1', keys, outcomes: outs, gapFill: gap,
+    classId: (document.getElementById('ai-cov-class') || {}).value || '' };
 }
 async function ccLoadCurriculumOptions() {
+  ccCovFillClassSelect();
   const subj = (document.getElementById('ai-subject') || {}).value || '';
   const g = (document.getElementById('ai-cur-grade') || {}).value || '';
   const streamSel = document.getElementById('ai-cur-stream');
   if (streamSel) streamSel.style.display = parseInt(g, 10) >= 9 ? '' : 'none';
   const st = document.getElementById('ai-cur-status'), list = document.getElementById('ai-cur-list');
+  const covBox = document.getElementById('ai-cov-summary');
   if (!st || !list) return;
-  list.innerHTML = '';
-  if (!subj || !g) { st.textContent = 'Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons this assessment should cover.'; return; }
+  list.innerHTML = ''; if (covBox) covBox.innerHTML = '';
+  window._ccCovMap = {};
+  if (!subj || !g) { st.textContent = 'Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons or outcomes this assessment should cover.'; return; }
   const q = new URLSearchParams({ subject: subj, grade: g, stream: parseInt(g, 10) >= 9 ? streamSel.value : '', term: document.getElementById('ai-cur-term').value });
   st.textContent = 'Loading lessons…';
+  const seq = (window._ccCurSeq = (window._ccCurSeq || 0) + 1);
   try {
-    const r = await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' });
-    let d = await r.json();
+    let d = await (await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' })).json();
     if ((!d.available || !d.lessons.length) && parseInt(g, 10) >= 9 && streamSel) {
-      // Only the other stream has a curriculum (e.g. Business Studies is General only) — switch to it automatically.
       const other = streamSel.value === 'A' ? 'G' : 'A';
       q.set('stream', other);
       const d2 = await (await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' })).json();
       if (d2.available && d2.lessons.length) { streamSel.value = other; d = d2; }
     }
+    if (seq !== window._ccCurSeq) return;
     if (!d.available || !d.lessons.length) { st.textContent = 'No MOE curriculum is stored for this subject / grade / term yet — the AI will use your instructions only.'; return; }
-    st.innerHTML = `📚 ${escapeHtml(d.source)} — tick the lessons to assess (${d.lessons.length} available). <a href="#" id="ai-cur-all">Select all</a> · <a href="#" id="ai-cur-none">None</a>`;
+    // Coverage for the chosen class section
+    const classId = (document.getElementById('ai-cov-class') || {}).value || '';
+    let cov = null;
+    if (classId) {
+      try {
+        const cq = new URLSearchParams({ classId, subject: subj, term: q.get('term'), grade: g, stream: parseInt(g, 10) >= 9 ? streamSel.value : '' });
+        cov = await api('/api/coverage?' + cq.toString());
+        (cov.outcomes || []).forEach((o) => { window._ccCovMap[o.code] = o; if (o.lessonKey && !o.code.includes('.') ) window._ccCovMap['L:' + o.lessonKey] = o; });
+      } catch (e) { cov = null; }
+    }
+    if (seq !== window._ccCurSeq) return;
+    const covOf = (l, s) => (s ? window._ccCovMap[s.code] : (window._ccCovMap[l.key] || window._ccCovMap['L:' + l.key]));
+    st.innerHTML = `📚 ${escapeHtml(d.source)} — tick lessons or single outcomes (${d.lessons.length} lessons). <a href="#" id="ai-cur-all">Select all</a> · <a href="#" id="ai-cur-none">None</a>`
+      + (cov ? ` · <a href="#" id="ai-cov-gaps-taught" style="color:#b91c1c; font-weight:600;">Select not-yet-assessed (taught so far)</a> · <a href="#" id="ai-cov-gaps-all" style="color:#b91c1c;">all not-yet-assessed</a>` : '');
+    if (covBox && cov) {
+      const s = cov.summary;
+      const cls = (classes.find((c) => c.id === classId) || {}).name || '';
+      covBox.innerHTML = `<div style="margin:6px 0; padding:8px 10px; border-radius:8px; background:${s.required && s.pct >= 80 ? '#ecfdf5' : '#fff7ed'}; font-size:13px;">
+        🎯 <strong>${escapeHtml(cls)}</strong> — Term ${escapeHtml(cov.term)}: <strong>${s.met}</strong> of ${s.required} outcomes fully assessed (${s.pct}%)
+        · <span style="color:#b91c1c;">${s.taughtMissing} taught so far still need assessing</span>
+        ${cov.pending ? `<div class="muted" style="font-size:12px;">⏳ ${cov.pending} question(s) in older assessments are still being matched to outcomes by AI — the picture will be complete in a few minutes.</div>` : ''}
+        <div class="muted" style="font-size:12px;">Only assessments students have taken count. Power outcomes need 2 assessments.</div></div>`;
+    }
     let lastMod = null;
     list.innerHTML = d.lessons.map((l) => {
       const head = l.module && l.module !== lastMod ? `<div style="font-weight:600; margin:8px 0 2px; color:#3730a3;" dir="auto">${escapeHtml(l.module)}</div>` : '';
       lastMod = l.module;
-      return head + `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:400; margin:3px 0;" dir="auto">
+      const slos = Array.isArray(l.slos) ? l.slos : [];
+      const lessonCov = !slos.length && cov ? covOf(l) : null;
+      const row = `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:${slos.length ? 600 : 400}; margin:3px 0;" dir="auto">
         <input type="checkbox" data-cur-key="${escapeHtml(l.key)}" style="width:auto; margin-top:3px;">
-        <span>${escapeHtml(l.lesson)}${l.weeks ? ` <span class="muted" style="font-size:12px;">· ${escapeHtml(l.weeks)}</span>` : ''}${l.outcomes ? ` <span class="muted" style="font-size:12px;">· ${l.outcomes} outcome${l.outcomes === 1 ? '' : 's'}</span>` : ''}${l.type === 'enrichment' ? ' <span class="muted" style="font-size:12px;">· enrichment</span>' : ''}</span></label>`;
+        <span>${escapeHtml(l.lesson)}${l.weeks ? ` <span class="muted" style="font-size:12px; font-weight:400;">· ${escapeHtml(l.weeks)}</span>` : ''}${l.type === 'enrichment' ? ' <span class="muted" style="font-size:12px; font-weight:400;">· enrichment</span>' : ''}${lessonCov ? ccCovChip(lessonCov) : ''}</span></label>`;
+      const sub = slos.map((s) => `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:400; margin:2px 0 2px 26px; font-size:13px;" dir="auto">
+        <input type="checkbox" data-cur-out="${escapeHtml(s.code)}" data-cur-lesson="${escapeHtml(l.key)}" style="width:auto; margin-top:3px;">
+        <span><span style="color:#475569; font-family:monospace; font-size:11px;">${escapeHtml(s.code)}</span>${ccCovPowerTag(s.priority)} ${escapeHtml(s.text)}${cov ? ccCovChip(covOf(l, s)) : ''}</span></label>`).join('');
+      return head + row + sub;
     }).join('');
-    const all = document.getElementById('ai-cur-all'), none = document.getElementById('ai-cur-none');
-    if (all) all.onclick = (e) => { e.preventDefault(); list.querySelectorAll('input[data-cur-key]').forEach((x) => { x.checked = true; }); };
-    if (none) none.onclick = (e) => { e.preventDefault(); list.querySelectorAll('input[data-cur-key]').forEach((x) => { x.checked = false; }); };
+    const syncLesson = (key) => {
+      const kids = list.querySelectorAll(`input[data-cur-lesson="${CSS.escape(key)}"]`);
+      if (!kids.length) return;
+      const lb = list.querySelector(`input[data-cur-key="${CSS.escape(key)}"]`);
+      const n = Array.from(kids).filter((x) => x.checked).length;
+      if (lb) { lb.checked = n > 0; lb.indeterminate = n > 0 && n < kids.length; }
+    };
+    list.onchange = (e) => {
+      const t = e.target;
+      if (t.hasAttribute('data-cur-key')) {
+        list.querySelectorAll(`input[data-cur-lesson="${CSS.escape(t.getAttribute('data-cur-key'))}"]`).forEach((x) => { x.checked = t.checked; });
+        t.indeterminate = false;
+      } else if (t.hasAttribute('data-cur-out')) syncLesson(t.getAttribute('data-cur-lesson'));
+    };
+    const setAll = (fn) => {
+      list.querySelectorAll('input[data-cur-out]').forEach((x) => { x.checked = !!fn(window._ccCovMap[x.getAttribute('data-cur-out')], x); });
+      list.querySelectorAll('input[data-cur-key]').forEach((x) => {
+        const key = x.getAttribute('data-cur-key');
+        if (list.querySelector(`input[data-cur-lesson="${CSS.escape(key)}"]`)) syncLesson(key);
+        else x.checked = !!fn(window._ccCovMap[key] || window._ccCovMap['L:' + key], x);
+      });
+    };
+    const gap = (taughtOnly) => (o) => o && o.required > 0 && o.status !== 'met' && (!taughtOnly || o.taught);
+    const bind = (id, fn) => { const a = document.getElementById(id); if (a) a.onclick = (e) => { e.preventDefault(); setAll(fn); }; };
+    bind('ai-cur-all', () => true); bind('ai-cur-none', () => false);
+    bind('ai-cov-gaps-taught', gap(true)); bind('ai-cov-gaps-all', gap(false));
+    // Outcomes chosen in the coverage window
+    const pre = window._ccCovPreselect;
+    if (pre && Array.isArray(pre.codes)) {
+      const want = new Set(pre.codes);
+      setAll((o, x) => want.has(x.getAttribute('data-cur-out') || x.getAttribute('data-cur-key')) || (o && want.has(o.code)));
+      window._ccCovPreselect = null;
+      const first = list.querySelector('input:checked'); if (first) first.scrollIntoView({ block: 'nearest' });
+    }
   } catch (e) { st.textContent = 'Could not load the curriculum: ' + e.message; }
 }
-document.addEventListener('change', (e) => {
-  const id = e.target && e.target.id;
-  if (['ai-subject', 'ai-cur-grade', 'ai-cur-stream', 'ai-cur-term'].includes(id)) ccLoadCurriculumOptions();
+document.addEventListener('change', async (e) => {
+  if (!e.target || e.target.id !== 'ai-cov-class') return;
+  const cid = e.target.value;
+  const gSel = document.getElementById('ai-cur-grade');
+  if (cid && gSel && !gSel.value) {
+    try {
+      const subj = (document.getElementById('ai-subject') || {}).value || '';
+      const r = await api('/api/coverage?' + new URLSearchParams({ classId: cid, subject: subj }).toString());
+      if (r.profile && r.profile.grade) { gSel.value = r.profile.grade; const s = document.getElementById('ai-cur-stream'); if (s && r.profile.stream) s.value = r.profile.stream; }
+    } catch (err) { /* ignore */ }
+  }
+  ccLoadCurriculumOptions();
+});
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.closest && e.target.closest('#new-btn')) setTimeout(() => { ccCovFillClassSelect(); }, 50);
+});
+
+// ── Dashboard: Outcome coverage window ──────────────────────────────────
+async function ccOpenCoverage(opts) {
+  opts = opts || {};
+  let ov = document.getElementById('cc-cov');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'cc-cov';
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(1000px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+    ov.addEventListener('click', (ev) => { if (ev.target === ov) { clearTimeout(ov._t); ov.remove(); } });
+    document.body.appendChild(ov);
+  }
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const st = ov._st = Object.assign(ov._st || { classId: getActiveClassId(), filter: 'gaps' }, opts);
+  const qs = new URLSearchParams({ classId: st.classId || '' });
+  if (st.subject) qs.set('subject', st.subject);
+  if (st.term) qs.set('term', st.term);
+  if (st.grade) { qs.set('grade', st.grade); qs.set('stream', st.stream || ''); }
+  let d;
+  try { d = await api('/api/coverage?' + qs.toString()); }
+  catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div><button class="btn" onclick="document.getElementById('cc-cov').remove()">Close</button>`; return; }
+  st.subject = d.subject; st.term = d.term; st.grade = d.profile.grade; st.stream = d.profile.stream;
+  const s = d.summary;
+  const subjOpts = Array.from(new Set([...(d.subjects || []), ...CC_COV_SUBJECTS]));
+  const shown = d.outcomes.filter((o) => st.filter === 'all' ? true : st.filter === 'taught' ? (o.required && o.status !== 'met' && o.taught) : (o.required && o.status !== 'met'));
+  let lastMod = null;
+  const rowsHtml = shown.map((o) => {
+    const head = (o.module || o.unit) !== lastMod ? `<tr><td colspan="3" style="padding:10px 6px 4px; font-weight:600; color:#3730a3;" dir="auto">${esc(o.module || o.unit)}</td></tr>` : '';
+    lastMod = o.module || o.unit;
+    return head + `<tr style="border-bottom:1px solid #f1f5f9; vertical-align:top;">
+      <td style="padding:5px 6px; width:28px;">${o.status !== 'met' && o.required ? `<input type="checkbox" data-cov-pick="${esc(o.code)}" ${o.taught ? 'checked' : ''} style="width:auto;">` : ''}</td>
+      <td style="padding:5px 6px;" dir="auto"><span style="font-family:monospace; font-size:11px; color:#475569;">${esc(o.code)}</span>${o.power ? ' <span style="font-size:10px; color:#7c3aed; font-weight:600;">POWER</span>' : ''} ${esc(o.text)}
+        <div class="muted" style="font-size:12px;">${esc(o.lesson || '')}${o.weeks ? ' · ' + esc(o.weeks) : ''}${o.assessments.length ? ' · assessed in: ' + esc(o.assessments.join(' · ')) : ''}</div></td>
+      <td style="padding:5px 6px; white-space:nowrap; text-align:right;">${ccCovChip(o)}</td></tr>`;
+  }).join('');
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+      <h2 style="margin:0; flex:1;">🎯 Outcome coverage</h2>
+      <button class="btn" id="cc-cov-close">Close</button>
+    </div>
+    <div class="row" style="gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+      <select id="cc-cov-class" style="width:auto;">${classes.map((c) => `<option value="${c.id}" ${c.id === d.class.id ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
+      <select id="cc-cov-subject" style="width:auto;">${subjOpts.map((x) => `<option ${x === d.subject ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>
+      <select id="cc-cov-term" style="width:auto;">${['1', '2', '3'].map((t) => `<option value="${t}" ${t === d.term ? 'selected' : ''}>Term ${t}</option>`).join('')}</select>
+      <span class="muted" style="font-size:13px;">Class is</span>
+      <select id="cc-cov-grade" style="width:auto;"><option value="">Grade…</option>${[3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => `<option value="${g}" ${String(g) === String(d.profile.grade) ? 'selected' : ''}>Grade ${g}</option>`).join('')}</select>
+      <select id="cc-cov-stream" style="width:auto; ${parseInt(d.profile.grade, 10) >= 9 ? '' : 'display:none;'}"><option value="A" ${d.profile.stream !== 'G' ? 'selected' : ''}>Advanced</option><option value="G" ${d.profile.stream === 'G' ? 'selected' : ''}>General</option></select>
+      <button class="btn" id="cc-cov-save" title="Remember the grade and stream of this class">💾 Save class grade</button>
+      ${d.profile.guessed ? '<span style="font-size:12px; color:#b45309;">⚠ grade/stream guessed — check and save</span>' : ''}
+    </div>
+    ${!d.curriculum ? `<div style="padding:10px 12px; border-radius:8px; background:#fef3c7;">No MOE curriculum is stored for ${esc(d.subject || 'this subject')} · Grade ${esc(d.profile.grade || '?')}${parseInt(d.profile.grade, 10) >= 9 ? (d.profile.stream === 'G' ? ' General' : ' Advanced') : ''} · Term ${esc(d.term)}. Check the grade and stream above.</div>` : `
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+      <div style="flex:1; min-width:220px; padding:10px 12px; border-radius:10px; background:#eef2ff;">
+        <div style="font-size:13px;" class="muted">Term ${esc(d.term)}${d.week ? ' · now in week ' + d.week : ''} · ${esc(d.curriculum.source)}</div>
+        <div style="font-size:22px; font-weight:700;">${s.pct}% covered</div>
+        <div style="background:#e5e7eb; border-radius:6px; height:10px; overflow:hidden; margin-top:4px;"><div style="width:${s.pct}%; height:100%; background:${s.pct >= 80 ? '#16a34a' : s.pct >= 50 ? '#f59e0b' : '#dc2626'};"></div></div>
+      </div>
+      <div style="padding:10px 12px; border-radius:10px; background:#f8fafc; font-size:14px; line-height:1.6;">
+        🟢 Fully assessed: <strong>${s.met}</strong> / ${s.required}<br>🟠 Power, once only: <strong>${s.partial}</strong><br>🔴 Not assessed: <strong>${s.none}</strong></div>
+      <div style="padding:10px 12px; border-radius:10px; background:#fff7ed; font-size:14px; line-height:1.6;">
+        Taught so far, still to assess: <strong style="color:#b91c1c;">${s.taughtMissing}</strong><br>Power outcomes met: <strong>${s.powerMet}</strong> / ${s.power}<br>Assessments taken: <strong>${d.assessments.length}</strong></div>
+    </div>
+    ${d.pending ? `<div style="padding:8px 12px; border-radius:8px; background:#fef3c7; font-size:13px; margin-bottom:8px;">⏳ ${d.pending} question(s) in older assessments are being matched to outcomes by AI. This window refreshes by itself.</div>` : ''}
+    <div class="row" style="gap:8px; align-items:center; margin-bottom:6px; flex-wrap:wrap;">
+      <button class="btn ${st.filter === 'gaps' ? 'primary' : ''}" data-cov-filter="gaps">Not fully assessed</button>
+      <button class="btn ${st.filter === 'taught' ? 'primary' : ''}" data-cov-filter="taught">Taught so far, not assessed</button>
+      <button class="btn ${st.filter === 'all' ? 'primary' : ''}" data-cov-filter="all">All outcomes</button>
+      <div class="spacer" style="flex:1;"></div>
+      <button class="btn primary" id="cc-cov-gen">✨ Generate an assessment for the ticked outcomes</button>
+    </div>
+    <div style="max-height:52vh; overflow:auto; border:1px solid #e5e7eb; border-radius:8px;">
+      <table style="width:100%; border-collapse:collapse; font-size:14px;">${rowsHtml || '<tr><td style="padding:14px;" class="muted">🎉 Nothing to show — every outcome in this view has been assessed.</td></tr>'}</table>
+    </div>
+    <div class="muted" style="font-size:12px; margin-top:8px;">Only assessments that students have taken count. Power outcomes need 2 assessments; enrichment lessons are optional. Each class section is tracked separately.</div>`}`;
+  const reload = (o) => ccOpenCoverage(o);
+  box.querySelector('#cc-cov-close').onclick = () => { clearTimeout(ov._t); ov.remove(); };
+  box.querySelector('#cc-cov-class').onchange = (ev) => reload({ classId: ev.target.value, subject: '', grade: '', stream: '' });
+  box.querySelector('#cc-cov-subject').onchange = (ev) => reload({ subject: ev.target.value });
+  box.querySelector('#cc-cov-term').onchange = (ev) => reload({ term: ev.target.value });
+  box.querySelector('#cc-cov-grade').onchange = (ev) => reload({ grade: ev.target.value, stream: box.querySelector('#cc-cov-stream').value });
+  box.querySelector('#cc-cov-stream').onchange = (ev) => reload({ grade: box.querySelector('#cc-cov-grade').value, stream: ev.target.value });
+  box.querySelector('#cc-cov-save').onclick = async () => {
+    try { await api('/api/coverage/profile', { method: 'POST', body: { classId: d.class.id, grade: box.querySelector('#cc-cov-grade').value, stream: box.querySelector('#cc-cov-stream').value } }); reload({}); }
+    catch (e) { alert(e.message); }
+  };
+  box.querySelectorAll('[data-cov-filter]').forEach((b) => { b.onclick = () => reload({ filter: b.getAttribute('data-cov-filter') }); });
+  const gen = box.querySelector('#cc-cov-gen');
+  if (gen) gen.onclick = () => {
+    const codes = Array.from(box.querySelectorAll('[data-cov-pick]:checked')).map((x) => x.getAttribute('data-cov-pick'));
+    if (!codes.length) { alert('Tick at least one outcome first.'); return; }
+    clearTimeout(ov._t); ov.remove();
+    ccGenerateForOutcomes({ classId: d.class.id, subject: d.subject, grade: d.profile.grade, stream: d.profile.stream, term: d.term, codes });
+  };
+  clearTimeout(ov._t);
+  if (d.pending && d.matching) ov._t = setTimeout(() => { if (document.getElementById('cc-cov')) reload({}); }, 20000);
+}
+function ccGenerateForOutcomes(p) {
+  if (p.classId) { setActiveClassId(p.classId); if (els.classSwitcher) els.classSwitcher.value = p.classId; }
+  const nb = document.getElementById('new-btn'); if (nb) nb.click();
+  setTimeout(() => {
+    const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+    set('ai-subject', p.subject); set('ai-cur-grade', p.grade); set('ai-cur-stream', p.stream || 'A'); set('ai-cur-term', p.term);
+    const cs = document.getElementById('ai-cov-class'); if (cs) { cs.setAttribute('data-want', p.classId); }
+    window._ccCovPreselect = { codes: p.codes };
+    const subjEl = document.getElementById('ai-subject'); if (subjEl) subjEl.dispatchEvent(new Event('change', { bubbles: false }));
+    ccLoadCurriculumOptions();
+    const box = document.getElementById('ai-cur-box'); if (box) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const pr = document.getElementById('ai-prompt');
+    if (pr && !pr.value) pr.value = `Assess the ${p.codes.length} ticked learning outcome${p.codes.length === 1 ? '' : 's'} that have not been assessed yet for this class.`;
+  }, 250);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#coverage-btn');
+  if (b) { e.preventDefault(); const ov = document.getElementById('cc-cov'); if (ov) ov.remove(); ccOpenCoverage({ classId: getActiveClassId(), subject: '', grade: '', stream: '', filter: 'gaps' }); }
+});
+// Small coverage chip next to the class switcher
+async function ccCovRefreshChip() {
+  const chip = document.getElementById('cc-cov-chip');
+  if (!chip) return;
+  try {
+    const r = await api('/api/coverage/overview');
+    const c = (r.classes || []).find((x) => x.id === getActiveClassId());
+    const sub = c && c.subjects.find((x) => x.curriculum && x.summary.required);
+    if (!sub) { chip.textContent = ''; return; }
+    const p = sub.summary.pct;
+    chip.innerHTML = `<span style="padding:3px 9px; border-radius:999px; font-size:12px; background:${p >= 80 ? '#dcfce7' : p >= 50 ? '#fef3c7' : '#fee2e2'};" title="${escapeHtml(sub.subject)} · Term ${escapeHtml(r.term)}">🎯 ${sub.summary.met}/${sub.summary.required} outcomes assessed (${p}%)</span>`;
+  } catch (e) { chip.textContent = ''; }
+}
+setTimeout(ccCovRefreshChip, 1500);
+document.addEventListener('change', (e) => { if (e.target && e.target.id === 'class-switcher') setTimeout(ccCovRefreshChip, 300); });
+
+// ── Admin: coverage report for every teacher / class section ────────────
+async function ccOpenAdminCoverage(opts) {
+  opts = opts || {};
+  let ov = document.getElementById('cc-acov');
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'cc-acov';
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(1150px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+    ov.addEventListener('click', (ev) => { if (ev.target === ov) { clearTimeout(ov._t); ov.remove(); } });
+    document.body.appendChild(ov);
+  }
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const st = ov._st = Object.assign(ov._st || { term: '', q: '' }, opts);
+  let d;
+  try { d = await api('/api/admin/coverage?' + new URLSearchParams({ term: st.term || '', match: opts.match ? '1' : '' }).toString()); }
+  catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div>`; return; }
+  st.term = d.term;
+  const q = (st.q || '').toLowerCase();
+  const rows = d.rows.filter((r) => !q || [r.teacher, r.className, r.subject].join(' ').toLowerCase().includes(q));
+  const tot = rows.reduce((a, r) => { a.req += r.summary.required; a.met += r.summary.met; a.pend += r.pending; return a; }, { req: 0, met: 0, pend: 0 });
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+      <h2 style="margin:0; flex:1;">🎯 Outcome coverage — all teachers</h2>
+      <select id="cc-acov-term" style="width:auto;">${['1', '2', '3'].map((t) => `<option value="${t}" ${t === d.term ? 'selected' : ''}>Term ${t}</option>`).join('')}</select>
+      <a class="btn primary" href="/api/admin/coverage.xlsx?term=${encodeURIComponent(d.term)}">⬇ Download Excel</a>
+      <button class="btn" id="cc-acov-match" title="Use AI to link questions in older assessments to curriculum outcomes">🔗 Match older questions</button>
+      <button class="btn" id="cc-acov-close">Close</button>
+    </div>
+    <div class="row" style="gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+      <input id="cc-acov-q" placeholder="Filter by teacher, class or subject…" value="${esc(st.q || '')}" style="max-width:320px;">
+      <span class="muted" style="font-size:13px;">${rows.length} class/subject rows · ${tot.met} of ${tot.req} required outcomes fully assessed${tot.pend ? ` · ⏳ ${tot.pend} questions waiting for AI matching${d.matching ? ' (running)' : ''}` : ''}</span>
+    </div>
+    <div style="max-height:62vh; overflow:auto; border:1px solid #e5e7eb; border-radius:8px;">
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      <tr style="text-align:left; background:#f8fafc; position:sticky; top:0;"><th style="padding:8px;">Teacher</th><th>Class</th><th>Subject</th><th>Grade</th><th>Taken</th><th style="min-width:150px;">Coverage</th><th>🟢</th><th>🟠</th><th>🔴</th><th>Power</th><th>Taught, not assessed</th></tr>
+      ${rows.map((r, i) => {
+        const s = r.summary, p = s.pct;
+        return `<tr style="border-top:1px solid #f1f5f9; cursor:pointer;" data-acov-row="${i}">
+          <td style="padding:7px 8px;">${esc(r.teacher)}</td><td>${esc(r.className)}</td><td>${esc(r.subject)}</td>
+          <td>${esc(r.grade || '?')}${r.stream ? (r.stream === 'A' ? ' Adv' : ' Gen') : ''}${r.guessed ? ' <span title="Guessed from the class name — the teacher can confirm it" style="color:#b45309;">*</span>' : ''}</td>
+          <td>${r.taken}</td>
+          <td>${r.curriculum ? `<div style="display:flex; align-items:center; gap:6px;"><div style="flex:1; background:#e5e7eb; border-radius:6px; height:8px; overflow:hidden;"><div style="width:${p}%; height:100%; background:${p >= 80 ? '#16a34a' : p >= 50 ? '#f59e0b' : '#dc2626'};"></div></div><strong>${p}%</strong></div>` : '<span class="muted" style="font-size:12px;">no MOE curriculum</span>'}</td>
+          <td>${s.met}</td><td>${s.partial}</td><td>${s.none}</td><td>${s.powerMet}/${s.power}</td><td style="color:#b91c1c; font-weight:600;">${s.taughtMissing}</td></tr>
+          <tr data-acov-detail="${i}" style="display:none;"><td colspan="11" style="padding:6px 12px 12px; background:#fafafa;">
+            ${r.missing.length ? r.missing.map((o) => `<div style="font-size:13px; padding:3px 0;" dir="auto">${o.status === 'partial' ? '🟠' : '🔴'} <span style="font-family:monospace; font-size:11px; color:#475569;">${esc(o.code)}</span>${o.power ? ' <span style="font-size:10px; color:#7c3aed; font-weight:600;">POWER</span>' : ''} ${esc(o.text)}${o.taught ? '' : ' <span class="muted">· not taught yet</span>'}</div>`).join('') : '<div class="muted">🎉 Every required outcome has been assessed.</div>'}
+          </td></tr>`;
+      }).join('') || '<tr><td colspan="11" style="padding:14px;" class="muted">No classes with assessments in this term yet.</td></tr>'}
+    </table></div>
+    <div class="muted" style="font-size:12px; margin-top:8px;">Click a row to see the outcomes still to assess. Only assessments students have taken count; Power outcomes need 2 assessments; enrichment is optional. * = grade/stream guessed from the class name.</div>`;
+  box.querySelector('#cc-acov-close').onclick = () => { clearTimeout(ov._t); ov.remove(); };
+  box.querySelector('#cc-acov-term').onchange = (e) => ccOpenAdminCoverage({ term: e.target.value });
+  box.querySelector('#cc-acov-match').onclick = () => ccOpenAdminCoverage({ match: true });
+  const qi = box.querySelector('#cc-acov-q');
+  qi.oninput = () => { clearTimeout(qi._t); qi._t = setTimeout(() => { st.q = qi.value; ccOpenAdminCoverage({}); }, 400); };
+  box.querySelectorAll('[data-acov-row]').forEach((tr) => { tr.onclick = () => { const x = box.querySelector(`[data-acov-detail="${tr.getAttribute('data-acov-row')}"]`); if (x) x.style.display = x.style.display === 'none' ? '' : 'none'; }; });
+  clearTimeout(ov._t);
+  if (d.matching) ov._t = setTimeout(() => { if (document.getElementById('cc-acov')) ccOpenAdminCoverage({}); }, 20000);
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#admin-coverage');
+  if (b) {
+    e.preventDefault();
+    const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+    ccOpenAdminCoverage({});
+  }
 });

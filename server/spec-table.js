@@ -40,17 +40,19 @@ module.exports = function specTable(app, d) {
           // Biology: one outcome per SLO (code + text), linked to its lesson.
           for (const s of l.slos) {
             if (list.some((x) => x.code === s.code)) continue;
-            list.push({ code: s.code, text: s.text, unit: `${l.module || ''} — ${l.lesson}`.replace(/^ — /, ''), weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core' });
+            list.push({ code: s.code, text: s.text, unit: `${l.module || ''} — ${l.lesson}`.replace(/^ — /, ''), weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core',
+              priority: s.priority || '', module: l.module || l.unit || '', lesson: l.lesson || '', lessonKey: l.code || `L${i + 1}` });
           }
           return;
         }
         list.push({ code: l.code || `L${i + 1}`, text: `${l.module || l.unit || ''} — ${l.lesson}`.replace(/^ — /, ''),
-          unit: l.unit || l.module || '', weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core' });
+          unit: l.unit || l.module || '', weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core',
+          module: l.module || l.unit || '', lesson: l.lesson || '', lessonKey: l.code || `L${i + 1}` });
       });
     } else {
       const abbr = { English: 'EN', Maths: 'MA', Science: 'SC', Physics: 'PH', Chemistry: 'CH', Biology: 'BI', 'AI & Technology': 'AT', 'Business Studies': 'BS', 'Health Science': 'HS' }[sk];
       Object.entries(e.strands || {}).forEach(([strand, outs], si) => {
-        (outs || []).forEach((t, oi) => list.push({ code: `${abbr}${gk}.T${term}.${si + 1}.${oi + 1}`, text: String(t), unit: strand, weeks: '', wFrom: null, wTo: null, type: 'core' }));
+        (outs || []).forEach((t, oi) => list.push({ code: `${abbr}${gk}.T${term}.${si + 1}.${oi + 1}`, text: String(t), unit: strand, weeks: '', wFrom: null, wTo: null, type: 'core', module: strand, lesson: '', lessonKey: '' }));
       });
     }
     const src = String(e.sequenceSource || e.source || 'MOE curriculum').replace(/^Masar \(GitHub\)$/, 'MOE curriculum (from Adeptly)');
@@ -754,5 +756,5 @@ module.exports = function specTable(app, d) {
       res.status(500).json({ error: 'Could not build the file: ' + e.message });
     }
   });
-  return { buildModel, buildXlsx, weekOf, curriculumOutcomes, quickChecks, saveSettings, upsertTags, tagJob, JOBS };
+  return { buildModel, buildXlsx, weekOf, curriculumOutcomes, quickChecks, saveSettings, getSettings, tagsFor, upsertTags, tagJob, JOBS };
 };

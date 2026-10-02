@@ -3867,8 +3867,9 @@ app.get('/api/assessments/:id/tag-skills', requireTeacher, (req, res) => {
 });
 
 // ── Specification table (admin-only Excel) ─────────────────────────────
+let _ccSpec = null;
 try {
-  require('./spec-table')(app, {
+  _ccSpec = require('./spec-table')(app, {
     readAll, writeAll, ADMIN_EMAILS, readApiKey,
     tagMissingSkills: (aid) => _ccTagMissingSkills(aid),
     diffFor: (aid) => _ccDiffFor(aid), diffUpsert: (aid, e) => _ccDiffUpsert(aid, e),
@@ -3876,6 +3877,10 @@ try {
     claudeList: (o) => _ccClaudeList(o),
   });
 } catch (e) { console.error('[spec] module failed to load:', e); }
+// ── Learning-outcome coverage per class section (teachers + admin report) ──
+try {
+  if (_ccSpec) require('./coverage')(app, { readAll, writeAll, ADMIN_EMAILS, spec: _ccSpec });
+} catch (e) { console.error('[coverage] module failed to load:', e); }
 
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
@@ -5698,7 +5703,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   try {
     const cur = req.body && req.body.curriculum ? JSON.parse(req.body.curriculum) : null;
     if (cur && cur.grade && cur.term) {
-      const ctx = _ccCurriculum.contextFor({ subject, grade: cur.grade, stream: cur.stream || '', term: cur.term, keys: cur.keys || [] });
+      const ctx = _ccCurriculum.contextFor({ subject, grade: cur.grade, stream: cur.stream || '', term: cur.term, keys: cur.keys || [], outcomes: Array.isArray(cur.outcomes) ? cur.outcomes.slice(0, 300).map(String) : [], gapFill: !!cur.gapFill });
       if (ctx) userContent.push({ type: 'text', text: '---\n' + ctx });
     }
   } catch (e) { console.warn('[ai-generate] curriculum context skipped:', e.message); }

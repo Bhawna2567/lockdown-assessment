@@ -38,14 +38,21 @@ function options({ subject, grade, stream, term }) {
   const list = lessonsOf(e).map((l) => ({
     key: l.key, module: l.module || l.unit || '', lesson: l.lesson || '', weeks: l.weeks || '', type: l.type || 'core',
     outcomes: Array.isArray(l.slos) ? l.slos.length : (Array.isArray(l.outcomes) ? l.outcomes.length : 0),
+    slos: Array.isArray(l.slos) ? l.slos.map((x) => ({ code: x.code, text: String(x.text || '').slice(0, 260), priority: x.priority || '' })) : [],
   }));
   return { available: !!e, source: e ? e.source || '' : '', lessons: list };
 }
-function contextFor({ subject, grade, stream, term, keys }) {
+function contextFor({ subject, grade, stream, term, keys, outcomes, gapFill }) {
   const e = entry(subject, grade, stream, term);
   if (!e) return '';
   const pick = new Set(Array.isArray(keys) ? keys : []);
-  const chosen = lessonsOf(e).filter((l) => !pick.size || pick.has(l.key));
+  const outs = new Set(Array.isArray(outcomes) ? outcomes : []);
+  // When the teacher ticked individual outcomes, keep only those outcomes (and their lessons).
+  let chosen = lessonsOf(e).filter((l) => !pick.size || pick.has(l.key) || (outs.size && (l.slos || []).some((x) => outs.has(x.code))));
+  if (outs.size) {
+    chosen = chosen.map((l) => (Array.isArray(l.slos) && l.slos.length && l.slos.some((x) => outs.has(x.code)) ? Object.assign({}, l, { slos: l.slos.filter((x) => outs.has(x.code)) }) : l))
+      .filter((l) => !(Array.isArray(l.slos) && l.slos.length && !l.slos.some((x) => outs.has(x.code))) || pick.has(l.key));
+  }
   if (!chosen.length) return '';
   const out = [];
   out.push(`=== MOE CURRICULUM — ${subject}, Grade ${grade}${stream ? (stream === 'G' ? ' General' : ' Advanced') : ''}, Term ${term} ===`);
@@ -78,6 +85,7 @@ function contextFor({ subject, grade, stream, term, keys }) {
   out.push('- Every question must assess one of the OUTCOMES / KPIs listed above — nothing outside these lessons.');
   out.push('- Set each question\'s "skill" to the outcome it assesses: the outcome code followed by a short name, e.g. "BIO.3.1.02.021 Enzymes as catalysts" (if there is no code, use a short outcome name).');
   out.push('- Spread questions across the chosen lessons and KPIs; enrichment lessons only lightly.');
+  if (gapFill || outs.size) out.push('- The teacher chose these outcomes because they have NOT been assessed yet for this class. Every listed OUTCOME must be assessed by at least one question (two or more for Power outcomes when the question count allows), and each question\'s "skill" must start with that outcome code.');
   if (chosen.some((l) => (l.slos || []).some((s) => /power/i.test(s.priority || '')))) out.push('- Give about 60–80% of the marks to Power outcomes and 20–40% to Support outcomes.');
   out.push('- Use the common misconceptions as tempting wrong options (distractors) in multiple-choice questions.');
   out.push('- Use the key vocabulary accurately; some questions may test the vocabulary in context.');
