@@ -1,108 +1,6 @@
 {
  "3": {
   "1": {
-   "Science": {
-    "strands": {
-     "Life Science": [
-      "A Look at Living Things — living things and their needs; living things; animals and their parts; classifying animals.",
-      "Living Things Grow and Change — plant life cycles; animal life cycles; from parents to offspring; food chains and food webs."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Be a Scientist — the scientific method.",
-      "Technology and Design — technology; the design process; technology and the environment."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "كن عالما",
-      "module": "كن عالما",
-      "lesson": "الطريقة العلمية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "نظرة على الكائنات الحية",
-      "module": "نظرة على الكائنات الحية",
-      "lesson": "الكائنات الحية واحتياجاتها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "نظرة على الكائنات الحية",
-      "module": "نظرة على الكائنات الحية",
-      "lesson": "الكائنات الحية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "نظرة على الكائنات الحية",
-      "module": "نظرة على الكائنات الحية",
-      "lesson": "الحيوانات وأعضاؤها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "نظرة على الكائنات الحية",
-      "module": "نظرة على الكائنات الحية",
-      "lesson": "تصنيف الحيوانات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الكائنات الحية تنمو وتتغير",
-      "module": "الكائنات الحية تنمو وتتغير",
-      "lesson": "دورات حياة النباتات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الكائنات الحية تنمو وتتغير",
-      "module": "الكائنات الحية تنمو وتتغير",
-      "lesson": "دورات حياة الحيوانات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الكائنات الحية تنمو وتتغير",
-      "module": "الكائنات الحية تنمو وتتغير",
-      "lesson": "من الآباء إلى الأبناء",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "الكائنات الحية تنمو وتتغير",
-      "module": "الكائنات الحية تنمو وتتغير",
-      "lesson": "السلاسل والشبكات الغذائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "التكنولوجيا",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "عملية التصميم",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "التكنولوجيا والبيئة",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -2192,82 +2090,286 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 1: كن عالماً": [
+      "SCI.1.1.02.006 ينظم البيانات ويحللها ويقارن النتائج بالتوقعات ويستخدم نموذجا ليستنتج أهمية النماذج في دراسة العالم",
+      "SCI.1.1.02.005 يعرض نتائج الاستقصاءات باستخدام الصور والأشكال التخطيطية والنماذج أو الكلمات ويتواصل مع أقرانه الآخرين ليوضح نتائج الاستقصاءات"
+     ],
+     "الوحدة 2: نظرة على الكائنات الحية": [
+      "SCI.3.4.04.001 يستنتج أن الكائن الحي جزء من مجموعة كائنات؛ مما يساعده في الحصول على الغذاء والدفاع عن نفسه ومواجهة التغيرات",
+      "SCI.3.1.03.008 يزرع بذورا مأخوذة من مجموعة متنوعة من النباتات، ويقارن نمو الشتلات؛ لتحديد أوجه التشابه والاختلاف فيما بينها",
+      "SCI.3.1.03.009 يشرح عملية البناء الضوئي للنبات باستخدام الصور والرسومات مع توضيح البيانات",
+      "SCI.3.1.04.007 يذكر أن الحيوانات قادرة على استخدام مدركاتها وذاكرتها لتوجيه أفعالها",
+      "SCI.3.1.01.016 يلاحظ الخصائص الفيزيائية لمجموعة متنوعة من الحيوانات ويصف الأنماط بين الخصائص الفيزيائية التي تمت ملاحظتها والخصائص السلوكية للحيوانات"
+     ],
+     "الوحدة 3: الكائنات الحية تنمو وتتغير": [
+      "SCI.3.1.03.010 يصف التغيرات التي تشهدها النباتات المختلفة في دوراتها الحياتية",
+      "SCI.3.4.01.009 يصمم نموذجا بسيطا يحاكي وظيفة الحيوان في نثر البذور أو تلقيح النباتات",
+      "SCI.3.1.03.011 يصمم نموذجا؛ ليصف من خلاله امتلاك الكائنات الحية لدورات حياة متنوعة وفريدة، لكن جميعها تمر بمرحلة الولادة والنمو والتكاثر والموت",
+      "SCI.3.3.01.003 يحلل ويفسر البيانات؛ ليقدم الدليل على أن النباتات والحيوانات لديها سمات موروثة عن الآباء وأن اختلاف هذه السمات يتواجد ضمن مجموعة الكائنات الحية المتشابهة",
+      "SCI.3.4.01.008 يصف نظاما بيئيا بريا ونظاما بيئيا مائيا",
+      "SCI.3.4.01.010 يوضح أن النظام البيئي يضم مجتمعا يتكون من جماعات مختلفة من الكائنات الحية"
+     ],
+     "الوحدة 4: التكنولوجيا والتصميم": [
+      "SCI.1.2.01.006 يتعرف أن حاجات الناس ورغباتهم تتغير مع الزمن، كما تتغير طلباتهم لمنتجات وتكنولوجيا جديدة ومحسنة",
+      "SCI.1.2.01.005 يبين دور المهندسين في تحسين وتطوير التكنولوجيا الموجودة لتلبية حاجات المجتمع ومواكبة العصر",
+      "SCI.1.2.01.007 يستنتج أنه حين تتوافر التكنولوجيا الجديدة، يمكن أن تغير طرائق حياة الناس وكيفية تفاعلهم معا"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "الوحدة 1: كن عالماً",
+      "module": "الوحدة 1: كن عالماً",
+      "lesson": "الدرس 1: الطريقة العلمية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.1.02.006",
+        "text": "ينظم البيانات ويحللها ويقارن النتائج بالتوقعات ويستخدم نموذجا ليستنتج أهمية النماذج في دراسة العالم",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.1.1.02.005",
+        "text": "يعرض نتائج الاستقصاءات باستخدام الصور والأشكال التخطيطية والنماذج أو الكلمات ويتواصل مع أقرانه الآخرين ليوضح نتائج الاستقصاءات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 2: نظرة على الكائنات الحية",
+      "module": "الوحدة 2: نظرة على الكائنات الحية",
+      "lesson": "الدرس 1: الكائنات الحية واحتياجاتها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.04.001",
+        "text": "يستنتج أن الكائن الحي جزء من مجموعة كائنات؛ مما يساعده في الحصول على الغذاء والدفاع عن نفسه ومواجهة التغيرات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 2: نظرة على الكائنات الحية",
+      "module": "الوحدة 2: نظرة على الكائنات الحية",
+      "lesson": "الدرس 2: النباتات وأجزاؤها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.008",
+        "text": "يزرع بذورا مأخوذة من مجموعة متنوعة من النباتات، ويقارن نمو الشتلات؛ لتحديد أوجه التشابه والاختلاف فيما بينها",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.1.03.009",
+        "text": "يشرح عملية البناء الضوئي للنبات باستخدام الصور والرسومات مع توضيح البيانات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L3",
+      "unit": "الوحدة 2: نظرة على الكائنات الحية",
+      "module": "الوحدة 2: نظرة على الكائنات الحية",
+      "lesson": "الدرس 3: الحيوانات وأعضاؤها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.04.007",
+        "text": "يذكر أن الحيوانات قادرة على استخدام مدركاتها وذاكرتها لتوجيه أفعالها",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L4",
+      "unit": "الوحدة 2: نظرة على الكائنات الحية",
+      "module": "الوحدة 2: نظرة على الكائنات الحية",
+      "lesson": "الدرس 4: تصنيف الحيوانات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.01.016",
+        "text": "يلاحظ الخصائص الفيزيائية لمجموعة متنوعة من الحيوانات ويصف الأنماط بين الخصائص الفيزيائية التي تمت ملاحظتها والخصائص السلوكية للحيوانات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "module": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "lesson": "الدرس 1: دورات حياة النباتات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.010",
+        "text": "يصف التغيرات التي تشهدها النباتات المختلفة في دوراتها الحياتية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.009",
+        "text": "يصمم نموذجا بسيطا يحاكي وظيفة الحيوان في نثر البذور أو تلقيح النباتات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "module": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "lesson": "الدرس 2: دورات حياة الحيوانات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.011",
+        "text": "يصمم نموذجا؛ ليصف من خلاله امتلاك الكائنات الحية لدورات حياة متنوعة وفريدة، لكن جميعها تمر بمرحلة الولادة والنمو والتكاثر والموت",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L3",
+      "unit": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "module": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "lesson": "الدرس 3: من الآباء إلى الأبناء",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.3.01.003",
+        "text": "يحلل ويفسر البيانات؛ ليقدم الدليل على أن النباتات والحيوانات لديها سمات موروثة عن الآباء وأن اختلاف هذه السمات يتواجد ضمن مجموعة الكائنات الحية المتشابهة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L4",
+      "unit": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "module": "الوحدة 3: الكائنات الحية تنمو وتتغير",
+      "lesson": "الدرس 4: السلاسل والشبكات الغذائية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.01.008",
+        "text": "يصف نظاما بيئيا بريا ونظاما بيئيا مائيا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.010",
+        "text": "يوضح أن النظام البيئي يضم مجتمعا يتكون من جماعات مختلفة من الكائنات الحية",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L1",
+      "unit": "الوحدة 4: التكنولوجيا والتصميم",
+      "module": "الوحدة 4: التكنولوجيا والتصميم",
+      "lesson": "الدرس 1: التكنولوجيا",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.006",
+        "text": "يتعرف أن حاجات الناس ورغباتهم تتغير مع الزمن، كما تتغير طلباتهم لمنتجات وتكنولوجيا جديدة ومحسنة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U4L2",
+      "unit": "الوحدة 4: التكنولوجيا والتصميم",
+      "module": "الوحدة 4: التكنولوجيا والتصميم",
+      "lesson": "الدرس 2: عملية التصميم",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.005",
+        "text": "يبين دور المهندسين في تحسين وتطوير التكنولوجيا الموجودة لتلبية حاجات المجتمع ومواكبة العصر",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U4L3",
+      "unit": "الوحدة 4: التكنولوجيا والتصميم",
+      "module": "الوحدة 4: التكنولوجيا والتصميم",
+      "lesson": "الدرس 3: التكنولوجيا والبيئة",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.007",
+        "text": "يستنتج أنه حين تتوافر التكنولوجيا الجديدة، يمكن أن تغير طرائق حياة الناس وكيفية تفاعلهم معا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE CCG الصف الثالث العلوم العامة — مصفوفة المدى والتتابع، الفصل الأول (عربي)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Matter — properties of matter; measuring matter; solids, liquids and gases."
-     ],
-     "Earth & Space Science": [
-      "Changes to Earth — Earth's features; sudden changes to Earth; weathering and erosion.",
-      "Weather Changes — weather; the water cycle."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "تغيرات الأرض",
-      "module": "تغيرات الأرض",
-      "lesson": "خصائص الأرض",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "تغيرات الأرض",
-      "module": "تغيرات الأرض",
-      "lesson": "التغيرات المفاجئة للأرض",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "تغيرات الأرض",
-      "module": "تغيرات الأرض",
-      "lesson": "التجوية والتعرية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "تغيرات الطقس",
-      "module": "تغيرات الطقس",
-      "lesson": "الطقس",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "تغيرات الطقس",
-      "module": "تغيرات الطقس",
-      "lesson": "دورة الماء",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "المادة",
-      "module": "المادة",
-      "lesson": "خصائص المادة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "المادة",
-      "module": "المادة",
-      "lesson": "قياس المادة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "المادة",
-      "module": "المادة",
-      "lesson": "الأجسام الصلبة والسوائل والغازات",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "Maths": {
     "strands": {
      "7 الضرب و القسمة (Multiplication and Division)": [
@@ -2974,87 +3076,83 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Physical Science": [
-      "Changes in Matter — changes of state; physical changes; chemical changes.",
-      "Force and Motion — position and motion; forces; using simple machines.",
-      "Forms of Energy — work and energy; heat; electricity."
+      "Matter — properties of matter; measuring matter; solids, liquids and gases."
+     ],
+     "Earth & Space Science": [
+      "Changes to Earth — Earth's features; sudden changes to Earth; weathering and erosion.",
+      "Weather Changes — weather; the water cycle."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "التغيرات في المادة",
-      "module": "التغيرات في المادة",
-      "lesson": "تغيرات الحالة",
+      "unit": "تغيرات الأرض",
+      "module": "تغيرات الأرض",
+      "lesson": "خصائص الأرض",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "التغيرات في المادة",
-      "module": "التغيرات في المادة",
-      "lesson": "التغيرات الفيزيائية",
+      "unit": "تغيرات الأرض",
+      "module": "تغيرات الأرض",
+      "lesson": "التغيرات المفاجئة للأرض",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "التغيرات في المادة",
-      "module": "التغيرات في المادة",
-      "lesson": "التغيرات الكيميائية",
+      "unit": "تغيرات الأرض",
+      "module": "تغيرات الأرض",
+      "lesson": "التجوية والتعرية",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "القوة والحركة",
-      "module": "القوة والحركة",
-      "lesson": "الموقع والحركة",
+      "unit": "تغيرات الطقس",
+      "module": "تغيرات الطقس",
+      "lesson": "الطقس",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "القوة والحركة",
-      "module": "القوة والحركة",
-      "lesson": "القوى",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "القوة والحركة",
-      "module": "القوة والحركة",
-      "lesson": "استخدام الآلات البسيطة",
+      "unit": "تغيرات الطقس",
+      "module": "تغيرات الطقس",
+      "lesson": "دورة الماء",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "أشكال الطاقة",
-      "module": "أشكال الطاقة",
-      "lesson": "الشغل والطاقة",
+      "unit": "المادة",
+      "module": "المادة",
+      "lesson": "خصائص المادة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "أشكال الطاقة",
-      "module": "أشكال الطاقة",
-      "lesson": "الحرارة",
+      "unit": "المادة",
+      "module": "المادة",
+      "lesson": "قياس المادة",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "أشكال الطاقة",
-      "module": "أشكال الطاقة",
-      "lesson": "الكهرباء",
+      "unit": "المادة",
+      "module": "المادة",
+      "lesson": "الأجسام الصلبة والسوائل والغازات",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "11 القياس (Measurement)": [
@@ -3745,100 +3843,90 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "Physical Science": [
+      "Changes in Matter — changes of state; physical changes; chemical changes.",
+      "Force and Motion — position and motion; forces; using simple machines.",
+      "Forms of Energy — work and energy; heat; electricity."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 1",
+      "unit": "التغيرات في المادة",
+      "module": "التغيرات في المادة",
+      "lesson": "تغيرات الحالة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "التغيرات في المادة",
+      "module": "التغيرات في المادة",
+      "lesson": "التغيرات الفيزيائية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "التغيرات في المادة",
+      "module": "التغيرات في المادة",
+      "lesson": "التغيرات الكيميائية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "القوة والحركة",
+      "module": "القوة والحركة",
+      "lesson": "الموقع والحركة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "القوة والحركة",
+      "module": "القوة والحركة",
+      "lesson": "القوى",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "القوة والحركة",
+      "module": "القوة والحركة",
+      "lesson": "استخدام الآلات البسيطة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "أشكال الطاقة",
+      "module": "أشكال الطاقة",
+      "lesson": "الشغل والطاقة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "أشكال الطاقة",
+      "module": "أشكال الطاقة",
+      "lesson": "الحرارة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "أشكال الطاقة",
+      "module": "أشكال الطاقة",
+      "lesson": "الكهرباء",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
  "4": {
   "1": {
-   "Science": {
-    "strands": {
-     "Life Science": [
-      "Kingdoms of Life — cells; classifying living things.",
-      "The Animal Kingdom — systems in animals; the animal life cycle.",
-      "Adaptation and Survival — animal adaptations; plants and their adaptations; changes in ecosystems.",
-      "Health of Living Things — choosing healthy foods; maintaining health, fitness and safety."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Be a Scientist — the scientific method."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "كن عالمًا",
-      "module": "كن عالمًا",
-      "lesson": "الطريقة العلمية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "ممالك الحياة",
-      "module": "ممالك الحياة",
-      "lesson": "الخلايا",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "ممالك الحياة",
-      "module": "ممالك الحياة",
-      "lesson": "تصنيف الكائنات الحية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "مملكة الحيوان",
-      "module": "مملكة الحيوان",
-      "lesson": "الأنظمة في الحيوانات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "مملكة الحيوان",
-      "module": "مملكة الحيوان",
-      "lesson": "دورة حياة الحيوان",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "module": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "lesson": "مظاهر التكيف عند الحيوان",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "module": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "lesson": "النباتات وتكيفها في بيئاتها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "module": "مظاهر التكيُّف والبقاء على قيد الحياة",
-      "lesson": "التغيرات التي تشهدها الانظمة البيئية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "صحَّة الكائنات الحية",
-      "module": "صحَّة الكائنات الحية",
-      "lesson": "انتقاء الأغذية الصحية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "صحَّة الكائنات الحية",
-      "module": "صحَّة الكائنات الحية",
-      "lesson": "الحفاظ على الصحة واللياقة والسلامة",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -6146,72 +6234,219 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 1: كن عالماً": [
+      "SCI.1.1.01.009 يجمع معلومات بحثية مناسبة ويستخدمها في صياغة فرضيات قابلة للاختبار"
+     ],
+     "الوحدة 2: ممالك الحياة": [
+      "SCI.3.1.01.017 يقارن بين ممالك الكائنات وحيدة الخلية ويتوصل لكيفية تصنيف الكائنات الحية على سطح الأرض في ممالك مختلفة"
+     ],
+     "الوحدة 3: مملكة الحيوان": [
+      "SCI.3.1.01.020 يصف التركيب والوظيفة الأساسية للأعضاء الرئيسة في الجهاز الدوري والجهاز التنفسي والجهاز الهضمي",
+      "SCI.3.3.02.003 يصف دورة حياة بعض الحيوانات المختلفة وكيفية تكاثرها وأنواع التحول المختلفة"
+     ],
+     "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة": [
+      "SCI.3.3.02.004 يستنتج أن الاختلافات في الصفات بين الأفراد من النوع نفسه قد يكون لها في بعض الأحيان ميزات تساعد في البقاء على قيد الحياة، وإيجاد الشريك والتكاثر",
+      "SCI.3.1.04.008 يفسر أن المستقبلات الحسية المختلفة مخصصة لأنواع محددة من المعلومات",
+      "SCI.3.2.01.007 يشرح كيف أنه عندما تتغير البيئة بطرائق تؤثر في الخصائص الفيزيائية للمكان مثل الحرارة أو توافر الموارد، فإن بعض الكائنات الحية تحيا وتتكاثر في حين تنتقل أخرى إلى مواقع جديدة، وتنتقل غيرها إلى البيئة المتحولة، وتفشل بعض الكائنات في البقاء على قيد الحياة"
+     ],
+     "الوحدة 5: صحّة الكائنات الحية": [
+      "SCI.3.1.02.006 يصف كيف أن الطعام يزود الإنسان بالمواد التي يحتاجها للنمو ولسد النقص في حاجة الجسم وكيف تتم عملية هضم الطعام؛ لينتج الطاقة التي يحتاجها ليوفر للجسم الدفء والحركة",
+      "SCI.3.1.01.018 يحدد الأمراض الشائعة والأعضاء وأجهزة الجسم التي تؤثر في الكائنات الحية"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "الوحدة 1: كن عالماً",
+      "module": "الوحدة 1: كن عالماً",
+      "lesson": "الدرس 1: الطريقة العلمية",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.009",
+        "text": "يجمع معلومات بحثية مناسبة ويستخدمها في صياغة فرضيات قابلة للاختبار",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 2: ممالك الحياة",
+      "module": "الوحدة 2: ممالك الحياة",
+      "lesson": "الدرس 1: الخلايا",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.01.017",
+        "text": "يقارن بين ممالك الكائنات وحيدة الخلية ويتوصل لكيفية تصنيف الكائنات الحية على سطح الأرض في ممالك مختلفة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 2: ممالك الحياة",
+      "module": "الوحدة 2: ممالك الحياة",
+      "lesson": "الدرس 2: تصنيف الكائنات الحية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.01.017",
+        "text": "يقارن بين ممالك الكائنات وحيدة الخلية ويتوصل لكيفية تصنيف الكائنات الحية على سطح الأرض في ممالك مختلفة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "الوحدة 3: مملكة الحيوان",
+      "module": "الوحدة 3: مملكة الحيوان",
+      "lesson": "الدرس 1: الأنظمة في الحيوانات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.01.020",
+        "text": "يصف التركيب والوظيفة الأساسية للأعضاء الرئيسة في الجهاز الدوري والجهاز التنفسي والجهاز الهضمي",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "الوحدة 3: مملكة الحيوان",
+      "module": "الوحدة 3: مملكة الحيوان",
+      "lesson": "الدرس 2: دورة حياة الحيوان",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.3.02.003",
+        "text": "يصف دورة حياة بعض الحيوانات المختلفة وكيفية تكاثرها وأنواع التحول المختلفة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L1",
+      "unit": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "module": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "lesson": "الدرس 1: مظاهر التكيف عند الحيوان",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.3.02.004",
+        "text": "يستنتج أن الاختلافات في الصفات بين الأفراد من النوع نفسه قد يكون لها في بعض الأحيان ميزات تساعد في البقاء على قيد الحياة، وإيجاد الشريك والتكاثر",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L2",
+      "unit": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "module": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "lesson": "الدرس 2: النباتات وتكيفها في بيئاتها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.04.008",
+        "text": "يفسر أن المستقبلات الحسية المختلفة مخصصة لأنواع محددة من المعلومات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L3",
+      "unit": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "module": "الوحدة 4: مظاهر التكيُّف والبقاء على قيد الحياة",
+      "lesson": "الدرس 3: التغيرات التي تشهدها الأنظمة البيئية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.2.01.007",
+        "text": "يشرح كيف أنه عندما تتغير البيئة بطرائق تؤثر في الخصائص الفيزيائية للمكان مثل الحرارة أو توافر الموارد، فإن بعض الكائنات الحية تحيا وتتكاثر في حين تنتقل أخرى إلى مواقع جديدة، وتنتقل غيرها إلى البيئة المتحولة، وتفشل بعض الكائنات في البقاء على قيد الحياة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L1",
+      "unit": "الوحدة 5: صحّة الكائنات الحية",
+      "module": "الوحدة 5: صحّة الكائنات الحية",
+      "lesson": "الدرس 1: انتقاء الأغذية الصحية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.02.006",
+        "text": "يصف كيف أن الطعام يزود الإنسان بالمواد التي يحتاجها للنمو ولسد النقص في حاجة الجسم وكيف تتم عملية هضم الطعام؛ لينتج الطاقة التي يحتاجها ليوفر للجسم الدفء والحركة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L2",
+      "unit": "الوحدة 5: صحّة الكائنات الحية",
+      "module": "الوحدة 5: صحّة الكائنات الحية",
+      "lesson": "الدرس 2: الحفاظ على الصحة واللياقة والسلامة",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.01.018",
+        "text": "يحدد الأمراض الشائعة والأعضاء وأجهزة الجسم التي تؤثر في الكائنات الحية",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE CCG الصف الرابع العلوم العامة — مصفوفة المدى والتتابع، الفصل الأول (عربي)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Matter and Its Changes — describing matter; measurement; properties of water; mixtures.",
-      "Energy — heat; sound; light."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "المادة وتغيراتها",
-      "module": "المادة وتغيراتها",
-      "lesson": "وصف المادة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "المادة وتغيراتها",
-      "module": "المادة وتغيراتها",
-      "lesson": "القياس",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "المادة وتغيراتها",
-      "module": "المادة وتغيراتها",
-      "lesson": "خصائص الماء",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "المادة وتغيراتها",
-      "module": "المادة وتغيراتها",
-      "lesson": "المخاليط",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "الحرارة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "الصوت",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "الضوء",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "Maths": {
     "strands": {
      "Chapter 7 الأنماط والمتتاليات (Patterns and Sequences)": [
@@ -7164,125 +7399,73 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Physical Science": [
-      "Energy — electricity; using electrical energy; magnetism and electricity.",
-      "Motion, Forces and Design — changing motion; forces and transport; technology and design."
-     ],
-     "Earth & Space Science": [
-      "Weather and Climate — air and weather; water; tracking weather; climate.",
-      "The Solar System and Beyond — Earth and the Sun; Earth and the Moon; the solar system; stars and constellations."
+      "Matter and Its Changes — describing matter; measurement; properties of water; mixtures.",
+      "Energy — heat; sound; light."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
-      "code": "الدرس 4",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "الكهرباء",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 5",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "استخدام الطاقة الكهربائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 6",
-      "unit": "الطاقة",
-      "module": "الطاقة",
-      "lesson": "المغناطيسية والكهرباء",
-      "type": "core"
-     },
-     {
       "code": "الدرس 1",
-      "unit": "الحركة والقوى وعملية التصميم",
-      "module": "الحركة والقوى وعملية التصميم",
-      "lesson": "تغير الحركة",
+      "unit": "المادة وتغيراتها",
+      "module": "المادة وتغيراتها",
+      "lesson": "وصف المادة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "الحركة والقوى وعملية التصميم",
-      "module": "الحركة والقوى وعملية التصميم",
-      "lesson": "القوى والمواصلات",
+      "unit": "المادة وتغيراتها",
+      "module": "المادة وتغيراتها",
+      "lesson": "القياس",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "الحركة والقوى وعملية التصميم",
-      "module": "الحركة والقوى وعملية التصميم",
-      "lesson": "التكنولوجيا والتصمييم",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الطقس والمناخ",
-      "module": "الطقس والمناخ",
-      "lesson": "الهواء والطقس",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الطقس والمناخ",
-      "module": "الطقس والمناخ",
-      "lesson": "المياه",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الطقس والمناخ",
-      "module": "الطقس والمناخ",
-      "lesson": "تتبع أحوال الطقس",
+      "unit": "المادة وتغيراتها",
+      "module": "المادة وتغيراتها",
+      "lesson": "خصائص الماء",
       "type": "core"
      },
      {
       "code": "الدرس 4",
-      "unit": "الطقس والمناخ",
-      "module": "الطقس والمناخ",
-      "lesson": "المناخ",
+      "unit": "المادة وتغيراتها",
+      "module": "المادة وتغيراتها",
+      "lesson": "المخاليط",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "المجموعة الشمسية وما وراءها",
-      "module": "المجموعة الشمسية وما وراءها",
-      "lesson": "الأرض والشمس",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "الحرارة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "المجموعة الشمسية وما وراءها",
-      "module": "المجموعة الشمسية وما وراءها",
-      "lesson": "الأرض والقمر",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "الصوت",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "المجموعة الشمسية وما وراءها",
-      "module": "المجموعة الشمسية وما وراءها",
-      "lesson": "المجموعة الشمسية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "المجموعة الشمسية وما وراءها",
-      "module": "المجموعة الشمسية وما وراءها",
-      "lesson": "النجوم والمجموعات النجمية",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "الضوء",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "Chapter 11 جمع وطرح الأعداد العشرية (Add and Subtract Decimals)": [
@@ -8163,105 +8346,128 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (Main Stream, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "Physical Science": [
+      "Energy — electricity; using electrical energy; magnetism and electricity.",
+      "Motion, Forces and Design — changing motion; forces and transport; technology and design."
+     ],
+     "Earth & Space Science": [
+      "Weather and Climate — air and weather; water; tracking weather; climate.",
+      "The Solar System and Beyond — Earth and the Sun; Earth and the Moon; the solar system; stars and constellations."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 4",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "الكهرباء",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 5",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "استخدام الطاقة الكهربائية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 6",
+      "unit": "الطاقة",
+      "module": "الطاقة",
+      "lesson": "المغناطيسية والكهرباء",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الحركة والقوى وعملية التصميم",
+      "module": "الحركة والقوى وعملية التصميم",
+      "lesson": "تغير الحركة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الحركة والقوى وعملية التصميم",
+      "module": "الحركة والقوى وعملية التصميم",
+      "lesson": "القوى والمواصلات",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الحركة والقوى وعملية التصميم",
+      "module": "الحركة والقوى وعملية التصميم",
+      "lesson": "التكنولوجيا والتصمييم",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الطقس والمناخ",
+      "module": "الطقس والمناخ",
+      "lesson": "الهواء والطقس",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الطقس والمناخ",
+      "module": "الطقس والمناخ",
+      "lesson": "المياه",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الطقس والمناخ",
+      "module": "الطقس والمناخ",
+      "lesson": "تتبع أحوال الطقس",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "الطقس والمناخ",
+      "module": "الطقس والمناخ",
+      "lesson": "المناخ",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "المجموعة الشمسية وما وراءها",
+      "module": "المجموعة الشمسية وما وراءها",
+      "lesson": "الأرض والشمس",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "المجموعة الشمسية وما وراءها",
+      "module": "المجموعة الشمسية وما وراءها",
+      "lesson": "الأرض والقمر",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "المجموعة الشمسية وما وراءها",
+      "module": "المجموعة الشمسية وما وراءها",
+      "lesson": "المجموعة الشمسية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "المجموعة الشمسية وما وراءها",
+      "module": "المجموعة الشمسية وما وراءها",
+      "lesson": "النجوم والمجموعات النجمية",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
  "5": {
   "1": {
-   "Science": {
-    "strands": {
-     "Life Science": [
-      "Parents and Offspring — reproduction; the plant life cycle; animal life cycles.",
-      "Interactions in Ecosystems — photosynthesis; energy flow in ecosystems; relationships in ecosystems; adaptation and survival."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Becoming a Great Scientist — becoming a scientist; the scientific method; a scientist's tools; taking measurements."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "اعداد أفضل العلماء",
-      "module": "اعداد أفضل العلماء",
-      "lesson": "ان تصبح عالماً",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "اعداد أفضل العلماء",
-      "module": "اعداد أفضل العلماء",
-      "lesson": "الطريقة العلمية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "اعداد أفضل العلماء",
-      "module": "اعداد أفضل العلماء",
-      "lesson": "ادوات العالم",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "اعداد أفضل العلماء",
-      "module": "اعداد أفضل العلماء",
-      "lesson": "اجراء القياسات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الآباء و الأبناء",
-      "module": "الآباء و الأبناء",
-      "lesson": "التكاثر",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الآباء و الأبناء",
-      "module": "الآباء و الأبناء",
-      "lesson": "دورة حياة النبات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الآباء و الأبناء",
-      "module": "الآباء و الأبناء",
-      "lesson": "دورة حياة الحيوانات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التفاعلات في النظم البيئية",
-      "module": "التفاعلات في النظم البيئية",
-      "lesson": "البناء الضوئي",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التفاعلات في النظم البيئية",
-      "module": "التفاعلات في النظم البيئية",
-      "lesson": "تدفق الطاقة في النظم البيئية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التفاعلات في النظم البيئية",
-      "module": "التفاعلات في النظم البيئية",
-      "lesson": "العلاقات في النظم البيئية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "التفاعلات في النظم البيئية",
-      "module": "التفاعلات في النظم البيئية",
-      "lesson": "التكيف والبقاء على قيد الحياة",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy Lessons": [
@@ -10739,82 +10945,291 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 1: إعداد أفضل العلماء": [
+      "SCI.1.1.01.014 يستنتج أن المعرفة العلمية تعتمد على مجموعة بيانات وعدة اختبارات ويبين الفرق بين الدليل والرأي في التفسيرات العلمية",
+      "SCI.1.1.01.012 يحدد عناصر التحقيقات ذات التخطيط الجيد والاستنتاجات الصحيحة ويوضح كيف أن التواصل والتعاون بين العلماء قد يؤدي إلى نقاش بناء وتغير في التفكير العلمي",
+      "SCI.1.1.01.015 ينفذ تجربة مضبوطة من تصميمه الخاص مسجلا البيانات للمحاولات المتكررة بطريقة منظمة ومناسبة مستخدما الجداول والقوائم والنصوص",
+      "SCI.1.1.01.013 يبني القدرة على الملاحظة والاستدلال والمقارنة والتواصل والتصنيف والترتيب والاستنتاج واستخدام العلاقات الزمانية المكانية"
+     ],
+     "الوحدة 2: الآباء والأبناء": [
+      "SCI.3.1.03.013 يوضح أن للحيوانات دورات حياة متنوعة، لكنها تتشارك في المراحل الأساسية",
+      "SCI.3.3.02.005 يستنتج أن البيئة تؤثر كذلك في سمات وخصائص الكائنات؛ فالاختلافات في مكان نموها أو الغذاء الذي تستهلكه قد يتسبب في تغيير مظهر أو سلوك هذه الكائنات",
+      "SCI.3.1.03.016 يشرح العمليات المتعلقة بالتكاثر الجنسي في النبات"
+     ],
+     "الوحدة 3: التفاعلات في النُظم البيئية": [
+      "SCI.3.1.02.008 يشرح كيف أن النباتات تحصل على المواد اللازمة لنموها بشكل أساسي من الهواء والماء، ويصف كيف تحصل النباتات على الطاقة من أشعة الشمس وتعالج المواد التي تشكلها لتحافظ على أوضاعها الداخلية",
+      "SCI.3.4.01.011 يستخدم السلسلة الغذائية لعرض التسلسل الخطي للحلقات الرابطة في الشبكة الغذائية بدءا بأحد المنتجات وانتهاء بأحد المحللات في بيئة محددة",
+      "SCI.3.4.01.012 يستخدم دليلا لدعم الرأي القائل بأن الكائنات الحية في المجتمع تترابط من خلال الغذاء الذي تتناوله",
+      "SCI.3.4.01.014 يصف أدوار الكائنات الحية في كل حلقة ضمن سلسلة غذائية بسيطة",
+      "SCI.3.4.01.015 يصف كيف يمكن للشبكة المعقدة للعلاقات الغذائية أن تؤثر على تشكيل الشبكة الغذائية واستخدامها",
+      "SCI.3.4.01.013 يستنتج أن الكائنات الحية لا تستطيع أن تبقى على قيد الحياة إلا في البيئات التي تلبي احتياجاتها المحددة، ويحدد العوامل التي تؤثر على قدرة النباتات والحيوانات على البقاء على قيد الحياة في موطن محدد",
+      "SCI.3.4.01.017 يعطي أمثلة على الحيوانات آكلات اللحوم وآكلات العشب ومزدوجة التغذية",
+      "SCI.3.4.01.018 يوضح أن المجتمع عبارة عن مجموعة من الأنواع المتفاعلة التي تتقاسم موطنا مشتركا",
+      "SCI.3.4.02.004 يستنتج أن الكائنات الحية تحصل على الغازات والماء والمعادن من البيئة وتعيد النفايات إلى البيئة على شكل مادة غازية أو سائلة أو صلبة من جديد",
+      "SCI.3.4.02.005 يصمم نموذجا لوصف حركة المادة بين النباتات والحيوانات والمحللات والبيئة",
+      "SCI.3.3.02.006 يوضح أنه على الرغم من أن العديد من الصفات يرثها الأفراد عن الآباء، إلا أنها تتأثر كذلك بالتفاعلات مع بيئة الفرد"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "الوحدة 1: إعداد أفضل العلماء",
+      "module": "الوحدة 1: إعداد أفضل العلماء",
+      "lesson": "الدرس 1: أن تُصبح عالماً",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.014",
+        "text": "يستنتج أن المعرفة العلمية تعتمد على مجموعة بيانات وعدة اختبارات ويبين الفرق بين الدليل والرأي في التفسيرات العلمية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U1L2",
+      "unit": "الوحدة 1: إعداد أفضل العلماء",
+      "module": "الوحدة 1: إعداد أفضل العلماء",
+      "lesson": "الدرس 2: الطريقة العلمية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.012",
+        "text": "يحدد عناصر التحقيقات ذات التخطيط الجيد والاستنتاجات الصحيحة ويوضح كيف أن التواصل والتعاون بين العلماء قد يؤدي إلى نقاش بناء وتغير في التفكير العلمي",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L3",
+      "unit": "الوحدة 1: إعداد أفضل العلماء",
+      "module": "الوحدة 1: إعداد أفضل العلماء",
+      "lesson": "الدرس 3: أدوات العالِم",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.015",
+        "text": "ينفذ تجربة مضبوطة من تصميمه الخاص مسجلا البيانات للمحاولات المتكررة بطريقة منظمة ومناسبة مستخدما الجداول والقوائم والنصوص",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U1L4",
+      "unit": "الوحدة 1: إعداد أفضل العلماء",
+      "module": "الوحدة 1: إعداد أفضل العلماء",
+      "lesson": "الدرس 4: إجراء القياسات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.013",
+        "text": "يبني القدرة على الملاحظة والاستدلال والمقارنة والتواصل والتصنيف والترتيب والاستنتاج واستخدام العلاقات الزمانية المكانية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 2: الآباء والأبناء",
+      "module": "الوحدة 2: الآباء والأبناء",
+      "lesson": "الدرس 1: التكاثر",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.013",
+        "text": "يوضح أن للحيوانات دورات حياة متنوعة، لكنها تتشارك في المراحل الأساسية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.3.02.005",
+        "text": "يستنتج أن البيئة تؤثر كذلك في سمات وخصائص الكائنات؛ فالاختلافات في مكان نموها أو الغذاء الذي تستهلكه قد يتسبب في تغيير مظهر أو سلوك هذه الكائنات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 2: الآباء والأبناء",
+      "module": "الوحدة 2: الآباء والأبناء",
+      "lesson": "الدرس 2: دورة حياة النبات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.016",
+        "text": "يشرح العمليات المتعلقة بالتكاثر الجنسي في النبات",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L3",
+      "unit": "الوحدة 2: الآباء والأبناء",
+      "module": "الوحدة 2: الآباء والأبناء",
+      "lesson": "الدرس 3: دورة حياة الحيوانات",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.03.013",
+        "text": "يوضح أن للحيوانات دورات حياة متنوعة، لكنها تتشارك في المراحل الأساسية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "module": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "lesson": "الدرس 1: البناء الضوئي",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.1.02.008",
+        "text": "يشرح كيف أن النباتات تحصل على المواد اللازمة لنموها بشكل أساسي من الهواء والماء، ويصف كيف تحصل النباتات على الطاقة من أشعة الشمس وتعالج المواد التي تشكلها لتحافظ على أوضاعها الداخلية",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "module": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "lesson": "الدرس 2: تدفق الطاقة في النُظم البيئية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.01.011",
+        "text": "يستخدم السلسلة الغذائية لعرض التسلسل الخطي للحلقات الرابطة في الشبكة الغذائية بدءا بأحد المنتجات وانتهاء بأحد المحللات في بيئة محددة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.012",
+        "text": "يستخدم دليلا لدعم الرأي القائل بأن الكائنات الحية في المجتمع تترابط من خلال الغذاء الذي تتناوله",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.014",
+        "text": "يصف أدوار الكائنات الحية في كل حلقة ضمن سلسلة غذائية بسيطة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.015",
+        "text": "يصف كيف يمكن للشبكة المعقدة للعلاقات الغذائية أن تؤثر على تشكيل الشبكة الغذائية واستخدامها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L3",
+      "unit": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "module": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "lesson": "الدرس 3: العلاقات في النظم البيئية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.01.013",
+        "text": "يستنتج أن الكائنات الحية لا تستطيع أن تبقى على قيد الحياة إلا في البيئات التي تلبي احتياجاتها المحددة، ويحدد العوامل التي تؤثر على قدرة النباتات والحيوانات على البقاء على قيد الحياة في موطن محدد",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.017",
+        "text": "يعطي أمثلة على الحيوانات آكلات اللحوم وآكلات العشب ومزدوجة التغذية",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.01.018",
+        "text": "يوضح أن المجتمع عبارة عن مجموعة من الأنواع المتفاعلة التي تتقاسم موطنا مشتركا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.02.004",
+        "text": "يستنتج أن الكائنات الحية تحصل على الغازات والماء والمعادن من البيئة وتعيد النفايات إلى البيئة على شكل مادة غازية أو سائلة أو صلبة من جديد",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.3.4.02.005",
+        "text": "يصمم نموذجا لوصف حركة المادة بين النباتات والحيوانات والمحللات والبيئة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L4",
+      "unit": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "module": "الوحدة 3: التفاعلات في النُظم البيئية",
+      "lesson": "الدرس 4: التكيُّف والبقاء على قيد الحياة",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.3.02.006",
+        "text": "يوضح أنه على الرغم من أن العديد من الصفات يرثها الأفراد عن الآباء، إلا أنها تتأثر كذلك بالتفاعلات مع بيئة الفرد",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE CCG الصف الخامس العلوم العامة — مصفوفة المدى والتتابع، الفصل الأول (عربي)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Comparing Types of Matter — elements; metals, nonmetals and metalloids.",
-      "Chemical and Physical Changes — mixtures; compounds and chemical changes; acids, bases and salts."
-     ],
-     "Earth & Space Science": [
-      "Using Earth's Resources — natural resources; uses of resources; cycles in ecosystems."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "استعمال موارد الأرض",
-      "module": "استعمال موارد الأرض",
-      "lesson": "الموارد الطبيعية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "استعمال موارد الأرض",
-      "module": "استعمال موارد الأرض",
-      "lesson": "استخدامات الموارد",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "استعمال موارد الأرض",
-      "module": "استعمال موارد الأرض",
-      "lesson": "الدورات في النظم البيئية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "مقارنة أنواع المادة",
-      "module": "مقارنة أنواع المادة",
-      "lesson": "العناصر",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "مقارنة أنواع المادة",
-      "module": "مقارنة أنواع المادة",
-      "lesson": "الفلزات واللافلزات واشباه الفلزات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التغيرات الكيميائية و الفيزيائية",
-      "module": "التغيرات الكيميائية و الفيزيائية",
-      "lesson": "المخاليط",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التغيرات الكيميائية و الفيزيائية",
-      "module": "التغيرات الكيميائية و الفيزيائية",
-      "lesson": "المركبات والتغيرات الكيميائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التغيرات الكيميائية و الفيزيائية",
-      "module": "التغيرات الكيميائية و الفيزيائية",
-      "lesson": "الأحماض والقواعد و الأملاح",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "Maths": {
     "strands": {
      "C7 الكسور والأعداد العشرية (Fractions and Decimals)": [
@@ -11526,106 +11941,83 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Physical Science": [
-      "Using Forces — motion; forces and motion; work and energy.",
-      "Using Energy — sound; light."
+      "Comparing Types of Matter — elements; metals, nonmetals and metalloids.",
+      "Chemical and Physical Changes — mixtures; compounds and chemical changes; acids, bases and salts."
      ],
      "Earth & Space Science": [
-      "Minerals, Rocks and Soil — minerals; rocks; soil."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Technology and Design — technology and your life; technology and nature; the design process."
+      "Using Earth's Resources — natural resources; uses of resources; cycles in ecosystems."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "استخدام القوى",
-      "module": "استخدام القوى",
-      "lesson": "الحركة",
+      "unit": "استعمال موارد الأرض",
+      "module": "استعمال موارد الأرض",
+      "lesson": "الموارد الطبيعية",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "استخدام القوى",
-      "module": "استخدام القوى",
-      "lesson": "القوى والحركة",
+      "unit": "استعمال موارد الأرض",
+      "module": "استعمال موارد الأرض",
+      "lesson": "استخدامات الموارد",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "استخدام القوى",
-      "module": "استخدام القوى",
-      "lesson": "الشغل والطاقة",
+      "unit": "استعمال موارد الأرض",
+      "module": "استعمال موارد الأرض",
+      "lesson": "الدورات في النظم البيئية",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "استخدام الطاقة",
-      "module": "استخدام الطاقة",
-      "lesson": "الصوت",
+      "unit": "مقارنة أنواع المادة",
+      "module": "مقارنة أنواع المادة",
+      "lesson": "العناصر",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "استخدام الطاقة",
-      "module": "استخدام الطاقة",
-      "lesson": "الضوء",
+      "unit": "مقارنة أنواع المادة",
+      "module": "مقارنة أنواع المادة",
+      "lesson": "الفلزات واللافلزات واشباه الفلزات",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "المعادن والصخور و التربة",
-      "module": "المعادن والصخور و التربة",
-      "lesson": "المعادن",
+      "unit": "التغيرات الكيميائية و الفيزيائية",
+      "module": "التغيرات الكيميائية و الفيزيائية",
+      "lesson": "المخاليط",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "المعادن والصخور و التربة",
-      "module": "المعادن والصخور و التربة",
-      "lesson": "الصخور",
+      "unit": "التغيرات الكيميائية و الفيزيائية",
+      "module": "التغيرات الكيميائية و الفيزيائية",
+      "lesson": "المركبات والتغيرات الكيميائية",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "المعادن والصخور و التربة",
-      "module": "المعادن والصخور و التربة",
-      "lesson": "التربة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "التكنولوجيا وحياتك",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "التكنولوجيا والطبيعة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التكنولوجيا والتصميم",
-      "module": "التكنولوجيا والتصميم",
-      "lesson": "عملية التصميم",
+      "unit": "التغيرات الكيميائية و الفيزيائية",
+      "module": "التغيرات الكيميائية و الفيزيائية",
+      "lesson": "الأحماض والقواعد و الأملاح",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "C6 التعابير والأنماط (Expressions and Patterns)": [
@@ -12535,114 +12927,109 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "Physical Science": [
+      "Using Forces — motion; forces and motion; work and energy.",
+      "Using Energy — sound; light."
+     ],
+     "Earth & Space Science": [
+      "Minerals, Rocks and Soil — minerals; rocks; soil."
+     ],
+     "Scientific Inquiry & Technology": [
+      "Technology and Design — technology and your life; technology and nature; the design process."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 1",
+      "unit": "استخدام القوى",
+      "module": "استخدام القوى",
+      "lesson": "الحركة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "استخدام القوى",
+      "module": "استخدام القوى",
+      "lesson": "القوى والحركة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "استخدام القوى",
+      "module": "استخدام القوى",
+      "lesson": "الشغل والطاقة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "استخدام الطاقة",
+      "module": "استخدام الطاقة",
+      "lesson": "الصوت",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "استخدام الطاقة",
+      "module": "استخدام الطاقة",
+      "lesson": "الضوء",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "المعادن والصخور و التربة",
+      "module": "المعادن والصخور و التربة",
+      "lesson": "المعادن",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "المعادن والصخور و التربة",
+      "module": "المعادن والصخور و التربة",
+      "lesson": "الصخور",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "المعادن والصخور و التربة",
+      "module": "المعادن والصخور و التربة",
+      "lesson": "التربة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "التكنولوجيا والتصميم",
+      "module": "التكنولوجيا والتصميم",
+      "lesson": "التكنولوجيا وحياتك",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "التكنولوجيا والتصميم",
+      "module": "التكنولوجيا والتصميم",
+      "lesson": "التكنولوجيا والطبيعة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "التكنولوجيا والتصميم",
+      "module": "التكنولوجيا والتصميم",
+      "lesson": "عملية التصميم",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
  "6": {
   "1": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Matter and Atoms — chemicals and mixtures; atomic structure.",
-      "Matter: Properties and Changes — matter and its properties; matter and its changes.",
-      "Solubility and Acidic/Basic Solutions — properties of solutions; acidic and basic solutions."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Methods of Science — case study; Saruq Al Hadid.",
-      "Technology and the Design Process — tools of technology; materials and their properties; the design process; technological systems."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "أساليب العلوم",
-      "module": "أساليب العلوم",
-      "lesson": "دراسة حالة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "أساليب العلوم",
-      "module": "أساليب العلوم",
-      "lesson": "ساروق الحديد",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التكنولوجيا وعملية التصميم",
-      "module": "التكنولوجيا وعملية التصميم",
-      "lesson": "أدوات التكنولوجيا",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التكنولوجيا وعملية التصميم",
-      "module": "التكنولوجيا وعملية التصميم",
-      "lesson": "المواد وخواصها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التكنولوجيا وعملية التصميم",
-      "module": "التكنولوجيا وعملية التصميم",
-      "lesson": "عملية التصميم",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "التكنولوجيا وعملية التصميم",
-      "module": "التكنولوجيا وعملية التصميم",
-      "lesson": "الأنظمة التكنولوجية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "المادة والذرَات",
-      "module": "المادة والذرَات",
-      "lesson": "المواد الكيميائية والمخاليط",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "المادة والذرَات",
-      "module": "المادة والذرَات",
-      "lesson": "بنية الذرة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "المادة: الخواص والتغيّرات",
-      "module": "المادة: الخواص والتغيّرات",
-      "lesson": "المادة وخواصها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "المادة: الخواص والتغيّرات",
-      "module": "المادة: الخواص والتغيّرات",
-      "lesson": "المادة وتغيراتها",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الذائبية والمحاليل الحمضية والقاعدية",
-      "module": "الذائبية والمحاليل الحمضية والقاعدية",
-      "lesson": "خواص المحاليل",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الذائبية والمحاليل الحمضية والقاعدية",
-      "module": "الذائبية والمحاليل الحمضية والقاعدية",
-      "lesson": "المحاليل الحمضية والقاعدية",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy Lessons": [
@@ -14885,84 +15272,371 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 1: أساليب العلوم": [
+      "SCI.1.1.01.016 يجمع بيانات ومعلومات من أكثر من مصدر ليصمم استقصاء موجها",
+      "SCI.1.1.01.018 يصمم وينفذ استقصاءات موجهة لتنفيذ تجربة لدراسة تأثير متغير محدد مستخدما المنهج العلمي",
+      "SCI.1.1.02.009 يحلل بياناته ليكتشف العلاقات بين المتغيرات ويفسرها"
+     ],
+     "الوحدة 2: التكنولوجيا وعملية التصميم": [
+      "SCI.1.2.01.007 يستنتج أنه حين تتوافر التكنولوجيا الجديدة، يمكن أن تغير طرائق حياة الناس وكيفية تفاعلهم معا",
+      "SCI.1.2.02.008 يتعرف عملية التصميم الهندسي وإجراءاتها التي يستخدمها المهندسون لتلبية حاجة اجتماعية ويختبر آلة بسيطة ويحسنها",
+      "SCI.1.2.01.008 يبين أثر التطور التكنولوجي على تغير رغبات وحاجات الناس مع الزمن"
+     ],
+     "الوحدة 3: المادة والذرات": [
+      "SCI.4.4.01.052 يستنتج أن جميع المواد مكونة من أنواع مختلفة من الذرات، التي تتحد مع بعضها بعضا بطرائق مختلفة",
+      "SCI.4.4.01.041 يبني نموذجا (رسومات، كرة ثلاثية الأبعاد والعيدان، نماذج الكرة والعيدان، عروض على الحاسوب) يظهر من خلاله جزيئات مختلفة تتكون من أنواع مختلفة من الذرات، ليعرض التركيب الذري لمجموعات كبيرة من الجزيئات",
+      "SCI.4.4.01.064 يميز بين المخاليط المتجانسة أي المحاليل والمخاليط غير المتجانسة",
+      "SCI.4.4.01.065 يميز بين المواد النقية مثل الماء المقطر وملح الطعام وشريط نحاسي، وبين المخاليط مثل سلطة الخضار والكعك برقائق الشوكولاتة",
+      "SCI.4.4.01.034 يتعرف تركيب الذرة: نواة، إلكترونات، بروتونات، نيوترونات"
+     ],
+     "الوحدة 4: المادة: الخواص والتغيّرات": [
+      "SCI.4.4.01.042 يبني ويطور نماذج لجزيئات كل من المواد الصلبة والسائلة والغازية ليبين بأن إضافة أو إزالة الطاقة الحرارية تؤدي إلى زيادة أو نقصان الطاقة الحركية للجسيمات إلى أن يحدث تغير في حالة المادة",
+      "SCI.4.4.01.045 يجري التجارب أو يصمم برمجيات محاكاة لتحديد آثار التسخين والتبريد على حجم المواد الصلبة والسائلة والغازية",
+      "SCI.4.4.01.051 يستنتج أن الكثافة خاصية فيزيائية مميزة للمادة، ويصف علاقتها مع الكتلة والحجم",
+      "SCI.4.4.01.054 يشرح الفرق بين السوائل والغازات من حيث الانضغاطية وكيف تؤثر انضغاطيتها على استخدامها",
+      "SCI.4.4.01.063 يقارن بين الحالات الثلاث للمادة من حيث القوى بين الجسيمات والمسافات بينها وحرية حركتها",
+      "SCI.4.4.01.050 يستنتج أن الكتلة تبقى ثابتة أثناء التغيرات الفيزيائية، مثل تغير الحالة وذوبان المواد الصلبة والتمدد الحراري",
+      "SCI.4.4.02.017 يشرح أدلة حدوث التفاعل الكيميائي مثل تغير اللون وانبعاث غاز وتكون راسب وانبعاث حرارة وضوء، موظفا بعض برمجيات المحاكاة",
+      "SCI.4.4.02.021 يقارن بين التغيرات الكيميائية والتغيرات الفيزيائية من حيث تحول أو تفاعل مادة نقية واحدة أو أكثر (المواد المتفاعلة) إلى مواد نقية مختلفة (المواد الناتجة)"
+     ],
+     "الوحدة 5: الذائبية والمحاليل الحمضية والقاعدية": [
+      "SCI.4.4.01.044 يتعرف مفهوم الذوبان كعملية يتم من خلالها توزع أو انتشار جسيمات المذاب في المذيب ويفسر سبب اعتبار الماء مذيبا واسع الانتشار",
+      "SCI.4.4.01.046 يجري التجارب ليستقصي العوامل (درجة الحرارة ونوع المذاب أو المذيب وحجم الجسيمات والتحريك) التي تؤثر في قابلية وسرعة ذوبان المادة",
+      "SCI.4.4.01.059 يصف الفرق بين المحاليل المشبعة وغير المشبعة",
+      "SCI.4.4.01.061 يصف تركيز المحلول من حيث النوعية (مخفف ومركز) ومن حيث الكمية (مثال: خمسة جرامات من الملح في ألف مللتر من الماء)",
+      "SCI.4.4.02.010 يصنف المواد التي يستخدمها في حياته اليومية إلى أحماض أو قواعد بحسب خصائصها",
+      "SCI.4.4.02.009 يستنتج أن كلا من الأحماض والقواعد تؤثر في الكواشف لتنتج تغيرات في ألوانها",
+      "SCI.4.4.02.007 يخطط وينفذ استقصاء عمليا ليصنف بعض المواد إلى حمضية أو قاعدية أو متعادلة مثل استخدام كواشف الحمض والقاعدة أو شرائط اختبار درجة الحموضة لتصنيف المواد المنزلية الشائعة",
+      "SCI.4.4.02.008 يستخدم مقياس درجة الحموضة لتصنيف المحاليل إلى محاليل حمضية أو قاعدية أو متعادلة"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1L1",
+      "unit": "الوحدة 1: أساليب العلوم",
+      "module": "الوحدة 1: أساليب العلوم",
+      "lesson": "الدرس 1: دراسة حالة",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.016",
+        "text": "يجمع بيانات ومعلومات من أكثر من مصدر ليصمم استقصاء موجها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U1L2",
+      "unit": "الوحدة 1: أساليب العلوم",
+      "module": "الوحدة 1: أساليب العلوم",
+      "lesson": "الدرس 2: ساروق الحديد",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.018",
+        "text": "يصمم وينفذ استقصاءات موجهة لتنفيذ تجربة لدراسة تأثير متغير محدد مستخدما المنهج العلمي",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.1.1.02.009",
+        "text": "يحلل بياناته ليكتشف العلاقات بين المتغيرات ويفسرها",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "module": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "lesson": "الدرس 1: أدوات التكنولوجيا",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.007",
+        "text": "يستنتج أنه حين تتوافر التكنولوجيا الجديدة، يمكن أن تغير طرائق حياة الناس وكيفية تفاعلهم معا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "module": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "lesson": "الدرس 2: المواد وخواصها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.007",
+        "text": "يستنتج أنه حين تتوافر التكنولوجيا الجديدة، يمكن أن تغير طرائق حياة الناس وكيفية تفاعلهم معا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L3",
+      "unit": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "module": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "lesson": "الدرس 3: عملية التصميم",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.2.02.008",
+        "text": "يتعرف عملية التصميم الهندسي وإجراءاتها التي يستخدمها المهندسون لتلبية حاجة اجتماعية ويختبر آلة بسيطة ويحسنها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L4",
+      "unit": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "module": "الوحدة 2: التكنولوجيا وعملية التصميم",
+      "lesson": "الدرس 4: الأنظمة التكنولوجية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.2.01.008",
+        "text": "يبين أثر التطور التكنولوجي على تغير رغبات وحاجات الناس مع الزمن",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "الوحدة 3: المادة والذرات",
+      "module": "الوحدة 3: المادة والذرات",
+      "lesson": "الدرس 1: المواد الكيميائية والمخاليط",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.052",
+        "text": "يستنتج أن جميع المواد مكونة من أنواع مختلفة من الذرات، التي تتحد مع بعضها بعضا بطرائق مختلفة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.041",
+        "text": "يبني نموذجا (رسومات، كرة ثلاثية الأبعاد والعيدان، نماذج الكرة والعيدان، عروض على الحاسوب) يظهر من خلاله جزيئات مختلفة تتكون من أنواع مختلفة من الذرات، ليعرض التركيب الذري لمجموعات كبيرة من الجزيئات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.064",
+        "text": "يميز بين المخاليط المتجانسة أي المحاليل والمخاليط غير المتجانسة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.065",
+        "text": "يميز بين المواد النقية مثل الماء المقطر وملح الطعام وشريط نحاسي، وبين المخاليط مثل سلطة الخضار والكعك برقائق الشوكولاتة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U3L2",
+      "unit": "الوحدة 3: المادة والذرات",
+      "module": "الوحدة 3: المادة والذرات",
+      "lesson": "الدرس 2: بنية الذرة",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.034",
+        "text": "يتعرف تركيب الذرة: نواة، إلكترونات، بروتونات، نيوترونات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L1",
+      "unit": "الوحدة 4: المادة: الخواص والتغيّرات",
+      "module": "الوحدة 4: المادة: الخواص والتغيّرات",
+      "lesson": "الدرس 1: المادة وخواصها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.042",
+        "text": "يبني ويطور نماذج لجزيئات كل من المواد الصلبة والسائلة والغازية ليبين بأن إضافة أو إزالة الطاقة الحرارية تؤدي إلى زيادة أو نقصان الطاقة الحركية للجسيمات إلى أن يحدث تغير في حالة المادة",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.045",
+        "text": "يجري التجارب أو يصمم برمجيات محاكاة لتحديد آثار التسخين والتبريد على حجم المواد الصلبة والسائلة والغازية",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.051",
+        "text": "يستنتج أن الكثافة خاصية فيزيائية مميزة للمادة، ويصف علاقتها مع الكتلة والحجم",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.054",
+        "text": "يشرح الفرق بين السوائل والغازات من حيث الانضغاطية وكيف تؤثر انضغاطيتها على استخدامها",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.063",
+        "text": "يقارن بين الحالات الثلاث للمادة من حيث القوى بين الجسيمات والمسافات بينها وحرية حركتها",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U4L2",
+      "unit": "الوحدة 4: المادة: الخواص والتغيّرات",
+      "module": "الوحدة 4: المادة: الخواص والتغيّرات",
+      "lesson": "الدرس 2: المادة وتغيراتها",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.050",
+        "text": "يستنتج أن الكتلة تبقى ثابتة أثناء التغيرات الفيزيائية، مثل تغير الحالة وذوبان المواد الصلبة والتمدد الحراري",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.017",
+        "text": "يشرح أدلة حدوث التفاعل الكيميائي مثل تغير اللون وانبعاث غاز وتكون راسب وانبعاث حرارة وضوء، موظفا بعض برمجيات المحاكاة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.021",
+        "text": "يقارن بين التغيرات الكيميائية والتغيرات الفيزيائية من حيث تحول أو تفاعل مادة نقية واحدة أو أكثر (المواد المتفاعلة) إلى مواد نقية مختلفة (المواد الناتجة)",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L1",
+      "unit": "الوحدة 5: الذائبية والمحاليل الحمضية والقاعدية",
+      "module": "الوحدة 5: الذائبية والمحاليل الحمضية والقاعدية",
+      "lesson": "الدرس 1: خواص المحاليل",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.044",
+        "text": "يتعرف مفهوم الذوبان كعملية يتم من خلالها توزع أو انتشار جسيمات المذاب في المذيب ويفسر سبب اعتبار الماء مذيبا واسع الانتشار",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.046",
+        "text": "يجري التجارب ليستقصي العوامل (درجة الحرارة ونوع المذاب أو المذيب وحجم الجسيمات والتحريك) التي تؤثر في قابلية وسرعة ذوبان المادة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.059",
+        "text": "يصف الفرق بين المحاليل المشبعة وغير المشبعة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.061",
+        "text": "يصف تركيز المحلول من حيث النوعية (مخفف ومركز) ومن حيث الكمية (مثال: خمسة جرامات من الملح في ألف مللتر من الماء)",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U5L2",
+      "unit": "الوحدة 5: الذائبية والمحاليل الحمضية والقاعدية",
+      "module": "الوحدة 5: الذائبية والمحاليل الحمضية والقاعدية",
+      "lesson": "الدرس 2: المحاليل الحمضية والقاعدية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.02.010",
+        "text": "يصنف المواد التي يستخدمها في حياته اليومية إلى أحماض أو قواعد بحسب خصائصها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.009",
+        "text": "يستنتج أن كلا من الأحماض والقواعد تؤثر في الكواشف لتنتج تغيرات في ألوانها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.007",
+        "text": "يخطط وينفذ استقصاء عمليا ليصنف بعض المواد إلى حمضية أو قاعدية أو متعادلة مثل استخدام كواشف الحمض والقاعدة أو شرائط اختبار درجة الحموضة لتصنيف المواد المنزلية الشائعة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.008",
+        "text": "يستخدم مقياس درجة الحموضة لتصنيف المحاليل إلى محاليل حمضية أو قاعدية أو متعادلة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE CCG الصف السادس العلوم العامة — مصفوفة المدى والتتابع، الفصل الأول (عربي)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
-   "Science": {
-    "strands": {
-     "Life Science": [
-      "Exploring Life and Classifying Living Things — characteristics of life; classifying living things; exploring life."
-     ],
-     "Physical Science": [
-      "Energy, Work and Simple Machines — forms of energy; energy transformations and work; machines."
-     ],
-     "Earth & Space Science": [
-      "Our Planet Earth — Earth's systems; interactions of Earth's systems."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "الطاقة والشغل والآلات البسيطة",
-      "module": "الطاقة والشغل والآلات البسيطة",
-      "lesson": "أشكال الطاقة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الطاقة والشغل والآلات البسيطة",
-      "module": "الطاقة والشغل والآلات البسيطة",
-      "lesson": "تحولات الطاقة والشغل",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الطاقة والشغل والآلات البسيطة",
-      "module": "الطاقة والشغل والآلات البسيطة",
-      "lesson": "الآلات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "lesson": "خصائص الحياة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "lesson": "تصنيف الكائنات الحية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
-      "lesson": "استكشاف الحياة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "كوكبنا الأرض",
-      "module": "كوكبنا الأرض",
-      "lesson": "أنظمة كوكب الأرض",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "كوكبنا الأرض",
-      "module": "كوكبنا الأرض",
-      "lesson": "تفاعلات أنظمة كوكب الأرض",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "Maths": {
     "strands": {
      "الوحدة 5 الأعداد الصحيحة والمستوى الإحداثي (Integers and the Coordinate Plane)": [
@@ -15927,132 +16601,85 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Life Science": [
-      "Cell Structure and Function — cells and life; the cell; cell transport; cells and energy."
+      "Exploring Life and Classifying Living Things — characteristics of life; classifying living things; exploring life."
+     ],
+     "Physical Science": [
+      "Energy, Work and Simple Machines — forms of energy; energy transformations and work; machines."
      ],
      "Earth & Space Science": [
-      "Earth in Space — the Sun-Earth-Moon system; the solar system; stars, galaxies and the universe.",
-      "Natural Resources — energy resources; renewable energy resources; land resources; air and water resources.",
-      "Environmental Impacts — humans and the environment; impacts on land; impacts on water; impacts on the atmosphere."
+      "Our Planet Earth — Earth's systems; interactions of Earth's systems."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "بنية الخلية ووظيفتها",
-      "module": "بنية الخلية ووظيفتها",
-      "lesson": "الخلايا و الحياة",
+      "unit": "الطاقة والشغل والآلات البسيطة",
+      "module": "الطاقة والشغل والآلات البسيطة",
+      "lesson": "أشكال الطاقة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "بنية الخلية ووظيفتها",
-      "module": "بنية الخلية ووظيفتها",
-      "lesson": "الخلية",
+      "unit": "الطاقة والشغل والآلات البسيطة",
+      "module": "الطاقة والشغل والآلات البسيطة",
+      "lesson": "تحولات الطاقة والشغل",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "بنية الخلية ووظيفتها",
-      "module": "بنية الخلية ووظيفتها",
-      "lesson": "انتقال مواد الخلية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "بنية الخلية ووظيفتها",
-      "module": "بنية الخلية ووظيفتها",
-      "lesson": "الخلايا والطاقة",
+      "unit": "الطاقة والشغل والآلات البسيطة",
+      "module": "الطاقة والشغل والآلات البسيطة",
+      "lesson": "الآلات",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "الأرض في الفضاء",
-      "module": "الأرض في الفضاء",
-      "lesson": "نظام الشمس والأرض والقمر",
+      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "lesson": "خصائص الحياة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "الأرض في الفضاء",
-      "module": "الأرض في الفضاء",
-      "lesson": "النظام الشمسي",
+      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "lesson": "تصنيف الكائنات الحية",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "الأرض في الفضاء",
-      "module": "الأرض في الفضاء",
-      "lesson": "النجوم والمجرات والكون",
+      "unit": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "module": "استكشاف الحياة وتصنيف الكائنات الحية",
+      "lesson": "استكشاف الحياة",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "الموارد الطبيعية",
-      "module": "الموارد الطبيعية",
-      "lesson": "موارد الطاقة",
+      "unit": "كوكبنا الأرض",
+      "module": "كوكبنا الأرض",
+      "lesson": "أنظمة كوكب الأرض",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "الموارد الطبيعية",
-      "module": "الموارد الطبيعية",
-      "lesson": "موارد الطاقة المتجددة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الموارد الطبيعية",
-      "module": "الموارد الطبيعية",
-      "lesson": "الموارد الأرضية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "الموارد الطبيعية",
-      "module": "الموارد الطبيعية",
-      "lesson": "موارد الهواء والمياه",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التأثيرات البيئية",
-      "module": "التأثيرات البيئية",
-      "lesson": "الإنسان والبيئة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التأثيرات البيئية",
-      "module": "التأثيرات البيئية",
-      "lesson": "التأثيرات في اليابسة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التأثيرات البيئية",
-      "module": "التأثيرات البيئية",
-      "lesson": "التأثيرات في المياه",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "التأثيرات البيئية",
-      "module": "التأثيرات البيئية",
-      "lesson": "التأثيرات في الغلاف الجوي",
+      "unit": "كوكبنا الأرض",
+      "module": "كوكبنا الأرض",
+      "lesson": "تفاعلات أنظمة كوكب الأرض",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "الوحدة 9 المساحة (Area)": [
@@ -16925,135 +17552,135 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "Life Science": [
+      "Cell Structure and Function — cells and life; the cell; cell transport; cells and energy."
+     ],
+     "Earth & Space Science": [
+      "Earth in Space — the Sun-Earth-Moon system; the solar system; stars, galaxies and the universe.",
+      "Natural Resources — energy resources; renewable energy resources; land resources; air and water resources.",
+      "Environmental Impacts — humans and the environment; impacts on land; impacts on water; impacts on the atmosphere."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 1",
+      "unit": "بنية الخلية ووظيفتها",
+      "module": "بنية الخلية ووظيفتها",
+      "lesson": "الخلايا و الحياة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "بنية الخلية ووظيفتها",
+      "module": "بنية الخلية ووظيفتها",
+      "lesson": "الخلية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "بنية الخلية ووظيفتها",
+      "module": "بنية الخلية ووظيفتها",
+      "lesson": "انتقال مواد الخلية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "بنية الخلية ووظيفتها",
+      "module": "بنية الخلية ووظيفتها",
+      "lesson": "الخلايا والطاقة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الأرض في الفضاء",
+      "module": "الأرض في الفضاء",
+      "lesson": "نظام الشمس والأرض والقمر",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الأرض في الفضاء",
+      "module": "الأرض في الفضاء",
+      "lesson": "النظام الشمسي",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الأرض في الفضاء",
+      "module": "الأرض في الفضاء",
+      "lesson": "النجوم والمجرات والكون",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الموارد الطبيعية",
+      "module": "الموارد الطبيعية",
+      "lesson": "موارد الطاقة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الموارد الطبيعية",
+      "module": "الموارد الطبيعية",
+      "lesson": "موارد الطاقة المتجددة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الموارد الطبيعية",
+      "module": "الموارد الطبيعية",
+      "lesson": "الموارد الأرضية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "الموارد الطبيعية",
+      "module": "الموارد الطبيعية",
+      "lesson": "موارد الهواء والمياه",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "التأثيرات البيئية",
+      "module": "التأثيرات البيئية",
+      "lesson": "الإنسان والبيئة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "التأثيرات البيئية",
+      "module": "التأثيرات البيئية",
+      "lesson": "التأثيرات في اليابسة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "التأثيرات البيئية",
+      "module": "التأثيرات البيئية",
+      "lesson": "التأثيرات في المياه",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "التأثيرات البيئية",
+      "module": "التأثيرات البيئية",
+      "lesson": "التأثيرات في الغلاف الجوي",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
  "7": {
   "1": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Foundations of Chemistry — classifying matter; physical properties; physical changes; chemical properties and changes.",
-      "Understanding the Atom — discovering the parts of the atom; protons, neutrons and electrons — how atoms differ.",
-      "The Periodic Table — using the periodic table; metals; nonmetals and metalloids.",
-      "Motion, Forces and Newton's Laws — describing motion; forces; Newton's laws of motion."
-     ],
-     "Scientific Inquiry & Technology": [
-      "Scientific Explanations — understanding science; measurement and scientific tools; case study."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "التفسيرات العلمية",
-      "module": "التفسيرات العلمية",
-      "lesson": "فهم العلم",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "التفسيرات العلمية",
-      "module": "التفسيرات العلمية",
-      "lesson": "القياس والأدوات العلمية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التفسيرات العلمية",
-      "module": "التفسيرات العلمية",
-      "lesson": "دراسة حالة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "أسس الكيمياء",
-      "module": "أسس الكيمياء",
-      "lesson": "تصنيف المادة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "أسس الكيمياء",
-      "module": "أسس الكيمياء",
-      "lesson": "الخواص الفيزيائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "أسس الكيمياء",
-      "module": "أسس الكيمياء",
-      "lesson": "التغيرات الفيزيائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "أسس الكيمياء",
-      "module": "أسس الكيمياء",
-      "lesson": "الخواص والتغيّرات الكيميائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "فهم الذرة",
-      "module": "فهم الذرة",
-      "lesson": "اكتشاف أجزاء الذرة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "فهم الذرة",
-      "module": "فهم الذرة",
-      "lesson": "البروتونات والنيوترونات والإلكترونات- كيف تختلف الذرّات؟",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "استخدام الجدول الدوري",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "الفلزات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "اللافلزات وأشباه الفلزات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الحركة والقوى وقوانين نيوتن",
-      "module": "الحركة والقوى وقوانين نيوتن",
-      "lesson": "وصف الحركة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الحركة والقوى وقوانين نيوتن",
-      "module": "الحركة والقوى وقوانين نيوتن",
-      "lesson": "القوى",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الحركة والقوى وقوانين نيوتن",
-      "module": "الحركة والقوى وقوانين نيوتن",
-      "lesson": "قوانين نيوتن للحركة",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy Lessons": [
@@ -19503,89 +20130,134 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Science": {
     "strands": {
-     "Life Science": [
-      "Introduction to Animals — what are animals?; invertebrates; chordates.",
-      "Animal Behavior and Reproduction — types of behavior; interacting with other animals; animal reproduction and development."
-     ],
      "Physical Science": [
-      "Waves, Light and Sound — waves; light; sound."
+      "Foundations of Chemistry — classifying matter; physical properties; physical changes; chemical properties and changes.",
+      "Understanding the Atom — discovering the parts of the atom; protons, neutrons and electrons — how atoms differ.",
+      "The Periodic Table — using the periodic table; metals; nonmetals and metalloids.",
+      "Motion, Forces and Newton's Laws — describing motion; forces; Newton's laws of motion."
+     ],
+     "Scientific Inquiry & Technology": [
+      "Scientific Explanations — understanding science; measurement and scientific tools; case study."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "الموجات والضوء والصوت",
-      "module": "الموجات والضوء والصوت",
-      "lesson": "الموجات",
+      "unit": "التفسيرات العلمية",
+      "module": "التفسيرات العلمية",
+      "lesson": "فهم العلم",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "الموجات والضوء والصوت",
-      "module": "الموجات والضوء والصوت",
-      "lesson": "الضوء",
+      "unit": "التفسيرات العلمية",
+      "module": "التفسيرات العلمية",
+      "lesson": "القياس والأدوات العلمية",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "الموجات والضوء والصوت",
-      "module": "الموجات والضوء والصوت",
-      "lesson": "الصوت",
+      "unit": "التفسيرات العلمية",
+      "module": "التفسيرات العلمية",
+      "lesson": "دراسة حالة",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "مقدمة عن الحيوانات",
-      "module": "مقدمة عن الحيوانات",
-      "lesson": "ما الحيوانات ؟",
+      "unit": "أسس الكيمياء",
+      "module": "أسس الكيمياء",
+      "lesson": "تصنيف المادة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "مقدمة عن الحيوانات",
-      "module": "مقدمة عن الحيوانات",
-      "lesson": "اللافقاريات",
+      "unit": "أسس الكيمياء",
+      "module": "أسس الكيمياء",
+      "lesson": "الخواص الفيزيائية",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "مقدمة عن الحيوانات",
-      "module": "مقدمة عن الحيوانات",
-      "lesson": "الحبليات",
+      "unit": "أسس الكيمياء",
+      "module": "أسس الكيمياء",
+      "lesson": "التغيرات الفيزيائية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "أسس الكيمياء",
+      "module": "أسس الكيمياء",
+      "lesson": "الخواص والتغيّرات الكيميائية",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "سلوكيات الحيوانات وتكاثرها",
-      "module": "سلوكيات الحيوانات وتكاثرها",
-      "lesson": "أنواع السلوكيات",
+      "unit": "فهم الذرة",
+      "module": "فهم الذرة",
+      "lesson": "اكتشاف أجزاء الذرة",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "سلوكيات الحيوانات وتكاثرها",
-      "module": "سلوكيات الحيوانات وتكاثرها",
-      "lesson": "التفاعل مع الحيوانات الأخرى",
+      "unit": "فهم الذرة",
+      "module": "فهم الذرة",
+      "lesson": "البروتونات والنيوترونات والإلكترونات- كيف تختلف الذرّات؟",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الجدول الدوري",
+      "module": "الجدول الدوري",
+      "lesson": "استخدام الجدول الدوري",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الجدول الدوري",
+      "module": "الجدول الدوري",
+      "lesson": "الفلزات",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "سلوكيات الحيوانات وتكاثرها",
-      "module": "سلوكيات الحيوانات وتكاثرها",
-      "lesson": "تكاثر الحيوانات وتطورها",
+      "unit": "الجدول الدوري",
+      "module": "الجدول الدوري",
+      "lesson": "اللافلزات وأشباه الفلزات",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الحركة والقوى وقوانين نيوتن",
+      "module": "الحركة والقوى وقوانين نيوتن",
+      "lesson": "وصف الحركة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الحركة والقوى وقوانين نيوتن",
+      "module": "الحركة والقوى وقوانين نيوتن",
+      "lesson": "القوى",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الحركة والقوى وقوانين نيوتن",
+      "module": "الحركة والقوى وقوانين نيوتن",
+      "lesson": "قوانين نيوتن للحركة",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "2": {
    "Maths": {
     "strands": {
      "C5 التعابير (Expressions)": [
@@ -20398,140 +21070,90 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Life Science": [
-      "Introduction to Plants — plant diversity; plant reproduction; plant processes; plant responses."
+      "Introduction to Animals — what are animals?; invertebrates; chordates.",
+      "Animal Behavior and Reproduction — types of behavior; interacting with other animals; animal reproduction and development."
      ],
-     "Earth & Space Science": [
-      "Exploring Space — observing the universe; early history of space exploration; current and future space missions.",
-      "Earth's Changing Surface — plate tectonics; earthquakes and volcanoes; weathering, erosion and deposition.",
-      "Weather and Its Effects — the atmosphere; weather; severe weather.",
-      "Climate — Earth's climate; climate cycles; recent climate change."
+     "Physical Science": [
+      "Waves, Light and Sound — waves; light; sound."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "مقدمة عن النباتات",
-      "module": "مقدمة عن النباتات",
-      "lesson": "التنوُّع النباتي",
+      "unit": "الموجات والضوء والصوت",
+      "module": "الموجات والضوء والصوت",
+      "lesson": "الموجات",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "مقدمة عن النباتات",
-      "module": "مقدمة عن النباتات",
-      "lesson": "تكاثر النبات",
+      "unit": "الموجات والضوء والصوت",
+      "module": "الموجات والضوء والصوت",
+      "lesson": "الضوء",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "مقدمة عن النباتات",
-      "module": "مقدمة عن النباتات",
-      "lesson": "العمليات النباتية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 4",
-      "unit": "مقدمة عن النباتات",
-      "module": "مقدمة عن النباتات",
-      "lesson": "استجابات النباتات",
+      "unit": "الموجات والضوء والصوت",
+      "module": "الموجات والضوء والصوت",
+      "lesson": "الصوت",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "استكشاف الفضاء",
-      "module": "استكشاف الفضاء",
-      "lesson": "ملاحظة الكون",
+      "unit": "مقدمة عن الحيوانات",
+      "module": "مقدمة عن الحيوانات",
+      "lesson": "ما الحيوانات ؟",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "استكشاف الفضاء",
-      "module": "استكشاف الفضاء",
-      "lesson": "بدايات تاريخ استكشاف الفضاء",
+      "unit": "مقدمة عن الحيوانات",
+      "module": "مقدمة عن الحيوانات",
+      "lesson": "اللافقاريات",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "استكشاف الفضاء",
-      "module": "استكشاف الفضاء",
-      "lesson": "البعثات الفضائية الحالية والمستقبلية",
+      "unit": "مقدمة عن الحيوانات",
+      "module": "مقدمة عن الحيوانات",
+      "lesson": "الحبليات",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "سطح الأرض المتغير",
-      "module": "سطح الأرض المتغير",
-      "lesson": "الصفائح التكتونية",
+      "unit": "سلوكيات الحيوانات وتكاثرها",
+      "module": "سلوكيات الحيوانات وتكاثرها",
+      "lesson": "أنواع السلوكيات",
       "type": "core"
      },
      {
       "code": "الدرس 2",
-      "unit": "سطح الأرض المتغير",
-      "module": "سطح الأرض المتغير",
-      "lesson": "الزلازل والبراكين",
+      "unit": "سلوكيات الحيوانات وتكاثرها",
+      "module": "سلوكيات الحيوانات وتكاثرها",
+      "lesson": "التفاعل مع الحيوانات الأخرى",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "سطح الأرض المتغير",
-      "module": "سطح الأرض المتغير",
-      "lesson": "التجوية والتعرية والترسيب",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الطقس وتأثيراته",
-      "module": "الطقس وتأثيراته",
-      "lesson": "الغلاف الجوي",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "الطقس وتأثيراته",
-      "module": "الطقس وتأثيراته",
-      "lesson": "الطقس",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الطقس وتأثيراته",
-      "module": "الطقس وتأثيراته",
-      "lesson": "الطقس القاسي",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "المناخ",
-      "module": "المناخ",
-      "lesson": "مناخ الأرض",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 2",
-      "unit": "المناخ",
-      "module": "المناخ",
-      "lesson": "دورات المناخ",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "المناخ",
-      "module": "المناخ",
-      "lesson": "التغيرات الراهنة في المناخ",
+      "unit": "سلوكيات الحيوانات وتكاثرها",
+      "module": "سلوكيات الحيوانات وتكاثرها",
+      "lesson": "تكاثر الحيوانات وتطورها",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "C8 قياس الدائرة (Measure Circle)": [
@@ -21372,111 +21994,143 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "Life Science": [
+      "Introduction to Plants — plant diversity; plant reproduction; plant processes; plant responses."
+     ],
+     "Earth & Space Science": [
+      "Exploring Space — observing the universe; early history of space exploration; current and future space missions.",
+      "Earth's Changing Surface — plate tectonics; earthquakes and volcanoes; weathering, erosion and deposition.",
+      "Weather and Its Effects — the atmosphere; weather; severe weather.",
+      "Climate — Earth's climate; climate cycles; recent climate change."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 1",
+      "unit": "مقدمة عن النباتات",
+      "module": "مقدمة عن النباتات",
+      "lesson": "التنوُّع النباتي",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "مقدمة عن النباتات",
+      "module": "مقدمة عن النباتات",
+      "lesson": "تكاثر النبات",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "مقدمة عن النباتات",
+      "module": "مقدمة عن النباتات",
+      "lesson": "العمليات النباتية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "مقدمة عن النباتات",
+      "module": "مقدمة عن النباتات",
+      "lesson": "استجابات النباتات",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "استكشاف الفضاء",
+      "module": "استكشاف الفضاء",
+      "lesson": "ملاحظة الكون",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "استكشاف الفضاء",
+      "module": "استكشاف الفضاء",
+      "lesson": "بدايات تاريخ استكشاف الفضاء",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "استكشاف الفضاء",
+      "module": "استكشاف الفضاء",
+      "lesson": "البعثات الفضائية الحالية والمستقبلية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "سطح الأرض المتغير",
+      "module": "سطح الأرض المتغير",
+      "lesson": "الصفائح التكتونية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "سطح الأرض المتغير",
+      "module": "سطح الأرض المتغير",
+      "lesson": "الزلازل والبراكين",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "سطح الأرض المتغير",
+      "module": "سطح الأرض المتغير",
+      "lesson": "التجوية والتعرية والترسيب",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الطقس وتأثيراته",
+      "module": "الطقس وتأثيراته",
+      "lesson": "الغلاف الجوي",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "الطقس وتأثيراته",
+      "module": "الطقس وتأثيراته",
+      "lesson": "الطقس",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "الطقس وتأثيراته",
+      "module": "الطقس وتأثيراته",
+      "lesson": "الطقس القاسي",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "المناخ",
+      "module": "المناخ",
+      "lesson": "مناخ الأرض",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 2",
+      "unit": "المناخ",
+      "module": "المناخ",
+      "lesson": "دورات المناخ",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "المناخ",
+      "module": "المناخ",
+      "lesson": "التغيرات الراهنة في المناخ",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
  "8": {
   "1": {
-   "Science": {
-    "strands": {
-     "Physical Science": [
-      "Thermal Energy — thermal energy, temperature and heat; transfer of thermal energy; using thermal energy.",
-      "Elements and Chemical Bonds — electrons and energy levels; compounds, chemical formulas and covalent bonds; ionic and metallic bonds.",
-      "Chemical Reactions and Equations — understanding chemical reactions; types of chemical reactions; chemical reactions and energy changes.",
-      "Electricity and Magnetism — electric charges and forces; electric current and circuits; magnetism."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "الطاقة الحرارية",
-      "module": "الطاقة الحرارية",
-      "lesson": "الطاقة الحرارية ودرجة الحرارة والحرارة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "الطاقة الحرارية",
-      "module": "الطاقة الحرارية",
-      "lesson": "انتقال الطاقة الحرارية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الطاقة الحرارية",
-      "module": "الطاقة الحرارية",
-      "lesson": "استخدام الطاقة الحرارية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "العناصر والروابط الكيميائية",
-      "module": "العناصر والروابط الكيميائية",
-      "lesson": "الالكترونات و مستويات الطاقة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "العناصر والروابط الكيميائية",
-      "module": "العناصر والروابط الكيميائية",
-      "lesson": "المركبات والصيغ الكيميائية والروابط التساهمية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "العناصر والروابط الكيميائية",
-      "module": "العناصر والروابط الكيميائية",
-      "lesson": "الروابط الأيونية والفلزية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "module": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "lesson": "فهم التفاعلات الكيميائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "module": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "lesson": "أنواع التفاعلات الكيميائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "module": "التفاعلات الكيميائية والمعادلات الكيميائية",
-      "lesson": "التفاعلات الكيميائية والتغيّرات في الطاقة",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الكهرباء والمغناطيسية",
-      "module": "الكهرباء والمغناطيسية",
-      "lesson": "الشحنات الكهربائية والقوى الكهربائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "الكهرباء والمغناطيسية",
-      "module": "الكهرباء والمغناطيسية",
-      "lesson": "التيار الكهربائي والدوائر الكهربائية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الكهرباء والمغناطيسية",
-      "module": "الكهرباء والمغناطيسية",
-      "lesson": "المغناطيسية",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy Lessons": [
@@ -23495,82 +24149,378 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 13: المناخ": [
+      "SCI.2.3.01.012 يقارن المناخات الموسمية من حيث خطوط الطول والعرض والجغرافيا",
+      "SCI.2.3.01.009 يستنتج أن التأثيرات المتبادلة التي تتضمن أشعة الشمس والغلاف الجوي والجليد والتضاريس والكائنات الحية والتنوع من حيث خطوط الطول والعرض والجغرافيا المحلية والإقليمية، تؤثر في الطقس والمناخ من خلال تأثيراتها على أنماط التدفق في الغلاف المائي والغلاف الجوي",
+      "SCI.2.1.04.003 يستنتج أن الأنشطة البشرية هي العوامل الأهم في التسبب في الارتفاع الحالي لمتوسط حرارة الأرض",
+      "SCI.2.1.04.005 يطرح الأسئلة ليوضح ارتباط الأدلة على الأنشطة البشرية التي تسببت بارتفاع درجات حرارة العالم في القرن الماضي",
+      "SCI.2.1.04.004 يشرح أهمية علم المناخ والسلوك البشري للحد من تعرض الإنسان للتغيرات المناخية الحاصلة"
+     ],
+     "الوحدة 1: الطاقة الحرارية": [
+      "SCI.4.2.04.006 يستنتج أن المصطلح العلمي \"تسخين\" يدل على انتقال الطاقة عندما يتلامس جسمان أو نظامان مختلفان في درجة الحرارة",
+      "SCI.4.2.04.005 يستقصي أنواع مقاييس درجة الحرارة المختلفة (السيليزي، الفهرنهايتي) ويحول درجة الحرارة من تدريج إلى آخر",
+      "SCI.4.2.04.004 يخطط وينفذ استقصاء ليقدم الأدلة التي يحصل عليها من التجريب العملي على أن كمية الطاقة اللازمة لتغيير درجة حرارة عينة من مادة ما بمقدار معين تعتمد على طبيعة نوع المادة وكتلتها والبيئة المحيطة بالعينة",
+      "SCI.4.2.04.007 يصف كيف تنتقل الحرارة بالتوصيل، وبالحمل، وبالإشعاع",
+      "SCI.4.2.04.002 يبين أهمية الماء في الحد من التغيرات الكبيرة في درجات الحرارة",
+      "SCI.4.2.02.011 يفسر كيف أن الطاقة التي تبدو وكأن نظاما ما قد خسرها قد تحولت إلى أشكال أخرى من الطاقة، وعادة ما تكون حرارة أو صوتا، غير مفيدة بالنسبة للنظام",
+      "SCI.4.2.01.016 يستقصي التحولات المألوفة في الطاقة"
+     ],
+     "الوحدة 2: العناصر والروابط الكيميائية": [
+      "SCI.4.4.01.047 يستخدم الجدول الدوري كنموذج للتنبؤ بالخصائص الدورية (مثل نشاطية الفلزات والتفاعلات مع الأكسجين) للعناصر بناء على أنماط الإلكترونات في المستويات الخارجية",
+      "SCI.4.4.01.081 يصف كيف تعكس دورية الخصائص في الجدول الدوري أنماط حالات المستوى الخارجي للإلكترونات أو إلكترونات التكافؤ",
+      "SCI.4.4.01.043 يتعرف ماهية الرابطة الكيميائية التي تتكون نتيجة للقوى بين الذرات في مركب ما وأن لإلكترونات الذرة دورا أساسيا في هذه الرابطة",
+      "SCI.4.4.01.079 يتنبأ بطبيعة الرابطة (تساهمية غير قطبية، تساهمية قطبية، أيونية، فلزية)",
+      "SCI.4.4.01.082 يصمم وسيلة أو تقنية مثل نماذج وبرمجية محاكاة، ليوضح كيف تتكون الرابطة التساهمية والرابطة الفلزية مع إعطاء الأمثلة على كل منهما",
+      "SCI.4.1.02.035 يشرح كيف يمكن الحصول على أيون موجب أو أيون سالب",
+      "SCI.4.4.01.062 يصمم وسيلة أو تقنية مثل نماذج أو برمجية محاكاة، ليشرح كيف تتكون الرابطة الأيونية ويعطي أمثلة عليها"
+     ],
+     "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية": [
+      "SCI.4.4.02.012 يحدد المواد الناتجة والمواد المتفاعلة في معادلة مكتوبة بالكلمات أو بالرموز ويتعرف قانون حفظ المادة",
+      "SCI.4.4.02.013 يحلل ويفسر البيانات المتعلقة بخصائص المواد قبل التفاعل وبعده ليحدد فيما إذا كان قد حدث تفاعل كيميائي أم لا",
+      "SCI.4.4.02.017 يشرح أدلة حدوث التفاعل الكيميائي مثل تغير اللون وانبعاث غاز وتكون راسب وانبعاث حرارة وضوء، موظفا بعض برمجيات المحاكاة",
+      "SCI.4.4.02.019 يصف أنه خلال التفاعلات الكيميائية يعاد ترتيب الذرات التي تتكون منها المواد المتفاعلة ضمن جزيئات مختلفة، وأن المواد الجديدة المتكونة لها خصائص مختلفة عن خصائص المتفاعلات",
+      "SCI.4.4.02.016 يستنتج أن المواد تتفاعل كيميائيا بطرائق متمايزة",
+      "SCI.4.4.02.020 يصنف التفاعلات الكيميائية المعروفة مثل الاحتراق والتعادل إلى تفاعلات ماصة للحرارة وطاردة للحرارة",
+      "SCI.4.4.02.011 يبني جهازا ليضم أو ليحدث فيه تفاعلا كيميائيا يمتص طاقة حرارية أو يطلقها ويتحكم بانتقال الطاقة من البيئة أو إليها ويتحقق من كفاءته"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U13L1",
+      "unit": "الوحدة 13: المناخ",
+      "module": "الوحدة 13: المناخ",
+      "lesson": "الدرس 1: مناخ الأرض",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.2.3.01.012",
+        "text": "يقارن المناخات الموسمية من حيث خطوط الطول والعرض والجغرافيا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.2.3.01.009",
+        "text": "يستنتج أن التأثيرات المتبادلة التي تتضمن أشعة الشمس والغلاف الجوي والجليد والتضاريس والكائنات الحية والتنوع من حيث خطوط الطول والعرض والجغرافيا المحلية والإقليمية، تؤثر في الطقس والمناخ من خلال تأثيراتها على أنماط التدفق في الغلاف المائي والغلاف الجوي",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U13L2",
+      "unit": "الوحدة 13: المناخ",
+      "module": "الوحدة 13: المناخ",
+      "lesson": "الدرس 2: دورات المناخ",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.2.3.01.009",
+        "text": "يستنتج أن التأثيرات المتبادلة التي تتضمن أشعة الشمس والغلاف الجوي والجليد والتضاريس والكائنات الحية والتنوع من حيث خطوط الطول والعرض والجغرافيا المحلية والإقليمية، تؤثر في الطقس والمناخ من خلال تأثيراتها على أنماط التدفق في الغلاف المائي والغلاف الجوي",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U13L3",
+      "unit": "الوحدة 13: المناخ",
+      "module": "الوحدة 13: المناخ",
+      "lesson": "الدرس 3: التغيرات الراهنة في المناخ",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.2.1.04.003",
+        "text": "يستنتج أن الأنشطة البشرية هي العوامل الأهم في التسبب في الارتفاع الحالي لمتوسط حرارة الأرض",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.2.1.04.005",
+        "text": "يطرح الأسئلة ليوضح ارتباط الأدلة على الأنشطة البشرية التي تسببت بارتفاع درجات حرارة العالم في القرن الماضي",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.2.1.04.004",
+        "text": "يشرح أهمية علم المناخ والسلوك البشري للحد من تعرض الإنسان للتغيرات المناخية الحاصلة",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L1",
+      "unit": "الوحدة 1: الطاقة الحرارية",
+      "module": "الوحدة 1: الطاقة الحرارية",
+      "lesson": "الدرس 1: الطاقة الحرارية ودرجة الحرارة والحرارة",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.2.04.006",
+        "text": "يستنتج أن المصطلح العلمي \"تسخين\" يدل على انتقال الطاقة عندما يتلامس جسمان أو نظامان مختلفان في درجة الحرارة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.2.04.005",
+        "text": "يستقصي أنواع مقاييس درجة الحرارة المختلفة (السيليزي، الفهرنهايتي) ويحول درجة الحرارة من تدريج إلى آخر",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L2",
+      "unit": "الوحدة 1: الطاقة الحرارية",
+      "module": "الوحدة 1: الطاقة الحرارية",
+      "lesson": "الدرس 2: انتقال الطاقة الحرارية",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.2.04.004",
+        "text": "يخطط وينفذ استقصاء ليقدم الأدلة التي يحصل عليها من التجريب العملي على أن كمية الطاقة اللازمة لتغيير درجة حرارة عينة من مادة ما بمقدار معين تعتمد على طبيعة نوع المادة وكتلتها والبيئة المحيطة بالعينة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.2.04.007",
+        "text": "يصف كيف تنتقل الحرارة بالتوصيل، وبالحمل، وبالإشعاع",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.2.04.002",
+        "text": "يبين أهمية الماء في الحد من التغيرات الكبيرة في درجات الحرارة",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U1L3",
+      "unit": "الوحدة 1: الطاقة الحرارية",
+      "module": "الوحدة 1: الطاقة الحرارية",
+      "lesson": "الدرس 3: استخدام الطاقة الحرارية",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "SCI.4.2.02.011",
+        "text": "يفسر كيف أن الطاقة التي تبدو وكأن نظاما ما قد خسرها قد تحولت إلى أشكال أخرى من الطاقة، وعادة ما تكون حرارة أو صوتا، غير مفيدة بالنسبة للنظام",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.2.01.016",
+        "text": "يستقصي التحولات المألوفة في الطاقة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "إثرائي — مظلل باللون الأحمر في مصفوفة المدى والتتابع (يُقيَّم بشكل خفيف)."
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 2: العناصر والروابط الكيميائية",
+      "module": "الوحدة 2: العناصر والروابط الكيميائية",
+      "lesson": "الدرس 1: الإلكترونات ومستويات الطاقة",
+      "weeks": "الأسبوع 4 و5",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.047",
+        "text": "يستخدم الجدول الدوري كنموذج للتنبؤ بالخصائص الدورية (مثل نشاطية الفلزات والتفاعلات مع الأكسجين) للعناصر بناء على أنماط الإلكترونات في المستويات الخارجية",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.081",
+        "text": "يصف كيف تعكس دورية الخصائص في الجدول الدوري أنماط حالات المستوى الخارجي للإلكترونات أو إلكترونات التكافؤ",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 2: العناصر والروابط الكيميائية",
+      "module": "الوحدة 2: العناصر والروابط الكيميائية",
+      "lesson": "الدرس 2: المركبات والصيغ الكيميائية والروابط التساهمية",
+      "weeks": "الأسبوع 5 و6",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.043",
+        "text": "يتعرف ماهية الرابطة الكيميائية التي تتكون نتيجة للقوى بين الذرات في مركب ما وأن لإلكترونات الذرة دورا أساسيا في هذه الرابطة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.079",
+        "text": "يتنبأ بطبيعة الرابطة (تساهمية غير قطبية، تساهمية قطبية، أيونية، فلزية)",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.082",
+        "text": "يصمم وسيلة أو تقنية مثل نماذج وبرمجية محاكاة، ليوضح كيف تتكون الرابطة التساهمية والرابطة الفلزية مع إعطاء الأمثلة على كل منهما",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U2L3",
+      "unit": "الوحدة 2: العناصر والروابط الكيميائية",
+      "module": "الوحدة 2: العناصر والروابط الكيميائية",
+      "lesson": "الدرس 3: الروابط الأيونية والفلزية",
+      "weeks": "الأسبوع 6 و7",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.1.02.035",
+        "text": "يشرح كيف يمكن الحصول على أيون موجب أو أيون سالب",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.043",
+        "text": "يتعرف ماهية الرابطة الكيميائية التي تتكون نتيجة للقوى بين الذرات في مركب ما وأن لإلكترونات الذرة دورا أساسيا في هذه الرابطة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.079",
+        "text": "يتنبأ بطبيعة الرابطة (تساهمية غير قطبية، تساهمية قطبية، أيونية، فلزية)",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.082",
+        "text": "يصمم وسيلة أو تقنية مثل نماذج وبرمجية محاكاة، ليوضح كيف تتكون الرابطة التساهمية والرابطة الفلزية مع إعطاء الأمثلة على كل منهما",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.01.062",
+        "text": "يصمم وسيلة أو تقنية مثل نماذج أو برمجية محاكاة، ليشرح كيف تتكون الرابطة الأيونية ويعطي أمثلة عليها",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L1",
+      "unit": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "module": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "lesson": "الدرس 1: فهم التفاعلات الكيميائية",
+      "weeks": "الأسبوع 7 و8",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.02.012",
+        "text": "يحدد المواد الناتجة والمواد المتفاعلة في معادلة مكتوبة بالكلمات أو بالرموز ويتعرف قانون حفظ المادة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.013",
+        "text": "يحلل ويفسر البيانات المتعلقة بخصائص المواد قبل التفاعل وبعده ليحدد فيما إذا كان قد حدث تفاعل كيميائي أم لا",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.017",
+        "text": "يشرح أدلة حدوث التفاعل الكيميائي مثل تغير اللون وانبعاث غاز وتكون راسب وانبعاث حرارة وضوء، موظفا بعض برمجيات المحاكاة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L2",
+      "unit": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "module": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "lesson": "الدرس 2: أنواع التفاعلات الكيميائية",
+      "weeks": "الأسبوع 8",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.02.019",
+        "text": "يصف أنه خلال التفاعلات الكيميائية يعاد ترتيب الذرات التي تتكون منها المواد المتفاعلة ضمن جزيئات مختلفة، وأن المواد الجديدة المتكونة لها خصائص مختلفة عن خصائص المتفاعلات",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.016",
+        "text": "يستنتج أن المواد تتفاعل كيميائيا بطرائق متمايزة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     },
+     {
+      "code": "U3L3",
+      "unit": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "module": "الوحدة 3: التفاعلات الكيميائية والمعادلات الكيميائية",
+      "lesson": "الدرس 3: التفاعلات الكيميائية والتغيّرات في الطاقة",
+      "weeks": "الأسبوع 9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.02.020",
+        "text": "يصنف التفاعلات الكيميائية المعروفة مثل الاحتراق والتعادل إلى تفاعلات ماصة للحرارة وطاردة للحرارة",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "SCI.4.4.02.011",
+        "text": "يبني جهازا ليضم أو ليحدث فيه تفاعلا كيميائيا يمتص طاقة حرارية أو يطلقها ويتحكم بانتقال الطاقة من البيئة أو إليها ويتحقق من كفاءته",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": []
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE CCG الصف الثامن العلوم العامة — مصفوفة المدى والتتابع، الفصل الأول (عربي)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
-   "Science": {
-    "strands": {
-     "Life Science": [
-      "Digestion and Excretion — nutrition; the digestive system; the excretory system.",
-      "Circulatory and Respiratory Systems — the circulatory system; the respiratory system."
-     ],
-     "Physical Science": [
-      "Mirrors and Lenses — mirrors; lenses; optical instruments."
-     ]
-    },
-    "source": "Masar (GitHub)",
-    "lang": "en",
-    "lessons": [
-     {
-      "code": "الدرس 1",
-      "unit": "المرايا والعدسات",
-      "module": "المرايا والعدسات",
-      "lesson": "المرايا",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "المرايا والعدسات",
-      "module": "المرايا والعدسات",
-      "lesson": "العدسات",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "المرايا والعدسات",
-      "module": "المرايا والعدسات",
-      "lesson": "الأدوات البصرية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الهضم والإخراج",
-      "module": "الهضم والإخراج",
-      "lesson": "التغذية",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "الهضم والإخراج",
-      "module": "الهضم والإخراج",
-      "lesson": "الجهاز الهضمي",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 3",
-      "unit": "الهضم والإخراج",
-      "module": "الهضم والإخراج",
-      "lesson": "الجهاز الإخراجي",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الجهاز الدوري والجهاز التنفسي",
-      "module": "الجهاز الدوري والجهاز التنفسي",
-      "lesson": "الجهاز الدوري",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "الجهاز الدوري والجهاز التنفسي",
-      "module": "الجهاز الدوري والجهاز التنفسي",
-      "lesson": "الجهاز التنفسي",
-      "type": "core"
-     }
-    ],
-    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
    "Maths": {
     "strands": {
      "C4 الدوال (Functions)": [
@@ -24092,104 +25042,83 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Science": {
     "strands": {
      "Life Science": [
-      "Heredity and Adaptations — heredity and inherited traits; adaptations of a species."
+      "Digestion and Excretion — nutrition; the digestive system; the excretory system.",
+      "Circulatory and Respiratory Systems — the circulatory system; the respiratory system."
      ],
-     "Earth & Space Science": [
-      "Earthquakes and Volcanoes — earthquakes; volcanoes.",
-      "Evidence of Earth's Past — fossils; relative-age dating; absolute-age dating.",
-      "Evidence of Geologic Time — geologic history and the evolution of life; the Paleozoic era; the Mesozoic era; the Cenozoic era."
+     "Physical Science": [
+      "Mirrors and Lenses — mirrors; lenses; optical instruments."
      ]
     },
-    "source": "Masar (GitHub)",
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
     "lang": "en",
     "lessons": [
      {
       "code": "الدرس 1",
-      "unit": "الوراثة ووسائل التكيّف",
-      "module": "الوراثة ووسائل التكيّف",
-      "lesson": "الوراثة والصفات الوراثية",
+      "unit": "المرايا والعدسات",
+      "module": "المرايا والعدسات",
+      "lesson": "المرايا",
       "type": "core"
      },
      {
       "code": "الدرس2",
-      "unit": "الوراثة ووسائل التكيّف",
-      "module": "الوراثة ووسائل التكيّف",
-      "lesson": "وسائل التكيّف في النوع",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "الزلازل والبراكين",
-      "module": "الزلازل والبراكين",
-      "lesson": "الزلازل",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "الزلازل والبراكين",
-      "module": "الزلازل والبراكين",
-      "lesson": "البراكين",
-      "type": "core"
-     },
-     {
-      "code": "الدرس 1",
-      "unit": "أدلة على ماضي كوكب الأرض",
-      "module": "أدلة على ماضي كوكب الأرض",
-      "lesson": "الأحافير",
-      "type": "core"
-     },
-     {
-      "code": "الدرس2",
-      "unit": "أدلة على ماضي كوكب الأرض",
-      "module": "أدلة على ماضي كوكب الأرض",
-      "lesson": "التأريخ بالعمر النسبي",
+      "unit": "المرايا والعدسات",
+      "module": "المرايا والعدسات",
+      "lesson": "العدسات",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "أدلة على ماضي كوكب الأرض",
-      "module": "أدلة على ماضي كوكب الأرض",
-      "lesson": "التأريخ بالعمر المطلق",
+      "unit": "المرايا والعدسات",
+      "module": "المرايا والعدسات",
+      "lesson": "الأدوات البصرية",
       "type": "core"
      },
      {
       "code": "الدرس 1",
-      "unit": "أدلة الزمن الجيولوجي",
-      "module": "أدلة الزمن الجيولوجي",
-      "lesson": "التاريخ الجيولوجي وتطور الحياة",
+      "unit": "الهضم والإخراج",
+      "module": "الهضم والإخراج",
+      "lesson": "التغذية",
       "type": "core"
      },
      {
       "code": "الدرس2",
-      "unit": "أدلة الزمن الجيولوجي",
-      "module": "أدلة الزمن الجيولوجي",
-      "lesson": "حقبة الحياة القديمة ( الباليوزوي)",
+      "unit": "الهضم والإخراج",
+      "module": "الهضم والإخراج",
+      "lesson": "الجهاز الهضمي",
       "type": "core"
      },
      {
       "code": "الدرس 3",
-      "unit": "أدلة الزمن الجيولوجي",
-      "module": "أدلة الزمن الجيولوجي",
-      "lesson": "حقبة الحياة الوسطى (الميسوزوي)",
+      "unit": "الهضم والإخراج",
+      "module": "الهضم والإخراج",
+      "lesson": "الجهاز الإخراجي",
       "type": "core"
      },
      {
-      "code": "الدرس 4",
-      "unit": "أدلة الزمن الجيولوجي",
-      "module": "أدلة الزمن الجيولوجي",
-      "lesson": "حقبة الحياة الحديثة ( السينوزوي)",
+      "code": "الدرس 1",
+      "unit": "الجهاز الدوري والجهاز التنفسي",
+      "module": "الجهاز الدوري والجهاز التنفسي",
+      "lesson": "الجهاز الدوري",
+      "type": "core"
+     },
+     {
+      "code": "الدرس2",
+      "unit": "الجهاز الدوري والجهاز التنفسي",
+      "module": "الجهاز الدوري والجهاز التنفسي",
+      "lesson": "الجهاز التنفسي",
       "type": "core"
      }
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
-    "sequenceLang": "ar"
-   },
+    "sequenceLang": "ar",
+    "previous": true
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "C6 التحويلات (Transformations)": [
@@ -24818,6 +25747,102 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "Life Science": [
+      "Heredity and Adaptations — heredity and inherited traits; adaptations of a species."
+     ],
+     "Earth & Space Science": [
+      "Earthquakes and Volcanoes — earthquakes; volcanoes.",
+      "Evidence of Earth's Past — fossils; relative-age dating; absolute-age dating.",
+      "Evidence of Geologic Time — geologic history and the evolution of life; the Paleozoic era; the Mesozoic era; the Cenozoic era."
+     ]
+    },
+    "source": "Masar (GitHub) — previous curriculum (no new file for this grade/term)",
+    "lang": "en",
+    "lessons": [
+     {
+      "code": "الدرس 1",
+      "unit": "الوراثة ووسائل التكيّف",
+      "module": "الوراثة ووسائل التكيّف",
+      "lesson": "الوراثة والصفات الوراثية",
+      "type": "core"
+     },
+     {
+      "code": "الدرس2",
+      "unit": "الوراثة ووسائل التكيّف",
+      "module": "الوراثة ووسائل التكيّف",
+      "lesson": "وسائل التكيّف في النوع",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "الزلازل والبراكين",
+      "module": "الزلازل والبراكين",
+      "lesson": "الزلازل",
+      "type": "core"
+     },
+     {
+      "code": "الدرس2",
+      "unit": "الزلازل والبراكين",
+      "module": "الزلازل والبراكين",
+      "lesson": "البراكين",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "أدلة على ماضي كوكب الأرض",
+      "module": "أدلة على ماضي كوكب الأرض",
+      "lesson": "الأحافير",
+      "type": "core"
+     },
+     {
+      "code": "الدرس2",
+      "unit": "أدلة على ماضي كوكب الأرض",
+      "module": "أدلة على ماضي كوكب الأرض",
+      "lesson": "التأريخ بالعمر النسبي",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "أدلة على ماضي كوكب الأرض",
+      "module": "أدلة على ماضي كوكب الأرض",
+      "lesson": "التأريخ بالعمر المطلق",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 1",
+      "unit": "أدلة الزمن الجيولوجي",
+      "module": "أدلة الزمن الجيولوجي",
+      "lesson": "التاريخ الجيولوجي وتطور الحياة",
+      "type": "core"
+     },
+     {
+      "code": "الدرس2",
+      "unit": "أدلة الزمن الجيولوجي",
+      "module": "أدلة الزمن الجيولوجي",
+      "lesson": "حقبة الحياة القديمة ( الباليوزوي)",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 3",
+      "unit": "أدلة الزمن الجيولوجي",
+      "module": "أدلة الزمن الجيولوجي",
+      "lesson": "حقبة الحياة الوسطى (الميسوزوي)",
+      "type": "core"
+     },
+     {
+      "code": "الدرس 4",
+      "unit": "أدلة الزمن الجيولوجي",
+      "module": "أدلة الزمن الجيولوجي",
+      "lesson": "حقبة الحياة الحديثة ( السينوزوي)",
+      "type": "core"
+     }
+    ],
+    "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
+    "sequenceLang": "ar",
+    "previous": true
    }
   }
  },
@@ -29784,98 +30809,6 @@
     "source": "Masar (GitHub)",
     "lang": "en"
    },
-   "Science": {
-    "strands": {
-     "A Physics Toolkit": [
-      "Methods of Science",
-      "Mathematics and Physics",
-      "Measurement",
-      "Graphing Data"
-     ],
-     "Representing Motion": [
-      "Picturing Motion",
-      "Where and When?",
-      "Position-Time Graphs",
-      "How Fast?"
-     ],
-     "Accelerated Motion": [
-      "Acceleration",
-      "Motion with Constant Acceleration",
-      "Free-Fall"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "A Physics Toolkit",
-      "lesson": "Methods of Science",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "A Physics Toolkit",
-      "lesson": "Mathematics and Physics",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "A Physics Toolkit",
-      "lesson": "Measurement",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "module": "A Physics Toolkit",
-      "lesson": "Graphing Data",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Representing Motion",
-      "lesson": "Picturing Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Representing Motion",
-      "lesson": "Where and When?",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Representing Motion",
-      "lesson": "Position-Time Graphs",
-      "type": "core"
-     },
-     {
-      "code": "Section 4",
-      "module": "Representing Motion",
-      "lesson": "How Fast?",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Accelerated Motion",
-      "lesson": "Acceleration",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Accelerated Motion",
-      "lesson": "Motion with Constant Acceleration",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Accelerated Motion",
-      "lesson": "Free-Fall",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
-    "lang": "en"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -32442,6 +33375,523 @@
     "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
     "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 1: مبادئ علم البيئة": [
+      "BIO.3.4.01.041 يقارن أوجه التشابه والإختلاف بين المكونات الحية وغير الحية للأنظمة البيئية اليابسة والمائية المستدامة وغير المستدامة",
+      "BIO.3.4.01.039 يبني تفسيرا يتنبأ من خلاله بأنماط التفاعل بين الكائنات الحية عبر أنظمة بيئية متعددة",
+      "BIO.3.1.02.032 يفسر أنه مع تدفق الطاقة على المستويات التنظيمية المختلفة للأنظمة الحياتية، فإن العناصر الكيميائية تندمج من جديد لتشكل منتجات مختلفة ويتم نقل الطاقة من نظام لآخر",
+      "BIO.3.4.01.028 يصف العمليات التكميلية لتنفس الخلية والبناء الضوئي من حيث تدفق الطاقة ودورة المادة ضمن الأنظمة البيئية، وكيف يمكن للأنشطة البشرية أن تخل بالتوازن الذي تحققه هذه العمليات",
+      "BIO.3.4.01.040 يشرح كيف تدور المادة ضمن البيئة وكيف تعزز على الاستدامة",
+      "BIO.3.4.01.026 يفسر أن البناء الضوئي والتنفس الخلوي هي مكونات عامة في دورة الكربون، والتي يتم من خلالها تبادل الكربون ما بين المحيط الحيوي، والغلاف الجوي، والمحيطات، والمحيط الأرضي من خلال العمليات الكيميائية والفيزيائية والجيولوجية والحيوية",
+      "BIO.3.4.01.029 يطور نموذجا ليوضح دور البناء الضوئي والتنفس الخلوي في دورة الكربون ما بين المحيط الحيوي والغلاف الجوي والغلاف المائي والمحيط الأرضي",
+      "BIO.3.4.01.028 يصف العمليات التكميلية لتنفس الخلية والبناء الضوئي من حيث تدفق الطاقة ودورة المادة ضمن الأنظمة البيئية، وكيف يمكن للأنشطة البشرية أن تخل بالتوازن الذي تحققه هذه العمليات"
+     ],
+     "الوحدة 2: التنوع الأحيائي والمحافظة عليه": [
+      "SCI.3.2.01.017 يستنتج أن التنوع الحيوي هو تنوع في الحياة على الأرض، بما في ذلك التنوع ضمن كل نوع من أنواع النباتات والحيوانات، وبين أنواع النباتات والحيوانات في التجمعات، وبين التجمعات والمناطق الطبيعية الفيزيائية التي تدعمها",
+      "SCI.3.2.01.018 يشرح أهمية التنوع الحيوي في المحافظة على نظام بيئي قابل للاستمرارية",
+      "SCI.3.2.01.021 يصف طرائق التنوع الحيوي ضمن الأنواع باعتبارها طرائق ضرورية للمحافظة على استمرارية هذه الأنواع",
+      "SCI.3.2.04.001 يبني تفسيرا قائما على الادلة ليصف كيف تزيد الاختلافات الوراثية للسمات بين السكان من احتمالية بقاء بعض الأفراد على قيد الحياة والتكاثر في بيئة محددة",
+      "SCI.3.2.01.022 يصف طرائق التنوع الحيوي ضمن المجتمعات الأحيائية في المحافظة على استمرارية هذه المجتمعات وبقائها",
+      "SCI.3.4.01.022 يحدد العوامل المختلفة المرتبطة بسلوك الإنسان والتي تؤثر في الأنظمة البيئية، واشرح كيف تؤثر هذه العوامل في توازن الأنظمة البيئية وبقائها",
+      "SCI.3.4.01.023 يشرح الطرائق التي تؤدي من خلالها الأنشطة البشرية والتقنيات إلى تغيير التوازن والتفاعلات في البيئة",
+      "SCI.3.4.03.006 يبني حجة مدعومة بالدليل التجريبي مفادها أن التغيرات التي تطال المكونات الفيزيائية أو الحيوية لنظام بيئي معين تؤثر في سكانه",
+      "SCI.3.4.03.007 يستنتج أن حدوث اضطرابات لأي من المكونات الفيزيائية أو الحيوية لنظام بيئي ما يمكن أن تؤدي إلى تغيرات في بعض أو جميع سكان النظام",
+      "SCI.3.4.03.008 يشرح كيف أن اكتمال أو تكامل التنوع الحيوي للنظام البيئي عادة ما يستخدم كمقياس لسلامته",
+      "SCI.3.4.03.009 يشرح كيف أن الأنظمة البيئية ديناميكية بطبيعتها، ويصف كيف يمكن أن تتغير خصائصها مع مرور الزمن",
+      "SCI.3.4.03.010 يقيّم حلول التصميم التنافسية للمحافظة على خدمات النظام البيئي والتنوع الحيوي"
+     ],
+     "الوحدة 3: طبيعة العلوم": [
+      "SCI.1.1.01.019 يحلل البيانات التي يحصل عليها من التجارب",
+      "SCI.1.1.01.020 يجمع معلومات بحثية مناسبة ويستخدمها في صياغة فرضيات قابلة للاختبار",
+      "SCI.1.1.01.022 يصمم ويجري تجربة مضبوطة لقبول أو رفض فرضية",
+      "SCI.4.4.01.085 يتتبع الخطوات الشائعة للطرائق العلمية لطرح حلول للمشكلات واختبارها بشكل منهجي وتقويم نتائج الاختبارات، ويبين أن بعض التحقيقات العلمية تؤدي الى تطور التكنولوجيا التي يمكنها أن تحسن حياتنا والعالم من حولنا",
+      "SCI.1.1.02.014 يستخدم النماذج والمحاكاة لتمثيل الأنظمة، وتوضيح المفاهيم",
+      "SCI.4.4.01.093 يستنتج أن العلماء يستخدمون نظام وحدات متعارف عليه دوليا لمشاركة النتائج التي توصلوا اليها، ويعبر عن الأعداد بالترميز العلمي ويحل مسائل بستخدام التحليل البعدي",
+      "SCI.1.1.01.021 يشرح الأدوات العلمية والتقنيات المستخدمة لإجراء قياسات دقيقة",
+      "SCI.1.1.02.011 يستخدم الجداول والرسوم البيانية والنماذج لعرض البيانات العلمية وتحليلها",
+      "SCI.1.1.02.012 يستخدم الحساب الملائم لطبيعة البيانات بهدف بناء تفسيرات منطقية حول الظواهر الطبيعية",
+      "القسم 4: العلوم والتكنولوجيا"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1S1",
+      "unit": "الوحدة 1: مبادئ علم البيئة",
+      "module": "الوحدة 1: مبادئ علم البيئة",
+      "lesson": "القسم 1: الكائنات الحية وعلاقاتها المتبادلة",
+      "weeks": "الأسبوع 1-3",
+      "periods": "18",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.4.01.041",
+        "text": "يقارن أوجه التشابه والإختلاف بين المكونات الحية وغير الحية للأنظمة البيئية اليابسة والمائية المستدامة وغير المستدامة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يشرح أهمية علم البيئة.",
+         "يحدد دور عالم البيئة.",
+         "يشرح مصطلح المحيط الحيوي، بما في ذلك خصائصه.",
+         "يميز بين العوامل الحيوية وغير الحيوية في النظم البيئية، مع ذكر أمثلة.",
+         "يناقش مثالاً على التفاعل بين العوامل الحيوية وغير الحيوية في النظام البيئي."
+        ]
+       },
+       {
+        "code": "BIO.3.4.01.039",
+        "text": "يبني تفسيرا يتنبأ من خلاله بأنماط التفاعل بين الكائنات الحية عبر أنظمة بيئية متعددة",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يحدد مستويات التنظيم في المحيط الحيوي، مع ذكر أمثلة.",
+         "يصف المنطقة الأحيائية وأنواعها المختلفة.",
+         "يميّز بين الموطن والبيئة المتخصصة.",
+         "يستكشف الاحتياجات الأساسية التي تتنافس عليها الكائنات الحية والتي تحتاجها للبقاء.",
+         "يعرّف العوامل المحددة بأنها عوامل حيوية أو غير حيوية تمنع استمرار نمو الجماعة الحيوية إلى ما لا نهاية.",
+         "يحدد عوامل محددة أخرى تؤثر على بقاء الكائن الحي وتوزيعه، بما في ذلك درجة الحرارة، ودرجة الحموضة، والمساحة، والماء، والمعادن.",
+         "يعرّف نطاق التحمل بأنه الظروف البيئية المناسبة لبقاء الكائن الحي، مع ذكر أمثلة مثل درجة الحرارة والماء.",
+         "يستنتج العلاقة بين التحمل والعوامل المحددة.",
+         "يصف التفاعلات المختلفة بين الكائنات الحية داخل النظم البيئية، بما في ذلك: التنافس، والافتراس، والتعايش، والتكافل، والتطفل."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 18"
+     },
+     {
+      "code": "U1S2",
+      "unit": "الوحدة 1: مبادئ علم البيئة",
+      "module": "الوحدة 1: مبادئ علم البيئة",
+      "lesson": "القسم 2: انتقال الطاقة في النظام البيئي",
+      "weeks": "الأسبوع 1-3",
+      "periods": "18",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.032",
+        "text": "يفسر أنه مع تدفق الطاقة على المستويات التنظيمية المختلفة للأنظمة الحياتية، فإن العناصر الكيميائية تندمج من جديد لتشكل منتجات مختلفة ويتم نقل الطاقة من نظام لآخر",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "BIO.3.4.01.028",
+        "text": "يصف العمليات التكميلية لتنفس الخلية والبناء الضوئي من حيث تدفق الطاقة ودورة المادة ضمن الأنظمة البيئية، وكيف يمكن للأنشطة البشرية أن تخل بالتوازن الذي تحققه هذه العمليات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يتذكر عملية البناء الضوئي بوصفها العملية الكيميائية المعقدة التي تلتقط الطاقة الشمسية وتخزنها في صورة طاقة كيميائية.",
+         "يتذكر عملية التنفس الخلوي بوصفها العملية الكيميائية المعقدة التي تُحلِّل الجزيئات العضوية لإطلاق الطاقة",
+         "يشرح العلاقة التكاملية بين عمليتي البناء الضوئي والتنفس الخلوي من حيث تدفق الطاقة.",
+         "يتوقع تأثير انخفاض إنتاج الطاقة الشمسية على الكائنات الحية.",
+         "يبحث في تأثير الأنشطة البشرية الشائعة التي تُخلّ بتوازن دورات المادة، ويقترح حلولٍ للحد من هذه التأثيرات."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 18"
+     },
+     {
+      "code": "U1S3",
+      "unit": "الوحدة 1: مبادئ علم البيئة",
+      "module": "الوحدة 1: مبادئ علم البيئة",
+      "lesson": "القسم 3: تدوير المادة",
+      "weeks": "الأسبوع 1-3",
+      "periods": "18",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.4.01.040",
+        "text": "يشرح كيف تدور المادة ضمن البيئة وكيف تعزز على الاستدامة",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يشرح أهمية العناصر الغذائية في الأنظمة الحية، مع تقديم أمثلة.",
+         "يصف الدورة الجيوكيميائية الحيوية ومكوناتها.",
+         "يشرح، من خلال مثال بسيط، كيفية استمرار دوران العناصر الغذائية عبر الغلاف الحيوي.",
+         "يفهم أن توفر العناصر الغذائية يؤثر في إنتاجية الأنظمة البيئية.",
+         "يشرح كيفية دوران الماء عبر الغلاف الحيوي.",
+         "يناقش أهمية المياه العذبة وتوافرها في الغلاف الحيوي.",
+         "يصف كيفية دوران النيتروجين عبر الغلاف الحيوي.",
+         "يصف كيفية دوران الفوسفور عبر الغلاف الحيوي.",
+         "يربط قانون حفظ الكتلة بدورات المادة في الطبيعة."
+        ]
+       },
+       {
+        "code": "BIO.3.4.01.026",
+        "text": "يفسر أن البناء الضوئي والتنفس الخلوي هي مكونات عامة في دورة الكربون، والتي يتم من خلالها تبادل الكربون ما بين المحيط الحيوي، والغلاف الجوي، والمحيطات، والمحيط الأرضي من خلال العمليات الكيميائية والفيزيائية والجيولوجية والحيوية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يفهم أنّ العناصر الكيميائية يُعاد اتحادها بطرق مختلفة لتكوين نواتج مختلفة أثناء انتقال المادة عبر الأنظمة البيئية.",
+         "يتذكر أهمية الكربون والأكسجين في الكائنات الحية.",
+         "يصف كيفية دوران الكربون والأكسجين بين المكونات الحيوية واللاحيوية في النظام البيئي.",
+         "يربط دورة الكربون والأكسجين بعمليتي البناء الضوئي والتنفس الخلوي."
+        ]
+       },
+       {
+        "code": "BIO.3.4.01.029",
+        "text": "يطور نموذجا ليوضح دور البناء الضوئي والتنفس الخلوي في دورة الكربون ما بين المحيط الحيوي والغلاف الجوي والغلاف المائي والمحيط الأرضي",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يبني تمثيلات للدورات الجيوكيميائية الحيوية من خلال أمثلة وباستخدام وسائط متنوعة."
+        ]
+       },
+       {
+        "code": "BIO.3.4.01.028",
+        "text": "يصف العمليات التكميلية لتنفس الخلية والبناء الضوئي من حيث تدفق الطاقة ودورة المادة ضمن الأنظمة البيئية، وكيف يمكن للأنشطة البشرية أن تخل بالتوازن الذي تحققه هذه العمليات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يتذكر عملية البناء الضوئي بوصفها العملية الكيميائية المعقدة التي تلتقط الطاقة الشمسية وتخزنها في صورة طاقة كيميائية.",
+         "يتذكر عملية التنفس الخلوي بوصفها العملية الكيميائية المعقدة التي تُحلِّل الجزيئات العضوية لإطلاق الطاقة",
+         "يشرح العلاقة التكاملية بين عمليتي البناء الضوئي والتنفس الخلوي من حيث تدفق الطاقة.",
+         "يتوقع تأثير انخفاض إنتاج الطاقة الشمسية على الكائنات الحية.",
+         "يبحث في تأثير الأنشطة البشرية الشائعة التي تُخلّ بتوازن دورات المادة، ويقترح حلولٍ للحد من هذه التأثيرات."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 18"
+     },
+     {
+      "code": "U2S1",
+      "unit": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "module": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "lesson": "القسم 1: التنوع الأحيائي",
+      "weeks": "الأسبوع 4-6",
+      "periods": "15",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.2.01.017",
+        "text": "يستنتج أن التنوع الحيوي هو تنوع في الحياة على الأرض، بما في ذلك التنوع ضمن كل نوع من أنواع النباتات والحيوانات، وبين أنواع النباتات والحيوانات في التجمعات، وبين التجمعات والمناطق الطبيعية الفيزيائية التي تدعمها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يتعرّف على التنوع الأحيائي وأهميته للنظام البيئي.",
+         "يصف التنوع الوراثي ضمن الجماعة الأحيائية.",
+         "يصف تنوع النظام البيئي عبر المواطن البيئية المختلفة."
+        ]
+       },
+       {
+        "code": "SCI.3.2.01.018",
+        "text": "يشرح أهمية التنوع الحيوي في المحافظة على نظام بيئي قابل للاستمرارية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يصف القيمة الاقتصادية المباشرة للتنوع الأحيائي.",
+         "يفسّر دور التنوع الأحيائي في توفير الغذاء والأدوية والموارد الوراثية.",
+         "يصف القيمة الاقتصادية غير المباشرة لخدمات النظام البيئي.",
+         "يفسّر القيمة الجمالية للتنوع الأحيائي.",
+         "يفسّر القيمة العلمية للتنوع الأحيائي.",
+         "يميّز بين القيمة الاقتصادية المباشرة والقيمة الاقتصادية غير المباشرة للتنوع الأحيائي."
+        ]
+       },
+       {
+        "code": "SCI.3.2.01.021",
+        "text": "يصف طرائق التنوع الحيوي ضمن الأنواع باعتبارها طرائق ضرورية للمحافظة على استمرارية هذه الأنواع",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يصف تنوع الأنواع ضمن المجتمع الأحيائي.",
+         "يفسّر كيف يختلف تنوع الأنواع باختلاف المناطق الجغرافية."
+        ]
+       },
+       {
+        "code": "SCI.3.2.04.001",
+        "text": "يبني تفسيرا قائما على الادلة ليصف كيف تزيد الاختلافات الوراثية للسمات بين السكان من احتمالية بقاء بعض الأفراد على قيد الحياة والتكاثر في بيئة محددة",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يشرح كيف يدعم التنوع الوراثي بقاء الأنواع."
+        ]
+       },
+       {
+        "code": "SCI.3.2.01.022",
+        "text": "يصف طرائق التنوع الحيوي ضمن المجتمعات الأحيائية في المحافظة على استمرارية هذه المجتمعات وبقائها",
+        "priority": "",
+        "kpis": [
+         "يفسّر أهمية التنوع الأحيائي بالنسبة للأنظمة البيئية وللإنسان."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 15"
+     },
+     {
+      "code": "U2S2",
+      "unit": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "module": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "lesson": "القسم 2: التهديدات التي يواجهها التنوع الأحيائي",
+      "weeks": "الأسبوع 4-6",
+      "periods": "15",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.01.022",
+        "text": "يحدد العوامل المختلفة المرتبطة بسلوك الإنسان والتي تؤثر في الأنظمة البيئية، واشرح كيف تؤثر هذه العوامل في توازن الأنظمة البيئية وبقائها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يفسّر كيف تهدد الأنشطة البشرية التنوع الأحيائي.",
+         "يفسّر كيف يسهم الاستغلال الجائر في انقراض الأنواع.",
+         "يفسّر كيف يقلل فقدان الموطن البيئي من التنوع الأحيائي.",
+         "يفسّر كيف يؤثر تجزؤ الموطن في بقاء الأنواع.",
+         "يفسّر كيف يهدد التغير المناخي التنوع الأحيائي.",
+         "يفسّر كيف يؤثر التلوث في التنوع الأحيائي.",
+         "يفسّر كيف تُخلّ الأنواع الدخيلة بالأنظمة البيئية."
+        ]
+       },
+       {
+        "code": "SCI.3.4.01.023",
+        "text": "يشرح الطرائق التي تؤدي من خلالها الأنشطة البشرية والتقنيات إلى تغيير التوازن والتفاعلات في البيئة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يصف تأثير الحافة في المواطن البيئية المجزأة.",
+         "يصف التضخم الحيوي في السلاسل الغذائية.",
+         "يفسّر كيف يؤثر الهطول الحمضي في الأنظمة البيئية.",
+         "يفسّر كيف يؤثر الإثراء الغذائي في الأنظمة البيئية المائية.",
+         "يصف كيف يمكن للأنواع الدخيلة أن تقلل من التنوع الأحيائي للأنواع الأصلية."
+        ]
+       },
+       {
+        "code": "SCI.3.4.03.006",
+        "text": "يبني حجة مدعومة بالدليل التجريبي مفادها أن التغيرات التي تطال المكونات الفيزيائية أو الحيوية لنظام بيئي معين تؤثر في سكانه",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يفسّر بيانات معدلات الانقراض بين المجموعات المختلفة.",
+         "يفسّر لماذا تكون بعض الأنواع أكثر عرضة للانقراض.",
+         "يفسّر كيف يمكن أن تؤثر التغيرات في أحد الأنواع في النظام البيئي."
+        ]
+       },
+       {
+        "code": "SCI.3.4.03.007",
+        "text": "يستنتج أن حدوث اضطرابات لأي من المكونات الفيزيائية أو الحيوية لنظام بيئي ما يمكن أن تؤدي إلى تغيرات في بعض أو جميع سكان النظام",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يفسّر كيف يؤثر الانقراض في التنوع الأحيائي.",
+         "يميّز بين الانقراض المرجعي والانقراض الجماعي.",
+         "يصف أنماط حالات الانقراض الجماعي السابقة."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 15"
+     },
+     {
+      "code": "U2S3",
+      "unit": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "module": "الوحدة 2: التنوع الأحيائي والمحافظة عليه",
+      "lesson": "القسم 3: المحافظة على التنوع الأحيائي",
+      "weeks": "الأسبوع 4-6",
+      "periods": "15",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.3.4.03.008",
+        "text": "يشرح كيف أن اكتمال أو تكامل التنوع الحيوي للنظام البيئي عادة ما يستخدم كمقياس لسلامته",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يفسّر كيف يؤثر استنزاف الموارد في المواطن البيئية وبقاء الأنواع.",
+         "يفسّر كيف تسهم المناطق المحمية في المحافظة على التنوع الأحيائي.",
+         "يصف دور النقاط الساخنة للتنوع الأحيائي في المحافظة على التنوع الأحيائي.",
+         "يفسّر كيف تسهم ممرات بين أجزاء الموطن في المحافظة على التنوع الأحيائي.",
+         "يفسّر كيف تحمي القوانين الأنواع المهددة بالانقراض والتنوع الأحيائي."
+        ]
+       },
+       {
+        "code": "SCI.3.4.03.009",
+        "text": "يشرح كيف أن الأنظمة البيئية ديناميكية بطبيعتها، ويصف كيف يمكن أن تتغير خصائصها مع مرور الزمن",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يفسّر كيف يؤدي النمو السكاني وزيادة الاستهلاك إلى زيادة الضغط على الموارد الطبيعية والحاجة إلى المحافظة عليها.",
+         "يميّز بين الموارد المتجددة والموارد غير المتجددة بناءً على توافرها ومعدل تعويضها.",
+         "يصنّف الموارد الطبيعية إلى موارد متجددة وموارد غير متجددة.",
+         "يفسّر العلاقة بين الطلب على الموارد واستنزافها.",
+         "يفسّر كيف يعتمد تصنيف المورد إلى متجدد أو غير متجدد على سياق استخدامه ونطاقه.",
+         "يصف الاستخدام المستدام للموارد الطبيعية.",
+         "يفسّر كيف تسهم المحافظة على الموارد الطبيعية في استمرارية توافرها على المدى الطويل.",
+         "يفسّر كيف تتعافى الأنظمة البيئية من الاضطرابات الطبيعية والناجمة عن الأنشطة البشرية."
+        ]
+       },
+       {
+        "code": "SCI.3.4.03.010",
+        "text": "يقيّم حلول التصميم التنافسية للمحافظة على خدمات النظام البيئي والتنوع الحيوي",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يقيّم استراتيجيات المحافظة على التنوع الأحيائي.",
+         "يفسّر كيف تسهم المعالجة البيولوجية في إصلاح الأنظمة البيئية الملوثة.",
+         "يصف استخدام الكائنات الحية في إزالة الملوثات من الأنظمة البيئية.",
+         "يفسّر كيف يسهم التعزيز البيولوجي في الحد من الأنواع الدخيلة.",
+         "يقيّم الطرائق البيولوجية المستخدمة في إصلاح الأنظمة البيئية."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 15"
+     },
+     {
+      "code": "U3S1",
+      "unit": "الوحدة 3: طبيعة العلوم",
+      "module": "الوحدة 3: طبيعة العلوم",
+      "lesson": "القسم 1: الطرائق العلمية",
+      "weeks": "الأسبوع 6-9",
+      "periods": "21",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.1.01.019",
+        "text": "يحلل البيانات التي يحصل عليها من التجارب",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يسجّل وينظّم البيانات التجريبية باستخدام صيغ منظمة، مثل الجداول، ومخططات فن، والأشكال التوضيحية، أو أدوات مناسبة أخرى، مع ضمان الوضوح والدقة.",
+         "يحلل البيانات من خلال تحديد الأنماط، والاتجاهات، والعلاقات المباشرة ضمن مجموعات البيانات، والنتائج غير المتوقعة."
+        ]
+       },
+       {
+        "code": "SCI.1.1.01.020",
+        "text": "يجمع معلومات بحثية مناسبة ويستخدمها في صياغة فرضيات قابلة للاختبار",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يميّز بين الفرضية، والنظرية العلمية، والقانون العلمي.",
+         "يحدد ويصوغ مشكلة علمية بناءً على ملاحظة أو سيناريو معين.",
+         "يصوغ فرضية قابلة للاختبار بناءً على الملاحظات ونتائج البحث والمعلومات المجموعة حول مشكلة علمية."
+        ]
+       },
+       {
+        "code": "SCI.1.1.01.022",
+        "text": "يصمم ويجري تجربة مضبوطة لقبول أو رفض فرضية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعرّف المتغير المستقل، والمتغير التابع، والثابت، والضابط في التجربة.",
+         "يحدد المتغير المستقل، والمتغير التابع، والثوابت، والضابط في تجربة معطاة.",
+         "يوضح الغرض من الضابط في التجربة وكيفية استخدامه كمعيار للمقارنة.",
+         "يصمم تجربة لاختبار فرضية، محدداً المواد والإجراءات اللازمة.",
+         "ينفذ تجربة متبعًا الإجراء المقترح، ومراعيًا احتياطات السلامة المطلوبة.",
+         "يستنتج، بناءً على تحليل البيانات، ما إذا كانت النتائج التجريبية تدعم الفرضية أم ترفضها."
+        ]
+       },
+       {
+        "code": "SCI.4.4.01.085",
+        "text": "يتتبع الخطوات الشائعة للطرائق العلمية لطرح حلول للمشكلات واختبارها بشكل منهجي وتقويم نتائج الاختبارات، ويبين أن بعض التحقيقات العلمية تؤدي الى تطور التكنولوجيا التي يمكنها أن تحسن حياتنا والعالم من حولنا",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعرّف العلم محدداً فروعه الرئيسة الثلاثة، ويوضح كيف يمكن أن تتغير التفسيرات العلمية بمرور الوقت مع ظهور أدلة أو تقنيات جديدة.",
+         "يعرّف الطريقة العلمية بأنها نمط إجراءات الاستقصاء التي يستخدمها العلماء للتحقيق في الأسئلة المتعلقة بالعالم الطبيعي.",
+         "يسرد الخطوات الشائعة للطرائق العلمية المستخدمة في الاستقصاءات العلمية.",
+         "يشرح الخطوات الشائعة للطرائق العلمية ودور الطرائق العلمية في توجيه الاستقصاءات العلمية.",
+         "يوضح أهمية مراجعة النظراء (التحكيم العلمي) في التحقق من صحة العمل العلمي.",
+         "يعرّف التحيز ويوضح كيف يمكن أن يؤثر التحيز في تحليل البيانات والاستنتاجات.",
+         "يوضح الطرق التي يتبعها العلماء لتقليل التحيز أثناء الاستقصاءات، بما في ذلك التجارب المتكررة، وتدوين الملاحظات بدقة، والدراسات المُعماة.",
+         "يوضح حدود العلم ويميّز بين الأسئلة العلمية القابلة للاختبار والأسئلة المبنية على الآراء أو القيم."
+        ]
+       },
+       {
+        "code": "SCI.1.1.02.014",
+        "text": "يستخدم النماذج والمحاكاة لتمثيل الأنظمة، وتوضيح المفاهيم",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "يعرّف النموذج ويحدد أمثلة على النماذج العلمية، بما في ذلك النماذج المادية والمحاكاة الحاسوبية.",
+         "يوضح كيف تساعد النماذج العلماء على تمثيل وتصوّر واختبار الأفكار أو الأحداث أو الأجسام التي لا يمكن ملاحظتها مباشرة."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     },
+     {
+      "code": "U3S2",
+      "unit": "الوحدة 3: طبيعة العلوم",
+      "module": "الوحدة 3: طبيعة العلوم",
+      "lesson": "القسم 2: معايير القياس",
+      "weeks": "الأسبوع 6-9",
+      "periods": "21",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.4.4.01.093",
+        "text": "يستنتج أن العلماء يستخدمون نظام وحدات متعارف عليه دوليا لمشاركة النتائج التي توصلوا اليها، ويعبر عن الأعداد بالترميز العلمي ويحل مسائل بستخدام التحليل البعدي",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يحدد النظام الدولي للوحدات (SI) بوصفه نظاماً مترياً يستخدمه العلماء حول العالم.",
+         "يسرد الوحدات الأساسية السبع للنظام الدولي للوحدات ورموزها: المتر (m)، والكيلوغرام (kg)، والثانية (s)، والأمبير (A)، والكلفن (K)، والمول (mol)، والشمعة (cd)، ويحدد الكميات المقيسة المقابلة لها.",
+         "يحدد البادئات الشائعة في النظام الدولي للوحدات (كيلو، ديسي، سنتي، ميللي، ميكرو، نانو) ويذكر عوامل الضرب الخاصة بها.",
+         "يعرّف المادة بأنها كل ما يشغل حيزاً وله كتلة.",
+         "يعرّف الكتلة بأنها مقياس لكمية المادة في الجسم.",
+         "يعرّف الكثافة بأنها كتلة وحدة الحجم من المادة.",
+         "يحسب كثافة جسم ما بمعلومية كتلته وحجمه باستخدام العلاقة (الكثافة = الكتلة / الحجم) مستخدماً الوحدات المناسبة.",
+         "يعرّف الوحدة المشتقة بأنها وحدة يتم الحصول عليها من خلال الدمج بين وحدات مختلفة من النظام الدولي، ويعطي أمثلة عليها.",
+         "يعرّف الزمن بأنه الفترة الفاصلة بين حدثين.",
+         "يحوّل بين وحدات القياس في النظام الدولي (بما في ذلك قياسات الطول والحجم والكتلة) باستخدام معاملات التحويل (عوامل التحويل) المناسبة.",
+         "يعرّف درجة الحرارة بأنها مقياس لمدى سخونة أو برودة شيء ما، ويميّز بين مقاييس سيلسيوس، وكلفن، وفهرنهايت.",
+         "يذكر درجتي حرارة التجمد والغليان للماء على مقاييس سيلسيوس، وكلفن، وفهرنهايت.",
+         "يحوّل درجات الحرارة بين سيلسيوس وكلفن بجمع أو طرح 273.",
+         "يحدد الصفر المطلق بأنه الصفر على مقياس كلفن، (حوالي 273− درجة مئوية)، وهو أدنى درجة حرارة ممكنة."
+        ]
+       },
+       {
+        "code": "SCI.1.1.01.021",
+        "text": "يشرح الأدوات العلمية والتقنيات المستخدمة لإجراء قياسات دقيقة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يعرّف معيار القياس بأنه كمية محددة بدقة يتفق الناس على استخدامها لمقارنة القياسات، ويوضح أهميته.",
+         "يقيس الطول باستخدام الأدوات المناسبة (مثل العصا المترية، أو شريط القياس، أو غيرها)، ويختار وحدات الطول المناسبة بناءً على حجم الجسم المقاس (ملليمتر، سنتيمتر، ديسيمتر، متر...).",
+         "يعرّف الحجم بأنه مقدار الحيّز الذي يشغله الجسم.",
+         "يحسب حجم جسم متوازي المستطيلات باستخدام الصيغة (V = l × w × h)، حيث V هو الحجم، و l هو الطول، و w هو العرض، و h هو الارتفاع، ويختار وحدات الحجم المناسبة."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     },
+     {
+      "code": "U3S3",
+      "unit": "الوحدة 3: طبيعة العلوم",
+      "module": "الوحدة 3: طبيعة العلوم",
+      "lesson": "القسم 3: التواصل باستخدام الرسوم البيانية",
+      "weeks": "الأسبوع 6-9",
+      "periods": "21",
+      "type": "core",
+      "slos": [
+       {
+        "code": "SCI.1.1.02.011",
+        "text": "يستخدم الجداول والرسوم البيانية والنماذج لعرض البيانات العلمية وتحليلها",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يعرّف الرسم البياني بأنه عرض مرئي للمعلومات أو البيانات.",
+         "يوضح أن الرسم البياني يسهّل اكتشاف الأنماط في البيانات.",
+         "يحدد الأنواع المختلفة للرسوم البيانية: الرسم البياني بالخطوط، والرسم البياني بالأعمدة، والرسم البياني بالقطاعات الدائرية.",
+         "يحدد المتغير المستقل والمتغير التابع في مجموعة بيانات أو رسم بياني معطى.",
+         "يوضح أن الرسم البياني بالخطوط مناسب لتمثيل البيانات المتصلة، حيث يتغير المتغير التابع بشكل مستمر استجابةً للتغيرات في المتغير المستقل.",
+         "يرسم رسمًا بيانيًا بالخطوط باختيار مقياس ووحدات قياس مناسبة، وتمثيل المتغير المستقل على المحور x، والمتغير التابع على المحور y، ورسم نقاط البيانات بدقة، ورسم الخط الأفضل تمثيلًا أو المنحنى الأكثر احتمالاً بين نقاط البيانات.",
+         "يفسّر رسمًا بيانيًا بالخطوط يتضمن حدثًا واحدًا أو عدة أحداث أو مجموعات بيانات، لتحديد الاتجاهات والأنماط والعلاقات بين المتغيرات، ويستخدم الرسم البياني لاستخلاص استنتاجات أو إجراء مقارنات.",
+         "يوضح أن الرسم البياني بالأعمدة مناسب لمقارنة الفئات أو عرض البيانات المنفصلة (غير المتصلة أو التي لا تتغير بصفة مستمرة)، مثل البيانات الناتجة عن العدّ.",
+         "يرسم رسمًا بيانيًا بالأعمدة باختيار مقياس ووحدات قياس مناسبة، وتمثيل المتغير المستقل أو الفئات على المحور x، والمتغير التابع أو القيم المقابلة على المحور y، ورسم الأعمدة بارتفاعات دقيقة.",
+         "يفسّر ويقارن البيانات المعروضة في رسم بياني بالأعمدة.",
+         "يعرّف الرسم البياني بالقطاعات الدائرية بأنه رسم بياني يوضح كيفية تقسيم كمية ثابتة إلى أجزاء.",
+         "ينشئ رسمًا بيانيًا بالقطاعات الدائرية من بيانات معطاة ويفسّر الحصص النسبية للقطاعات.",
+         "يختار النوع الأنسب من الرسوم البيانية (بالخطوط، أو بالأعمدة، أو بالقطاعات الدائرية) لتمثيل مجموعة بيانات معطاة."
+        ]
+       },
+       {
+        "code": "SCI.1.1.02.012",
+        "text": "يستخدم الحساب الملائم لطبيعة البيانات بهدف بناء تفسيرات منطقية حول الظواهر الطبيعية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يحسب النسبة المئوية والزاوية المركزية لكل قطاع في الرسم البياني الدائري لمجموعة بيانات معطاة."
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     },
+     {
+      "code": "U3S4",
+      "unit": "الوحدة 3: طبيعة العلوم",
+      "module": "الوحدة 3: طبيعة العلوم",
+      "lesson": "القسم 4: العلوم والتكنولوجيا",
+      "weeks": "الأسبوع 6-9",
+      "periods": "21",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": true,
+    "source": "MOE 2026-27 العلوم العامة الصف التاسع: مصفوفة المدى والتتابع + الخطة التعليمية + مؤشرات الأداء (الفصل الأول)",
+    "note": "الفصل الدراسي الأول 2026–2027: 11 أسبوعًا تدريسيًا معتمدًا (عدا أسابيع الاستعداد للاختبارات النهائية وتنفيذها)."
    }
   },
   "2": {
@@ -32455,61 +33905,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Science": {
-    "strands": {
-     "Forces in One Dimension": [
-      "Force and Motion",
-      "Weight and Drag Force",
-      "Newton's Third Law"
-     ],
-     "Displacement and Force in Two Dimensions": [
-      "Vectors",
-      "Friction",
-      "Forces in Two Dimensions"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Forces in One Dimension",
-      "lesson": "Force and Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Forces in One Dimension",
-      "lesson": "Weight and Drag Force",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Forces in One Dimension",
-      "lesson": "Newton's Third Law",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Vectors",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Friction",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Displacement and Force in Two Dimensions",
-      "lesson": "Forces in Two Dimensions",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
    },
    "Maths": {
@@ -32891,6 +34286,98 @@
     "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
     "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 4: الحركة": [
+      "القسم 1: وصف الحركة",
+      "القسم 2: السرعة المتجهة والزخم",
+      "القسم 3: التسارع"
+     ],
+     "الوحدة 5: المواد الصلبة والسائلة والغازية": [
+      "القسم 1: المادة والطاقة الحرارية",
+      "القسم 2: خصائص الموائع",
+      "القسم 3: سلوك الغازات"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U4S1",
+      "unit": "الوحدة 4: الحركة",
+      "module": "الوحدة 4: الحركة",
+      "lesson": "القسم 1: وصف الحركة",
+      "weeks": "الأسبوع 1-4",
+      "periods": "24",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 24"
+     },
+     {
+      "code": "U4S2",
+      "unit": "الوحدة 4: الحركة",
+      "module": "الوحدة 4: الحركة",
+      "lesson": "القسم 2: السرعة المتجهة والزخم",
+      "weeks": "الأسبوع 1-4",
+      "periods": "24",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 24"
+     },
+     {
+      "code": "U4S3",
+      "unit": "الوحدة 4: الحركة",
+      "module": "الوحدة 4: الحركة",
+      "lesson": "القسم 3: التسارع",
+      "weeks": "الأسبوع 1-4",
+      "periods": "24",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 24"
+     },
+     {
+      "code": "U5S1",
+      "unit": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "module": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "lesson": "القسم 1: المادة والطاقة الحرارية",
+      "weeks": "الأسبوع 5-8",
+      "periods": "21",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     },
+     {
+      "code": "U5S2",
+      "unit": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "module": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "lesson": "القسم 2: خصائص الموائع",
+      "weeks": "الأسبوع 5-8",
+      "periods": "21",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     },
+     {
+      "code": "U5S3",
+      "unit": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "module": "الوحدة 5: المواد الصلبة والسائلة والغازية",
+      "lesson": "القسم 3: سلوك الغازات",
+      "weeks": "الأسبوع 5-8",
+      "periods": "21",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 21"
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": false,
+    "source": "MOE 2026-27 العلوم العامة الصف التاسع: مصفوفة المدى والتتابع",
+    "note": ""
    }
   },
   "3": {
@@ -32901,107 +34388,6 @@
      ]
     },
     "source": "Masar (GitHub)",
-    "lang": "en"
-   },
-   "Science": {
-    "strands": {
-     "Work, Energy, and Machines": [
-      "Work and Energy",
-      "Machines"
-     ],
-     "Vibrations and Waves": [
-      "Periodic Motion",
-      "Wave Properties",
-      "Wave Behavior"
-     ],
-     "Solids, Liquids, and Gases": [
-      "Matter and Thermal Energy",
-      "Properties of Fluids",
-      "Behavior of Gases"
-     ],
-     "Matter - Properties and change": [
-      "Properties of Matter",
-      "Changes in Matter",
-      "Elemetns and compounds",
-      "Mixture and Matter"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "Section 1",
-      "module": "Work, Energy, and Machines",
-      "lesson": "Work and Energy",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Work, Energy, and Machines",
-      "lesson": "Machines",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Vibrations and Waves",
-      "lesson": "Periodic Motion",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Properties",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Vibrations and Waves",
-      "lesson": "Wave Behavior",
-      "type": "core"
-     },
-     {
-      "code": "Section 1",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Matter and Thermal Energy",
-      "type": "core"
-     },
-     {
-      "code": "Section 2",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Properties of Fluids",
-      "type": "core"
-     },
-     {
-      "code": "Section 3",
-      "module": "Solids, Liquids, and Gases",
-      "lesson": "Behavior of Gases",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 1",
-      "module": "Matter - Properties and change",
-      "lesson": "Properties of Matter",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 2",
-      "module": "Matter - Properties and change",
-      "lesson": "Changes in Matter",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 3",
-      "module": "Matter - Properties and change",
-      "lesson": "Elemetns and compounds",
-      "type": "core"
-     },
-     {
-      "code": "Lesson 4",
-      "module": "Matter - Properties and change",
-      "lesson": "Mixture and Matter",
-      "type": "core"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
-    "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
    },
    "Maths": {
@@ -33432,6 +34818,124 @@
     "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge) — previous curriculum, kept (no new file for this grade/term)",
     "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 6: المادة - الخواص والتغيرات": [
+      "القسم 1: خصائص المادة",
+      "القسم 2: تغيّرات المادة",
+      "القسم 3: العناصر والمركّبات",
+      "القسم 4: المخاليط"
+     ],
+     "الوحدة 7: مصادر الطاقة والبيئة": [
+      "القسم 1: الوقود الأحفوري",
+      "القسم 2: الطاقة النووية",
+      "القسم 3: موارد الطاقة المتجددة",
+      "القسم 4: التأثيرات البيئية"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U6S1",
+      "unit": "الوحدة 6: المادة - الخواص والتغيرات",
+      "module": "الوحدة 6: المادة - الخواص والتغيرات",
+      "lesson": "القسم 1: خصائص المادة",
+      "weeks": "الأسبوع 1-4",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U6S2",
+      "unit": "الوحدة 6: المادة - الخواص والتغيرات",
+      "module": "الوحدة 6: المادة - الخواص والتغيرات",
+      "lesson": "القسم 2: تغيّرات المادة",
+      "weeks": "الأسبوع 1-4",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U6S3",
+      "unit": "الوحدة 6: المادة - الخواص والتغيرات",
+      "module": "الوحدة 6: المادة - الخواص والتغيرات",
+      "lesson": "القسم 3: العناصر والمركّبات",
+      "weeks": "الأسبوع 1-4",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U6S4",
+      "unit": "الوحدة 6: المادة - الخواص والتغيرات",
+      "module": "الوحدة 6: المادة - الخواص والتغيرات",
+      "lesson": "القسم 4: المخاليط",
+      "weeks": "الأسبوع 1-4",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U7S1",
+      "unit": "الوحدة 7: مصادر الطاقة والبيئة",
+      "module": "الوحدة 7: مصادر الطاقة والبيئة",
+      "lesson": "القسم 1: الوقود الأحفوري",
+      "weeks": "الأسبوع 4-7",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U7S2",
+      "unit": "الوحدة 7: مصادر الطاقة والبيئة",
+      "module": "الوحدة 7: مصادر الطاقة والبيئة",
+      "lesson": "القسم 2: الطاقة النووية",
+      "weeks": "الأسبوع 4-7",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U7S3",
+      "unit": "الوحدة 7: مصادر الطاقة والبيئة",
+      "module": "الوحدة 7: مصادر الطاقة والبيئة",
+      "lesson": "القسم 3: موارد الطاقة المتجددة",
+      "weeks": "الأسبوع 4-7",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     },
+     {
+      "code": "U7S4",
+      "unit": "الوحدة 7: مصادر الطاقة والبيئة",
+      "module": "الوحدة 7: مصادر الطاقة والبيئة",
+      "lesson": "القسم 4: التأثيرات البيئية",
+      "weeks": "الأسبوع 4-7",
+      "periods": "20",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "عدد حصص الوحدة: 20"
+     }
+    ],
+    "lang": "ar",
+    "withSLOs": false,
+    "source": "MOE 2026-27 العلوم العامة الصف التاسع: مصفوفة المدى والتتابع",
+    "note": ""
    }
   }
  },
@@ -40677,121 +42181,6 @@
     "source": "Masar (GitHub)",
     "lang": "en"
    },
-   "Science": {
-    "strands": {
-     "الوحدة 3": [
-      "الأفكار السابقة حول الذرّة",
-      "تعريف الذرة",
-      "كيف تختلف الذرات",
-      "الأنوية غير المستقرّة والانحلال الإشعاعي"
-     ],
-     "الوحدة 1": [
-      "الضوء والطاقة الكمية (enrichment)",
-      "نظرية الكم والذرة",
-      "تركيب الإلكترون"
-     ],
-     "الوحدة 2": [
-      "تطور الجدول الدوري الحديث",
-      "تصنيف العناصر",
-      "الاتجاهات الدورية"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "القسم 1",
-      "unit": "الوحدة 3",
-      "module": "الوحدة 3",
-      "lesson": "الأفكار السابقة حول الذرّة",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر: قانون حفظ المادة فقط مطالعة اثرائية: جذور النظرية الذريّة"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الوحدة 3",
-      "module": "الوحدة 3",
-      "lesson": "تعريف الذرة",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر:البروتون والنيوترون (استكمال النموذج الذري) مطالعة اثرائية: الذرّة، والالكترون، والنويدة (تجربة رذرفورد)"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الوحدة 3",
-      "module": "الوحدة 3",
-      "lesson": "كيف تختلف الذرات",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي"
-     },
-     {
-      "code": "القسم 4",
-      "unit": "الوحدة 3",
-      "module": "الوحدة 3",
-      "lesson": "الأنوية غير المستقرّة والانحلال الإشعاعي",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي"
-     },
-     {
-      "code": "القسم 1",
-      "unit": "الوحدة 1",
-      "module": "الوحدة 1",
-      "lesson": "الضوء والطاقة الكمية",
-      "periods": "15 حصّة",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الوحدة 1",
-      "module": "الوحدة 1",
-      "lesson": "نظرية الكم والذرة",
-      "periods": "15 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر : مستويات طاقة الهيددروجين، الأفلاك الذرية لذرة الهيدروجين دراسة إثرائية: طيف الانبعاث الخطي لذرة الهيدروجين، النموذج الميكانيكي الكمي للذرة"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الوحدة 1",
-      "module": "الوحدة 1",
-      "lesson": "تركيب الإلكترون",
-      "periods": "15 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر"
-     },
-     {
-      "code": "القسم 1",
-      "unit": "الوحدة 2",
-      "module": "الوحدة 2",
-      "lesson": "تطور الجدول الدوري الحديث",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الوحدة 2",
-      "module": "الوحدة 2",
-      "lesson": "تصنيف العناصر",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر: نرتيب العناصر بناءً على الترتيب الإلكتروني دراسة اثرائية: عناصر المجّمعات s, p, d, f"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الوحدة 2",
-      "module": "الوحدة 2",
-      "lesson": "الاتجاهات الدورية",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2025-26 · Term 3 only",
-    "file": "SS_AY25-26, T3_Science_G10_General_AR,040326-DL.xlsx",
-    "lang": "ar"
-   },
    "Maths": {
     "strands": {
      "Chapter 5 المثلثات المتطابقة (Congruent Triangles)": [
@@ -41418,6 +42807,122 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Science": {
+    "strands": {
+     "الوحدة 3": [
+      "الأفكار السابقة حول الذرّة",
+      "تعريف الذرة",
+      "كيف تختلف الذرات",
+      "الأنوية غير المستقرّة والانحلال الإشعاعي"
+     ],
+     "الوحدة 1": [
+      "الضوء والطاقة الكمية (enrichment)",
+      "نظرية الكم والذرة",
+      "تركيب الإلكترون"
+     ],
+     "الوحدة 2": [
+      "تطور الجدول الدوري الحديث",
+      "تصنيف العناصر",
+      "الاتجاهات الدورية"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "القسم 1",
+      "unit": "الوحدة 3",
+      "module": "الوحدة 3",
+      "lesson": "الأفكار السابقة حول الذرّة",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر: قانون حفظ المادة فقط مطالعة اثرائية: جذور النظرية الذريّة"
+     },
+     {
+      "code": "القسم 2",
+      "unit": "الوحدة 3",
+      "module": "الوحدة 3",
+      "lesson": "تعريف الذرة",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر:البروتون والنيوترون (استكمال النموذج الذري) مطالعة اثرائية: الذرّة، والالكترون، والنويدة (تجربة رذرفورد)"
+     },
+     {
+      "code": "القسم 3",
+      "unit": "الوحدة 3",
+      "module": "الوحدة 3",
+      "lesson": "كيف تختلف الذرات",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر مدرسي"
+     },
+     {
+      "code": "القسم 4",
+      "unit": "الوحدة 3",
+      "module": "الوحدة 3",
+      "lesson": "الأنوية غير المستقرّة والانحلال الإشعاعي",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر مدرسي"
+     },
+     {
+      "code": "القسم 1",
+      "unit": "الوحدة 1",
+      "module": "الوحدة 1",
+      "lesson": "الضوء والطاقة الكمية",
+      "periods": "15 حصّة",
+      "type": "enrichment",
+      "note": "مطالعة إثرائية"
+     },
+     {
+      "code": "القسم 2",
+      "unit": "الوحدة 1",
+      "module": "الوحدة 1",
+      "lesson": "نظرية الكم والذرة",
+      "periods": "15 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر : مستويات طاقة الهيددروجين، الأفلاك الذرية لذرة الهيدروجين دراسة إثرائية: طيف الانبعاث الخطي لذرة الهيدروجين، النموذج الميكانيكي الكمي للذرة"
+     },
+     {
+      "code": "القسم 3",
+      "unit": "الوحدة 1",
+      "module": "الوحدة 1",
+      "lesson": "تركيب الإلكترون",
+      "periods": "15 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر"
+     },
+     {
+      "code": "القسم 1",
+      "unit": "الوحدة 2",
+      "module": "الوحدة 2",
+      "lesson": "تطور الجدول الدوري الحديث",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري"
+     },
+     {
+      "code": "القسم 2",
+      "unit": "الوحدة 2",
+      "module": "الوحدة 2",
+      "lesson": "تصنيف العناصر",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر: نرتيب العناصر بناءً على الترتيب الإلكتروني دراسة اثرائية: عناصر المجّمعات s, p, d, f"
+     },
+     {
+      "code": "القسم 3",
+      "unit": "الوحدة 2",
+      "module": "الوحدة 2",
+      "lesson": "الاتجاهات الدورية",
+      "periods": "20 حصّة",
+      "type": "core",
+      "note": "تعلّم مباشر"
+     }
+    ],
+    "source": "MOE Scope & Sequence 2025-26 · Term 3 only — previous curriculum (no new file for this grade/term)",
+    "file": "SS_AY25-26, T3_Science_G10_General_AR,040326-DL.xlsx",
+    "lang": "ar",
+    "previous": true
    }
   }
  },
