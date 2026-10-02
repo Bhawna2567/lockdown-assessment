@@ -6,21 +6,30 @@
     if (document.getElementById('cc-credit')) return;
     const st = document.createElement('style');
     st.textContent = `
-      #cc-credit{position:fixed;top:0;left:0;right:0;width:100%;box-sizing:border-box;z-index:2147483000;
-        display:block;text-align:center;margin:0;
-        background:linear-gradient(90deg,#1e3a8a 0%,#4338ca 55%,#7c3aed 100%);color:#fff;
-        padding:10px 16px;font:500 15px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-        box-shadow:0 2px 10px rgba(15,23,42,.35);border-bottom:1px solid rgba(255,255,255,.18);}
-      #cc-credit strong{color:#fde68a;font-weight:700;}
-      #cc-credit .cc-cr-school{white-space:nowrap;opacity:.95;}
-      @media (max-width:700px){#cc-credit{font-size:13px;padding:8px 10px;}}
+      #cc-credit{position:fixed;top:0;left:0;right:0;width:100%;box-sizing:border-box;z-index:2147483000;margin:0;
+        background:#0f172a;color:#cbd5e1;text-align:center;padding:9px 20px 8px;
+        font:400 13px/1.5 Georgia,"Times New Roman",serif;letter-spacing:.2px;
+        border-bottom:1px solid transparent;
+        border-image:linear-gradient(90deg,transparent,#c9a96e 20%,#e8d5a3 50%,#c9a96e 80%,transparent) 1;}
+      #cc-credit .cc-cr-lbl{font:600 10.5px/1 "Segoe UI",system-ui,-apple-system,Arial,sans-serif;letter-spacing:1.6px;
+        text-transform:uppercase;color:#94a3b8;margin:0 6px;white-space:nowrap;}
+      #cc-credit .cc-cr-name{color:#e8d5a3;font-style:italic;font-size:14px;white-space:nowrap;}
+      #cc-credit .cc-cr-dot{color:#c9a96e;margin:0 10px;}
+      #cc-credit .cc-cr-school{color:#cbd5e1;white-space:nowrap;}
+      #cc-credit .cc-cr-line{display:block;line-height:1.55;}
+      #cc-credit .cc-cr-by{line-height:1.2;margin:1px 0;}
+      #cc-credit .cc-cr-by .cc-cr-lbl{font-size:9.5px;color:#c9a96e;}
+      @media (max-width:760px){#cc-credit{font-size:12px;padding:7px 12px;} #cc-credit .cc-cr-name{font-size:12.5px;} #cc-credit .cc-cr-dot{margin:0 6px;}}
       @media print{#cc-credit{display:none !important;} body{padding-top:0 !important;}}
       body.cc-in-exam #cc-credit{display:none !important;}`;
     document.head.appendChild(st);
     const bar = document.createElement('div');
     bar.id = 'cc-credit';
     bar.setAttribute('role', 'note');
-    bar.innerHTML = '🏅 Developed under the guidance of <strong>Fanda Salem Ahmed Helais Alkaabi</strong> by <strong>Bhawna Sharma</strong> <span class="cc-cr-school">(Al Noaimiyah Girls School – Cycle 1, 2 &amp; 3)</span>';
+    bar.innerHTML =
+      '<div class="cc-cr-line"><span class="cc-cr-lbl">Developed under the guidance of</span> <span class="cc-cr-name">Fanda Salem Ahmed Helais Alkaabi</span></div>' +
+      '<div class="cc-cr-line cc-cr-by"><span class="cc-cr-lbl">by</span></div>' +
+      '<div class="cc-cr-line"><span class="cc-cr-name">Bhawna Sharma</span><span class="cc-cr-dot">◆</span><span class="cc-cr-school">Al Noaimiyah Girls School — Cycle 1, 2 &amp; 3</span></div>';
     document.body.insertBefore(bar, document.body.firstChild);
     // Push the page down by the bar's height so nothing is hidden under it.
     const basePad = parseFloat(getComputedStyle(document.body).paddingTop) || 0;
