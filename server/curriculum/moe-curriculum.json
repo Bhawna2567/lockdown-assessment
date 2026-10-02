@@ -34941,173 +34941,6 @@
  },
  "10A": {
   "1": {
-   "Chemistry": {
-    "strands": {
-     "Electrons in Atoms": [
-      "Light and quantum energy (enrichment)",
-      "Quantum Theory and Atoms",
-      "Electron Configuration"
-     ],
-     "The Periodic Table and Periodic Law": [
-      "Development of the Modern Periodic Table",
-      "Classification of the Elements",
-      "Periodic Trends"
-     ],
-     "Ionic Compounds and Metals": [
-      "Ion Formation",
-      "Ionic Bonds and Ionic Compounds",
-      "Names and Formulas for Ionic Compounds",
-      "Metallic Bonds and the Properties of Metals"
-     ],
-     "Covalent Bonding": [
-      "The Covalent Bond",
-      "Naming Molecules",
-      "Molecular Structures",
-      "Molecular Shapes (enrichment)",
-      "Electronegativity and Polarity (enrichment)"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U1M4L1",
-      "unit": "Structure and properties of matter",
-      "module": "Electrons in Atoms",
-      "lesson": "Light and quantum energy",
-      "periods": "7 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U1M4L2",
-      "unit": "Structure and properties of matter",
-      "module": "Electrons in Atoms",
-      "lesson": "Quantum Theory and Atoms",
-      "periods": "7 periods",
-      "type": "core",
-      "note": "Direct Learning: Energy States of Hydrogen, Hydrogen atomic orbitals Enrichment Learning : The quantum mechanincal model of the atom"
-     },
-     {
-      "code": "U1M4L3",
-      "unit": "Structure and properties of matter",
-      "module": "Electrons in Atoms",
-      "lesson": "Electron Configuration",
-      "periods": "7 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U1M5L1",
-      "unit": "Structure and properties of matter",
-      "module": "The Periodic Table and Periodic Law",
-      "lesson": "Development of the Modern Periodic Table",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct Learning (in 2 periods) The Modern Periodic table Part is required only Enrichment: The development of the periodic table"
-     },
-     {
-      "code": "U1M5L2",
-      "unit": "Structure and properties of matter",
-      "module": "The Periodic Table and Periodic Law",
-      "lesson": "Classification of the Elements",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct learning: Organizing the elements by electrons configurations Enrichment: the s-,p-,d-, and f- blocks elements"
-     },
-     {
-      "code": "U1M5L3",
-      "unit": "Structure and properties of matter",
-      "module": "The Periodic Table and Periodic Law",
-      "lesson": "Periodic Trends",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U2M6L1",
-      "unit": "Chemical bonding and reaction",
-      "module": "Ionic Compounds and Metals",
-      "lesson": "Ion Formation",
-      "periods": "13 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U2M6L2",
-      "unit": "Chemical bonding and reaction",
-      "module": "Ionic Compounds and Metals",
-      "lesson": "Ionic Bonds and Ionic Compounds",
-      "periods": "13 periods",
-      "type": "core",
-      "note": "Direct Learning Enrichment: Energy and the Ionic Bond"
-     },
-     {
-      "code": "U2M6L3",
-      "unit": "Chemical bonding and reaction",
-      "module": "Ionic Compounds and Metals",
-      "lesson": "Names and Formulas for Ionic Compounds",
-      "periods": "13 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U2M6L4",
-      "unit": "Chemical bonding and reaction",
-      "module": "Ionic Compounds and Metals",
-      "lesson": "Metallic Bonds and the Properties of Metals",
-      "periods": "13 periods",
-      "type": "core",
-      "note": "Direct learning: Metallic bonds Enrichment: Metal Alloys"
-     },
-     {
-      "code": "U2M7L1",
-      "unit": "Chemical bonding and reaction",
-      "module": "Covalent Bonding",
-      "lesson": "The Covalent Bond",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Self Learning Direct learning"
-     },
-     {
-      "code": "U2M7L2",
-      "unit": "Chemical bonding and reaction",
-      "module": "Covalent Bonding",
-      "lesson": "Naming Molecules",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U2M7L3",
-      "unit": "Chemical bonding and reaction",
-      "module": "Covalent Bonding",
-      "lesson": "Molecular Structures",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U2M7L4",
-      "unit": "Chemical bonding and reaction",
-      "module": "Covalent Bonding",
-      "lesson": "Molecular Shapes",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U2M7L5",
-      "unit": "Chemical bonding and reaction",
-      "module": "Covalent Bonding",
-      "lesson": "Electronegativity and Polarity",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, CHM G10 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -37540,134 +37373,485 @@
     "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
     "lang": "en",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Chemistry": {
     "strands": {
-     "Chemical reactions": [
-      "Reactions and Equations",
-      "Classifying Chemical Reactions",
-      "Reactions in Aqueous Solutions"
+     "U1M4 Electrons in Atoms": [
+      "U1M4L1 — Light and quantum energy",
+      "CHM.5.1.01.001 — Compare between Bohr model and the quantum mechanics model of atom and Illustrate the effect of the dual nature 'wave-particle\" of De Broglie and Heisenberg's uncertainty principle on the current view of electrons in atom while determining the relationship between the energy levels of the hydrogen atom and its sublevels and atomic orbits",
+      "CHM.5.1.01.002 — Identify the four quantum numbers and their respective significance and calculates the number of electrons in each level",
+      "CHM.5.1.01.003 — Write the electronic configuration of a variety of elements of the periodic table and ions, employing the Pauli exclusion principle, the Hund rule, and the Aufbau principle for upward building",
+      "CHM.5.1.02.001 — Explain the used steps to draw Lewis structures"
      ],
-     "The Mole": [
-      "Measuring Matter",
-      "Mass and the Mole",
-      "Moles of Compounds",
-      "Empirical and Molecular Formulas",
-      "Formulas of Hydrates (enrichment)"
+     "U1M5 The Periodic Table and Periodic Law": [
+      "CHM.5.1.01.004 — Explore the location of elements in the periodic table based on their electron configuration and predict their chemical and physical properties",
+      "CHM.5.1.01.010 — Describe the different groups of elements in the periodic table and predict the physical and chemical properties of each group",
+      "CHM.5.1.01.007 — Identify the location of Lanthanides and Actinide in the periodic table while illustrating some of their uses",
+      "CHM.5.1.01.005 — Identify the special symbols on chemicals and the effects of chemicals on public health and the environment, and how to read chemical-safety documents, laboratory working procedures, safe handling of chemicals and general hazards.",
+      "CHM.5.1.01.008 — Determine the properties of the elements in each block (s, p, d) of the periodic table explaining the relation between the element's location in the periodic table, its properties and its electron configuration",
+      "CHM.5.1.01.009 — Predict the periodic properties of elements (e.g: atomic radius, ionization energy, electron affinity and electronegativity) in the period and group in the periodic table.",
+      "CHM.5.1.01.011 — Predict the periodicity of electronegativity in the periodic table, explaining the type of bonds formed between the elements (e.g, Ionic, covalent and metallic bonds)"
      ],
-     "Stoichiometry": [
-      "Defining Stoichiometry",
-      "Stoichiometric Calculations",
-      "Limiting Reactants"
+     "U2M6 Ionic Compounds and Metals": [
+      "CHM.5.1.02.022 — Explain the structure and properties of ionic compounds based on their bonds types, strength and organization",
+      "CHM.5.1.01.013 — Write chemical formulas for binary and polyatomic compounds or use simulation software to show it, including those that have more than one oxidation number, naming it by using nomenclature system of International Union of Pure and Applied Chemistry (IUPAC)",
+      "CHM.5.1.02.023 — Explain the structure and properties of metallic compounds based on their bonds types, strength and organization"
+     ],
+     "U2M7 Covalent Bonding": [
+      "CHM.5.1.01.011 — Predict the periodicity of electronegativity in the periodic table, explaining the type of bonds formed between the elements (e.g, Ionic, covalent and metallic bonds)",
+      "CHM.5.1.02.001 — Explain the used steps to draw Lewis structures",
+      "CHM.5.1.02.003 — Construct molecular models and write structural formulas for molecular compounds that contain a single bond or multiple bonds",
+      "CHM.5.1.02.007 — Explain how the physical and chemical properties of a solid or liquid depend on the present particles, the type of bonds, and the intermolecular and intramolecular forces",
+      "CHM.5.1.01.014 — Write the chemical formulas for chemical compounds by employing the oxidation number and using the International Union of Pure and Applied Chemistry system( (IUPAC",
+      "CHM.5.1.02.002 — Draw Lewis structures for a number of molecules and ions.",
+      "U2M7L4 — Molecular Shapes",
+      "U2M7L5 — Electronegativity and Polarity"
      ]
     },
     "lessons": [
      {
-      "code": "U2M8L1",
-      "unit": "Chemical bonding and reaction",
-      "module": "Chemical reactions",
-      "lesson": "Reactions and Equations",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M8L2",
-      "unit": "Chemical bonding and reaction",
-      "module": "Chemical reactions",
-      "lesson": "Classifying Chemical Reactions",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M8L3",
-      "unit": "Chemical bonding and reaction",
-      "module": "Chemical reactions",
-      "lesson": "Reactions in Aqueous Solutions",
-      "periods": "12 periods",
-      "type": "core",
-      "note": "Direct learning: Aqeous Solutions, Types of Reactions in aqueous solutions - Reactions that form precipitate with writing complete ionic equation and net ionic equations, reaction that form gases, reaction that form wate"
-     },
-     {
-      "code": "U2M9L1",
-      "unit": "Chemical bonding and reaction",
-      "module": "The Mole",
-      "lesson": "Measuring Matter",
-      "periods": "16 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M9L2",
-      "unit": "Chemical bonding and reaction",
-      "module": "The Mole",
-      "lesson": "Mass and the Mole",
-      "periods": "16 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M9L3",
-      "unit": "Chemical bonding and reaction",
-      "module": "The Mole",
-      "lesson": "Moles of Compounds",
-      "periods": "16 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M9L4",
-      "unit": "Chemical bonding and reaction",
-      "module": "The Mole",
-      "lesson": "Empirical and Molecular Formulas",
-      "periods": "16 periods",
-      "type": "core",
-      "note": "Direct Learning"
-     },
-     {
-      "code": "U2M9L5",
-      "unit": "Chemical bonding and reaction",
-      "module": "The Mole",
-      "lesson": "Formulas of Hydrates",
-      "periods": "16 periods",
+      "code": "U1M4L1",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M4 Electrons in Atoms",
+      "lesson": "Light and quantum energy",
+      "weeks": "Weeks 1–2",
+      "periods": "7 periods",
       "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
       "note": "Enrichment"
      },
      {
-      "code": "U2M10L1",
-      "unit": "Chemical bonding and reaction",
-      "module": "Stoichiometry",
-      "lesson": "Defining Stoichiometry",
-      "periods": "10 periods",
+      "code": "U1M4L2",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M4 Electrons in Atoms",
+      "lesson": "Quantum Theory and Atoms",
+      "weeks": "Weeks 1–2",
+      "periods": "7 periods",
       "type": "core",
-      "note": "Direct Learning"
+      "slos": [
+       {
+        "code": "CHM.5.1.01.001",
+        "text": "Compare between Bohr model and the quantum mechanics model of atom and Illustrate the effect of the dual nature 'wave-particle\" of De Broglie and Heisenberg's uncertainty principle on the current view of electrons in atom while determining the relationship between the energy levels of the hydrogen atom and its sublevels and atomic orbits",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.002",
+        "text": "Identify the four quantum numbers and their respective significance and calculates the number of electrons in each level",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Ground State",
+       "Quantum Number",
+       "De Broglie Equation",
+       "Heisenberg Uncertainty Principle",
+       "Quantum Mechanical Model of the",
+       "Atomic Orbital",
+       "Principal Quantum Number",
+       "Principal Energy Level",
+       "Energy Sublevels"
+      ],
+      "note": "Direct Learning: Energy States of Hydrogen, Hydrogen atomic orbitals Enrichment Learning : The quantum mechanincal model of the atom",
+      "objectives": "Apply the idea of quantized energy to the atom, helping them understand how different colors of light can signal different elements in stars.",
+      "focusQuestion": "Why does every element produce a unique atomic emission spectrum?",
+      "misconceptions": [
+       "Hydrogen’s energy levels are evenly spaced."
+      ]
      },
      {
-      "code": "U2M10L2",
-      "unit": "Chemical bonding and reaction",
-      "module": "Stoichiometry",
-      "lesson": "Stoichiometric Calculations",
-      "periods": "10 periods",
+      "code": "U1M4L3",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M4 Electrons in Atoms",
+      "lesson": "Electron Configuration",
+      "weeks": "Weeks 1–2",
+      "periods": "7 periods",
       "type": "core",
-      "note": "Direct Learning"
+      "slos": [
+       {
+        "code": "CHM.5.1.01.003",
+        "text": "Write the electronic configuration of a variety of elements of the periodic table and ions, employing the Pauli exclusion principle, the Hund rule, and the Aufbau principle for upward building",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.02.001",
+        "text": "Explain the used steps to draw Lewis structures",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Aufbau Principle",
+       "Pauli Exclusion Principle",
+       "Hund’s Rule",
+       "Valence Electrons",
+       "Electron-dot-structure"
+      ],
+      "note": "Direct learning",
+      "objectives": "Model the arrangements of electrons in atoms.",
+      "focusQuestion": "How are electrons arranged in atoms?"
      },
      {
-      "code": "U2M10L3",
-      "unit": "Chemical bonding and reaction",
-      "module": "Stoichiometry",
-      "lesson": "Limiting Reactants",
+      "code": "U1M5L1",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M5 The Periodic Table and Periodic Law",
+      "lesson": "Development of the Modern Periodic Table",
+      "weeks": "Weeks 2–4",
       "periods": "8 periods",
       "type": "core",
-      "note": "Direct Learning"
+      "slos": [
+       {
+        "code": "CHM.5.1.01.004",
+        "text": "Explore the location of elements in the periodic table based on their electron configuration and predict their chemical and physical properties",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.010",
+        "text": "Describe the different groups of elements in the periodic table and predict the physical and chemical properties of each group",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.007",
+        "text": "Identify the location of Lanthanides and Actinide in the periodic table while illustrating some of their uses",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.005",
+        "text": "Identify the special symbols on chemicals and the effects of chemicals on public health and the environment, and how to read chemical-safety documents, laboratory working procedures, safe handling of chemicals and general hazards.",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Periodic Law",
+       "Groups",
+       "Periods",
+       "Representative Elements",
+       "Transition Elements",
+       "Metals",
+       "Alkali Metals",
+       "Alkaline Earth Metals",
+       "Transition Metals",
+       "Inner Transition Metals",
+       "Lanthanide Series",
+       "Actinide Series",
+       "Nonmetals",
+       "Halogens",
+       "Noble Gases",
+       "Metalloids"
+      ],
+      "note": "Direct Learning (in 2 periods) The Modern Periodic table Part is required only Enrichment: The development of the periodic table",
+      "objectives": "Outline the history of the periodic table and describe why How are the elements organized in the periodic elements are arranged in it and how to extract information m the table.",
+      "focusQuestion": "table?",
+      "misconceptions": [
+       "Only a limited amount of information can be inferred by an element’s position on the periodic table."
+      ]
+     },
+     {
+      "code": "U1M5L2",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M5 The Periodic Table and Periodic Law",
+      "lesson": "Classification of the Elements",
+      "weeks": "Weeks 2–4",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.004",
+        "text": "Explore the location of elements in the periodic table based on their electron configuration and predict their chemical and physical properties",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.008",
+        "text": "Determine the properties of the elements in each block (s, p, d) of the periodic table explaining the relation between the element's location in the periodic table, its properties and its electron configuration",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [],
+      "note": "Direct learning: Organizing the elements by electrons configurations Enrichment: the s-,p-,d-, and f- blocks elements",
+      "objectives": "Connect the organization of the periodic table to the Why do elements in the same group have similar organization of electrons in atoms, while solidifying understanding of the table’s construction and analyzing trends on the table.",
+      "focusQuestion": "properties?"
+     },
+     {
+      "code": "U1M5L3",
+      "unit": "U1 Structure and properties of matter",
+      "module": "U1M5 The Periodic Table and Periodic Law",
+      "lesson": "Periodic Trends",
+      "weeks": "Weeks 2–4",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.009",
+        "text": "Predict the periodic properties of elements (e.g: atomic radius, ionization energy, electron affinity and electronegativity) in the period and group in the periodic table.",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.011",
+        "text": "Predict the periodicity of electronegativity in the periodic table, explaining the type of bonds formed between the elements (e.g, Ionic, covalent and metallic bonds)",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Ion",
+       "Ionization Energy",
+       "Octet Rule",
+       "Electronegativity"
+      ],
+      "note": "Direct learning",
+      "objectives": "Explain the basic trends on the periodic table and the How can you use the periodic table to predict a asons for these trends. properties?",
+      "focusQuestion": "n element’s"
+     },
+     {
+      "code": "U2M6L1",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M6 Ionic Compounds and Metals",
+      "lesson": "Ion Formation",
+      "weeks": "Weeks 4–7",
+      "periods": "13 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.02.022",
+        "text": "Explain the structure and properties of ionic compounds based on their bonds types, strength and organization",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Chemical Bond",
+       "Cation",
+       "Anion"
+      ],
+      "note": "Direct learning",
+      "objectives": "Explain the formation of ions, including the loss or gain of electrons, and Why do elements form compounds? relate ion formation to the structure of ionic compounds."
+     },
+     {
+      "code": "U2M6L2",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M6 Ionic Compounds and Metals",
+      "lesson": "Ionic Bonds and Ionic Compounds",
+      "weeks": "Weeks 4–7",
+      "periods": "13 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.02.022",
+        "text": "Explain the structure and properties of ionic compounds based on their bonds types, strength and organization",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Ionic Bond",
+       "Ionic Compounds",
+       "Crystal Lattice",
+       "Electrolyte",
+       "Lattice Energy"
+      ],
+      "note": "Direct Learning Enrichment: Energy and the Ionic Bond",
+      "objectives": "Describe how ionic bonds form through electrostatic attraction and analyze How are the ions in ionic compounds arranged? how these bonds determine the structure and properties of ionic compounds."
+     },
+     {
+      "code": "U2M6L3",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M6 Ionic Compounds and Metals",
+      "lesson": "Names and Formulas for Ionic Compounds",
+      "weeks": "Weeks 4–7",
+      "periods": "13 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.02.022",
+        "text": "Explain the structure and properties of ionic compounds based on their bonds types, strength and organization",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.01.013",
+        "text": "Write chemical formulas for binary and polyatomic compounds or use simulation software to show it, including those that have more than one oxidation number, naming it by using nomenclature system of International Union of Pure and Applied Chemistry (IUPAC)",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Formula Unit",
+       "Monatomic Ion",
+       "Polyatomic Ions",
+       "Oxyanion"
+      ],
+      "note": "Direct learning",
+      "objectives": "Apply standard nomenclature rules to name ionic compounds and write What are the names and formulas of ionic correct chemical formulas based on ion charges. compounds?",
+      "misconceptions": [
+       "Formula units represent actual numbers of atoms."
+      ]
+     },
+     {
+      "code": "U2M6L4",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M6 Ionic Compounds and Metals",
+      "lesson": "Metallic Bonds and the Properties of Metals",
+      "weeks": "Weeks 4–7",
+      "periods": "13 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.02.023",
+        "text": "Explain the structure and properties of metallic compounds based on their bonds types, strength and organization",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Electron Sea Model",
+       "Delocalized Electrons",
+       "Metallic Bond",
+       "Alloy"
+      ],
+      "note": "Direct learning: Metallic bonds Enrichment: Metal Alloys",
+      "objectives": "Explain metallic bonding and evaluate how bonding influences the physical How do metals and ionic compounds compare perties of metals (e.g., conductivity, malleability). and contrast?"
+     },
+     {
+      "code": "U2M7L1",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M7 Covalent Bonding",
+      "lesson": "The Covalent Bond",
+      "weeks": "Weeks 8–10",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.011",
+        "text": "Predict the periodicity of electronegativity in the periodic table, explaining the type of bonds formed between the elements (e.g, Ionic, covalent and metallic bonds)",
+        "priority": "Power Outcome",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.02.001",
+        "text": "Explain the used steps to draw Lewis structures",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.02.003",
+        "text": "Construct molecular models and write structural formulas for molecular compounds that contain a single bond or multiple bonds",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.02.007",
+        "text": "Explain how the physical and chemical properties of a solid or liquid depend on the present particles, the type of bonds, and the intermolecular and intramolecular forces",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Covalent Bond",
+       "Molecule",
+       "Lewis Structure",
+       "Sigma Bonds",
+       "Pi Bond",
+       "Endothermic Reaction",
+       "Exothermic Reaction"
+      ],
+      "note": "Self Learning Direct learning",
+      "objectives": "Explore how atoms can gain stability from sharing electrons, foundational to understanding the bonding in water",
+      "focusQuestion": "How do atoms bond in covalent molecules?"
+     },
+     {
+      "code": "U2M7L2",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M7 Covalent Bonding",
+      "lesson": "Naming Molecules",
+      "weeks": "Weeks 8–10",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.014",
+        "text": "Write the chemical formulas for chemical compounds by employing the oxidation number and using the International Union of Pure and Applied Chemistry system( (IUPAC",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Oxyacid"
+      ],
+      "note": "Direct learning",
+      "objectives": "Name molecules, as well as write formulas from the formal names. How do you name molecules?"
+     },
+     {
+      "code": "U2M7L3",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M7 Covalent Bonding",
+      "lesson": "Molecular Structures",
+      "weeks": "Weeks 8–10",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.02.003",
+        "text": "Construct molecular models and write structural formulas for molecular compounds that contain a single bond or multiple bonds",
+        "priority": "Support Outcome (Basic)",
+        "kpis": []
+       },
+       {
+        "code": "CHM.5.1.02.002",
+        "text": "Draw Lewis structures for a number of molecules and ions.",
+        "priority": "Power Outcome",
+        "kpis": []
+       }
+      ],
+      "vocabulary": [
+       "Structural Formula",
+       "Resonance",
+       "Coordinate Covalent Bonding"
+      ],
+      "note": "Direct learning",
+      "objectives": "Write structural formulas for molecules, including molecules that are How are electrons shared in covalent structures? exceptions to the octet rule."
+     },
+     {
+      "code": "U2M7L4",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M7 Covalent Bonding",
+      "lesson": "Molecular Shapes",
+      "weeks": "Weeks 8–10",
+      "periods": "12 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U2M7L5",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M7 Covalent Bonding",
+      "lesson": "Electronegativity and Polarity",
+      "weeks": "Weeks 8–10",
+      "periods": "12 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, CHM G10 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Chemistry 2026-27 Grade 10 Advanced: Scope & Sequence + SLO table & lesson details from the Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true,
+    "note": "Term 1 2026-27 = 11 teaching weeks (excluding exam preparation and exam weeks)."
+   }
+  },
+  "2": {
    "Maths": {
     "strands": {
      "Int II Module 05 Circles": [
@@ -38285,188 +38469,167 @@
     "source": "MOE Physics 2026-27: Scope & Sequence",
     "lang": "en",
     "withSLOs": false
-   }
-  },
-  "3": {
+   },
    "Chemistry": {
     "strands": {
-     "Stoichiometry": [
-      "Percent Yield"
+     "U2M8 Chemical reactions": [
+      "U2M8L1 — Reactions and Equations",
+      "U2M8L2 — Classifying Chemical Reactions",
+      "U2M8L3 — Reactions in Aqueous Solutions"
      ],
-     "State of Matter": [
-      "Gases",
-      "Forces of Attraction (enrichment)",
-      "Liquids and Solids (enrichment)",
-      "Phase Changes (enrichment)"
+     "U2M9 The Mole": [
+      "U2M9L1 — Measuring Matter",
+      "U2M9L2 — Mass and the Mole",
+      "U2M9L3 — Moles of Compounds",
+      "U2M9L4 — Empirical and Molecular Formulas",
+      "U2M9L5 — Formulas of Hydrates"
      ],
-     "Gases": [
-      "The Gas Laws",
-      "The Ideal gas law",
-      "Gas Stoichiometry (enrichment)"
-     ],
-     "Mixtures and Solutions": [
-      "Types of Mixtures",
-      "Solution Concentration",
-      "Factors Affecting Solvation",
-      "Colligative Properties of Solutions (enrichment)"
-     ],
-     "Nuclear Chemistry": [
-      "Nuclear Radiation (enrichment)",
-      "Radioactive Decay (enrichment)",
-      "Nuclear Reactions (enrichment)",
-      "Applications and Effects of Nuclear Reactions (enrichment)"
+     "U2M10 Stoichiometry": [
+      "U2M10L1 — Defining Stoichiometry",
+      "U2M10L2 — Stoichiometric Calculations",
+      "U2M10L3 — Limiting Reactants"
      ]
     },
     "lessons": [
      {
-      "code": "U2M10L4",
-      "unit": "Chemical bonding and reaction",
-      "module": "Stoichiometry",
-      "lesson": "Percent Yield",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct Learning: How much Product, Theoratical and actual yields Enrichment: Percent yield in the market place"
-     },
-     {
-      "code": "U3M11L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "State of Matter",
-      "lesson": "Gases",
-      "periods": "5 periods",
-      "type": "core",
-      "note": "Direct Learning: The Kinetic theory, Explaining the Behavior of gases, Dalton's law of partial pressure Enrichment: Air Pressure"
-     },
-     {
-      "code": "U3M11L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "State of Matter",
-      "lesson": "Forces of Attraction",
-      "periods": "5 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M11L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "State of Matter",
-      "lesson": "Liquids and Solids",
-      "periods": "5 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M11L4",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "State of Matter",
-      "lesson": "Phase Changes",
-      "periods": "5 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M12L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Gases",
-      "lesson": "The Gas Laws",
-      "periods": "10 periods",
-      "type": "core",
-      "note": "In-school direct learning / Virtual direct learning"
-     },
-     {
-      "code": "U3M12L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Gases",
-      "lesson": "The Ideal gas law",
-      "periods": "10 periods",
-      "type": "core",
-      "note": "In-school direct learning / Virtual direct learning"
-     },
-     {
-      "code": "U3M12L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Gases",
-      "lesson": "Gas Stoichiometry",
-      "periods": "10 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M13L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Mixtures and Solutions",
-      "lesson": "Types of Mixtures",
+      "code": "U2M8L1",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M8 Chemical reactions",
+      "lesson": "Reactions and Equations",
+      "weeks": "",
       "periods": "12 periods",
       "type": "core",
-      "note": "Direct Learning: Suspension, Colloids, Forming of solutions, Solutions: solubility and miscibility Self Learning: Heterogeneous and homogeneous Mixture Discriptions Enrichment: Brownian Motion, Electrostatic Layering, Ty"
-     },
-     {
-      "code": "U3M13L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Mixtures and Solutions",
-      "lesson": "Solution Concentration",
-      "periods": "12 periods",
-      "type": "core",
+      "slos": [],
+      "vocabulary": [],
       "note": "Direct Learning"
      },
      {
-      "code": "U3M13L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Mixtures and Solutions",
-      "lesson": "Factors Affecting Solvation",
+      "code": "U2M8L2",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M8 Chemical reactions",
+      "lesson": "Classifying Chemical Reactions",
+      "weeks": "",
       "periods": "12 periods",
       "type": "core",
-      "note": "Direct Learning: The Solvation Process, Factors that affect Solvation, Solubility (Staurated solutions, unsaturated solutions, temperature and supersaturated solutions) Enrichment:Heat of Solution, Solubility of gases, P"
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
      },
      {
-      "code": "U3M13L4",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Mixtures and Solutions",
-      "lesson": "Colligative Properties of Solutions",
+      "code": "U2M8L3",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M8 Chemical reactions",
+      "lesson": "Reactions in Aqueous Solutions",
+      "weeks": "",
       "periods": "12 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning: Aqeous Solutions, Types of Reactions in aqueous solutions - Reactions that form precipitate with writing complete ionic equation and net ionic equations, reaction that form gases, reaction that form water) Enrichment: Overall Equations"
+     },
+     {
+      "code": "U2M9L1",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M9 The Mole",
+      "lesson": "Measuring Matter",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
+     },
+     {
+      "code": "U2M9L2",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M9 The Mole",
+      "lesson": "Mass and the Mole",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
+     },
+     {
+      "code": "U2M9L3",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M9 The Mole",
+      "lesson": "Moles of Compounds",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
+     },
+     {
+      "code": "U2M9L4",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M9 The Mole",
+      "lesson": "Empirical and Molecular Formulas",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
+     },
+     {
+      "code": "U2M9L5",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M9 The Mole",
+      "lesson": "Formulas of Hydrates",
+      "weeks": "",
+      "periods": "16 periods",
       "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
       "note": "Enrichment"
      },
      {
-      "code": "U5M23L1",
-      "unit": "Organic and Nuclear chemistry",
-      "module": "Nuclear Chemistry",
-      "lesson": "Nuclear Radiation",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
+      "code": "U2M10L1",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M10 Stoichiometry",
+      "lesson": "Defining Stoichiometry",
+      "weeks": "",
+      "periods": "10 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
      },
      {
-      "code": "U5M23L2",
-      "unit": "Organic and Nuclear chemistry",
-      "module": "Nuclear Chemistry",
-      "lesson": "Radioactive Decay",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
+      "code": "U2M10L2",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M10 Stoichiometry",
+      "lesson": "Stoichiometric Calculations",
+      "weeks": "",
+      "periods": "10 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
      },
      {
-      "code": "U5M23L3",
-      "unit": "Organic and Nuclear chemistry",
-      "module": "Nuclear Chemistry",
-      "lesson": "Nuclear Reactions",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U5M23L4",
-      "unit": "Organic and Nuclear chemistry",
-      "module": "Nuclear Chemistry",
-      "lesson": "Applications and Effects of Nuclear Reactions",
-      "periods": "12 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
+      "code": "U2M10L3",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M10 Stoichiometry",
+      "lesson": "Limiting Reactants",
+      "weeks": "",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, CHM G10 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Chemistry 2026-27 Grade 10 Advanced: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Maths": {
     "strands": {
      "Int III Module 01 Quadratic Functions (from A2)": [
@@ -39193,6 +39356,233 @@
      }
     ],
     "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   },
+   "Chemistry": {
+    "strands": {
+     "U2M10 Stoichiometry": [
+      "U2M10L4 — Percent Yield"
+     ],
+     "U3M11 State of Matter": [
+      "U3M11L1 — Gases",
+      "U3M11L2 — Forces of Attraction",
+      "U3M11L3 — Liquids and Solids",
+      "U3M11L4 — Phase Changes"
+     ],
+     "U3M12 Gases": [
+      "U3M12L1 — The Gas Laws",
+      "U3M12L2 — The Ideal gas law",
+      "U3M12L3 — Gas Stoichiometry"
+     ],
+     "U3M13 Mixtures and Solutions": [
+      "U3M13L1 — Types of Mixtures",
+      "U3M13L2 — Solution Concentration",
+      "U3M13L3 — Factors Affecting Solvation",
+      "U3M13L4 — Colligative Properties of Solutions"
+     ],
+     "U5M23 Nuclear Chemistry": [
+      "U5M23L1 — Nuclear Radiation",
+      "U5M23L2 — Radioactive Decay",
+      "U5M23L3 — Nuclear Reactions",
+      "U5M23L4 — Applications and Effects of Nuclear Reactions"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M10L4",
+      "unit": "U2 Chemical bonding and reaction",
+      "module": "U2M10 Stoichiometry",
+      "lesson": "Percent Yield",
+      "weeks": "",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning: How much Product, Theoratical and actual yields Enrichment: Percent yield in the market place"
+     },
+     {
+      "code": "U3M11L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M11 State of Matter",
+      "lesson": "Gases",
+      "weeks": "",
+      "periods": "5 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning: The Kinetic theory, Explaining the Behavior of gases, Dalton's law of partial pressure Enrichment: Air Pressure"
+     },
+     {
+      "code": "U3M11L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M11 State of Matter",
+      "lesson": "Forces of Attraction",
+      "weeks": "",
+      "periods": "5 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M11L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M11 State of Matter",
+      "lesson": "Liquids and Solids",
+      "weeks": "",
+      "periods": "5 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M11L4",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M11 State of Matter",
+      "lesson": "Phase Changes",
+      "weeks": "",
+      "periods": "5 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M12L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M12 Gases",
+      "lesson": "The Gas Laws",
+      "weeks": "",
+      "periods": "10 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "In-school direct learning / Virtual direct learning"
+     },
+     {
+      "code": "U3M12L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M12 Gases",
+      "lesson": "The Ideal gas law",
+      "weeks": "",
+      "periods": "10 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "In-school direct learning / Virtual direct learning"
+     },
+     {
+      "code": "U3M12L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M12 Gases",
+      "lesson": "Gas Stoichiometry",
+      "weeks": "",
+      "periods": "10 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M13L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M13 Mixtures and Solutions",
+      "lesson": "Types of Mixtures",
+      "weeks": "",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning: Suspension, Colloids, Forming of solutions, Solutions: solubility and miscibility Self Learning: Heterogeneous and homogeneous Mixture Discriptions Enrichment: Brownian Motion, Electrostatic Layering, Tyndall Effect"
+     },
+     {
+      "code": "U3M13L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M13 Mixtures and Solutions",
+      "lesson": "Solution Concentration",
+      "weeks": "",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning"
+     },
+     {
+      "code": "U3M13L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M13 Mixtures and Solutions",
+      "lesson": "Factors Affecting Solvation",
+      "weeks": "",
+      "periods": "12 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct Learning: The Solvation Process, Factors that affect Solvation, Solubility (Staurated solutions, unsaturated solutions, temperature and supersaturated solutions) Enrichment:Heat of Solution, Solubility of gases, Pressure and Henry's Law"
+     },
+     {
+      "code": "U3M13L4",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M13 Mixtures and Solutions",
+      "lesson": "Colligative Properties of Solutions",
+      "weeks": "",
+      "periods": "12 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U5M23L1",
+      "unit": "U5 Organic and Nuclear chemistry",
+      "module": "U5M23 Nuclear Chemistry",
+      "lesson": "Nuclear Radiation",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U5M23L2",
+      "unit": "U5 Organic and Nuclear chemistry",
+      "module": "U5M23 Nuclear Chemistry",
+      "lesson": "Radioactive Decay",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U5M23L3",
+      "unit": "U5 Organic and Nuclear chemistry",
+      "module": "U5M23 Nuclear Chemistry",
+      "lesson": "Nuclear Reactions",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U5M23L4",
+      "unit": "U5 Organic and Nuclear chemistry",
+      "module": "U5M23 Nuclear Chemistry",
+      "lesson": "Applications and Effects of Nuclear Reactions",
+      "weeks": "",
+      "periods": "",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     }
+    ],
+    "source": "MOE Chemistry 2026-27 Grade 10 Advanced: Scope & Sequence",
     "lang": "en",
     "withSLOs": false
    }
@@ -42928,99 +43318,6 @@
  },
  "11A": {
   "1": {
-   "Chemistry": {
-    "strands": {
-     "Energy and Chemical Change": [
-      "Energy",
-      "Heat",
-      "Thermochemical Equations",
-      "Calculating Enthalpy Change",
-      "Reaction Spontaneity (enrichment)"
-     ],
-     "Reaction Rates": [
-      "A Model for Reaction Rates",
-      "Factors Affecting Reaction Rates (enrichment)",
-      "Reaction Rate Laws"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "U3M14L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Energy and Chemical Change",
-      "lesson": "Energy",
-      "periods": "14 periods",
-      "type": "core",
-      "note": "Direct learning : Measuring Heat, Specific heat Enrichment: The nature of Energy"
-     },
-     {
-      "code": "U3M14L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Energy and Chemical Change",
-      "lesson": "Heat",
-      "periods": "14 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U3M14L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Energy and Chemical Change",
-      "lesson": "Thermochemical Equations",
-      "periods": "14 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U3M14L4",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Energy and Chemical Change",
-      "lesson": "Calculating Enthalpy Change",
-      "periods": "14 periods",
-      "type": "core",
-      "note": "Direct learning"
-     },
-     {
-      "code": "U3M14L5",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Energy and Chemical Change",
-      "lesson": "Reaction Spontaneity",
-      "periods": "14 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M15L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Reaction Rates",
-      "lesson": "A Model for Reaction Rates",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct Learning: Expressing reaction rates, Collision Theory Enrichment: Sponteity and Reaction rate"
-     },
-     {
-      "code": "U3M15L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Reaction Rates",
-      "lesson": "Factors Affecting Reaction Rates",
-      "periods": "8 periods",
-      "type": "enrichment",
-      "note": "Enrichment"
-     },
-     {
-      "code": "U3M15L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Reaction Rates",
-      "lesson": "Reaction Rate Laws",
-      "periods": "8 periods",
-      "type": "core",
-      "note": "Direct learning"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
-    "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
    "Biology": {
     "strands": {
      "U2M8 Cellular energy": [
@@ -45659,62 +45956,414 @@
     "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
     "lang": "en",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Chemistry": {
     "strands": {
-     "Reaction Rates": [
-      "Reaction Instantaneous and Reaction Rates Mechanisms"
+     "U3M14 Energy and Chemical Change": [
+      "CHM.5.5.01.001 — Describe the energy changes resulting from the physical changes (e.g. boiling water), chemical reactions (steam cleaning) and nuclear reactions (e.g. nuclear fission, nuclear fusion), in terms of energy releasing or absorbing.",
+      "CHM.5.5.01.002 — Solve problems involving changes in temperature and state using the equations (e.g. Q=mcΔT)",
+      "CHM.5.5.01.004 — Predict the type of chemical reaction (exothermic, endothermic)",
+      "CHM.5.5.01.006 — Write thermochemical equations, expressing the energy changes in term of ΔH value",
+      "CHM.5.5.01.003 — Draw and Analyze the heating and cooling curves which show temperature and state changes for various substances",
+      "CHM.5.5.02.004 — Use energy curves of chemical reactions to infer exothermic and endothermic reactions",
+      "CHM.5.5.02.001 — Apply Hess's Law to find enthalpy changes of the final reaction",
+      "CHM.5.5.02.002 — Solve the problems related to the energy changes in the chemical reaction using Hess's Law",
+      "CHM.5.5.02.006 — Calculate the enthalpy of reaction for a specific reaction, using the table of standard enthalpies of formation and applying Hess’s law",
+      "CHM.5.5.02.007 — Illustrate the relation between enthalpy change (ΔH) and the tendency of a reaction to occur",
+      "CHM.5.5.02.008 — Illustrate the relation between entropy change (ΔS) and the tendency of a reaction to occur",
+      "CHM.5.5.02.009 — Calculate the free energy value (ΔG) and use it to determine the tendency of a reaction to occur"
      ],
-     "Chemical Equilibrium": [
-      "A State of Dynamic Balance",
-      "Factors Affecting Chemical Equilibrium",
-      "Using Equilibrium Constants"
+     "U3M15 Reaction Rates": [
+      "CHM.5.4.01.001 — Explain, through reference to a simple chemical reaction how the rate of a reaction is determined by the series of elementary steps that make up the overall reaction mechanism",
+      "CHM.5.4.01.020 — Calculate the average and instantaneous reaction rates of simple and complex chemical reactions",
+      "CHM.5.4.01.002 — Conclude (by using the collision theory and energy diagrams) the effect of different factors on the chemical reaction rate",
+      "CHM.5.4.01.022 — Interpret the reaction mechanism of a simple or complex reaction while identifying its rate-determining step in several reaction conditions",
+      "U3M15L2 — Factors Affecting Reaction Rates",
+      "CHM.5.4.01.005 — Relate the order of a reaction to the rate law for this reaction while employing the method of initial rates in determening the rate, concentration, reaction order and specific rate constant of a chemical reaction",
+      "CHM.5.4.01.006 — Employ the rate law to determine the rate, concentration, reaction order, reactants orders and specific rate constant of a chemical reaction"
      ]
     },
     "lessons": [
      {
-      "code": "U3M15L4",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Reaction Rates",
-      "lesson": "Reaction Instantaneous and Reaction Rates Mechanisms",
-      "periods": "4 periods",
+      "code": "U3M14L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M14 Energy and Chemical Change",
+      "lesson": "Energy",
+      "weeks": "Weeks 1 to 7",
+      "periods": "14 periods",
       "type": "core",
-      "note": "Direct learning: Instantaneous reaction rates Enrichment: Reaction meachanisms"
+      "slos": [
+       {
+        "code": "CHM.5.5.01.001",
+        "text": "Describe the energy changes resulting from the physical changes (e.g. boiling water), chemical reactions (steam cleaning) and nuclear reactions (e.g. nuclear fission, nuclear fusion), in terms of energy releasing or absorbing.",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define Energy, Potential Energy and Kinetic Energy",
+         "State the law of conservation of energy",
+         "Define chemical potential energy",
+         "Describe how chemical energy related to the heat lost or gained in chemical reactions (Exothermic and Endothermic reactions)",
+         "Compare and contrast temperature and heat",
+         "List the units of temperature and heat",
+         "Perform interconversion between units of temperature and heat",
+         "Describe the relationship between the specific heat capacity of a substance and the resistance to change in temperature",
+         "Describe how the same amount of heat affects the temperature of different objects of the same mass"
+        ]
+       },
+       {
+        "code": "CHM.5.5.01.002",
+        "text": "Solve problems involving changes in temperature and state using the equations (e.g. Q=mcΔT)",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Calculate the amount of heat absorbed by a substance as its temperature changes",
+         "Calculate the amount of heat released by a substance as its temperature changes",
+         "Calculate the specific heat capacity of a sample given its mass and temperature change"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Energy —",
+       "Law of Conservation of Energy —",
+       "Chemical Potential Energy —",
+       "Heat —",
+       "Calorie —",
+       "Joule —",
+       "Specific Heat —"
+      ],
+      "note": "Direct learning : Measuring Heat, Specific heat Enrichment: The nature of Energy",
+      "objectives": "Examine the nature of energy in chemical reactions, What is energy? establishing the foundation for analyzing heat released by a reaction.",
+      "misconceptions": [
+       "Heat and temperature are the same thing"
+      ]
      },
      {
-      "code": "U3M16L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Chemical Equilibrium",
-      "lesson": "A State of Dynamic Balance",
-      "periods": "12 periods",
+      "code": "U3M14L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M14 Energy and Chemical Change",
+      "lesson": "Heat",
+      "weeks": "Weeks 1 to 7",
+      "periods": "14 periods",
       "type": "core",
-      "note": "Self Learning (What is equilibrium) Direct learning"
+      "slos": [
+       {
+        "code": "CHM.5.5.01.002",
+        "text": "Solve problems involving changes in temperature and state using the equations (e.g. Q=mcΔT)",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define calorimetry",
+         "Define calorimeter",
+         "Describe the two types of calorimeter (Bomb calorimeter & Coffee-cup calorimeter)",
+         "Perform different calculations in a calorimetry experiment (for mixing aqueous solutions)",
+         "Perform different calculations in a calorimetry experiment (For adding a metal to water)"
+        ]
+       },
+       {
+        "code": "CHM.5.5.01.004",
+        "text": "Predict the type of chemical reaction (exothermic, endothermic)",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define thermochemistry",
+         "Differentiate among the system, the surrounding and the universe",
+         "Identify direction of heat flow (For Exothermic and endothermic processes)",
+         "Compare and contrast potential energy diagrams of exothermic and endothermic reactions in terms of general shape, enthalpy of reactants and products, activation energy of forward and backward reactions, and enthalpy of reaction and its sign",
+         "Perform and conduct an experiment to differentiate between exothermic and endothermic reactions"
+        ]
+       },
+       {
+        "code": "CHM.5.5.01.006",
+        "text": "Write thermochemical equations, expressing the energy changes in term of ΔH value",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define enthalpy (H)",
+         "Define enthalpy change of reaction (∆ Hrxn) while writing the equation used",
+         "Perform and conduct an experiment to determine the enthalpy of a chemical reaction"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "Direct learning",
+      "objectives": "Explore heat in chemical processes and how How are heat and temperature related? thermochemistry defines heat changes in terms of system and surroundings."
      },
      {
-      "code": "U3M16L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Chemical Equilibrium",
-      "lesson": "Factors Affecting Chemical Equilibrium",
-      "periods": "12 periods",
+      "code": "U3M14L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M14 Energy and Chemical Change",
+      "lesson": "Thermochemical Equations",
+      "weeks": "Weeks 1 to 7",
+      "periods": "14 periods",
       "type": "core",
-      "note": "Direct learning (explanation through an experiment)"
+      "slos": [
+       {
+        "code": "CHM.5.5.01.006",
+        "text": "Write thermochemical equations, expressing the energy changes in term of ΔH value",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define thermochemical equation",
+         "Write thermochemical equation for exothermic and endothermic reactions",
+         "Calculate the enthalpy change for different thermochemical reactions",
+         "Define enthalpy (heat) of combustion, ∆Hcomb, while determining on what basis it is defined",
+         "Write a thermochemical equation for the combustion of a compound, while including the sign of ΔH and identifing whether reaction is exothermic or endothermic",
+         "Perform calculations using enthalpy of combustion",
+         "Write thermochemical equation for the changes of state (vaporization, fusion, condensation and solidification)"
+        ]
+       },
+       {
+        "code": "CHM.5.5.01.003",
+        "text": "Draw and Analyze the heating and cooling curves which show temperature and state changes for various substances",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define molar enthalpy (heat) of vaporization, ∆Hvap",
+         "Define molar enthalpy (heat) of fusion, ∆Hfus",
+         "Define molar enthalpy (heat) of condensation, ∆Hcond",
+         "Define molar enthalpy (heat) of solidification, ∆Hsolid",
+         "Perform phase-change calculations using enthalpy of fusion, vaporization, condensation and solidification",
+         "Perform and conduct an experiment to determine the heat of fusion of ice"
+        ]
+       },
+       {
+        "code": "CHM.5.5.02.004",
+        "text": "Use energy curves of chemical reactions to infer exothermic and endothermic reactions",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Interpret the enrgy diagram of the phase changes for water (Using heating and cooling curves of water)"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Thermochemical Equation —",
+       "Enthalpy (heat) of Combustion —",
+       "Molar Enthalpy (heat) of Vaporization",
+       "Molar Enthalpy (heat) of Fusion —"
+      ],
+      "note": "Direct learning",
+      "objectives": "Write thermochemical equations and use them to calculate Why do you include energy changes in chemical equat gy released in a chemical reaction.",
+      "focusQuestion": "ions?"
      },
      {
-      "code": "U3M16L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Chemical Equilibrium",
-      "lesson": "Using Equilibrium Constants",
-      "periods": "12 periods",
+      "code": "U3M14L4",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M14 Energy and Chemical Change",
+      "lesson": "Calculating Enthalpy Change",
+      "weeks": "Weeks 1 to 7",
+      "periods": "14 periods",
       "type": "core",
-      "note": "Direct learning: Calculating Equilibrium Concentration, Writing solubility product constant expressions, using solubility product constants Enrichment: Predicting precipiate, calculating ion concentrations, The common io"
+      "slos": [
+       {
+        "code": "CHM.5.5.02.001",
+        "text": "Apply Hess's Law to find enthalpy changes of the final reaction",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "State Hess's Law",
+         "Describe the rules to be followed to apply Hess's Law"
+        ]
+       },
+       {
+        "code": "CHM.5.5.02.002",
+        "text": "Solve the problems related to the energy changes in the chemical reaction using Hess's Law",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Calculate, using Hess's law, the ∆H of a reaction"
+        ]
+       },
+       {
+        "code": "CHM.5.5.02.006",
+        "text": "Calculate the enthalpy of reaction for a specific reaction, using the table of standard enthalpies of formation and applying Hess’s law",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define standard enthalpy of formation of a compound, ∆Hfo, while determining on what basis it is defined",
+         "Identify the standard enthalpy (heat) of formation of a free element in its standard state",
+         "Calculate, using the standard enthalpies of formation, the Enthalpy of a reaction, ∆Hrxn",
+         "Calculate enthalpy of reaction (∆Hrxn) using standard enthalpies of formation of products and reactants while using the sign of ∆H for determining if the reaction is exothermic or endothermic"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Hess’s Law —",
+       "Standard Enthalpy (heat) of Formation —"
+      ],
+      "note": "Direct learning",
+      "objectives": "Apply Hess’s law and the summation equation to determine How much energy is released when rocket fuel reacts enthalpy changes in chemical processes.",
+      "focusQuestion": "?"
+     },
+     {
+      "code": "U3M14L5",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M14 Energy and Chemical Change",
+      "lesson": "Reaction Spontaneity",
+      "weeks": "Weeks 1 to 7",
+      "periods": "14 periods",
+      "type": "enrichment",
+      "slos": [
+       {
+        "code": "CHM.5.5.02.007",
+        "text": "Illustrate the relation between enthalpy change (ΔH) and the tendency of a reaction to occur",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define a spontaneous process"
+        ]
+       },
+       {
+        "code": "CHM.5.5.02.008",
+        "text": "Illustrate the relation between entropy change (ΔS) and the tendency of a reaction to occur",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define entropy, S, while identifying its unit",
+         "List the two driving factors for all chemical reactions",
+         "Recall the first, second and third laws of thermodynamics",
+         "Predict the change in the entropy of a system, 〖∆S〗_System (According to a set of rules)",
+         "Identify, from a list of given reactions, the reaction that shows an increase or decrease in entropy",
+         "Calculate entropy change using the table of standard values of entropies",
+         "Describe how can entropy be used to determine whether a chemical reaction is more or less likely to be spontaneous"
+        ]
+       },
+       {
+        "code": "CHM.5.5.02.009",
+        "text": "Calculate the free energy value (ΔG) and use it to determine the tendency of a reaction to occur",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define free energy while identifying its unit",
+         "Describe free energy change and standard free energy change",
+         "Explain the relationship among the signs of ∆G, ∆H, ∆S that lead to spontaneous or non-spontaneous reaction taking into consideration the temperature conditions",
+         "Calculate free energy change, ∆G, when ∆H, ∆S , and temperature (in Kelvin or Celsius) are given while determining whether reaction is spontaneous or nonspontaneous",
+         "Describe the significance of different values of Gibb’s free energy (> 0, < 0, = 0)",
+         "Calculate standard Gibb’s free energy change using the table of standard values"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M15L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M15 Reaction Rates",
+      "lesson": "A Model for Reaction Rates",
+      "weeks": "Weeks 8 to 11",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.4.01.001",
+        "text": "Explain, through reference to a simple chemical reaction how the rate of a reaction is determined by the series of elementary steps that make up the overall reaction mechanism",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define reaction rate while identifying its unit",
+         "Explain what the reaction rate indicates about a particular chemical reaction",
+         "Use a plot of concentration versus time to describe the progress of the reaction in terms of change in the concentration of reactants and products",
+         "Describe the relationship between reactant concentration and reaction rate"
+        ]
+       },
+       {
+        "code": "CHM.5.4.01.020",
+        "text": "Calculate the average and instantaneous reaction rates of simple and complex chemical reactions",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Calculate the average reaction rate using the rate of consumption of reactants or the rate of production of products",
+         "Compare the concentrations of the reactants and products during the course of a chemical reaction (assuming no additional reactants are added)",
+         "Compare the average reaction rate measured over an initial, short time interval to one measured over a long time interval",
+         "Perform and conduct an experiment to determine the reaction rate"
+        ]
+       },
+       {
+        "code": "CHM.5.4.01.002",
+        "text": "Conclude (by using the collision theory and energy diagrams) the effect of different factors on the chemical reaction rate",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe collision theory",
+         "Explain why a collision between two particles is necessary for a reaction to occur",
+         "List the two conditions, according to the collision theory, that must be met for a collision between reactant molecules to be effective in producing new chemical species",
+         "List the assumptions of the collision theory"
+        ]
+       },
+       {
+        "code": "CHM.5.4.01.022",
+        "text": "Interpret the reaction mechanism of a simple or complex reaction while identifying its rate-determining step in several reaction conditions",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define activated complex",
+         "Define activation energy, Ea",
+         "Describe the relationship between activation energy and rate of the reaction",
+         "Interpret exothermic and endothermic reactions using the collision theory",
+         "Interpret how the rate of a chemical reaction is related to the spontaneity of the reaction"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Reaction Rate —",
+       "Collision Theory —",
+       "Activated Complex —",
+       "Activation Energy —"
+      ],
+      "note": "Direct Learning: Expressing reaction rates, Collision Theory Enrichment: Sponteity and Reaction rate",
+      "objectives": "Calculate an average reaction rate and use collision theory to How do you determine how fast a reaction is going? explain how substances react."
+     },
+     {
+      "code": "U3M15L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M15 Reaction Rates",
+      "lesson": "Factors Affecting Reaction Rates",
+      "weeks": "",
+      "periods": "8 periods",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Enrichment"
+     },
+     {
+      "code": "U3M15L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M15 Reaction Rates",
+      "lesson": "Reaction Rate Laws",
+      "weeks": "Weeks 8 to 11",
+      "periods": "8 periods",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.4.01.005",
+        "text": "Relate the order of a reaction to the rate law for this reaction while employing the method of initial rates in determening the rate, concentration, reaction order and specific rate constant of a chemical reaction",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain what the rate law for a chemical reaction tells about the reaction",
+         "Explain the function of the specific rate constant (k) in rate law equation",
+         "Identify under what circumstance the specific rate constant (k) is not a constant",
+         "Identify the relation between the size of specific rate constant (k) and rate of reaction",
+         "Explain how the exponents in the rate equation for a chemical reaction relate to the coefficients in the chemical equation",
+         "Write the unit of specific rate constant (k) for different orders of reaction",
+         "Write the rate law for a first order reaction",
+         "Describe the graph for a first order reaction",
+         "Write the rate law for a chemical reaction at a given temperature",
+         "Describe the method of initial rates"
+        ]
+       },
+       {
+        "code": "CHM.5.4.01.006",
+        "text": "Employ the rate law to determine the rate, concentration, reaction order, reactants orders and specific rate constant of a chemical reaction",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Use the method of initial rates to determine the order of a reaction with respect to each reactant",
+         "Use the method of initial rates to write rate law of reaction",
+         "Use the method of initial rates to calculate the specific rate constant and identify its unit",
+         "Use the method of initial rates to calculate the concentration of reactants",
+         "Use the method of initial rates to calculate the initial rate of the reaction"
+        ]
+       }
+      ],
+      "vocabulary": [
+       "Rate Law —",
+       "Specific Rate Constant —",
+       "Reaction Order —",
+       "Method of Initial Rates —"
+      ],
+      "note": "Direct learning",
+      "objectives": "rate laws for reactions and determine reaction order. What is the relationship between reaction rate and concentration?"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
-    "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Chemistry 2026-27 Grade 11 Advanced (Elective Scenario 2): Scope & Sequence + Instructional Plan (SLOs & KPIs) + SLO table & lesson details from the Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true,
+    "note": "Term 1 2026-27 = 11 teaching weeks (excluding exam preparation and exam weeks)."
+   }
+  },
+  "2": {
    "Biology": {
     "strands": {
      "U1M4 Population ecology": [
@@ -46819,60 +47468,74 @@
     "source": "MOE Physics 2026-27: Scope & Sequence",
     "lang": "en",
     "withSLOs": false
-   }
-  },
-  "3": {
+   },
    "Chemistry": {
     "strands": {
-     "Acids and Bases": [
-      "Introduction to Acids and Bases",
-      "Strengths of Acids and Bases",
-      "Hydrogen Ions and pH",
-      "Neutralization"
+     "U3M15 Reaction Rates": [
+      "U3M15L4 — Reaction Instantaneous and Reaction Rates Mechanisms"
+     ],
+     "U3M16 Chemical Equilibrium": [
+      "U3M16L1 — A State of Dynamic Balance",
+      "U3M16L2 — Factors Affecting Chemical Equilibrium",
+      "U3M16L3 — Using Equilibrium Constants"
      ]
     },
     "lessons": [
      {
-      "code": "U3M17L1",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Acids and Bases",
-      "lesson": "Introduction to Acids and Bases",
-      "periods": "16 periods",
+      "code": "U3M15L4",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M15 Reaction Rates",
+      "lesson": "Reaction Instantaneous and Reaction Rates Mechanisms",
+      "weeks": "",
+      "periods": "4 periods",
       "type": "core",
-      "note": "Direct learning"
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning: Instantaneous reaction rates Enrichment: Reaction meachanisms"
      },
      {
-      "code": "U3M17L2",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Acids and Bases",
-      "lesson": "Strengths of Acids and Bases",
-      "periods": "16 periods",
+      "code": "U3M16L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M16 Chemical Equilibrium",
+      "lesson": "A State of Dynamic Balance",
+      "weeks": "",
+      "periods": "12 periods",
       "type": "core",
-      "note": "Direct learning"
+      "slos": [],
+      "vocabulary": [],
+      "note": "Self Learning (What is equilibrium) Direct learning"
      },
      {
-      "code": "U3M17L3",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Acids and Bases",
-      "lesson": "Hydrogen Ions and pH",
-      "periods": "16 periods",
+      "code": "U3M16L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M16 Chemical Equilibrium",
+      "lesson": "Factors Affecting Chemical Equilibrium",
+      "weeks": "",
+      "periods": "12 periods",
       "type": "core",
-      "note": "Direct learning Self Learning (experiment + applications)"
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning (explanation through an experiment)"
      },
      {
-      "code": "U3M17L4",
-      "unit": "Matter, Energy, and equilibrium",
-      "module": "Acids and Bases",
-      "lesson": "Neutralization",
-      "periods": "16 periods",
+      "code": "U3M16L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M16 Chemical Equilibrium",
+      "lesson": "Using Equilibrium Constants",
+      "weeks": "",
+      "periods": "12 periods",
       "type": "core",
-      "note": "Direct learning: Reactions between acids and bases Self learning (experiment +applications) Enrichment (Salt Hydrolysis)"
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning: Calculating Equilibrium Concentration, Writing solubility product constant expressions, using solubility product constants Enrichment: Predicting precipiate, calculating ion concentrations, The common ion Effet"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
-    "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
-    "lang": "en"
-   },
+    "source": "MOE Chemistry 2026-27 Grade 11 Advanced (Elective Scenario 2): Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Biology": {
     "strands": {
      "U6M27 Immune system": [
@@ -47680,143 +48343,74 @@
     "source": "MOE Physics 2026-27: Scope & Sequence",
     "lang": "en",
     "withSLOs": false
+   },
+   "Chemistry": {
+    "strands": {
+     "U3M17 Acids and Bases": [
+      "U3M17L1 — Introduction to Acids and Bases",
+      "U3M17L2 — Strengths of Acids and Bases",
+      "U3M17L3 — Hydrogen Ions and pH",
+      "U3M17L4 — Neutralization"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U3M17L1",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M17 Acids and Bases",
+      "lesson": "Introduction to Acids and Bases",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning"
+     },
+     {
+      "code": "U3M17L2",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M17 Acids and Bases",
+      "lesson": "Strengths of Acids and Bases",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning"
+     },
+     {
+      "code": "U3M17L3",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M17 Acids and Bases",
+      "lesson": "Hydrogen Ions and pH",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning Self Learning (experiment + applications)"
+     },
+     {
+      "code": "U3M17L4",
+      "unit": "U3 Matter, Energy, and equilibrium",
+      "module": "U3M17 Acids and Bases",
+      "lesson": "Neutralization",
+      "weeks": "",
+      "periods": "16 periods",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "Direct learning: Reactions between acids and bases Self learning (experiment +applications) Enrichment (Salt Hydrolysis)"
+     }
+    ],
+    "source": "MOE Chemistry 2026-27 Grade 11 Advanced (Elective Scenario 2): Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
  "11G": {
   "1": {
-   "Chemistry": {
-    "strands": {
-     "الإلكترونات في الذرة": [
-      "الضوء والطاقة الكمية (enrichment)",
-      "نظرية الكم والذرة",
-      "تركيب الإلكترون"
-     ],
-     "الجدول الدوري": [
-      "تطور الجدول الدوري الحديث",
-      "تصنيف العناصر",
-      "الاتجاهات الدورية"
-     ],
-     "الفلزات والمركبات الأيونية": [
-      "تكون الأيون",
-      "الروابط الأيونية والمركبات الأيونية"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "القسم 1",
-      "unit": "الإلكترونات في الذرة",
-      "module": "الإلكترونات في الذرة",
-      "lesson": "الضوء والطاقة الكمية",
-      "periods": "4 حصص",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الإلكترونات في الذرة",
-      "module": "الإلكترونات في الذرة",
-      "lesson": "نظرية الكم والذرة",
-      "periods": "4 حصص",
-      "type": "review",
-      "note": "مراجعة ما تمت دراسته في الصف التاسع من المسار العام تعلّم مباشر : مستويات طاقة الهيددروجين، الأفلاك الذرية لذرة الهيدروجين مطالعة إثرائية: طيف الانبعاث الخطي لذرة الهيدروجين، النموذج الميكانيكي الكمي للذرة"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الإلكترونات في الذرة",
-      "module": "الإلكترونات في الذرة",
-      "lesson": "تركيب الإلكترون",
-      "periods": "4 حصص",
-      "type": "review",
-      "note": "مراجعة ما تمت دراسته في الصف التاسع من المسار العام تعلّم مباشر"
-     },
-     {
-      "code": "القسم 1",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "تطور الجدول الدوري الحديث",
-      "periods": "8 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري",
-      "lessonPlanSample": {
-       "module": "U1M5: The Periodic Table and Periodic Law",
-       "lesson": "Lesson 1: Development of the Modern Periodic Table (2 periods)",
-       "slos": [
-        "CHM.5.1.01.004 Explore the location of elements in the periodic table based on their electron configuration and predict their chemical and physical properties",
-        "CHM.5.1.01.010 Describe the different groups of elements in the periodic table and predict the physical and chemical properties of each group",
-        "CHM.5.1.01.007 Identify the location of Lanthanides and Actinide in the periodic table while illustrating some of their uses",
-        "CHM.5.1.01.005 Identify the special symbols on chemicals and the effects of chemicals on public health and the environment, and how to read chemical-safety documents, laboratory working procedures, safe handling of chemicals and general hazards."
-       ],
-       "priorKnowledge": [
-        "The Periodic Table and Periodic Law",
-        "Structure of the atom",
-        "Electron configuration, valence electrons, and electron -dot structures"
-       ],
-       "objectives": "Students will outline the history of the periodic table and describe why elements are arranged in it and how to extract information from the table.",
-       "misconceptions": [
-        "Students may think only a limited amount of information can be inferred from an element’s position on the periodic table"
-       ],
-       "vocabulary": [
-        "Periodic Law-  القانون الدوري",
-        "Groups-  المجموعات",
-        "Periods-  الدورات",
-        "Representative Elements-  العناصر الرئيسة",
-        "Transition Elements-  العناصر الانتقالية",
-        "Metals-  الفلزّات",
-        "Alkali Metals-  الفلزّات القلوية",
-        "Alkaline Earth Metals-  الفلزّات القلوية الأرضية",
-        "Transition Metals -  الفلزّات الانتقالية",
-        "Inner Transition Metals-  الفلزّات الانتقالية الداخلية",
-        "Lanthanide Series-  سلسلة اللانثانيدات",
-        "Actinide Series-  سلسلة الأكتينيدات",
-        "Nonmetals-  اللافلزّات",
-        "Halogens-  الهالوجينات",
-        "Noble Gases-  الغازات النبيلة",
-        "Metalloids-  أشباه الفلزّات"
-       ]
-      }
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "تصنيف العناصر",
-      "periods": "8 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر: نرتيب العناصر بناءً على الترتيب الإلكتروني مطالعة إثرائية: عناصر المجّمعات s, p, d, f"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الجدول الدوري",
-      "module": "الجدول الدوري",
-      "lesson": "الاتجاهات الدورية",
-      "periods": "8 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر"
-     },
-     {
-      "code": "القسم 1",
-      "unit": "الفلزات والمركبات الأيونية",
-      "module": "الفلزات والمركبات الأيونية",
-      "lesson": "تكون الأيون",
-      "periods": "8 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الفلزات والمركبات الأيونية",
-      "module": "الفلزات والمركبات الأيونية",
-      "lesson": "الروابط الأيونية والمركبات الأيونية",
-      "periods": "8 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "Chapter 1: Computing Systems": [
@@ -50250,92 +50844,306 @@
     "source": "MOE Mathematics Scope & Sequence + Instructional Plan 2026-27 (General, Arabic)",
     "lang": "ar",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Chemistry": {
     "strands": {
-     "الفلزات والمركبات الأيونية": [
-      "الأسماء والصيغ للمركبات الأيونية",
-      "الروابط الفلزية"
+     "الوحدة 1: الإلكترونات في الذرة": [
+      "U1L1 — القسم 1: الضوء والطاقة الكمية",
+      "CHM.5.1.01.001 — يقارن بين نموذج بور ونموذج ميكانيكا الكم للذرة ويوضح تأثير الطبيعة المزدوجة، موجة-جسيم، لدى دي بروغلي ومبدأ الشك لهايزنبرح على النظرة الحالية الخاصة بالإلكترونات في الذرة مع تحديد العلاقة بين مستويات الطاقة لذرة الهيدروجين ومستوياتها الفرعية والأفلاك الذرية",
+      "CHM.5.1.01.002 — يحدّد أعداد الكم الأربعة ودلالة كل منها ويحسب أعداد الإلكترونات في المستويات",
+      "CHM.5.1.01.003 — يكتب توزيعا إلكترونيا لمجموعة مختلفة من عناصر الجدول الدوري والأيونات موظفا مبدأ باولي للإستبعاد، وقاعدة هوند، ومبدأ أوفباو للبناء التصاعدي"
      ],
-     "الترابط التساهمي": [
-      "الرابطة التساهمية",
-      "تسمية الجزيئات",
-      "التركيب البنائي للجزيئات (enrichment)",
-      "الشكل الهندسي للجزيئات (enrichment)",
-      "السالبية الكهربائية والقطبية (enrichment)"
+     "الوحدة 2: الجدول الدوري": [
+      "CHM.5.1.01.004 — يستقصي موقع العناصر في الجدول الدوري استنادا إلى تركيبها الإلكتروني ويتنبأ بخصائصها الكيميائية والفيزيائية",
+      "CHM.5.1.01.010 — يصف مجموعات العناصر المختلفة في الجدول الدوري ويتوقع الخصائص الفيزيائية والكيميائية لكل مجموعة",
+      "CHM.5.1.01.007 — يحدّد موقع اللانثنيدات والأكتنيدات في الجدول الدوري مبينًا بعض استخداماتها",
+      "CHM.5.1.01.005 — يحدّد الرموز الخاصة بالمواد الكيميائية وآثارها على الصحة العامة والبيئة وقراءة وثائق السلامة الخاصة بالمواد الكيميائية وإجراءات العمل في المختبرات والتعامل الآمن مع المواد الكيميائية والأخطار العامة",
+      "CHM.5.1.01.008 — يحدد الصفات المميزة للعناصر في كل من مجمعات الجدول الدوري، موضحا العلاقة بين موقع العنصر في الجدول الدوري وخصائصه وتوزيع إلكتروناته",
+      "CHM.5.1.01.009 — يتنبأ بدورية خصائص العناصر مثل نصف القطر الذري وطاقة التأين والميل الإلكتروني في الدورة والمجموعة في الجدول الدوري",
+      "CHM.5.1.01.011 — يتنبأ بتدرج السالبية الكهربائية في الجدول الدوري، موضحا نوع الروابط المتكونة من اتحاد العناصر مع بعضها مثل الروابط الأيونية والتساهمية والفلزية"
+     ],
+     "الوحدة 3: الفلزات والمركبات الأيونية": [
+      "CHM.5.1.02.022 — يفسّر تركيب وخصائص المركّبات الأيونية بالإعتماد على أنواع الروابط وقوّتها وتنظيمها"
      ]
     },
     "lessons": [
      {
-      "code": "القسم 3",
-      "unit": "الفلزات والمركبات الأيونية",
-      "module": "الفلزات والمركبات الأيونية",
-      "lesson": "الأسماء والصيغ للمركبات الأيونية",
+      "code": "U1L1",
+      "unit": "الوحدة 1 الإلكترونات في الذرة",
+      "module": "الوحدة 1: الإلكترونات في الذرة",
+      "lesson": "القسم 1: الضوء والطاقة الكمية",
+      "weeks": "",
+      "periods": "4 حصص",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
+     },
+     {
+      "code": "U1L2",
+      "unit": "الوحدة 1 الإلكترونات في الذرة",
+      "module": "الوحدة 1: الإلكترونات في الذرة",
+      "lesson": "القسم 2: نظرية الكم والذرة",
+      "weeks": "من الأسبوع 1 حتى 2",
+      "periods": "4 حصص",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.001",
+        "text": "يقارن بين نموذج بور ونموذج ميكانيكا الكم للذرة ويوضح تأثير الطبيعة المزدوجة، موجة-جسيم، لدى دي بروغلي ومبدأ الشك لهايزنبرح على النظرة الحالية الخاصة بالإلكترونات في الذرة مع تحديد العلاقة بين مستويات الطاقة لذرة الهيدروجين ومستوياتها الفرعية والأفلاك الذرية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يصف نموذج بور لذرّة الهيدروجين",
+         "يشرح ما هو المقصود بمستويات الطاقة الأساسية وبمستويات الطاقة الفرعية",
+         "يوضّح العلاقة بين مستويات طاقة ذرّة الهيدروجين الأساسية ومستوياتها الفرعية",
+         "يميّز ما بين الحالة الأرضية والحالة المستثارة لذرّة ما",
+         "يصف الأفلاك الذرّية وأشكالها"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.002",
+        "text": "يحدّد أعداد الكم الأربعة ودلالة كل منها ويحسب أعداد الإلكترونات في المستويات",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يصف أرقام الكمّ الأربعة وأهمية كل منها في المساعدة على تتبّع الإلكترونات الموجودة في الذرة",
+         "يحسب عدد المدارات و عدد الإلكترونات في مستويات الطاقة",
+         "يربط رقم الكم الرئيس بعدد إجمالي الأفلاك التابعة لمستويات الطاقة الرئيسة وبعدد الأفلاك في مستويات الطاقة الفرعية"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "مراجعة ما تمت دراسته في الصف التاسع من المسار العام تعلّم مباشر : مستويات طاقة الهيددروجين، الأفلاك الذرية لذرة الهيدروجين مطالعة إثرائية: طيف الانبعاث الخطي لذرة الهيدروجين، النموذج الميكانيكي الكمي للذرة"
+     },
+     {
+      "code": "U1L3",
+      "unit": "الوحدة 1 الإلكترونات في الذرة",
+      "module": "الوحدة 1: الإلكترونات في الذرة",
+      "lesson": "القسم 3: تركيب الإلكترون",
+      "weeks": "من الأسبوع 1 حتى 2",
+      "periods": "4 حصص",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.003",
+        "text": "يكتب توزيعا إلكترونيا لمجموعة مختلفة من عناصر الجدول الدوري والأيونات موظفا مبدأ باولي للإستبعاد، وقاعدة هوند، ومبدأ أوفباو للبناء التصاعدي",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعرّف توزيع الإلكترونات",
+         "يفسّر مبدأ أوفباو ومبدأ باولي للاستبعاد وقاعدة هوند",
+         "يصف مخططات الأفلاك الذرّية",
+         "يكتب الترتيب الإلكتروني للعناصر",
+         "يكتب التوزيع الإلكتروني، الترميز النقطي للإكترون، ومخططات الأفلاك الذرّية، وترميز الغاز النبيل لعناصر مختلفة",
+         "يفسّر الترتيب الإلكتروني للعناصر الإنتقالية"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "مراجعة ما تمت دراسته في الصف التاسع من المسار العام تعلّم مباشر"
+     },
+     {
+      "code": "U2L1",
+      "unit": "الوحدة 1 الجدول الدوري",
+      "module": "الوحدة 2: الجدول الدوري",
+      "lesson": "القسم 1: تطور الجدول الدوري الحديث",
+      "weeks": "من الأسبوع 3 حتى 6",
       "periods": "8 حصص",
       "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.004",
+        "text": "يستقصي موقع العناصر في الجدول الدوري استنادا إلى تركيبها الإلكتروني ويتنبأ بخصائصها الكيميائية والفيزيائية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يوضّح تطوارات الجدول الدوري من مندلييف حتى الجدول الدوري الحديث",
+         "يعرّف السمات والخصائص الرئيسية للجدول الدوري الحديث",
+         "يذكر القانون الدوري",
+         "يحدّد المعلومات التي يمكن عرضها في الجدول الدوري",
+         "يميّز بين المجموعة والدورة في الجدول الدوري",
+         "يشرح ما الذي يحدد طول كل دورة في الجدول الدوري",
+         "يشرح سبب تشابه خصائص العناصر في المجموعة نفسها",
+         "يعدّد العائلات المختلفة في الجدول الدوري مع تحديد رقم المجموعة والعناصر الموجودة",
+         "يميّز بين العناصر الأساسية والعناصر الانتقالية"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.010",
+        "text": "يصف مجموعات العناصر المختلفة في الجدول الدوري ويتوقع الخصائص الفيزيائية والكيميائية لكل مجموعة",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "يصف الخصائص العامة للفلزات واللافلزات وأنصاف الفلزات واستخداماتها",
+         "يصف الخصائص العامة للفلزات القلوية واستخداماتها",
+         "يصف خصائص الخصائص العامة للفلزات القلوية الأرضية واستخداماتها",
+         "يصف الخصائص العامة للهالوجينات واستخداماتها",
+         "يصف الخصائص العامة الغازات النبيلة واستخداماتها"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.007",
+        "text": "يحدّد موقع اللانثنيدات والأكتنيدات في الجدول الدوري مبينًا بعض استخداماتها",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "يقارن ويقابل بين العناصر الإنتقالية (عناصر المجموعات 3 إلى 12) والفلزان الانتقالية الداخلية",
+         "يصف بعض خصائص واستخدامات اللانثانيدات",
+         "يصف بعض خصائص واستخدامات الأكتينيدات"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.005",
+        "text": "يحدّد الرموز الخاصة بالمواد الكيميائية وآثارها على الصحة العامة والبيئة وقراءة وثائق السلامة الخاصة بالمواد الكيميائية وإجراءات العمل في المختبرات والتعامل الآمن مع المواد الكيميائية والأخطار العامة",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "يحدّد قواعد وأنظمة سلامة المختبر، والرموز، وموقع واستخدام جميع معدات السلامة والطوارئ",
+         "يحدّد معدات المختبر المختلفة واستخداماتها وإجراءات السلامة في المختبر"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري"
+     },
+     {
+      "code": "U2L2",
+      "unit": "الوحدة 1 الجدول الدوري",
+      "module": "الوحدة 2: الجدول الدوري",
+      "lesson": "القسم 2: تصنيف العناصر",
+      "weeks": "من الأسبوع 3 حتى 6",
+      "periods": "8 حصص",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.004",
+        "text": "يستقصي موقع العناصر في الجدول الدوري استنادا إلى تركيبها الإلكتروني ويتنبأ بخصائصها الكيميائية والفيزيائية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يوظّف ترميز الترتيب الإلكتروني، وترميز الغاز النبيل للعناصر ، ومخططات الأفلاك الذرّية، وترميز الغاز النبيل للعناصر (Z= 1-36) لتحديد اسم العنصر ورمزه",
+         "يوظّف ترميز الترتيب الإلكتروني، وترميز الغاز النبيل للعناصر ، ومخططات الأفلاك الذرّية، وترميز الغاز النبيل للعناصر (Z= 1-36) لتحديد عدد الكترونات التكافؤ لعنصر ما",
+         "يستنتج الترتيب الإلكتروني للعناصر بالاستناد الى موقعهم في الجدول الدوري (المجموعة والدورة)",
+         "يحدّد موقع العناصر في الجدول الدوري بالاستناد الى الترتيب الإلكتروني الخاص بهم"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.008",
+        "text": "يحدد الصفات المميزة للعناصر في كل من مجمعات الجدول الدوري، موضحا العلاقة بين موقع العنصر في الجدول الدوري وخصائصه وتوزيع إلكتروناته",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يحدّد الصفات المميزة للعناصر في كل من المجمعات (s, p, d ,f) في الجدول الدوري",
+         "يوظّف ترميز الترتيب الإلكتروني، وترميز الغاز النبيل للعناصر ، ومخططات الأفلاك الذرّية، وترميز الغاز النبيل للعناصر (Z= 1-36) لتحديد موقع عنصر ما في الجدول الدوري (الدورة، المجموعة والمجمع)",
+         "يوظّف ترميز الترتيب الإلكتروني، وترميز الغاز النبيل للعناصر ، ومخططات الأفلاك الذرّية، وترميز الغاز النبيل للعناصر (Z= 1-36) لتحديد نوع عنصر ما (فلزات، لا فلزات، عناصر انتقالية، أشباه الفزات)"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: نرتيب العناصر بناءً على الترتيب الإلكتروني مطالعة إثرائية: عناصر المجّمعات s, p, d, f"
+     },
+     {
+      "code": "U2L3",
+      "unit": "الوحدة 1 الجدول الدوري",
+      "module": "الوحدة 2: الجدول الدوري",
+      "lesson": "القسم 3: الاتجاهات الدورية",
+      "weeks": "من الأسبوع 3 حتى 6",
+      "periods": "8 حصص",
+      "type": "core",
+      "slos": [
+       {
+        "code": "CHM.5.1.01.009",
+        "text": "يتنبأ بدورية خصائص العناصر مثل نصف القطر الذري وطاقة التأين والميل الإلكتروني في الدورة والمجموعة في الجدول الدوري",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يذكر الإتجاهات الدورية الخمسة",
+         "يعرّف التدريع الإلكتروني",
+         "يعرّف الشحنة النووية الفعالة (ENC)",
+         "يشرح الاتجاه الدوري للشحنة النووية الفعّالة عبر دورة ما ومجموعة ما من الجدول الدوري (بالتحرك من اليسار حتى اليمين عبر الدورة ومن الأعلى للأسفل عبر المجموعة)",
+         "يعرّف نصف القطر الذري",
+         "يشرح الاتجاه الدوري لأنصاف الأقطار الذرية عبر دورة ما من الجدول الدوري (بالتحرك من اليسار حتى اليمين عبر الدورة ومن الأعلى للأسفل عبر المجموعة)",
+         "يعرّف طاقة التأين (طاقة التأين الأولى)",
+         "يشرح لماذا تكون طاقة التأين الثانية أكبر من طاقة التأين الأولى",
+         "يصف العلاقة بين قيم طاقة التأين وعدد الكترونات التكافؤ والمجموعة التي ينتمي اليها العنصر",
+         "يشرح الاتجاه الدوري لطاقة التأين الأولى عبر دورة ما (بتضمين الاستثناءات بين المجموعات 2 و 3، والمجموعات 5 و 6) ، ومجموعة ما من الجدول الدوري (بالتحرك من اليسار حتى اليمين عبر الدورة ومن الأعلى للأسفل عبر المجموعة)",
+         "يشرح سبب احتواء الغازات النبيلة على أعلى طاقة تأين",
+         "يشرح سبب تطلّب كل عملية تأيّن متتالية للإلكترون قدرًا أكبر من الطاقة",
+         "يفسّر الفرق في الحجم بين الذرة وأيونها (أنيون أو كاتيون)",
+         "يصف الاتجاه الدوري الأنصاف الأقطار الذرية عبر دورة ما ومجموعة ما من الجدول الدوري (بالتحرك من اليسار حتى اليمين عبر الدورة ومن الأعلى للأسفل عبر المجموعة)",
+         "يعرّف الأنواع المتكافئة الكترونيًا معدًدًا أمثلة عليها وفقًا للحجم النسبي للأيون أو الذرة"
+        ]
+       },
+       {
+        "code": "CHM.5.1.01.011",
+        "text": "يتنبأ بتدرج السالبية الكهربائية في الجدول الدوري، موضحا نوع الروابط المتكونة من اتحاد العناصر مع بعضها مثل الروابط الأيونية والتساهمية والفلزية",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعرّف السالبية الكهربائية",
+         "يشرح الاتجاه الدوري للسالبية الكهربائية عبر دورة ما ومجموعة ما من الجدول الدوري (بالتحرك من اليسار حتى اليمين عبر الدورة ومن الأعلى للأسفل عبر المجموعة)",
+         "يصف ما هو غير مألوف في السالبية الكهربائية للغازات النبيلة"
+        ]
+       }
+      ],
+      "vocabulary": [],
       "note": "تعلّم مباشر"
      },
      {
-      "code": "القسم 4",
-      "unit": "الفلزات والمركبات الأيونية",
-      "module": "الفلزات والمركبات الأيونية",
-      "lesson": "الروابط الفلزية",
+      "code": "U3L1",
+      "unit": "الوحدة 2 الفلزات والمركبات الأيونية",
+      "module": "الوحدة 3: الفلزات والمركبات الأيونية",
+      "lesson": "القسم 1: تكون الأيون",
+      "weeks": "من الأسبوع 7 حتى 10",
       "periods": "8 حصص",
       "type": "core",
-      "note": "تعلّم مباشر: الرابطة الفلزية مطالعة إثرائية: السبائك"
+      "slos": [
+       {
+        "code": "CHM.5.1.02.022",
+        "text": "يفسّر تركيب وخصائص المركّبات الأيونية بالإعتماد على أنواع الروابط وقوّتها وتنظيمها",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يعّرف الرابطة الكيميائية مبيّنًا سبب ارتباط العناصر",
+         "يشرح قاعدة الثمانية",
+         "يصف كيفية تكوّن الأيونات (الأيونات الموجبة والسالبة) لتحقّق قاعدة الثمانية",
+         "يربط شحنة الأيون لرقم مجموعة عنصره في الجدول الدوري",
+         "يكتب التوزيع الإلكتروني باستخدام الترميز النقطي للإكترون، ومخططات الأفلاك الذرّية، وترميز الترتيب الإلكتروني، وترميز الغاز النبيل للأيونات",
+         "يعرف الرابطة الأيونية محدّدًأ أنواع العناصر التي تشكلّها وحركة الإلكترونات"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "تعلّم مباشر"
      },
      {
-      "code": "القسم 1",
-      "unit": "الترابط التساهمي",
-      "module": "الترابط التساهمي",
-      "lesson": "الرابطة التساهمية",
-      "periods": "10 حصص",
+      "code": "U3L2",
+      "unit": "الوحدة 2 الفلزات والمركبات الأيونية",
+      "module": "الوحدة 3: الفلزات والمركبات الأيونية",
+      "lesson": "القسم 2: الروابط الأيونية والمركبات الأيونية",
+      "weeks": "من الأسبوع 7 حتى 10",
+      "periods": "8 حصص",
       "type": "core",
-      "note": "تعلّم مباشر مطالعة إثرائية: رابطة سيجما و رابطة باي، قوّة الروابط التساهمية (طول الرابطة، الرابطة والطاقة)"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الترابط التساهمي",
-      "module": "الترابط التساهمي",
-      "lesson": "تسمية الجزيئات",
-      "periods": "10 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر مطالعة إثرائية: تسمية الأحماض"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "الترابط التساهمي",
-      "module": "الترابط التساهمي",
-      "lesson": "التركيب البنائي للجزيئات",
-      "periods": "10 حصص",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 4",
-      "unit": "الترابط التساهمي",
-      "module": "الترابط التساهمي",
-      "lesson": "الشكل الهندسي للجزيئات",
-      "periods": "10 حصص",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 5",
-      "unit": "الترابط التساهمي",
-      "module": "الترابط التساهمي",
-      "lesson": "السالبية الكهربائية والقطبية",
-      "periods": "10 حصص",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
+      "slos": [
+       {
+        "code": "CHM.5.1.02.022",
+        "text": "يفسّر تركيب وخصائص المركّبات الأيونية بالإعتماد على أنواع الروابط وقوّتها وتنظيمها",
+        "priority": "Power Outcome",
+        "kpis": [
+         "يوظّف مخطط لويس (وترميز لويس النقطي) ليفسّر كيف ترتبط عناصر الجدول الدوري لتشكيل مركّب أيوني",
+         "يشرح الخصائص الفيزيائية للمركّبات الأيونية كنقطة الانصهار ونقطة الغليان ، والتوصيل الكهربائي عندما تكون صلبة أو منصهرة أو ذائبة ، بلإضافة الى قابلية ذوبانها في الماء",
+         "يشرح تأثير تطبيق قوة خارجية على البلورة",
+         "يشرح كيف يمكن للمركّب الأيوني المكوّن من جسيمات مشحونة أن يكون متعادلًا كهربائيًا",
+         "يصف تغيّر الطاقة المرتبط بتكوين الرابطة الأيونية ، مع ربطها باستقرار المركّب",
+         "يعرّقف الشبكة البلورية (باستخدام الرسم التخطيطي)",
+         "يعرّف طاقة الشبكة",
+         "يربط طاقة الشبكة بقوة الرابطة الأيونية",
+         "يصف العلاقة بين طاقة الشبكة بشحنات الأيونات",
+         "يصف العلاقة بين طاقة الشبكة وحجم الأيونات",
+         "يجري تجربة لدراسة خصائص المركبات الأيونية"
+        ]
+       }
+      ],
+      "vocabulary": [],
+      "note": "تعلّم مباشر"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
+    "source": "MOE Chemistry 2026-27 الصف 11 عام: Scope & Sequence + Instructional Plan (SLOs & KPIs)",
+    "lang": "ar",
+    "withSLOs": true,
+    "note": "Term 1 2026-27 = 11 teaching weeks (excluding exam preparation and exam weeks)."
+   }
+  },
+  "2": {
    "Health Science": {
     "strands": {
      "Unit 5: Health Promotion": [
@@ -51130,50 +51938,113 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 2 files arrive",
     "lang": "en"
-   }
-  },
-  "3": {
+   },
    "Chemistry": {
     "strands": {
-     "التفاعلات الكيميائية": [
-      "التفاعلات والمعادلات",
-      "تصنيف التفاعلات الكيميائية",
-      "التفاعلات في المحاليل المائية"
+     "الوحدة 3: الفلزات والمركبات الأيونية": [
+      "U3L3 — القسم 3: الأسماء والصيغ للمركبات الأيونية",
+      "U3L4 — القسم 4: الروابط الفلزية"
+     ],
+     "الوحدة 4: الترابط التساهمي": [
+      "U4L1 — القسم 1: الرابطة التساهمية",
+      "U4L2 — القسم 2: تسمية الجزيئات",
+      "U4L3 — القسم 3: التركيب البنائي للجزيئات",
+      "U4L4 — القسم 4: الشكل الهندسي للجزيئات",
+      "U4L5 — القسم 5: السالبية الكهربائية والقطبية"
      ]
     },
     "lessons": [
      {
-      "code": "القسم 1",
-      "unit": "التفاعلات الكيميائية",
-      "module": "التفاعلات الكيميائية",
-      "lesson": "التفاعلات والمعادلات",
-      "periods": "15 حصّة",
+      "code": "U3L3",
+      "unit": "الوحدة 2 الفلزات والمركبات الأيونية",
+      "module": "الوحدة 3: الفلزات والمركبات الأيونية",
+      "lesson": "القسم 3: الأسماء والصيغ للمركبات الأيونية",
+      "weeks": "",
+      "periods": "8 حصص",
       "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر"
      },
      {
-      "code": "القسم 2",
-      "unit": "التفاعلات الكيميائية",
-      "module": "التفاعلات الكيميائية",
-      "lesson": "تصنيف التفاعلات الكيميائية",
-      "periods": "15 حصّة",
+      "code": "U3L4",
+      "unit": "الوحدة 2 الفلزات والمركبات الأيونية",
+      "module": "الوحدة 3: الفلزات والمركبات الأيونية",
+      "lesson": "القسم 4: الروابط الفلزية",
+      "weeks": "",
+      "periods": "8 حصص",
       "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: الرابطة الفلزية مطالعة إثرائية: السبائك"
      },
      {
-      "code": "القسم 3",
-      "unit": "التفاعلات الكيميائية",
-      "module": "التفاعلات الكيميائية",
-      "lesson": "التفاعلات في المحاليل المائية",
-      "periods": "15 حصّة",
+      "code": "U4L1",
+      "unit": "الوحدة 3 الترابط التساهمي",
+      "module": "الوحدة 4: الترابط التساهمي",
+      "lesson": "القسم 1: الرابطة التساهمية",
+      "weeks": "",
+      "periods": "10 حصص",
       "type": "core",
-      "note": "تعلّم مباشر: المحاليل المائية، أنواع التفاعلات في المحاليل المائية، كتابة المعادلات الأيونية الكاملة والصرفة، التفاعلات الكيميائية (التفاعلات التي تشكلّ رسوبات، التفاعلات التي تكوّن، الماء، التفاعلات التى تكوّن الغازات) "
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مطالعة إثرائية: رابطة سيجما و رابطة باي، قوّة الروابط التساهمية (طول الرابطة، الرابطة والطاقة)"
+     },
+     {
+      "code": "U4L2",
+      "unit": "الوحدة 3 الترابط التساهمي",
+      "module": "الوحدة 4: الترابط التساهمي",
+      "lesson": "القسم 2: تسمية الجزيئات",
+      "weeks": "",
+      "periods": "10 حصص",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مطالعة إثرائية: تسمية الأحماض"
+     },
+     {
+      "code": "U4L3",
+      "unit": "الوحدة 3 الترابط التساهمي",
+      "module": "الوحدة 4: الترابط التساهمي",
+      "lesson": "القسم 3: التركيب البنائي للجزيئات",
+      "weeks": "",
+      "periods": "10 حصص",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
+     },
+     {
+      "code": "U4L4",
+      "unit": "الوحدة 3 الترابط التساهمي",
+      "module": "الوحدة 4: الترابط التساهمي",
+      "lesson": "القسم 4: الشكل الهندسي للجزيئات",
+      "weeks": "",
+      "periods": "10 حصص",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
+     },
+     {
+      "code": "U4L5",
+      "unit": "الوحدة 3 الترابط التساهمي",
+      "module": "الوحدة 4: الترابط التساهمي",
+      "lesson": "القسم 5: السالبية الكهربائية والقطبية",
+      "weeks": "",
+      "periods": "10 حصص",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27",
-    "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
+    "source": "MOE Chemistry 2026-27 الصف 11 عام: Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Health Science": {
     "strands": {
      "Unit 9: Digital health": [
@@ -51987,6 +52858,56 @@
     },
     "source": "Masar (GitHub) — previous curriculum, kept until the new Term 3 files arrive",
     "lang": "en"
+   },
+   "Chemistry": {
+    "strands": {
+     "الوحدة 5: التفاعلات الكيميائية": [
+      "U5L1 — القسم 1: التفاعلات والمعادلات",
+      "U5L2 — القسم 2: تصنيف التفاعلات الكيميائية",
+      "U5L3 — القسم 3: التفاعلات في المحاليل المائية"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U5L1",
+      "unit": "الوحدة 4 التفاعلات الكيميائية",
+      "module": "الوحدة 5: التفاعلات الكيميائية",
+      "lesson": "القسم 1: التفاعلات والمعادلات",
+      "weeks": "",
+      "periods": "15 حصّة",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+     },
+     {
+      "code": "U5L2",
+      "unit": "الوحدة 4 التفاعلات الكيميائية",
+      "module": "الوحدة 5: التفاعلات الكيميائية",
+      "lesson": "القسم 2: تصنيف التفاعلات الكيميائية",
+      "weeks": "",
+      "periods": "15 حصّة",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+     },
+     {
+      "code": "U5L3",
+      "unit": "الوحدة 4 التفاعلات الكيميائية",
+      "module": "الوحدة 5: التفاعلات الكيميائية",
+      "lesson": "القسم 3: التفاعلات في المحاليل المائية",
+      "weeks": "",
+      "periods": "15 حصّة",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: المحاليل المائية، أنواع التفاعلات في المحاليل المائية، كتابة المعادلات الأيونية الكاملة والصرفة، التفاعلات الكيميائية (التفاعلات التي تشكلّ رسوبات، التفاعلات التي تكوّن، الماء، التفاعلات التى تكوّن الغازات) مطالعة إثرائية: المعادلات الكلّية"
+     }
+    ],
+    "source": "MOE Chemistry 2026-27 الصف 11 عام: Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
    }
   }
  },
@@ -56762,89 +57683,6 @@
  },
  "12G": {
   "1": {
-   "Chemistry": {
-    "strands": {
-     "المول": [
-      "قياس المادة",
-      "الكتلة والمول",
-      "مولات المركبات",
-      "الصيغ الأولية والجزيئية (enrichment)",
-      "صيغ الهيدرات (enrichment)"
-     ],
-     "الحسابات الكيميائية": [
-      "تعريف الحسابات الكيميائية",
-      "الحسابات الكيميائية النظرية"
-     ]
-    },
-    "lessons": [
-     {
-      "code": "القسم 1",
-      "unit": "المول",
-      "module": "المول",
-      "lesson": "قياس المادة",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "المول",
-      "module": "المول",
-      "lesson": "الكتلة والمول",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
-     },
-     {
-      "code": "القسم 3",
-      "unit": "المول",
-      "module": "المول",
-      "lesson": "مولات المركبات",
-      "periods": "20 حصّة",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
-     },
-     {
-      "code": "القسم 4",
-      "unit": "المول",
-      "module": "المول",
-      "lesson": "الصيغ الأولية والجزيئية",
-      "periods": "20 حصّة",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 5",
-      "unit": "المول",
-      "module": "المول",
-      "lesson": "صيغ الهيدرات",
-      "periods": "20 حصّة",
-      "type": "enrichment",
-      "note": "مطالعة إثرائية"
-     },
-     {
-      "code": "القسم 1",
-      "unit": "الحسابات الكيميائية",
-      "module": "الحسابات الكيميائية",
-      "lesson": "تعريف الحسابات الكيميائية",
-      "periods": "11 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
-     },
-     {
-      "code": "القسم 2",
-      "unit": "الحسابات الكيميائية",
-      "module": "الحسابات الكيميائية",
-      "lesson": "الحسابات الكيميائية النظرية",
-      "periods": "11 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
-     }
-    ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
-    "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
    "AI & Technology": {
     "strands": {
      "AI Literacy": [
@@ -59645,52 +60483,86 @@
     "source": "MOE Physics 2026-27: Scope & Sequence + Instructional Plan + KPIs",
     "lang": "ar",
     "withSLOs": true
-   }
-  },
-  "2": {
+   },
    "Chemistry": {
     "strands": {
-     "الحسابات الكيميائية": [
-      "المتفاعلات المحددة",
-      "النسبة المئوية للمردود (enrichment)"
-     ],
-     "المحاليل والمخاليط": [
-      "أنواع المخاليط"
+     "الوحدة 5: المول": [
+      "U5L1 — القسم 1: قياس المادة",
+      "U5L2 — القسم 2: الكتلة والمول",
+      "U5L3 — القسم 3: مولات المركبات",
+      "U5L4 — القسم 4: الصيغ الأولية والجزيئية",
+      "U5L5 — القسم 5: صيغ الهيدرات"
      ]
     },
     "lessons": [
      {
-      "code": "القسم 3",
-      "unit": "الحسابات الكيميائية",
-      "module": "الحسابات الكيميائية",
-      "lesson": "المتفاعلات المحددة",
-      "periods": "5 حصص",
+      "code": "U5L1",
+      "unit": "الوحدة 5 المول",
+      "module": "الوحدة 5: المول",
+      "lesson": "القسم 1: قياس المادة",
+      "weeks": "",
+      "periods": "20 حصّة",
       "type": "core",
+      "slos": [],
+      "vocabulary": [],
       "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
      },
      {
-      "code": "القسم 4",
-      "unit": "الحسابات الكيميائية",
-      "module": "الحسابات الكيميائية",
-      "lesson": "النسبة المئوية للمردود",
-      "periods": "5 حصص",
+      "code": "U5L2",
+      "unit": "الوحدة 5 المول",
+      "module": "الوحدة 5: المول",
+      "lesson": "القسم 2: الكتلة والمول",
+      "weeks": "",
+      "periods": "20 حصّة",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+     },
+     {
+      "code": "U5L3",
+      "unit": "الوحدة 5 المول",
+      "module": "الوحدة 5: المول",
+      "lesson": "القسم 3: مولات المركبات",
+      "weeks": "",
+      "periods": "20 حصّة",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+     },
+     {
+      "code": "U5L4",
+      "unit": "الوحدة 5 المول",
+      "module": "الوحدة 5: المول",
+      "lesson": "القسم 4: الصيغ الأولية والجزيئية",
+      "weeks": "",
+      "periods": "20 حصّة",
       "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
       "note": "مطالعة إثرائية"
      },
      {
-      "code": "القسم 1",
-      "unit": "المحاليل والمخاليط",
-      "module": "المحاليل والمخاليط",
-      "lesson": "أنواع المخاليط",
-      "periods": "4 حصص",
-      "type": "core",
-      "note": "تعلّم مباشر: الذوبانية وقابلية الإمتزاج دراسة ذاتية: المخاليط المتجانسة والمخاليط الغير متجانسة دراسة اثرائية: الحركة البراونية، ظاهرة تندال، تنافر الطبقات المشحونة"
+      "code": "U5L5",
+      "unit": "الوحدة 5 المول",
+      "module": "الوحدة 5: المول",
+      "lesson": "القسم 5: صيغ الهيدرات",
+      "weeks": "",
+      "periods": "20 حصّة",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
-    "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
+    "source": "MOE Chemistry 2026-27 الصف 12 عام (السيناريو 1): Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false,
+    "note": "Term 1 2026-27 = 11 teaching weeks (excluding exam preparation and exam weeks)."
+   }
+  },
+  "2": {
    "Health Science": {
     "strands": {
      "Unit 5: Disease prevention": [
@@ -60561,50 +61433,72 @@
     "source": "MOE Physics 2026-27: Scope & Sequence",
     "lang": "ar",
     "withSLOs": false
-   }
-  },
-  "3": {
+   },
    "Chemistry": {
     "strands": {
-     "المحاليل والمخاليط": [
-      "تركيز المحلول",
-      "العوامل المؤثرة في الذوبان",
-      "الخصائص التجميعية للمحاليل (enrichment)"
+     "الوحدة 6: الحسابات الكيميائية": [
+      "U6L1 — القسم 1: تعريف الحسابات الكيميائية",
+      "U6L2 — القسم 2: الحسابات الكيميائية النظرية",
+      "U6L3 — القسم 3: المتفاعلات المحددة",
+      "U6L4 — القسم 4: النسبة المئوية للمردود"
      ]
     },
     "lessons": [
      {
-      "code": "القسم 2",
-      "unit": "المحاليل والمخاليط",
-      "module": "المحاليل والمخاليط",
-      "lesson": "تركيز المحلول",
-      "periods": "14 حصص",
+      "code": "U6L1",
+      "unit": "الوحدة 6 الحسابات الكيميائية",
+      "module": "الوحدة 6: الحسابات الكيميائية",
+      "lesson": "القسم 1: تعريف الحسابات الكيميائية",
+      "weeks": "",
+      "periods": "11 حصص",
       "type": "core",
-      "note": "تعلّم مباشر: التعبير عن التركيز، النسبة المئوية بالحجم، النسبة المئوية بالكتلة، المولارية، التخفيف دراسة إثرائية: المولالية، الكسر المولي"
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
      },
      {
-      "code": "القسم 3",
-      "unit": "المحاليل والمخاليط",
-      "module": "المحاليل والمخاليط",
-      "lesson": "العوامل المؤثرة في الذوبان",
-      "periods": "14 حصص",
+      "code": "U6L2",
+      "unit": "الوحدة 6 الحسابات الكيميائية",
+      "module": "الوحدة 6: الحسابات الكيميائية",
+      "lesson": "القسم 2: الحسابات الكيميائية النظرية",
+      "weeks": "",
+      "periods": "11 حصص",
       "type": "core",
-      "note": "تعلّم مباشر: عملية الاذابة، العوامل المؤثرة في الاذابة، الذائبية، (المحاليل غير المشبعة، المحاليل المشبعة والمحاليل فوق المشبعة) دراسة اثرائية: حرارة المحلول، ذائبية الغازات، الضغط و قانون هنري"
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
      },
      {
-      "code": "القسم 4",
-      "unit": "المحاليل والمخاليط",
-      "module": "المحاليل والمخاليط",
-      "lesson": "الخصائص التجميعية للمحاليل",
-      "periods": "14 حصص",
+      "code": "U6L3",
+      "unit": "الوحدة 6 الحسابات الكيميائية",
+      "module": "الوحدة 6: الحسابات الكيميائية",
+      "lesson": "القسم 3: المتفاعلات المحددة",
+      "weeks": "",
+      "periods": "5 حصص",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر مدرسي / تعلّم مباشر افتراضي"
+     },
+     {
+      "code": "U6L4",
+      "unit": "الوحدة 6 الحسابات الكيميائية",
+      "module": "الوحدة 6: الحسابات الكيميائية",
+      "lesson": "القسم 4: النسبة المئوية للمردود",
+      "weeks": "",
+      "periods": "5 حصص",
       "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
       "note": "مطالعة إثرائية"
      }
     ],
-    "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 1",
-    "file": "S&S, CHM G12 GEN, Scenario 1, Ar, AY 26-27.xlsx",
-    "lang": "ar"
-   },
+    "source": "MOE Chemistry 2026-27 الصف 12 عام (السيناريو 1): Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
+   }
+  },
+  "3": {
    "Health Science": {
     "strands": {
      "Unit 9: Pharmacy": [
@@ -61411,6 +62305,69 @@
      }
     ],
     "source": "MOE Physics 2026-27: Scope & Sequence",
+    "lang": "ar",
+    "withSLOs": false
+   },
+   "Chemistry": {
+    "strands": {
+     "الوحدة 7: المحاليل والمخاليط": [
+      "U7L1 — القسم 1: أنواع المخاليط",
+      "U7L2 — القسم 2: تركيز المحلول",
+      "U7L3 — القسم 3: العوامل المؤثرة في الذوبان",
+      "U7L4 — القسم 4: الخصائص التجميعية للمحاليل"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U7L1",
+      "unit": "الوحدة 7 المحاليل والمخاليط",
+      "module": "الوحدة 7: المحاليل والمخاليط",
+      "lesson": "القسم 1: أنواع المخاليط",
+      "weeks": "",
+      "periods": "4 حصص",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: الذوبانية وقابلية الإمتزاج دراسة ذاتية: المخاليط المتجانسة والمخاليط الغير متجانسة دراسة اثرائية: الحركة البراونية، ظاهرة تندال، تنافر الطبقات المشحونة"
+     },
+     {
+      "code": "U7L2",
+      "unit": "الوحدة 7 المحاليل والمخاليط",
+      "module": "الوحدة 7: المحاليل والمخاليط",
+      "lesson": "القسم 2: تركيز المحلول",
+      "weeks": "",
+      "periods": "14 حصص",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: التعبير عن التركيز، النسبة المئوية بالحجم، النسبة المئوية بالكتلة، المولارية، التخفيف دراسة إثرائية: المولالية، الكسر المولي"
+     },
+     {
+      "code": "U7L3",
+      "unit": "الوحدة 7 المحاليل والمخاليط",
+      "module": "الوحدة 7: المحاليل والمخاليط",
+      "lesson": "القسم 3: العوامل المؤثرة في الذوبان",
+      "weeks": "",
+      "periods": "14 حصص",
+      "type": "core",
+      "slos": [],
+      "vocabulary": [],
+      "note": "تعلّم مباشر: عملية الاذابة، العوامل المؤثرة في الاذابة، الذائبية، (المحاليل غير المشبعة، المحاليل المشبعة والمحاليل فوق المشبعة) دراسة اثرائية: حرارة المحلول، ذائبية الغازات، الضغط و قانون هنري"
+     },
+     {
+      "code": "U7L4",
+      "unit": "الوحدة 7 المحاليل والمخاليط",
+      "module": "الوحدة 7: المحاليل والمخاليط",
+      "lesson": "القسم 4: الخصائص التجميعية للمحاليل",
+      "weeks": "",
+      "periods": "14 حصص",
+      "type": "enrichment",
+      "slos": [],
+      "vocabulary": [],
+      "note": "مطالعة إثرائية"
+     }
+    ],
+    "source": "MOE Chemistry 2026-27 الصف 12 عام (السيناريو 1): Scope & Sequence",
     "lang": "ar",
     "withSLOs": false
    }
