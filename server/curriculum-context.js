@@ -14,7 +14,7 @@ function load() {
 }
 load();
 
-const SUBJ = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry', Biology: 'Biology' };
+const SUBJ = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry', Biology: 'Biology', 'AI & Technology': 'AI & Technology' };
 function gradeKey(grade, stream) {
   const g = parseInt(grade, 10);
   if (!g) return null;
@@ -68,6 +68,7 @@ function contextFor({ subject, grade, stream, term, keys }) {
   }
   const fw = CUR.__science_framework;
   const isSci = ['Science', 'Physics', 'Chemistry', 'Biology'].includes(subject);
+  const isTech = subject === 'AI & Technology';
   out.push('');
   out.push('CURRICULUM RULES:');
   out.push('- Every question must assess one of the OUTCOMES / KPIs listed above — nothing outside these lessons.');
@@ -79,6 +80,7 @@ function contextFor({ subject, grade, stream, term, keys }) {
   if (isSci && fw) {
     out.push(`- Science: include some questions that use science and engineering practices (${fw.sep.join('; ')}), e.g. interpreting data, a model or diagram, or an investigation's variables.`);
   }
+  if (isTech) out.push('- AI & Technology: include practical items where they fit — reading or predicting the output of short code/pseudocode, spotting a bug, choosing the right algorithm or component, interpreting a CAD/technical drawing description, and scenario questions on AI ethics, data and e-safety.');
   return out.join('\n');
 }
 module.exports = { load, options, contextFor, gradeKey };

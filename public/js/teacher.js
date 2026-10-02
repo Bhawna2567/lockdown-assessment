@@ -1298,6 +1298,8 @@ const SUBJECT_TEMPLATES = [
     blurb: 'MCQs for periodic-table facts, short answers for balanced equations, long answers for mechanisms.' },
   { id: 'biology', subject: 'Biology', icon: '🧬',
     blurb: 'MCQs, True/False/Not Given on diagrams, long answers on processes (photosynthesis, respiration).' },
+  { id: 'ai-technology', subject: 'AI & Technology', icon: '🤖',
+    blurb: 'MCQs on AI concepts and e-safety, short answers on code output and algorithms, practical design questions.' },
   { id: 'health', subject: 'Health Science', icon: '🩺',
     blurb: 'Mix of MCQs, True/False, and short essays on case studies and ethics.' },
   { id: 'islamic', subject: 'Islamic Studies', icon: '☪️',

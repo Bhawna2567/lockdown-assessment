@@ -162,6 +162,421 @@
     },
     "source": "Masar (GitHub)",
     "lang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Explain that some AI systems learn from examples instead of following fixed instructions.",
+      "T1-02.LO1 — Explain that some AI systems learn from examples instead of following fixed instructions.",
+      "T1-03.LO1 — Describe how AI learns from large amounts of data to improve its performance."
+     ],
+     "2 Technical Graphics and CAD": [
+      "T1-04.LO1 — Describe how AI learns from large amounts of data to improve its performance.",
+      "T1-05.LO1 — Explain that AI does not have the ability to make moral choices like humans.",
+      "C1.5.2.01.001 — Identify Computer Aided Design (CAD) and technical graphics",
+      "C1.5.1.01.003 — Construct basic 2D shapes",
+      "C1.5.2.01.001 — Identify Computer Aided Design (CAD) and technical graphics"
+     ],
+     "3 Data and Patterns": [
+      "C1.5.2.01.002 — Demonstrate features of CAD software by drawing simple 3D shapes",
+      "C1.1.3.02.004 — Classify data based on their type",
+      "C1.1.3.04.001 — Identify patterns in data visualisations"
+     ],
+     "Unit 3: Data and Patterns": [
+      "CCI.1.3.05.001 — Describe how AI representations support reasoning to answer questions.",
+      "CCI.1.3.02.003 — Present collected data in various visual formats.",
+      "CCI.1.3.02.004 — Classify data based on their types.",
+      "CCI.1.3.04.001 — Identify patterns in data visualisations.",
+      "CCI.1.3.04.002 — Describe patterns in data visualisations to make predictions."
+     ],
+     "Unit 2: Technical Graphics and CAD": [
+      "CCI.5.1.01.003 — Construct basic 2D shapes.",
+      "CCI.5.2.01.001 — Identify Computer Aided Design (CAD) and technical graphics.",
+      "CCI.5.2.01.002 — Demonstrate features of CAD software by drawing simple 3D shapes."
+     ],
+     "Unit 4: Design Process and STREAM Project": [
+      "CCI.4.1.01.011 — Demonstrate an awareness of the UAE Government's Sustainable Development Goal for sustainability",
+      "CCI.4.1.02.005 — Recommend individual and community practices that contribute to a sustainable society",
+      "CCI.3.2.01.017 — Use the engineering design process to solve a problem.",
+      "CCI.3.2.02.013 — Illustrate the features of a developed model.",
+      "CCI.3.2.02.014 — Create a prototype of a design using available materials.",
+      "CCI.3.2.03.007 — Test the prototype against the design requirements.",
+      "CCI.3.2.03.008 — Revise the final design in comparison to the design criteria.",
+      "CCI.3.2.03.009 — Enhance the design based on acquired feedback."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 1: AI Learns From Examples",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Pattern",
+       "Learn",
+       "Predict",
+       "Data",
+       "AI"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Explain that some AI systems learn from examples instead of following fixed instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 2: Examples Help AI Learn Better",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Example",
+       "Better",
+       "Clear",
+       "Blurry"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Explain that some AI systems learn from examples instead of following fixed instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 3: AI Learns From a Lot of Data",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Many",
+       "Improve",
+       "Accurate"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Describe how AI learns from large amounts of data to improve its performance.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "2 Technical Graphics and CAD",
+      "module": "2 Technical Graphics and CAD",
+      "lesson": "AI Literacy Lesson 4: More Data, Better Performance",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Less",
+       "More"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Describe how AI learns from large amounts of data to improve its performance.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "2 Technical Graphics and CAD",
+      "module": "2 Technical Graphics and CAD",
+      "lesson": "AI Literacy Lesson 5: AI and Humans Make Different Choices",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Fair",
+       "Moral",
+       "Mistake",
+       "Feelings",
+       "Rule",
+       "Choice"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Explain that AI does not have the ability to make moral choices like humans.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "2 Technical Graphics and CAD",
+      "module": "2 Technical Graphics and CAD",
+      "lesson": "Technical Graphics · 2D and 3D Shapes",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Technical graphics",
+       "Tools",
+       "Equipment",
+       "Shapes",
+       "Scale",
+       "2D",
+       "3D"
+      ],
+      "slos": [
+       {
+        "code": "C1.5.2.01.001",
+        "text": "Identify Computer Aided Design (CAD) and technical graphics",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "2 Technical Graphics and CAD",
+      "module": "2 Technical Graphics and CAD",
+      "lesson": "Polygons · Computer Aided Design (CAD) · Using CAD",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Polygons",
+       "Computer aided design",
+       "CAD",
+       "Features",
+       "Toolbar",
+       "Design Area",
+       "Plane",
+       "Avatar"
+      ],
+      "slos": [
+       {
+        "code": "C1.5.1.01.003",
+        "text": "Construct basic 2D shapes",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "C1.5.2.01.001",
+        "text": "Identify Computer Aided Design (CAD) and technical graphics",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "3 Data and Patterns",
+      "module": "3 Data and Patterns",
+      "lesson": "Using CAD",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Zoom",
+       "Rotate",
+       "Menu",
+       "Resize",
+       "Move",
+       "Stretch",
+       "Shaper",
+       "Blocker"
+      ],
+      "slos": [
+       {
+        "code": "C1.5.2.01.002",
+        "text": "Demonstrate features of CAD software by drawing simple 3D shapes",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "3 Data and Patterns",
+      "module": "3 Data and Patterns",
+      "lesson": "Artificial Intelligence · Understanding Data · Collecting data",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Artificial intelligence",
+       "Data",
+       "Manual",
+       "Electronic",
+       "Classifying",
+       "Training"
+      ],
+      "slos": [
+       {
+        "code": "C1.1.3.02.004",
+        "text": "Classify data based on their type",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "C1.1.3.04.001",
+        "text": "Identify patterns in data visualisations",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X10",
+      "unit": "Unit 3: Data and Patterns",
+      "module": "Unit 3: Data and Patterns",
+      "lesson": "Further outcomes — Unit 3: Data and Patterns",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.3.05.001",
+        "text": "Describe how AI representations support reasoning to answer questions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.02.003",
+        "text": "Present collected data in various visual formats.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.02.004",
+        "text": "Classify data based on their types.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.04.001",
+        "text": "Identify patterns in data visualisations.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.04.002",
+        "text": "Describe patterns in data visualisations to make predictions.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X11",
+      "unit": "Unit 2: Technical Graphics and CAD",
+      "module": "Unit 2: Technical Graphics and CAD",
+      "lesson": "Further outcomes — Unit 2: Technical Graphics and CAD",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.1.01.003",
+        "text": "Construct basic 2D shapes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.01.001",
+        "text": "Identify Computer Aided Design (CAD) and technical graphics.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.01.002",
+        "text": "Demonstrate features of CAD software by drawing simple 3D shapes.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X12",
+      "unit": "Unit 4: Design Process and STREAM Project",
+      "module": "Unit 4: Design Process and STREAM Project",
+      "lesson": "Further outcomes — Unit 4: Design Process and STREAM Project",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.4.1.01.011",
+        "text": "Demonstrate an awareness of the UAE Government's Sustainable Development Goal for sustainability",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.4.1.02.005",
+        "text": "Recommend individual and community practices that contribute to a sustainable society",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.01.017",
+        "text": "Use the engineering design process to solve a problem.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.02.013",
+        "text": "Illustrate the features of a developed model.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.02.014",
+        "text": "Create a prototype of a design using available materials.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.03.007",
+        "text": "Test the prototype against the design requirements.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.03.008",
+        "text": "Revise the final design in comparison to the design criteria.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.03.009",
+        "text": "Enhance the design based on acquired feedback.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -477,6 +892,405 @@
     },
     "source": "Masar (GitHub)",
     "lang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Explain that AI uses sets of rules to make different choices in different situations.",
+      "T1-02.LO1 — Define machine learning.",
+      "T1-03.LO1 — Describe how simple AI decisions are made using “if–then” rules."
+     ],
+     "2 Algorithms and Programming": [
+      "T1-04.LO1 — Explain how AI uses past data patterns to generate predictions.",
+      "T1-05.LO1 — Explain how AI uses past data patterns to generate predictions.",
+      "C1.1.4.01.009 — Create an algorithm to complete specific tasks.",
+      "C1.1.4.01.010 — Modify an existing algorithm/program to enhance/fix a program or a process.",
+      "C1.1.4.02.010 — Create computer programs to perform various tasks.",
+      "C1.1.3.05.003 — Interpret how humans combine multiple inputs in order to understand communication."
+     ],
+     "Unit 2: Algorithms and Programming": [
+      "CCI.1.4.01.009 — Create an algorithm to complete specific tasks.",
+      "CCI.1.4.01.010 — Modify an existing algorithm/program to enhance/fix a program or a process.",
+      "CCI.1.4.02.010 — Create computer programs to perform various tasks.",
+      "CCI.1.3.05.003 — Interpret how humans combine multiple inputs in order to understand communication.",
+      "CCI.1.3.05.004 — Describe how AI and machine learning algorithms can exhibit biases.",
+      "CCI.1.5.03.002 — Describe ways that AI systems can be designed to maintain diversity, inclusion and ethics."
+     ],
+     "Unit 3: Data and Patterns": [
+      "CCI.1.3.02.005 — Determine appropriate ways to store and manipulate different sets of data.",
+      "CCI.1.3.02.006 — Organise collected data visually to highlight relationships",
+      "CCI.1.3.04.003 — Analyse patterns in data visualisations to make predictions.",
+      "CCI.1.3.04.004 — Predict outcomes, highlight relationship or communicate an idea using data."
+     ],
+     "Unit 4: Design Process and STREAM Project": [
+      "CCI.3.2.01.018 — Explain the approach followed to solve a design problem.",
+      "CCI.5.1.01.004 — Create design ideas using 2D and 3D sketches.",
+      "CCI.3.2.02.016 — Create a prototype of the design following engineering design process",
+      "CCI.3.2.02.015 — Explain the main aspects of the developed prototype.",
+      "CCI.3.2.03.011 — Assess the strength and weaknesses of the designed models.",
+      "CCI.3.2.03.012 — Enhance the designed models based on testing results.",
+      "CCI.1.4.02.008 — Practice varying roles when collaborating with peers during program development stages.",
+      "CCI.1.4.02.009 — Evaluate programs using comments, presentations, and demonstrations.",
+      "CCI.4.1.01.012 — Devise a product, process or programme to raise awareness of the concept of sustainability & the UAE SDG's.",
+      "CCI.4.1.02.006 — Devise a product, process or programme which contributes to a sustainable society."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 1: AI Uses Rules to Decide",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "AI",
+       "Rule",
+       "Decision",
+       "If- Then",
+       "Situation",
+       "Choice"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Explain that AI uses sets of rules to make different choices in different situations.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 2: What Is Machine Learning?",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Machine Learning",
+       "Practice",
+       "Improve",
+       "Mistake",
+       "Example"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Define machine learning.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy Lesson 3: Making Decisions With ‘If–then’ Rules",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "If–Then Rule",
+       "Condition",
+       "Action",
+       "Instruction",
+       "Sequence"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Describe how simple AI decisions are made using “if–then” rules.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "AI Literacy Lesson 4: Learning from Data Patterns",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Information",
+       "Data",
+       "Prediction",
+       "Pattern"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Explain how AI uses past data patterns to generate predictions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "AI Literacy Lesson 5: From Data to Predictions",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Data Set",
+       "Reliable"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Explain how AI uses past data patterns to generate predictions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Algorithms",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Algorithm",
+       "Routine"
+      ],
+      "slos": [
+       {
+        "code": "C1.1.4.01.009",
+        "text": "Create an algorithm to complete specific tasks.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Programming · Running a Program · Sequence · Loops · Conditional Statements",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Programming",
+       "Sequence",
+       "Loops",
+       "Conditional Statements",
+       "Flowchart"
+      ],
+      "slos": [
+       {
+        "code": "C1.1.4.01.010",
+        "text": "Modify an existing algorithm/program to enhance/fix a program or a process.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Artificial Intelligence (AI) · Communication Characteristics",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Artificial Intelligence (AI)",
+       "Communication",
+       "Characteristics",
+       "Expressions",
+       "Body Language"
+      ],
+      "slos": [
+       {
+        "code": "C1.1.4.02.010",
+        "text": "Create computer programs to perform various tasks.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "C1.1.3.05.003",
+        "text": "Interpret how humans combine multiple inputs in order to understand communication.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X09",
+      "unit": "Unit 2: Algorithms and Programming",
+      "module": "Unit 2: Algorithms and Programming",
+      "lesson": "Further outcomes — Unit 2: Algorithms and Programming",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.4.01.009",
+        "text": "Create an algorithm to complete specific tasks.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.01.010",
+        "text": "Modify an existing algorithm/program to enhance/fix a program or a process.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.02.010",
+        "text": "Create computer programs to perform various tasks.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.05.003",
+        "text": "Interpret how humans combine multiple inputs in order to understand communication.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.05.004",
+        "text": "Describe how AI and machine learning algorithms can exhibit biases.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.03.002",
+        "text": "Describe ways that AI systems can be designed to maintain diversity, inclusion and ethics.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X10",
+      "unit": "Unit 3: Data and Patterns",
+      "module": "Unit 3: Data and Patterns",
+      "lesson": "Further outcomes — Unit 3: Data and Patterns",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.3.02.005",
+        "text": "Determine appropriate ways to store and manipulate different sets of data.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.02.006",
+        "text": "Organise collected data visually to highlight relationships",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.04.003",
+        "text": "Analyse patterns in data visualisations to make predictions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.04.004",
+        "text": "Predict outcomes, highlight relationship or communicate an idea using data.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X11",
+      "unit": "Unit 4: Design Process and STREAM Project",
+      "module": "Unit 4: Design Process and STREAM Project",
+      "lesson": "Further outcomes — Unit 4: Design Process and STREAM Project",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.3.2.01.018",
+        "text": "Explain the approach followed to solve a design problem.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.01.004",
+        "text": "Create design ideas using 2D and 3D sketches.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.02.016",
+        "text": "Create a prototype of the design following engineering design process",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.02.015",
+        "text": "Explain the main aspects of the developed prototype.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.03.011",
+        "text": "Assess the strength and weaknesses of the designed models.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.03.012",
+        "text": "Enhance the designed models based on testing results.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.02.008",
+        "text": "Practice varying roles when collaborating with peers during program development stages.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.02.009",
+        "text": "Evaluate programs using comments, presentations, and demonstrations.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.4.1.01.012",
+        "text": "Devise a product, process or programme to raise awareness of the concept of sustainability & the UAE SDG's.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.4.1.02.006",
+        "text": "Devise a product, process or programme which contributes to a sustainable society.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -817,6 +1631,440 @@
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
     "sequenceLang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy Lessons": [
+      "T1-01.LO1 — Describe how AI systems and humans differ in perception.",
+      "T1-01.LO2 — Differentiate between AI-generated emotional responses and genuine human empathy.",
+      "T1-02.LO1 — Explain how algorithms guide AI behaviour through ordered and repeated steps.",
+      "T1-03.LO1 — Describe how AI systems use data to recognise patterns and classify information."
+     ],
+     "1 Embedded Systems": [
+      "T1-04.LO1 — Identify visual patterns used by AI systems to recognise faces.",
+      "T1-04.LO2 — Identify how voice assistants are trained with human data.",
+      "T1-05.LO1 — Identify the main parts of a neural network.",
+      "T1-05.LO2 — Demonstrate how data moves through input, hidden, and output layers.",
+      "CCI.2.3.03.001 — Explain how microcontrollers can be used to improve systems.",
+      "CCI.2.3.03.002 — Explain the relationship between hardware and software in an embedded system.",
+      "CCI.2.3.03.002 — Explain the relationship between hardware and software in an embedded system.",
+      "CCI.2.3.04.002 — Modify an existing code by identifying coding errors, such as syntax and logical errors.",
+      "CCI.2.3.04.001 — Use a microcontroller for programming a simple system using multiple output components."
+     ],
+     "2 Algorithms and Programming": [
+      "CCI.1.4.04.001 — Use decomposition to break down a simple problem into smaller parts.",
+      "CCI.1.4.07.001 — Revise an existing algorithm to make it more appropriate for the task.",
+      "CCI.1.4.04.001 — Use decomposition to break down a simple problem into smaller parts.",
+      "CCI.1.4.07.001 — Revise an existing algorithm to make it more appropriate for the task.",
+      "CCI.1.4.05.001 — Create a program that stores and modifies data using variables.",
+      "CCI.2.3.04.006 — Control analogue inputs and outputs within an embedded system.",
+      "CCI.2.3.04.007 — Design simple automated applications using embedded systems.",
+      "CCI.1.4.06.001 — Integrate sequences, conditionals, events, and loops into a program.",
+      "CCI.1.4.08.001 — Integrate parts of an existing program to create a new program with advanced features."
+     ],
+     "4 End of Term Project": [
+      "CCI.1.4.08.001 — Integrate parts of an existing program to create a new program with advanced features.",
+      "CCI.1.4.09.001 — Collect and analyse peer feedback to refine a program.",
+      "T1-12.LO1 — Identify the requirements for the project.",
+      "T1-12.LO2 — Demonstrate knowledge and skills to complete the project.",
+      "T1-13.LO1 — Demonstrate knowledge and skills to complete the project.",
+      "T1-13.LO2 — Evaluate the project and reflect on individual performance."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 1: Humans and AI – Understanding the Difference",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "perception",
+       "sensors",
+       "empathy",
+       "data"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Describe how AI systems and humans differ in perception.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Differentiate between AI-generated emotional responses and genuine human empathy.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 2: How Algorithms Control AI Behaviour",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "sequence",
+       "loop selection"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Explain how algorithms guide AI behaviour through ordered and repeated steps.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 3: Learning from Data and Patterns",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "data",
+       "pattern",
+       "training data",
+       "classification"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Describe how AI systems use data to recognise patterns and classify information.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "AI Literacy Lesson 4: Training AI with Human Data",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "collection",
+       "face map",
+       "labelling",
+       "voice understanding"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Identify visual patterns used by AI systems to recognise faces.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Identify how voice assistants are trained with human data.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "AI Literacy Lesson 5: Neural Networks",
+      "weeks": "Week 3 (Period 1 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "neural network",
+       "node",
+       "input layer",
+       "hidden layer",
+       "output layer"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Identify the main parts of a neural network.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-05.LO2",
+        "text": "Demonstrate how data moves through input, hidden, and output layers.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "Microcontrollers · Microcontroller Boards Educational Microcontroller Boards o Expansion Shields o",
+      "weeks": "Week 3 (Period 2 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "embedded system",
+       "microcontroller",
+       "processing",
+       "component"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.03.001",
+        "text": "Explain how microcontrollers can be used to improve systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.03.002",
+        "text": "Explain the relationship between hardware and software in an embedded system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "Electronic Components Input Modules o Output Modules o · Programming/Development software Graphical Programming Software o Why Microcontrollers, Electronic o Components, and Graphical Programming? Programming an Electronic Module with a o Microcontroller",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "input",
+       "output",
+       "programming",
+       "programming language"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.03.002",
+        "text": "Explain the relationship between hardware and software in an embedded system.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.04.002",
+        "text": "Modify an existing code by identifying coding errors, such as syntax and logical errors.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.04.001",
+        "text": "Use a microcontroller for programming a simple system using multiple output components.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Decomposition What is Decomposition? o",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "decomposition",
+       "algorithm",
+       "flowchart variable"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.04.001",
+        "text": "Use decomposition to break down a simple problem into smaller parts.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.07.001",
+        "text": "Revise an existing algorithm to make it more appropriate for the task.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Algorithms Algorithms in Computer Programming o Flowcharts o Flowchart Symbols o · Variables Variables in Programming o Naming Variables o Variable Naming Rules o Using Variables in Programs o",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "decomposition",
+       "algorithm",
+       "flowchart variable"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.04.001",
+        "text": "Use decomposition to break down a simple problem into smaller parts.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.07.001",
+        "text": "Revise an existing algorithm to make it more appropriate for the task.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.05.001",
+        "text": "Create a program that stores and modifies data using variables.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Sequence. Selection and Loops Creating Codes o",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "conditionals",
+       "selection",
+       "loop",
+       "algorithm",
+       "repetition"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.04.006",
+        "text": "Control analogue inputs and outputs within an embedded system.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.04.007",
+        "text": "Design simple automated applications using embedded systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.06.001",
+        "text": "Integrate sequences, conditionals, events, and loops into a program.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.08.001",
+        "text": "Integrate parts of an existing program to create a new program with advanced features.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "4 End of Term Project",
+      "module": "4 End of Term Project",
+      "lesson": "Making Code Better Modifying Existing Code o",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "loop",
+       "algorithm",
+       "repetition",
+       "feedback"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.08.001",
+        "text": "Integrate parts of an existing program to create a new program with advanced features.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.09.001",
+        "text": "Collect and analyse peer feedback to refine a program.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "4 End of Term Project",
+      "module": "4 End of Term Project",
+      "lesson": "Project: Systems Development Lifecycle Project Brief o Program Planning o",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "systems development lifecycle",
+       "project",
+       "task",
+       "requirements",
+       "operator",
+       "calculator hardware software",
+       "storage",
+       "memory",
+       "RAM",
+       "CPU"
+      ],
+      "slos": [
+       {
+        "code": "T1-12.LO1",
+        "text": "Identify the requirements for the project.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-12.LO2",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-13",
+      "unit": "4 End of Term Project",
+      "module": "4 End of Term Project",
+      "lesson": "Project: Systems Development Lifecycle Programming o Testing o",
+      "weeks": "Week 11",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "T1-13.LO1",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-13.LO2",
+        "text": "Evaluate the project and reflect on individual performance.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -1266,6 +2514,385 @@
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
     "sequenceLang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy Lessons": [
+      "T1-01.LO1 — Explain how AI systems learn to solve complex tasks compared to humans.",
+      "T1-01.LO2 — Compare how AI creativity differs from human creativity.",
+      "T1-02.LO1 — Analyse how changing the rules in an algorithm changes the decisions an AI system makes.",
+      "T1-03.LO1 — Describe how labelled data is used to train AI systems through supervised learning.",
+      "T1-03.LO2 — Explain how AI systems identify patterns by grouping unlabelled data."
+     ],
+     "1 Embedded Systems": [
+      "T1-04.LO1 — Differentiate between single-layer and multi- layer neural networks.",
+      "T1-05.LO1 — Describe how accuracy is measured in AI predictions.",
+      "CCI.2.3.03.003 — Examine the basic structure of microcontrollers.",
+      "CCI.2.3.03.003 — Examine the basic structure of microcontrollers."
+     ],
+     "2 Algorithms and Programming": [
+      "CCI.2.3.04.004 — Simulate digital inputs and outputs in an embedded system.",
+      "CCI.1.4.07.002 — Describe how flowcharts and pseudocode can be used to represent an algorithm.",
+      "CCI.1.4.10.001 — Describe how procedures can be used to organise and reuse code.",
+      "CCI.1.4.04.002 — Use decomposition to break down a program into smaller parts.",
+      "CCI.1.4.12.001 — Apply naming rules to clearly name variables.",
+      "CCI.1.4.13.001 — Develop a program that includes nested loops.",
+      "CCI.1.4.11.001 — Record feedback from team members to help improve your program."
+     ],
+     "3 Data and Analysis": [
+      "CCI.1.3.10.001 — Identify multiple data encoding schemes.",
+      "CCI.1.3.11.001 — Explain computational tools used to collect data."
+     ],
+     "4 End of Term Project": [
+      "T1-12.LO1 — Identify the requirements for the project.",
+      "T1-12.LO2 — Demonstrate knowledge and skills to complete the project.",
+      "T1-13.LO1 — Use an appropriate programming language to program microcontrollers.",
+      "T1-13.LO2 — Evaluate the project and reflect on individual performance."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 1: Comparing Human and Artificial Intelligence",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "training data",
+       "human intelligence",
+       "invention"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Explain how AI systems learn to solve complex tasks compared to humans.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Compare how AI creativity differs from human creativity.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 2: Algorithms and AI Decision- Making",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "flowchart",
+       "sensor",
+       "decision-making"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Analyse how changing the rules in an algorithm changes the decisions an AI system makes.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 3: How AI Learns from Data",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "supervised learning",
+       "unsupervised learning",
+       "labelled data",
+       "unlabelled data"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Describe how labelled data is used to train AI systems through supervised learning.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Explain how AI systems identify patterns by grouping unlabelled data.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "AI Literacy Lesson 4: Neural Network Layers",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "single-layer network",
+       "multi- layer network"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Differentiate between single-layer and multi- layer neural networks.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "AI Literacy Lesson 5: Measuring Accuracy in AI Predictions",
+      "weeks": "Week 3 (Period 1 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "confidence score",
+       "accuracy",
+       "prediction",
+       "training data"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Describe how accuracy is measured in AI predictions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "Embedded systems and how they are built Components of Embedded Systems o Memory o Primary Storage o RAM vs ROM o Secondary Storage o Hard Disk Drive (HDD) o Solid State Drive (SDD) o Difference between HDDs and SDDs o USB Flash Drive o Primary Storage vs Secondary Storage o Embedded Systems Memory o",
+      "weeks": "Week 3 (Period 2 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "embedded systems",
+       "memory",
+       "microcontrollers",
+       "low level language",
+       "machine code",
+       "firmware"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.03.003",
+        "text": "Examine the basic structure of microcontrollers.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "1 Embedded Systems",
+      "module": "1 Embedded Systems",
+      "lesson": "Microcontrollers Expansion Shields o · Programming a microcontroller Variables and Data Types o Data Types and Variable Naming o Programming Constructs o",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.2.3.03.003",
+        "text": "Examine the basic structure of microcontrollers.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Sequence · Programming a microcontroller with sequence ABC Program o 123 Program o · Selection · Programming a microcontroller with selection Temperature Program o",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.2.3.04.004",
+        "text": "Simulate digital inputs and outputs in an embedded system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Algorithms Flowcharts and Pseudocode o Flowcharts o Pseudocode o · Functions and procedures Procedures o Functions o · Breaking Up Big Problems",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithms",
+       "programming",
+       "decomposition",
+       "variables",
+       "procedures"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.07.002",
+        "text": "Describe how flowcharts and pseudocode can be used to represent an algorithm.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.10.001",
+        "text": "Describe how procedures can be used to organise and reuse code.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.04.002",
+        "text": "Use decomposition to break down a program into smaller parts.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "2 Algorithms and Programming",
+      "module": "2 Algorithms and Programming",
+      "lesson": "Repetition and loops Repetition o Programming a Microcontroller with o Repetition Nested Loops o",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.4.12.001",
+        "text": "Apply naming rules to clearly name variables.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.13.001",
+        "text": "Develop a program that includes nested loops.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.11.001",
+        "text": "Record feedback from team members to help improve your program.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "3 Data and Analysis",
+      "module": "3 Data and Analysis",
+      "lesson": "Data Encoding · Data Collection Types of Data o Data Collection o Computational Tools o",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Encoding",
+       "data collection"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.10.001",
+        "text": "Identify multiple data encoding schemes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.11.001",
+        "text": "Explain computational tools used to collect data.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "4 End of Term Project",
+      "module": "4 End of Term Project",
+      "lesson": "Microcontroller project Systems Development Lifecycle o Garage Door Project Brief o Project Planning o Program Planning o",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "systems development lifecycle",
+       "project",
+       "task",
+       "requirements",
+       "computing device"
+      ],
+      "slos": [
+       {
+        "code": "T1-12.LO1",
+        "text": "Identify the requirements for the project.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-12.LO2",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-13",
+      "unit": "4 End of Term Project",
+      "module": "4 End of Term Project",
+      "lesson": "Programming a Basic Robot with a Microcontroller Programming a Garage Door o",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "systems development lifecycle",
+       "project",
+       "task",
+       "requirements",
+       "computing device"
+      ],
+      "slos": [
+       {
+        "code": "T1-13.LO1",
+        "text": "Use an appropriate programming language to program microcontrollers.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-13.LO2",
+        "text": "Evaluate the project and reflect on individual performance.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -1822,6 +3449,395 @@
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
     "sequenceLang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy Lessons": [
+      "T1-01.LO1 — Identify tasks AI can do and tasks that need human values or intuition.",
+      "T1-01.LO2 — Explain how AI uses graphs and visual representations to identify patterns in data.",
+      "T1-01.LO3 — Differentiate between supervised, unsupervised, and reinforcement learning in AI systems.",
+      "T1-02.LO1 — Examine applications of deep learning neural networks.",
+      "T1-03.LO1 — Explain how AI systems suggest content based on user interests and choices."
+     ],
+     "1 Algorithms & Programming": [
+      "T1-04.LO1 — Explain how AI systems use personal behaviour data to make predictions.",
+      "T1-04.LO2 — Examine how accuracy is used to evaluate AI models.",
+      "T1-05.LO1 — Explain how machines process human language.",
+      "CCI.1.4.04.003 — Apply decomposition to break down an advanced program into sub- programs and smaller parts.",
+      "CCI.1.4.12.002 — Identify appropriately named variables that represent different data types.",
+      "CCI.1.4.12.002 — Identify appropriately named variables that represent different data types.",
+      "CCI.1.4.12.002 — Identify appropriately named variables that represent different data types.",
+      "CCI.1.4.13.002 — Develop a program that includes nested loops and compound conditionals."
+     ],
+     "2 Embedded Systems": [
+      "CCI.1.4.04.003 — Apply decomposition to break down an advanced program into sub- programs and smaller parts.",
+      "CCI.1.4.07.003 — Use pseudocode to plan an algorithm for a programming problem.",
+      "CCI.1.4.13.002 — Develop a program that includes nested loops and compound conditionals.",
+      "CCI.2.3.04.006 — Control analogue inputs and outputs within an embedded system.",
+      "CCI.2.3.04.007 — Design simple automated applications using embedded systems.",
+      "CCI.2.3.04.007 — Design simple automated applications using embedded systems."
+     ],
+     "4 Programming Project": [
+      "T1-12.LO1 — Identify the requirements for the project.",
+      "T1-13.LO1 — Identify the requirements for the project.",
+      "T1-13.LO2 — Demonstrate knowledge and skills to complete the project.",
+      "T1-14.LO1 — Demonstrate knowledge and skills to complete the project."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 1: Humans, Data, and How AI Learns",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "supervised learning",
+       "unsupervised learning",
+       "reinforcement learning"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Identify tasks AI can do and tasks that need human values or intuition.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Explain how AI uses graphs and visual representations to identify patterns in data.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Differentiate between supervised, unsupervised, and reinforcement learning in AI systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 2: Deep Learning and Advanced AI Models",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "artificial neural network",
+       "deep learning",
+       "node"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Examine applications of deep learning neural networks.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 3: Recommender Systems",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "personal behaviour data",
+       "recommendation system",
+       "accuracy"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Explain how AI systems suggest content based on user interests and choices.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "AI Literacy Lesson 4: Using Personal Data to Make Predictions and Measure Accuracy",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "explicit data",
+       "implicit data",
+       "content-based filtering"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Explain how AI systems use personal behaviour data to make predictions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Examine how accuracy is used to evaluate AI models.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "AI Literacy Lesson 5: Natural Language Processing",
+      "weeks": "Week 3 (Period 1 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "natural language processing",
+       "tokenisation",
+       "context"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Explain how machines process human language.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "E-Safety · Computer Programming · Decomposition · Algorithms",
+      "weeks": "Week 3 (Period 2 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "compound conditionals",
+       "decomposition",
+       "programming"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.04.003",
+        "text": "Apply decomposition to break down an advanced program into sub- programs and smaller parts.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.12.002",
+        "text": "Identify appropriately named variables that represent different data types.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "Introduction to Text-Based Programming Operands and Operators o Variables o Naming Conventions o Inputs and Outputs o Type Casting o Mathematical Operators o",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "variable"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.12.002",
+        "text": "Identify appropriately named variables that represent different data types.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "Introduction to Text-Based Programming Sequence o Selection o Repetition o · Advanced Programming Constructs",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "compound conditionals"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.12.002",
+        "text": "Identify appropriately named variables that represent different data types.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.13.002",
+        "text": "Develop a program that includes nested loops and compound conditionals.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "Number Analyser Mini Project",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "compound conditionals",
+       "decomposition"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.04.003",
+        "text": "Apply decomposition to break down an advanced program into sub- programs and smaller parts.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.07.003",
+        "text": "Use pseudocode to plan an algorithm for a programming problem.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.13.002",
+        "text": "Develop a program that includes nested loops and compound conditionals.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "E-Safety Cyberbullying o · Embedded Systems Input Components o Output Components o · Data Signalling",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "data",
+       "embedded system",
+       "microcontroller",
+       "signalling"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.04.006",
+        "text": "Control analogue inputs and outputs within an embedded system.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.04.007",
+        "text": "Design simple automated applications using embedded systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "Smart Lighting Mini Project",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.2.3.04.007",
+        "text": "Design simple automated applications using embedded systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "4 Programming Project",
+      "module": "4 Programming Project",
+      "lesson": "E-Safety Public and Private Information o · Project brief",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "project",
+       "requirements",
+       "systems development lifecycle",
+       "task"
+      ],
+      "slos": [
+       {
+        "code": "T1-12.LO1",
+        "text": "Identify the requirements for the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-13",
+      "unit": "4 Programming Project",
+      "module": "4 Programming Project",
+      "lesson": "Planning · Program Planning",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "T1-13.LO1",
+        "text": "Identify the requirements for the project.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-13.LO2",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-14",
+      "unit": "4 Programming Project",
+      "module": "4 Programming Project",
+      "lesson": "Programming",
+      "weeks": "Week 11",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "T1-14.LO1",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -2358,6 +4374,407 @@
     ],
     "sequenceSource": "MOE Scope & Sequence 2025-26 · Bridge (Basic track)",
     "sequenceLang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy Lessons": [
+      "T1-01.LO1 — Analyse how AI systems and humans approach tasks differently in perception, reasoning, problem-solving, and interaction.",
+      "T1-02.LO1 — Analyse how missing, incorrect, or inconsistent data can introduce errors or bias during AI model training.",
+      "T1-02.LO2 — Use datasets of varying quality to observe their impact on AI model training results.",
+      "T1-03.LO1 — Explain why AI models must be tested using new data."
+     ],
+     "1 Algorithms & Programming": [
+      "T1-04.LO1 — Explain how a confusion matrix is used to show different types of AI prediction errors.",
+      "T1-04.LO2 — Explain how precision measures how accurate an AI model’s positive predictions are.",
+      "T1-04.LO3 — Explain how recall measures how well an AI model identifies all relevant cases.",
+      "CCI.1.4.04.004 — Prepare a solution from the decomposed parts of a programming problem to facilitate the design, implementation and review of a program.",
+      "CCI.1.4.07.004 — Create pseudocode and flowcharts to represent algorithms for complex programming problems.",
+      "CCI.1.4.12.003 — Construct a program using operations to change the value of appropriately names variables.",
+      "CCI.1.4.13.003 — Design and iteratively develop a program that combines nested loops and compound conditionals."
+     ],
+     "2 Embedded Systems": [
+      "CCI.1.4.10.003 — Construct an organised program by reusing a range of procedures with parameters.",
+      "CCI.2.3.03.007 — Select the appropriate resources for an embedded system application.",
+      "CCI.2.3.04.010 — Develop the software program for an embedded system.",
+      "CCI.2.3.04.010 — Develop the software program for an embedded system."
+     ],
+     "4 Project": [
+      "T1-12.LO1 — Identify the requirements for the project.",
+      "T1-12.LO2 — Demonstrate knowledge and skills to complete the project."
+     ],
+     "Unit 1: Algorithms And Programming": [
+      "CCI.1.4.10.002 — Use procedures with parameters to organise code."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 1: Human and AI Approaches to Real-World Tasks",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "perception",
+       "reasoning",
+       "problem-solving",
+       "interaction"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Analyse how AI systems and humans approach tasks differently in perception, reasoning, problem-solving, and interaction.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 2: Data Quality and Its Impact on AI Training",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "missing data",
+       "incorrect data (noise)",
+       "inconsistent data",
+       "AI bias"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Analyse how missing, incorrect, or inconsistent data can introduce errors or bias during AI model training.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Use datasets of varying quality to observe their impact on AI model training results.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy Lessons",
+      "module": "AI Literacy Lessons",
+      "lesson": "AI Literacy Lesson 3: Training vs Testing AI Models",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "training set",
+       "testing set",
+       "overfitting"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Explain why AI models must be tested using new data.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "AI Literacy Lesson 4: Measuring AI Performance",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "confusion matrix",
+       "precision",
+       "recall",
+       "true positive (TP)",
+       "false positive (FP)",
+       "true negative (TN)",
+       "false negative (FN)"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Explain how a confusion matrix is used to show different types of AI prediction errors.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Explain how precision measures how accurate an AI model’s positive predictions are.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Explain how recall measures how well an AI model identifies all relevant cases.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "AI Literacy Lesson 4: Measuring AI Performance (… continuation of the same lesson)",
+      "weeks": "Week 3 (Period 1 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": []
+     },
+     {
+      "code": "T1-06",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "E-Safety · Decomposition Representing Algorithms o Flowcharts Representing Code o",
+      "weeks": "Week 3 (Period 2 of 2)",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "programming constructs",
+       "function",
+       "comments"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.04.004",
+        "text": "Prepare a solution from the decomposed parts of a programming problem to facilitate the design, implementation and review of a program.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.07.004",
+        "text": "Create pseudocode and flowcharts to represent algorithms for complex programming problems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "Variables · Data Types · Advanced Selection and Repetition Relational Operators o",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "conditional statement",
+       "relational operator",
+       "selection",
+       "variables",
+       "number",
+       "execution"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.12.003",
+        "text": "Construct a program using operations to change the value of appropriately names variables.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "1 Algorithms & Programming",
+      "module": "1 Algorithms & Programming",
+      "lesson": "Advanced Selection and Repetition Nested Selection o While Loops o For Loop o",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "selection",
+       "nested selection",
+       "selection block",
+       "elif",
+       "iteration",
+       "repeat",
+       "while",
+       "for",
+       "loops",
+       "sequence",
+       "indent",
+       "range"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.13.003",
+        "text": "Design and iteratively develop a program that combines nested loops and compound conditionals.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "Functions and Methods",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "function",
+       "arguments",
+       "return",
+       "terminate",
+       "attribution",
+       "comment",
+       "libraries",
+       "media"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.10.003",
+        "text": "Construct an organised program by reusing a range of procedures with parameters.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "Embedded Systems Input Components o Output Components o Programming Libraries o Programming Libraries for Hardware o",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "component",
+       "configure",
+       "electronics kit",
+       "microcontroller",
+       "minicomputer"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.03.007",
+        "text": "Select the appropriate resources for an embedded system application.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.2.3.04.010",
+        "text": "Develop the software program for an embedded system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "2 Embedded Systems",
+      "module": "2 Embedded Systems",
+      "lesson": "What is Physical computing",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "physical computing",
+       "programming libraries",
+       "objects",
+       "sensors"
+      ],
+      "slos": [
+       {
+        "code": "CCI.2.3.04.010",
+        "text": "Develop the software program for an embedded system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "4 Project",
+      "module": "4 Project",
+      "lesson": "E-Safety Public and Private Information o · Project brief · Project Planning",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "algorithm",
+       "report card",
+       "project",
+       "requirements",
+       "systems development cycle",
+       "task",
+       "computing device",
+       "computer problems",
+       "troubleshooting strategies",
+       "symptoms"
+      ],
+      "slos": [
+       {
+        "code": "T1-12.LO1",
+        "text": "Identify the requirements for the project.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-12.LO2",
+        "text": "Demonstrate knowledge and skills to complete the project.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-13",
+      "unit": "4 Project",
+      "module": "4 Project",
+      "lesson": "Program Planning",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": []
+     },
+     {
+      "code": "T1-14",
+      "unit": "4 Project",
+      "module": "4 Project",
+      "lesson": "Programming",
+      "weeks": "Week 11",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": []
+     },
+     {
+      "code": "T1-X15",
+      "unit": "Unit 1: Algorithms And Programming",
+      "module": "Unit 1: Algorithms And Programming",
+      "lesson": "Further outcomes — Unit 1: Algorithms And Programming",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.4.10.002",
+        "text": "Use procedures with parameters to organise code.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -3433,6 +5850,562 @@
     "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
     "lang": "en",
     "withSLOs": true
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Analyse how different factors, including data quality, system design, and human decisions, affect AI performance and outcomes.",
+      "T1-01.LO2 — Identify the core components of an AI system.",
+      "T1-01.LO3 — Analyse the characteristics of real datasets (size, completeness, balance, and relevance) used in AI systems.",
+      "T1-01.LO4 — Identify potential issues in datasets used for AI.",
+      "T1-02.LO1 — Explain how logic-based AI systems use rules and reasoning for decision-making.",
+      "T1-02.LO2 — Explain how probability is used in algorithmic decision- making.",
+      "T1-02.LO3 — Analyse simple algorithmic decision processes involving logic, data, and probability.",
+      "T1-03.LO1 — Explain how optimisation-based AI systems use objectives and constraints for solution selection.",
+      "T1-03.LO2 — Explain how AI systems define goals for optimisation.",
+      "T1-03.LO3 — Explain how constraints shape optimisation decisions in AI systems.",
+      "T1-03.LO4 — Evaluate the impacts of optimisation trade-offs on AI performance and outcomes.",
+      "T1-03.LO5 — Explain how machine-learning systems use data for pattern recognition and prediction."
+     ],
+     "Chapter 01: Graphics for Design": [
+      "T1-04.LO1 — Examine how AI systems detect human emotions.",
+      "T1-04.LO2 — Examine how AI systems predict human behaviour or actions.",
+      "T1-04.LO3 — Explain how machine-learning systems use data for pattern recognition and prediction.",
+      "T1-05.LO1 — Examine how AI systems predict human behaviour or actions.",
+      "CCI.5.1.02.003 — Construct basic 2D graphic constructions",
+      "CCI.5.2.01.001 — Compare Computer-Aided Design (CAD) and Technical Graphics",
+      "CCI.5.2.03.001 — 3D Model forms using a professional CAD software",
+      "CCI.5.2.03.0 — Compare Computer-Aided Design (CAD) and Technical Graphics.",
+      "CCI.5.1.03.001 — Compare pictorial and orthographic drawings"
+     ],
+     "Chapter 2: Principles of Computer- Aided Design and Design Realisation": [
+      "T1-07.LO1 — solid in 1st angle projection.",
+      "CCI.5.1.03.006 — Project orthographic views from given 2D views",
+      "CCI.5.1.04.001 — Create basic orthographic views of 3D objects",
+      "CCI.5.1.03.007 — Draw hidden details in creating orthographic views",
+      "CCI.5.1.04.002 — Create orthographic views with curved surfaces and hidden detail",
+      "T1-07.LO6 — Identify the different stages of the design process.",
+      "CCI.3.2.07.001 — Demonstrate an ability to write a design brief and specifications from their own and others’ considerations of human needs, wants and interests",
+      "CCI.3.2.07.003 — Examine relevant features found in existing solutions",
+      "CCI.3.2.09.001 — Identify the skills required in managing the design process",
+      "CCI.3.2.09.002 — Explain project management",
+      "CCI.5.2.04.002 — Use advanced create tools to model 3D bodies",
+      "CCI.5.2.05.001 — Create multiple bodies in one CAD design.",
+      "CCI.5.2.05.002 — Compare bodies vs components.",
+      "CCI.5.2.05.003 — Create a multi component design.",
+      "CCI.5.2.04.003 — Apply joints to fix components in position",
+      "CCI.5.2.04.004 — Create 3D designs around existing 3D components"
+     ],
+     "Chapter 1: Graphics for Design": [
+      "CCI.5.1.03.002 — Distinguish between the various orthographic views",
+      "CCI.5.1.03.004 — Identify different surfaces in orthographic views",
+      "CCI.5.1.03.003 — Demonstrate an understanding of the planes of reference",
+      "CCI.5.1.03.005 — Construct the orthographic views of a basic solid in 1st angle projection"
+     ],
+     "Chapter 2: Principles of Computer-Aided Design and Design Realisation": [
+      "CCI.5.2.05.004 — Create realistic renders and drawings from 3D models",
+      "CCI.5.2.04.001 — Apply the rules of 3D printing in relation to design",
+      "CCI.3.2.08.001 — Illustrate a range of proposed solutions"
+     ],
+     "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode": [
+      "CCI.5.3.01.006 — Transform abstract/textual concepts into visual forms.",
+      "CCI.3.2.07.002 — Analyse situations for improving and developing novel solutions.",
+      "CCI.3.2.08.003 — Identify situations for creative alternates to existing designs.",
+      "CCI.3.2.08.002 — Show new ideas and proposed designs using various techniques.",
+      "CCI.5.3.02.005 — Solve real-context and abstract problems using graphical techniques.",
+      "CCI.5.3.02.006 — Apply the geometric principles of graphics to communicate possible design ideas."
+     ],
+     "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing": [
+      "CCI.1.1.08.001 — Explain layers of abstraction in computing systems."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 1: AI Systems and Data Quality",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "data quality",
+       "completeness",
+       "data cleaning",
+       "data noise"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Analyse how different factors, including data quality, system design, and human decisions, affect AI performance and outcomes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Identify the core components of an AI system.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Analyse the characteristics of real datasets (size, completeness, balance, and relevance) used in AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO4",
+        "text": "Identify potential issues in datasets used for AI.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "Ai literacy: Lesson 2: logic and probability in ai systems",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "rule-based system",
+       "probability",
+       "data-driven decision",
+       "confidence score"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Explain how logic-based AI systems use rules and reasoning for decision-making.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Explain how probability is used in algorithmic decision- making.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO3",
+        "text": "Analyse simple algorithmic decision processes involving logic, data, and probability.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 3: Optimisation in AI Systems",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "optimisation",
+       "hard constraint",
+       "soft constraint",
+       "human behaviour",
+       "human emotion"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Explain how optimisation-based AI systems use objectives and constraints for solution selection.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Explain how AI systems define goals for optimisation.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Explain how constraints shape optimisation decisions in AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO4",
+        "text": "Evaluate the impacts of optimisation trade-offs on AI performance and outcomes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO5",
+        "text": "Explain how machine-learning systems use data for pattern recognition and prediction.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "AI Literacy: Lesson 4: Patterns and Predictions in AI",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "overfitting",
+       "human behaviour",
+       "human emotion"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Examine how AI systems detect human emotions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Examine how AI systems predict human behaviour or actions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Explain how machine-learning systems use data for pattern recognition and prediction.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "Section 01: Basic constructions",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "cad fusion 360 solidworks working drawing polygon"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Examine how AI systems predict human behaviour or actions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.02.003",
+        "text": "Construct basic 2D graphic constructions",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.01.001",
+        "text": "Compare Computer-Aided Design (CAD) and Technical Graphics",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.03.001",
+        "text": "3D Model forms using a professional CAD software",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.03.0",
+        "text": "Compare Computer-Aided Design (CAD) and Technical Graphics.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "Section 2: 3D Representations- Orthographic Projection",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "orthographic projection pictorial drawing"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.1.03.001",
+        "text": "Compare pictorial and orthographic drawings",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "lesson": "Section 1: Engineering design principles",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "the design process the target market biomimicry mood board"
+      ],
+      "slos": [
+       {
+        "code": "T1-07.LO1",
+        "text": "solid in 1st angle projection.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.006",
+        "text": "Project orthographic views from given 2D views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.04.001",
+        "text": "Create basic orthographic views of 3D objects",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.007",
+        "text": "Draw hidden details in creating orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.04.002",
+        "text": "Create orthographic views with curved surfaces and hidden detail",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-07.LO6",
+        "text": "Identify the different stages of the design process.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.001",
+        "text": "Demonstrate an ability to write a design brief and specifications from their own and others’ considerations of human needs, wants and interests",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.003",
+        "text": "Examine relevant features found in existing solutions",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.09.001",
+        "text": "Identify the skills required in managing the design process",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.09.002",
+        "text": "Explain project management",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "lesson": "Section 2: Advancing 3D modelling skills",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "revolve loft sweep assemble joint"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.2.04.002",
+        "text": "Use advanced create tools to model 3D bodies",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.001",
+        "text": "Create multiple bodies in one CAD design.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.002",
+        "text": "Compare bodies vs components.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.003",
+        "text": "Create a multi component design.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.003",
+        "text": "Apply joints to fix components in position",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.004",
+        "text": "Create 3D designs around existing 3D components",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X09",
+      "unit": "Chapter 1: Graphics for Design",
+      "module": "Chapter 1: Graphics for Design",
+      "lesson": "Further outcomes — Chapter 1: Graphics for Design",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.1.03.002",
+        "text": "Distinguish between the various orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.004",
+        "text": "Identify different surfaces in orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.003",
+        "text": "Demonstrate an understanding of the planes of reference",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.005",
+        "text": "Construct the orthographic views of a basic solid in 1st angle projection",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X10",
+      "unit": "Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "lesson": "Further outcomes — Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.2.05.004",
+        "text": "Create realistic renders and drawings from 3D models",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.001",
+        "text": "Apply the rules of 3D printing in relation to design",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.001",
+        "text": "Illustrate a range of proposed solutions",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X11",
+      "unit": "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "module": "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "lesson": "Further outcomes — Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.3.01.006",
+        "text": "Transform abstract/textual concepts into visual forms.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.002",
+        "text": "Analyse situations for improving and developing novel solutions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.003",
+        "text": "Identify situations for creative alternates to existing designs.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.002",
+        "text": "Show new ideas and proposed designs using various techniques.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.3.02.005",
+        "text": "Solve real-context and abstract problems using graphical techniques.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.3.02.006",
+        "text": "Apply the geometric principles of graphics to communicate possible design ideas.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X12",
+      "unit": "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "module": "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "lesson": "Further outcomes — Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.1.08.001",
+        "text": "Explain layers of abstraction in computing systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -4251,6 +7224,562 @@
     "source": "MOE Scope & Sequence 2025-26 · Integrated Science (Bridge)",
     "file": "G09 GEN_ SCOPE AND SEQUENCE_BRIDGE_2025-2026.xlsx",
     "lang": "en"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Analyse how different factors, including data quality, system design, and human decisions, affect AI performance and outcomes.",
+      "T1-01.LO2 — Identify the core components of an AI system.",
+      "T1-01.LO3 — Analyse the characteristics of real datasets (size, completeness, balance, and relevance) used in AI systems.",
+      "T1-01.LO4 — Identify potential issues in datasets used for AI.",
+      "T1-02.LO1 — Explain how logic-based AI systems use rules and reasoning for decision-making.",
+      "T1-02.LO2 — Explain how probability is used in algorithmic decision- making.",
+      "T1-02.LO3 — Analyse simple algorithmic decision processes involving logic, data, and probability.",
+      "T1-03.LO1 — Explain how optimisation-based AI systems use objectives and constraints for solution selection.",
+      "T1-03.LO2 — Explain how AI systems define goals for optimisation.",
+      "T1-03.LO3 — Explain how constraints shape optimisation decisions in AI systems.",
+      "T1-03.LO4 — Evaluate the impacts of optimisation trade-offs on AI performance and outcomes.",
+      "T1-03.LO5 — Explain how machine-learning systems use data for pattern recognition and prediction."
+     ],
+     "Chapter 01: Graphics for Design": [
+      "T1-04.LO1 — Examine how AI systems detect human emotions.",
+      "T1-04.LO2 — Examine how AI systems predict human behaviour or actions.",
+      "T1-04.LO3 — Explain how machine-learning systems use data for pattern recognition and prediction.",
+      "T1-05.LO1 — Examine how AI systems predict human behaviour or actions.",
+      "CCI.5.1.02.003 — Construct basic 2D graphic constructions",
+      "CCI.5.2.01.001 — Compare Computer-Aided Design (CAD) and Technical Graphics",
+      "CCI.5.2.03.001 — 3D Model forms using a professional CAD software",
+      "CCI.5.2.03.0 — Compare Computer-Aided Design (CAD) and Technical Graphics.",
+      "CCI.5.1.03.001 — Compare pictorial and orthographic drawings"
+     ],
+     "Chapter 2: Principles of Computer- Aided Design and Design Realisation": [
+      "T1-07.LO1 — solid in 1st angle projection.",
+      "CCI.5.1.03.006 — Project orthographic views from given 2D views",
+      "CCI.5.1.04.001 — Create basic orthographic views of 3D objects",
+      "CCI.5.1.03.007 — Draw hidden details in creating orthographic views",
+      "CCI.5.1.04.002 — Create orthographic views with curved surfaces and hidden detail",
+      "T1-07.LO6 — Identify the different stages of the design process.",
+      "CCI.3.2.07.001 — Demonstrate an ability to write a design brief and specifications from their own and others’ considerations of human needs, wants and interests",
+      "CCI.3.2.07.003 — Examine relevant features found in existing solutions",
+      "CCI.3.2.09.001 — Identify the skills required in managing the design process",
+      "CCI.3.2.09.002 — Explain project management",
+      "CCI.5.2.04.002 — Use advanced create tools to model 3D bodies",
+      "CCI.5.2.05.001 — Create multiple bodies in one CAD design.",
+      "CCI.5.2.05.002 — Compare bodies vs components.",
+      "CCI.5.2.05.003 — Create a multi component design.",
+      "CCI.5.2.04.003 — Apply joints to fix components in position",
+      "CCI.5.2.04.004 — Create 3D designs around existing 3D components"
+     ],
+     "Chapter 1: Graphics for Design": [
+      "CCI.5.1.03.002 — Distinguish between the various orthographic views",
+      "CCI.5.1.03.004 — Identify different surfaces in orthographic views",
+      "CCI.5.1.03.003 — Demonstrate an understanding of the planes of reference",
+      "CCI.5.1.03.005 — Construct the orthographic views of a basic solid in 1st angle projection"
+     ],
+     "Chapter 2: Principles of Computer-Aided Design and Design Realisation": [
+      "CCI.5.2.05.004 — Create realistic renders and drawings from 3D models",
+      "CCI.5.2.04.001 — Apply the rules of 3D printing in relation to design",
+      "CCI.3.2.08.001 — Illustrate a range of proposed solutions"
+     ],
+     "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode": [
+      "CCI.5.3.01.006 — Transform abstract/textual concepts into visual forms.",
+      "CCI.3.2.07.002 — Analyse situations for improving and developing novel solutions.",
+      "CCI.3.2.08.003 — Identify situations for creative alternates to existing designs.",
+      "CCI.3.2.08.002 — Show new ideas and proposed designs using various techniques.",
+      "CCI.5.3.02.005 — Solve real-context and abstract problems using graphical techniques.",
+      "CCI.5.3.02.006 — Apply the geometric principles of graphics to communicate possible design ideas."
+     ],
+     "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing": [
+      "CCI.1.1.08.001 — Explain layers of abstraction in computing systems."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 1: AI Systems and Data Quality",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "data quality",
+       "completeness",
+       "data cleaning",
+       "data noise"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Analyse how different factors, including data quality, system design, and human decisions, affect AI performance and outcomes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Identify the core components of an AI system.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Analyse the characteristics of real datasets (size, completeness, balance, and relevance) used in AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO4",
+        "text": "Identify potential issues in datasets used for AI.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "Ai literacy: Lesson 2: logic and probability in ai systems",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "rule-based system",
+       "probability",
+       "data-driven decision",
+       "confidence score"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Explain how logic-based AI systems use rules and reasoning for decision-making.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Explain how probability is used in algorithmic decision- making.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO3",
+        "text": "Analyse simple algorithmic decision processes involving logic, data, and probability.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 3: Optimisation in AI Systems",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "optimisation",
+       "hard constraint",
+       "soft constraint",
+       "human behaviour",
+       "human emotion"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Explain how optimisation-based AI systems use objectives and constraints for solution selection.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Explain how AI systems define goals for optimisation.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Explain how constraints shape optimisation decisions in AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO4",
+        "text": "Evaluate the impacts of optimisation trade-offs on AI performance and outcomes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO5",
+        "text": "Explain how machine-learning systems use data for pattern recognition and prediction.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "AI Literacy: Lesson 4: Patterns and Predictions in AI",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "overfitting",
+       "human behaviour",
+       "human emotion"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Examine how AI systems detect human emotions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Examine how AI systems predict human behaviour or actions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Explain how machine-learning systems use data for pattern recognition and prediction.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "Section 01: Basic constructions",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "cad fusion 360 solidworks working drawing polygon"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Examine how AI systems predict human behaviour or actions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.02.003",
+        "text": "Construct basic 2D graphic constructions",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.01.001",
+        "text": "Compare Computer-Aided Design (CAD) and Technical Graphics",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.03.001",
+        "text": "3D Model forms using a professional CAD software",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.03.0",
+        "text": "Compare Computer-Aided Design (CAD) and Technical Graphics.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 01: Graphics for Design",
+      "module": "Chapter 01: Graphics for Design",
+      "lesson": "Section 2: 3D Representations- Orthographic Projection",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "orthographic projection pictorial drawing"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.1.03.001",
+        "text": "Compare pictorial and orthographic drawings",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "lesson": "Section 1: Engineering design principles",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "the design process the target market biomimicry mood board"
+      ],
+      "slos": [
+       {
+        "code": "T1-07.LO1",
+        "text": "solid in 1st angle projection.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.006",
+        "text": "Project orthographic views from given 2D views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.04.001",
+        "text": "Create basic orthographic views of 3D objects",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.007",
+        "text": "Draw hidden details in creating orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.04.002",
+        "text": "Create orthographic views with curved surfaces and hidden detail",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-07.LO6",
+        "text": "Identify the different stages of the design process.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.001",
+        "text": "Demonstrate an ability to write a design brief and specifications from their own and others’ considerations of human needs, wants and interests",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.003",
+        "text": "Examine relevant features found in existing solutions",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.09.001",
+        "text": "Identify the skills required in managing the design process",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.09.002",
+        "text": "Explain project management",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer- Aided Design and Design Realisation",
+      "lesson": "Section 2: Advancing 3D modelling skills",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "revolve loft sweep assemble joint"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.2.04.002",
+        "text": "Use advanced create tools to model 3D bodies",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.001",
+        "text": "Create multiple bodies in one CAD design.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.002",
+        "text": "Compare bodies vs components.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.003",
+        "text": "Create a multi component design.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.003",
+        "text": "Apply joints to fix components in position",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.004",
+        "text": "Create 3D designs around existing 3D components",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X09",
+      "unit": "Chapter 1: Graphics for Design",
+      "module": "Chapter 1: Graphics for Design",
+      "lesson": "Further outcomes — Chapter 1: Graphics for Design",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.1.03.002",
+        "text": "Distinguish between the various orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.004",
+        "text": "Identify different surfaces in orthographic views",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.003",
+        "text": "Demonstrate an understanding of the planes of reference",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.1.03.005",
+        "text": "Construct the orthographic views of a basic solid in 1st angle projection",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X10",
+      "unit": "Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "module": "Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "lesson": "Further outcomes — Chapter 2: Principles of Computer-Aided Design and Design Realisation",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.2.05.004",
+        "text": "Create realistic renders and drawings from 3D models",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.04.001",
+        "text": "Apply the rules of 3D printing in relation to design",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.001",
+        "text": "Illustrate a range of proposed solutions",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X11",
+      "unit": "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "module": "Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "lesson": "Further outcomes — Chapter 2: revolve • CCI.5.2.04.002 - Use advanced create tools to mode",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.3.01.006",
+        "text": "Transform abstract/textual concepts into visual forms.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.002",
+        "text": "Analyse situations for improving and developing novel solutions.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.003",
+        "text": "Identify situations for creative alternates to existing designs.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.002",
+        "text": "Show new ideas and proposed designs using various techniques.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.3.02.005",
+        "text": "Solve real-context and abstract problems using graphical techniques.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.3.02.006",
+        "text": "Apply the geometric principles of graphics to communicate possible design ideas.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X12",
+      "unit": "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "module": "Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "lesson": "Further outcomes — Chapter 03: • CCI.1.1.08.001- Explain layers of abstraction in computing",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.1.08.001",
+        "text": "Explain layers of abstraction in computing systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27 (same guide as Advanced)",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -5043,6 +8572,427 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "S&S, CHM G10 ADV, EN, AY 26-27.xlsx",
     "lang": "en"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Explain the relationship between neural networks and deep learning.",
+      "T1-01.LO2 — Explain how neural networks process data through layered structures.",
+      "T1-01.LO3 — Analyse how neural network structure (layers and connections)",
+      "T1-01.LO4 — Examine the limitations of neural networks.",
+      "T1-02.LO1 — Analyse how human roles, skills, and responsibilities change when tasks are shared between people and AI or robotic systems.",
+      "T1-02.LO2 — Evaluate the trade-offs of human–AI collaboration for efficiency, safety, and decision-making.",
+      "T1-03.LO1 — Analyse how AI systems shape digital media content.",
+      "T1-03.LO2 — Evaluate how AI-driven systems influence what content people see and share, shaping cultural expression.",
+      "T1-03.LO3 — Analyse the trade-offs of human–AI collaboration in shaping public discourse."
+     ],
+     "Chapter 01: Computing Systems": [
+      "T1-04.LO1 — Analyse how AI is used in healthcare, including diagnosis, predictive genetics, and personalised medicine.",
+      "T1-04.LO2 — Evaluate the trade-offs of using AI in healthcare services.",
+      "T1-04.LO3 — Explain how AI tools accelerate scientific research through data analysis, modelling, and simulation.",
+      "CCI.1.1.08.002 — Compare the levels of abstraction and interactions between layers of abstraction in computing systems."
+     ],
+     "Chapter 02: Networks and the Internet": [
+      "CCI.1.2.13.002 — Explain how examples of sensitive data can be affected by malware and other attacks.",
+      "CCI.1.2.11.003 — Select a range of appropriate hardware, topologies, protocols and addressing to implement a network for a given purpose."
+     ],
+     "Chapter 03: Data and Analysis": [
+      "CCI.1.3.16.002 — Explain different bit representations of real- world phenomena, such as characters, numbers, and images.",
+      "CCI.1.3.18.001 — . Evaluate trade-offs concerning the organisation and storage of data elements."
+     ],
+     "Chapter 04: Algorithms and programming": [
+      "CCI.1.3.19.002 — Recommend different machine learning algorithms for a range of computing problems.",
+      "CCI.1.3.20.002 — Create an AI algorithm that can be used to implement a basic classification system.",
+      "CCI.1.4.16.002 — Incorporate advanced storage techniques such as arrays to simplify programming solutions and generalise computational problems.",
+      "CCI.1.4.17.004 — Evaluate the benefits and drawbacks of using specific control structures for program implementation, readability, and performance.",
+      "CCI.1.4.18.006 — Design computational artefacts to address a societal issues using events to initiate instructions.",
+      "CCI.1.4.19.003 — Develop programming solutions by decomposing the problem into smaller components that can be solved using constructs such as procedures, modules and/ or objects.",
+      "CCI.1.4.18.003 — Develop computational artefacts using an iterative process to address a societal issue using events to initiate instructions."
+     ],
+     "Chapter 05: Impacts of Computing": [
+      "CCI.1.4.22.001 — Explain software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+      "CCI.1.4.22.002 — Compare software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+      "CCI.1.5.10.002 — Assess the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+      "CCI.1.5.14.002 — Assess the ways AI systems can impact personal, ethical, social, economic, and cultural practices.",
+      "CCI.1.5.10.001 — Explain the ways computing technologies can impact personal, ethical, social, economic, and cultural practices."
+     ],
+     "Chapter 04: process the problem into smaller components that can be solv": [
+      "CCI.1.5.17.001 — Explain a range of privacy concerns related to the collection and generation of data through automated processes.",
+      "CCI.1.5.19.001 — Evaluate a range of social and economic implications of privacy in the context of safety, law and ethics"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 1: Neural Networks and Deep Learning",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "neural network input layer hidden layer output layer"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Explain the relationship between neural networks and deep learning.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Explain how neural networks process data through layered structures.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Analyse how neural network structure (layers and connections)",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO4",
+        "text": "Examine the limitations of neural networks.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 2: Human–AI Collaboration",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "human oversight human-in-the-loop augmentation"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Analyse how human roles, skills, and responsibilities change when tasks are shared between people and AI or robotic systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Evaluate the trade-offs of human–AI collaboration for efficiency, safety, and decision-making.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 3: AI and Digital Media",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "recommendation system personalisation user engagement public discourse"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Analyse how AI systems shape digital media content.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Evaluate how AI-driven systems influence what content people see and share, shaping cultural expression.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Analyse the trade-offs of human–AI collaboration in shaping public discourse.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 01: Computing Systems",
+      "module": "Chapter 01: Computing Systems",
+      "lesson": "AI Literacy: Lesson 4: AI in Healthcare and Research",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "predictive genetics personalised medicine medical imaging"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Analyse how AI is used in healthcare, including diagnosis, predictive genetics, and personalised medicine.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Evaluate the trade-offs of using AI in healthcare services.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Explain how AI tools accelerate scientific research through data analysis, modelling, and simulation.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 01: Computing Systems",
+      "module": "Chapter 01: Computing Systems",
+      "lesson": "Section 1: Abstraction and interaction in computer systems",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "abstraction"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.1.08.002",
+        "text": "Compare the levels of abstraction and interactions between layers of abstraction in computing systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 02: Networks and the Internet",
+      "module": "Chapter 02: Networks and the Internet",
+      "lesson": "Section 1: Network threats and implementation",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "malware cybersecurity scalability reliability"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.2.13.002",
+        "text": "Explain how examples of sensitive data can be affected by malware and other attacks.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.2.11.003",
+        "text": "Select a range of appropriate hardware, topologies, protocols and addressing to implement a network for a given purpose.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "Chapter 03: Data and Analysis",
+      "module": "Chapter 03: Data and Analysis",
+      "lesson": "Section 1: Data representation",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "number system trade-off"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.16.002",
+        "text": "Explain different bit representations of real- world phenomena, such as characters, numbers, and images.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.18.001",
+        "text": ". Evaluate trade-offs concerning the organisation and storage of data elements.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 2: Machine learning algorithms",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "artificial intelligence (ai) machine learning (ml) tree structure root node leaf node branch decision tree classification system"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.19.002",
+        "text": "Recommend different machine learning algorithms for a range of computing problems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.20.002",
+        "text": "Create an AI algorithm that can be used to implement a basic classification system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 1: Data storage and control structures",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "control structures data storage techniques"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.16.002",
+        "text": "Incorporate advanced storage techniques such as arrays to simplify programming solutions and generalise computational problems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.17.004",
+        "text": "Evaluate the benefits and drawbacks of using specific control structures for program implementation, readability, and performance.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.18.006",
+        "text": "Design computational artefacts to address a societal issues using events to initiate instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 2: Decomposition, iterative development and prototypes",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "decomposition iterative development process"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.19.003",
+        "text": "Develop programming solutions by decomposing the problem into smaller components that can be solved using constructs such as procedures, modules and/ or objects.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.18.003",
+        "text": "Develop computational artefacts using an iterative process to address a societal issue using events to initiate instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "Chapter 05: Impacts of Computing",
+      "module": "Chapter 05: Impacts of Computing",
+      "lesson": "Section 3: Software Licenses",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "software license ownership copyright copyright law software piracy cybersecurity threats"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.22.001",
+        "text": "Explain software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.22.002",
+        "text": "Compare software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "Chapter 05: Impacts of Computing",
+      "module": "Chapter 05: Impacts of Computing",
+      "lesson": "Section 1: Impacts of technologies",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "artificial intelligence ethics"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.5.10.002",
+        "text": "Assess the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.14.002",
+        "text": "Assess the ways AI systems can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.10.001",
+        "text": "Explain the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X13",
+      "unit": "Chapter 04: process the problem into smaller components that can be solv",
+      "module": "Chapter 04: process the problem into smaller components that can be solv",
+      "lesson": "Further outcomes — Chapter 04: process the problem into smaller components that can be solv",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.5.17.001",
+        "text": "Explain a range of privacy concerns related to the collection and generation of data through automated processes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.19.001",
+        "text": "Evaluate a range of social and economic implications of privacy in the context of safety, law and ethics",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -5738,6 +9688,427 @@
     },
     "source": "Masar (GitHub)",
     "lang": "en"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Explain the relationship between neural networks and deep learning.",
+      "T1-01.LO2 — Explain how neural networks process data through layered structures.",
+      "T1-01.LO3 — Analyse how neural network structure (layers and connections)",
+      "T1-01.LO4 — Examine the limitations of neural networks.",
+      "T1-02.LO1 — Analyse how human roles, skills, and responsibilities change when tasks are shared between people and AI or robotic systems.",
+      "T1-02.LO2 — Evaluate the trade-offs of human–AI collaboration for efficiency, safety, and decision-making.",
+      "T1-03.LO1 — Analyse how AI systems shape digital media content.",
+      "T1-03.LO2 — Evaluate how AI-driven systems influence what content people see and share, shaping cultural expression.",
+      "T1-03.LO3 — Analyse the trade-offs of human–AI collaboration in shaping public discourse."
+     ],
+     "Chapter 01: Computing Systems": [
+      "T1-04.LO1 — Analyse how AI is used in healthcare, including diagnosis, predictive genetics, and personalised medicine.",
+      "T1-04.LO2 — Evaluate the trade-offs of using AI in healthcare services.",
+      "T1-04.LO3 — Explain how AI tools accelerate scientific research through data analysis, modelling, and simulation.",
+      "CCI.1.1.08.002 — Compare the levels of abstraction and interactions between layers of abstraction in computing systems."
+     ],
+     "Chapter 02: Networks and the Internet": [
+      "CCI.1.2.13.002 — Explain how examples of sensitive data can be affected by malware and other attacks.",
+      "CCI.1.2.11.003 — Select a range of appropriate hardware, topologies, protocols and addressing to implement a network for a given purpose."
+     ],
+     "Chapter 03: Data and Analysis": [
+      "CCI.1.3.16.002 — Explain different bit representations of real- world phenomena, such as characters, numbers, and images.",
+      "CCI.1.3.18.001 — . Evaluate trade-offs concerning the organisation and storage of data elements."
+     ],
+     "Chapter 04: Algorithms and programming": [
+      "CCI.1.3.19.002 — Recommend different machine learning algorithms for a range of computing problems.",
+      "CCI.1.3.20.002 — Create an AI algorithm that can be used to implement a basic classification system.",
+      "CCI.1.4.16.002 — Incorporate advanced storage techniques such as arrays to simplify programming solutions and generalise computational problems.",
+      "CCI.1.4.17.004 — Evaluate the benefits and drawbacks of using specific control structures for program implementation, readability, and performance.",
+      "CCI.1.4.18.006 — Design computational artefacts to address a societal issues using events to initiate instructions.",
+      "CCI.1.4.19.003 — Develop programming solutions by decomposing the problem into smaller components that can be solved using constructs such as procedures, modules and/ or objects.",
+      "CCI.1.4.18.003 — Develop computational artefacts using an iterative process to address a societal issue using events to initiate instructions."
+     ],
+     "Chapter 05: Impacts of Computing": [
+      "CCI.1.4.22.001 — Explain software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+      "CCI.1.4.22.002 — Compare software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+      "CCI.1.5.10.002 — Assess the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+      "CCI.1.5.14.002 — Assess the ways AI systems can impact personal, ethical, social, economic, and cultural practices.",
+      "CCI.1.5.10.001 — Explain the ways computing technologies can impact personal, ethical, social, economic, and cultural practices."
+     ],
+     "Chapter 04: process the problem into smaller components that can be solv": [
+      "CCI.1.5.17.001 — Explain a range of privacy concerns related to the collection and generation of data through automated processes.",
+      "CCI.1.5.19.001 — Evaluate a range of social and economic implications of privacy in the context of safety, law and ethics"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 1: Neural Networks and Deep Learning",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "neural network input layer hidden layer output layer"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Explain the relationship between neural networks and deep learning.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Explain how neural networks process data through layered structures.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Analyse how neural network structure (layers and connections)",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO4",
+        "text": "Examine the limitations of neural networks.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 2: Human–AI Collaboration",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "human oversight human-in-the-loop augmentation"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Analyse how human roles, skills, and responsibilities change when tasks are shared between people and AI or robotic systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Evaluate the trade-offs of human–AI collaboration for efficiency, safety, and decision-making.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 3: AI and Digital Media",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "recommendation system personalisation user engagement public discourse"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Analyse how AI systems shape digital media content.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Evaluate how AI-driven systems influence what content people see and share, shaping cultural expression.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Analyse the trade-offs of human–AI collaboration in shaping public discourse.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 01: Computing Systems",
+      "module": "Chapter 01: Computing Systems",
+      "lesson": "AI Literacy: Lesson 4: AI in Healthcare and Research",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "predictive genetics personalised medicine medical imaging"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Analyse how AI is used in healthcare, including diagnosis, predictive genetics, and personalised medicine.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Evaluate the trade-offs of using AI in healthcare services.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Explain how AI tools accelerate scientific research through data analysis, modelling, and simulation.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 01: Computing Systems",
+      "module": "Chapter 01: Computing Systems",
+      "lesson": "Section 1: Abstraction and interaction in computer systems",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "abstraction"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.1.08.002",
+        "text": "Compare the levels of abstraction and interactions between layers of abstraction in computing systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 02: Networks and the Internet",
+      "module": "Chapter 02: Networks and the Internet",
+      "lesson": "Section 1: Network threats and implementation",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "malware cybersecurity scalability reliability"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.2.13.002",
+        "text": "Explain how examples of sensitive data can be affected by malware and other attacks.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.2.11.003",
+        "text": "Select a range of appropriate hardware, topologies, protocols and addressing to implement a network for a given purpose.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "Chapter 03: Data and Analysis",
+      "module": "Chapter 03: Data and Analysis",
+      "lesson": "Section 1: Data representation",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "number system trade-off"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.16.002",
+        "text": "Explain different bit representations of real- world phenomena, such as characters, numbers, and images.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.18.001",
+        "text": ". Evaluate trade-offs concerning the organisation and storage of data elements.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 2: Machine learning algorithms",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "artificial intelligence (ai) machine learning (ml) tree structure root node leaf node branch decision tree classification system"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.19.002",
+        "text": "Recommend different machine learning algorithms for a range of computing problems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.20.002",
+        "text": "Create an AI algorithm that can be used to implement a basic classification system.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 1: Data storage and control structures",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "control structures data storage techniques"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.16.002",
+        "text": "Incorporate advanced storage techniques such as arrays to simplify programming solutions and generalise computational problems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.17.004",
+        "text": "Evaluate the benefits and drawbacks of using specific control structures for program implementation, readability, and performance.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.18.006",
+        "text": "Design computational artefacts to address a societal issues using events to initiate instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "Chapter 04: Algorithms and programming",
+      "module": "Chapter 04: Algorithms and programming",
+      "lesson": "Section 2: Decomposition, iterative development and prototypes",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "decomposition iterative development process"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.19.003",
+        "text": "Develop programming solutions by decomposing the problem into smaller components that can be solved using constructs such as procedures, modules and/ or objects.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.18.003",
+        "text": "Develop computational artefacts using an iterative process to address a societal issue using events to initiate instructions.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "Chapter 05: Impacts of Computing",
+      "module": "Chapter 05: Impacts of Computing",
+      "lesson": "Section 3: Software Licenses",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "software license ownership copyright copyright law software piracy cybersecurity threats"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.4.22.001",
+        "text": "Explain software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.4.22.002",
+        "text": "Compare software licenses that can limit or restrict the use of computational artefacts when using resources such as libraries.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-12",
+      "unit": "Chapter 05: Impacts of Computing",
+      "module": "Chapter 05: Impacts of Computing",
+      "lesson": "Section 1: Impacts of technologies",
+      "weeks": "Week 10",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "artificial intelligence ethics"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.5.10.002",
+        "text": "Assess the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.14.002",
+        "text": "Assess the ways AI systems can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.10.001",
+        "text": "Explain the ways computing technologies can impact personal, ethical, social, economic, and cultural practices.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X13",
+      "unit": "Chapter 04: process the problem into smaller components that can be solv",
+      "module": "Chapter 04: process the problem into smaller components that can be solv",
+      "lesson": "Further outcomes — Chapter 04: process the problem into smaller components that can be solv",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.5.17.001",
+        "text": "Explain a range of privacy concerns related to the collection and generation of data through automated processes.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.19.001",
+        "text": "Evaluate a range of social and economic implications of privacy in the context of safety, law and ethics",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27 (same guide as Advanced)",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -7166,6 +11537,448 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "S&S, Term1_CHM G11 GEN, Ar, AY 26-27.xlsx",
     "lang": "ar"
+   },
+   "AI & Technology": {
+    "strands": {
+     "Chapter 1: Computing Systems": [
+      "T1-01.LO1 — Analyse how AI systems are used to support decision-making in areas such as education, hiring, insurance, and immigration.",
+      "T1-01.LO2 — Analyse case studies showing how AI systems support decision-",
+      "T1-01.LO3 — making across public and private sector contexts.",
+      "T1-01.LO4 — Analyse how predictive tools are used in areas such as security,",
+      "T1-01.LO5 — policing, and social services.",
+      "T1-01.LO6 — Evaluate the ethical implications of AI tools in public and private sectors.",
+      "T1-02.LO1 — Explain how AI is used in cybersecurity threat management, including detection, prevention, and response.",
+      "T1-02.LO2 — Analyse the role of AI in infrastructure protection related to",
+      "T1-02.LO3 — cybersecurity and public safety.",
+      "T1-02.LO4 — Analyse how AI is used in fraud detection.",
+      "T1-02.LO5 — Analyse how AI improves government performance through informed decision-making and efficient use of public resources.",
+      "T1-02.LO6 — Explain how different countries regulate AI in response to national",
+      "T1-03.LO1 — Compare national AI policy approaches across selected countries and global organisations.",
+      "T1-03.LO2 — Analyse how AI improves government performance through informed decision-making and efficient use of public resources.",
+      "T1-03.LO3 — Explain how different countries regulate AI in response to national",
+      "T1-03.LO4 — Analyse how explainability in AI systems supports accountable AI use.",
+      "T1-04.LO1 — Analyse the trade-offs between AI system performance and interpretability.",
+      "T1-04.LO2 — Explain how personal data is protected in AI systems using",
+      "T1-04.LO3 — Evaluate the risks to the public when AI systems lack data protection safeguards.",
+      "T1-04.LO4 — Analyse how explainability in AI systems supports accountable AI use.",
+      "T1-04.LO5 — Analyse the trade-offs between AI system performance and",
+      "T1-05.LO1 — Explain how personal data is protected in AI systems using guidelines and policies.",
+      "T1-05.LO2 — Evaluate the risks to the public when AI systems lack data protection safeguards.",
+      "CCI.1.1.11.002 — Demonstrate ways computing systems implement logic, input, and output through hardware components.",
+      "CCI.1.1.10.001 — Categorise the roles of operating system software."
+     ],
+     "Chapter 2: Networks and Internet": [
+      "CCI.1.2.16.001 — Explain a range of issues that impact network functionality",
+      "CCI.1.2.17.001 — Explain ways software developers protect devices and information from unauthorised access."
+     ],
+     "Chapter 3: Data and Analysis": [
+      "CCI.1.3.25.001 — Select data collection tools and techniques to generate data sets that support a claim or communicate information.",
+      "CCI.1.3.24.001 — Extract patterns from data representing complex systems that has been collected using data analysis tools and techniques.",
+      "CCI.1.3.26.001 — Explain the ability of models and simulations to test and support the refinement of hypotheses",
+      "CCI.1.3.27.001 — Implement AI and machine learning algorithms to solve simple computing problems"
+     ],
+     "Chapter 4: Impacts of Computing": [
+      "CCI.1.5.20.001 — Explain the effects of a range of computational artefacts on society",
+      "T1-11.LO2 — CC CCI.1.5.21.001- Explain the impact of equity, access, and influence on the distribution of computing resources in a global society.",
+      "CCI.1.5.22.001 — Explain the impact of AI systems on society",
+      "CCI.1.5.21.001 — Explain the impact of equity, access, and influence on the distribution of computing resources in a global society"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "AI Literacy: Lesson 1: AI in Decision-Making",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Decision-making system",
+       "Predictive model",
+       "Transparency",
+       "Accountability"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Analyse how AI systems are used to support decision-making in areas such as education, hiring, insurance, and immigration.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Analyse case studies showing how AI systems support decision-",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "making across public and private sector contexts.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO4",
+        "text": "Analyse how predictive tools are used in areas such as security,",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO5",
+        "text": "policing, and social services.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO6",
+        "text": "Evaluate the ethical implications of AI tools in public and private sectors.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "AI Literacy: Lesson 2: AI for Cybersecurity and Safety",
+      "weeks": "Week 2",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Cybersecurity",
+       "Threat detection",
+       "Infrastructure protection",
+       "Fraud detection",
+       "Public resources",
+       "AI regulation"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Explain how AI is used in cybersecurity threat management, including detection, prevention, and response.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Analyse the role of AI in infrastructure protection related to",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO3",
+        "text": "cybersecurity and public safety.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO4",
+        "text": "Analyse how AI is used in fraud detection.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO5",
+        "text": "Analyse how AI improves government performance through informed decision-making and efficient use of public resources.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO6",
+        "text": "Explain how different countries regulate AI in response to national",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "AI Literacy: Lesson 3: AI Regulation and Policy",
+      "weeks": "Week 3",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "National strategy",
+       "Public resources",
+       "AI regulation"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Compare national AI policy approaches across selected countries and global organisations.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Analyse how AI improves government performance through informed decision-making and efficient use of public resources.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Explain how different countries regulate AI in response to national",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO4",
+        "text": "Analyse how explainability in AI systems supports accountable AI use.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "AI Literacy: Lesson 4: AI Explainability and Trade-offs",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Explainability",
+       "Accountability",
+       "Interpretability"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Analyse the trade-offs between AI system performance and interpretability.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Explain how personal data is protected in AI systems using",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO3",
+        "text": "Evaluate the risks to the public when AI systems lack data protection safeguards.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO4",
+        "text": "Analyse how explainability in AI systems supports accountable AI use.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO5",
+        "text": "Analyse the trade-offs between AI system performance and",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "Section 1: Logic gates in computing systems",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Interpretability",
+       "Abstraction Integrated circuit Logic circuit"
+      ],
+      "slos": [
+       {
+        "code": "T1-05.LO1",
+        "text": "Explain how personal data is protected in AI systems using guidelines and policies.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-05.LO2",
+        "text": "Evaluate the risks to the public when AI systems lack data protection safeguards.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.1.11.002",
+        "text": "Demonstrate ways computing systems implement logic, input, and output through hardware components.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 1: Computing Systems",
+      "module": "Chapter 1: Computing Systems",
+      "lesson": "Section 2: Operating Systems",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Operating system Process"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.1.10.001",
+        "text": "Categorise the roles of operating system software.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "Chapter 2: Networks and Internet",
+      "module": "Chapter 2: Networks and Internet",
+      "lesson": "Section 1: Network functionality",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "network performance network metric key network metrics/ indicators"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.2.16.001",
+        "text": "Explain a range of issues that impact network functionality",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "Chapter 2: Networks and Internet",
+      "module": "Chapter 2: Networks and Internet",
+      "lesson": "Section 2: Security practices for Software Developers",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "software development software developers software security"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.2.17.001",
+        "text": "Explain ways software developers protect devices and information from unauthorised access.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-09",
+      "unit": "Chapter 3: Data and Analysis",
+      "module": "Chapter 3: Data and Analysis",
+      "lesson": "Section 1: Data collection methods, techniques and tools",
+      "weeks": "Week 8",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "data collection data collection method data collection technique data collection tools"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.25.001",
+        "text": "Select data collection tools and techniques to generate data sets that support a claim or communicate information.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.24.001",
+        "text": "Extract patterns from data representing complex systems that has been collected using data analysis tools and techniques.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-10",
+      "unit": "Chapter 3: Data and Analysis",
+      "module": "Chapter 3: Data and Analysis",
+      "lesson": "Section 2: Hypothesis testing and refinement for accurate modelling",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "models simulations hypothesis hypothesis testing hypothesis refinement"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.3.26.001",
+        "text": "Explain the ability of models and simulations to test and support the refinement of hypotheses",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.3.27.001",
+        "text": "Implement AI and machine learning algorithms to solve simple computing problems",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-11",
+      "unit": "Chapter 4: Impacts of Computing",
+      "module": "Chapter 4: Impacts of Computing",
+      "lesson": "Section 1: Impacts of computing on society",
+      "weeks": "Week 11",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "cyberattack dilemma ethical issue moral issue cultural issue code of conduct"
+      ],
+      "slos": [
+       {
+        "code": "CCI.1.5.20.001",
+        "text": "Explain the effects of a range of computational artefacts on society",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-11.LO2",
+        "text": "CC CCI.1.5.21.001- Explain the impact of equity, access, and influence on the distribution of computing resources in a global society.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.1.5.22.001",
+        "text": "Explain the impact of AI systems on society",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X12",
+      "unit": "Chapter 4: Impacts of Computing",
+      "module": "Chapter 4: Impacts of Computing",
+      "lesson": "Further outcomes — Chapter 4: Impacts of Computing",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.1.5.21.001",
+        "text": "Explain the impact of equity, access, and influence on the distribution of computing resources in a global society",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -8790,6 +13603,399 @@
     "source": "MOE Scope & Sequence 2025-26",
     "file": "SS_AY25-26, T3_Physics_G12_General_AR_GEN.PHY.C.102.xlsx",
     "lang": "en"
+   },
+   "AI & Technology": {
+    "strands": {
+     "AI Literacy": [
+      "T1-01.LO1 — Analyse how AI is used in humanitarian contexts, such as disaster response and public health initiatives.",
+      "T1-01.LO2 — Explain how AI is used in environmental analysis, including monitoring, modelling, and prediction.",
+      "T1-01.LO3 — Evaluate the effectiveness of AI-based solutions for global problem-solving.",
+      "T1-02.LO1 — Analyse how AI is transforming infrastructure, including transport, utilities, and logistical systems.",
+      "T1-02.LO2 — Analyse how AI-driven automation is reshaping labour markets and job roles.",
+      "T1-02.LO3 — Evaluate the importance of workforce readiness, including upskilling and lifelong learning, in response to AI-driven change.",
+      "T1-02.LO4 — Analyse how AI is transforming key UAE sectors, including energy and government services."
+     ],
+     "Chapter 1: Space robotics": [
+      "T1-03.LO1 — Evaluate the role of AI auditing in ensuring responsible and trustworthy AI systems.",
+      "T1-03.LO2 — Analyse methods used to enhance AI explainability in advanced models.",
+      "T1-03.LO3 — Analyse how data governance affects accountability in AI systems.",
+      "T1-03.LO4 — Evaluate risks associated with poor data governance in large-scale AI systems.",
+      "T1-04.LO1 — Define a space rover.",
+      "T1-04.LO2 — Analyse possible power sources for a space rover.",
+      "CDI.2.2.13.017 — Compare possible drivetrains.",
+      "CDI.2.2.13.021 — Recognise and compare various vehicle suspension systems.",
+      "CDI.2.2.13.019 — Differentiate between steering mechanisms.",
+      "CDI.2.2.13.018 — Design a rocker-bogie mechanism.",
+      "CDI.2.2.13.020 — Identify the degrees of freedom of a robotic arm."
+     ],
+     "Chapter 2: Design realisation of a space rover": [
+      "CCI.5.2.04.012 — Utilise create tools to model 3D designs.",
+      "CCI.5.2.05.018 — Modify 3D models to improve their function.",
+      "CCI.5.2.05.019 — Create advanced 3D models to solve a given problem.",
+      "CCI.5.2.04.012 — Utilise create tools to model 3D designs.",
+      "CCI.5.2.05.018 — Modify 3D models to improve their function.",
+      "CCI.5.2.05.019 — Create advanced 3D models to solve a given problem.",
+      "CCI.5.3.02.006 — Apply the geometric principles of graphics to communicate possible design ideas. CDI.3.2.06.005 - Evaluate the final design."
+     ],
+     "STREAM project stages 1 and 2": [
+      "CCI.5.2.04.012 — Utilise create tools to model 3D designs.",
+      "CCI.5.2.05.018 — Modify 3D models to improve their function.",
+      "CCI.5.2.05.019 — Create advanced 3D models to solve a given problem.",
+      "CDI.3.2.07.012 — Analyse a design brief.",
+      "CCI.3.2.07.002 — Analyse situations for improving and developing novel solutions. CDI.2.3.04.024 - Investigate and research existing solutions for the given problem.",
+      "CDI.2.3.04.024 — Investigate and research existing solutions for the given problem.",
+      "CCI.3.2.08.003 — Identify situations for creative alternates to existing designs."
+     ],
+     "Chapter 2: Design • Section 1: Modeling a chassis and suspension chassi": [
+      "CCI.3.2.08.002 — Show new ideas and proposed designs using various techniques.",
+      "CCI.5.3.02.005 — Solve real-context and abstract problems using graphical techniques."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "T1-01",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 1: AI for Global Challenges",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Humanitarian work Crisis Environmental analysis Predictive modelling"
+      ],
+      "slos": [
+       {
+        "code": "T1-01.LO1",
+        "text": "Analyse how AI is used in humanitarian contexts, such as disaster response and public health initiatives.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO2",
+        "text": "Explain how AI is used in environmental analysis, including monitoring, modelling, and prediction.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-01.LO3",
+        "text": "Evaluate the effectiveness of AI-based solutions for global problem-solving.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-02",
+      "unit": "AI Literacy",
+      "module": "AI Literacy",
+      "lesson": "AI Literacy: Lesson 2: AI in Industry and Workforce",
+      "weeks": "Week 1",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Infrastructure Logistics Upskilling Lifelong learning"
+      ],
+      "slos": [
+       {
+        "code": "T1-02.LO1",
+        "text": "Analyse how AI is transforming infrastructure, including transport, utilities, and logistical systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO2",
+        "text": "Analyse how AI-driven automation is reshaping labour markets and job roles.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO3",
+        "text": "Evaluate the importance of workforce readiness, including upskilling and lifelong learning, in response to AI-driven change.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-02.LO4",
+        "text": "Analyse how AI is transforming key UAE sectors, including energy and government services.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-03",
+      "unit": "Chapter 1: Space robotics",
+      "module": "Chapter 1: Space robotics",
+      "lesson": "AI Literacy: Lesson 4: AI Explainability and Governance",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Explainability Data Governance Accountability AI Auditing Black-box AI"
+      ],
+      "slos": [
+       {
+        "code": "T1-03.LO1",
+        "text": "Evaluate the role of AI auditing in ensuring responsible and trustworthy AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO2",
+        "text": "Analyse methods used to enhance AI explainability in advanced models.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO3",
+        "text": "Analyse how data governance affects accountability in AI systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-03.LO4",
+        "text": "Evaluate risks associated with poor data governance in large-scale AI systems.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-04",
+      "unit": "Chapter 1: Space robotics",
+      "module": "Chapter 1: Space robotics",
+      "lesson": "Section 2: Vehicle design specifications",
+      "weeks": "Week 4",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "space rover drivetrain suspension combustion crankshaft armature brush electromagnet velocity ratio gear ratio differential gear differential steering torque rack and pinion bevel gear rocker-bogie degrees of freedom (DOF) joint servo motor"
+      ],
+      "slos": [
+       {
+        "code": "T1-04.LO1",
+        "text": "Define a space rover.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "T1-04.LO2",
+        "text": "Analyse possible power sources for a space rover.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.2.13.017",
+        "text": "Compare possible drivetrains.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.2.13.021",
+        "text": "Recognise and compare various vehicle suspension systems.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.2.13.019",
+        "text": "Differentiate between steering mechanisms.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.2.13.018",
+        "text": "Design a rocker-bogie mechanism.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.2.13.020",
+        "text": "Identify the degrees of freedom of a robotic arm.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-05",
+      "unit": "Chapter 2: Design realisation of a space rover",
+      "module": "Chapter 2: Design realisation of a space rover",
+      "lesson": "Section 1: Modeling a chassis and suspension system",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "2D sketch extrude chassis assemble joint rocker-bogie hypotenuse Pythagoras theorem"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.2.04.012",
+        "text": "Utilise create tools to model 3D designs.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.018",
+        "text": "Modify 3D models to improve their function.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.019",
+        "text": "Create advanced 3D models to solve a given problem.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-06",
+      "unit": "Chapter 2: Design realisation of a space rover",
+      "module": "Chapter 2: Design realisation of a space rover",
+      "lesson": "Section 2: Creating a robotic arm",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Servo motor Servo horn Section analysis Forearm Robotic arm claw/ hand Spur gear"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.2.04.012",
+        "text": "Utilise create tools to model 3D designs.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.018",
+        "text": "Modify 3D models to improve their function.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.019",
+        "text": "Create advanced 3D models to solve a given problem.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-07",
+      "unit": "STREAM project stages 1 and 2",
+      "module": "STREAM project stages 1 and 2",
+      "lesson": "Section 3: Creating a top cover",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [
+       "Solar panel Loft Sweep"
+      ],
+      "slos": [
+       {
+        "code": "CCI.5.2.04.012",
+        "text": "Utilise create tools to model 3D designs.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.018",
+        "text": "Modify 3D models to improve their function.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.2.05.019",
+        "text": "Create advanced 3D models to solve a given problem.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-08",
+      "unit": "STREAM project stages 1 and 2",
+      "module": "STREAM project stages 1 and 2",
+      "lesson": "Design and manufacture of a smart-controlled Space Rover",
+      "weeks": "Week 7",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CDI.3.2.07.012",
+        "text": "Analyse a design brief.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.07.002",
+        "text": "Analyse situations for improving and developing novel solutions. CDI.2.3.04.024 - Investigate and research existing solutions for the given problem.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CDI.2.3.04.024",
+        "text": "Investigate and research existing solutions for the given problem.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.3.2.08.003",
+        "text": "Identify situations for creative alternates to existing designs.",
+        "priority": "",
+        "kpis": []
+       }
+      ]
+     },
+     {
+      "code": "T1-X09",
+      "unit": "Chapter 2: Design • Section 1: Modeling a chassis and suspension chassi",
+      "module": "Chapter 2: Design • Section 1: Modeling a chassis and suspension chassi",
+      "lesson": "Further outcomes — Chapter 2: Design • Section 1: Modeling a chassis and suspension chassi",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.3.2.08.002",
+        "text": "Show new ideas and proposed designs using various techniques.",
+        "priority": "",
+        "kpis": []
+       },
+       {
+        "code": "CCI.5.3.02.005",
+        "text": "Solve real-context and abstract problems using graphical techniques.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     },
+     {
+      "code": "T1-X10",
+      "unit": "Chapter 2: Design realisation of a space rover",
+      "module": "Chapter 2: Design realisation of a space rover",
+      "lesson": "Further outcomes — Chapter 2: Design realisation of a space rover",
+      "weeks": "",
+      "periods": "",
+      "type": "core",
+      "vocabulary": [],
+      "slos": [
+       {
+        "code": "CCI.5.3.02.006",
+        "text": "Apply the geometric principles of graphics to communicate possible design ideas. CDI.3.2.06.005 - Evaluate the final design.",
+        "priority": "",
+        "kpis": []
+       }
+      ],
+      "note": "Outcomes listed in the unit/lesson pages of the guide."
+     }
+    ],
+    "source": "MOE AI & Technology Comprehensive Curriculum Guide, Term 1 2026-27",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {

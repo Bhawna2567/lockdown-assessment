@@ -17,9 +17,9 @@ module.exports = function specTable(app, d) {
   let CUR = {};
   try { CUR = JSON.parse(fs.readFileSync(path.join(__dirname, 'curriculum', 'moe-curriculum.json'), 'utf8')); }
   catch (e) { console.warn('[spec] curriculum not loaded:', e.message); }
-  const SUBJ_KEY = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry', Biology: 'Biology' };
+  const SUBJ_KEY = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry', Biology: 'Biology', 'AI & Technology': 'AI & Technology' };
   const SUBJ_AR = { Math: 'الرياضيات', Science: 'العلوم', Physics: 'الفيزياء', Chemistry: 'الكيمياء', Biology: 'الأحياء', 'Health Science': 'العلوم الصحية',
-    'Islamic Studies': 'التربية الإسلامية', 'Social Studies': 'الدراسات الاجتماعية', Arabic: 'اللغة العربية', French: 'اللغة الفرنسية', English: 'اللغة الإنجليزية', Other: 'أخرى' };
+    'Islamic Studies': 'التربية الإسلامية', 'Social Studies': 'الدراسات الاجتماعية', Arabic: 'اللغة العربية', 'AI & Technology': 'الذكاء الاصطناعي والتكنولوجيا', French: 'اللغة الفرنسية', English: 'اللغة الإنجليزية', Other: 'أخرى' };
   function gradeKey(grade, stream) {
     const g = parseInt(grade, 10);
     if (!g) return null;
@@ -48,7 +48,7 @@ module.exports = function specTable(app, d) {
           unit: l.unit || l.module || '', weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core' });
       });
     } else {
-      const abbr = { English: 'EN', Maths: 'MA', Science: 'SC', Physics: 'PH', Chemistry: 'CH', Biology: 'BI' }[sk];
+      const abbr = { English: 'EN', Maths: 'MA', Science: 'SC', Physics: 'PH', Chemistry: 'CH', Biology: 'BI', 'AI & Technology': 'AT' }[sk];
       Object.entries(e.strands || {}).forEach(([strand, outs], si) => {
         (outs || []).forEach((t, oi) => list.push({ code: `${abbr}${gk}.T${term}.${si + 1}.${oi + 1}`, text: String(t), unit: strand, weeks: '', wFrom: null, wTo: null, type: 'core' }));
       });
