@@ -2207,6 +2207,7 @@ if (els.aiGenerateBtn) {
       fd.append('subject', subject);
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
+      try { const _cur = ccCurriculumSelection(); if (_cur) fd.append('curriculum', JSON.stringify(_cur)); } catch (e) {}
       // Multipart standard: same field name repeated for each file. Multer
       // collects them as req.files = [...] on the server.
       for (const f of fileList) fd.append('schemeOfWork', f);
@@ -9271,3 +9272,46 @@ document.addEventListener('click', (e) => {
   window.addEventListener('focus', check);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
 })();
+
+// ── AI panel: MOE curriculum lesson picker ──────────────────────────────
+function ccCurriculumSelection() {
+  const g = (document.getElementById('ai-cur-grade') || {}).value;
+  if (!g) return null;
+  const keys = Array.from(document.querySelectorAll('#ai-cur-list input[data-cur-key]:checked')).map((x) => x.getAttribute('data-cur-key'));
+  if (!keys.length) return null;
+  return { grade: g, stream: parseInt(g, 10) >= 9 ? (document.getElementById('ai-cur-stream') || {}).value || 'A' : '',
+    term: (document.getElementById('ai-cur-term') || {}).value || '1', keys };
+}
+async function ccLoadCurriculumOptions() {
+  const subj = (document.getElementById('ai-subject') || {}).value || '';
+  const g = (document.getElementById('ai-cur-grade') || {}).value || '';
+  const streamSel = document.getElementById('ai-cur-stream');
+  if (streamSel) streamSel.style.display = parseInt(g, 10) >= 9 ? '' : 'none';
+  const st = document.getElementById('ai-cur-status'), list = document.getElementById('ai-cur-list');
+  if (!st || !list) return;
+  list.innerHTML = '';
+  if (!subj || !g) { st.textContent = 'Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons this assessment should cover.'; return; }
+  const q = new URLSearchParams({ subject: subj, grade: g, stream: parseInt(g, 10) >= 9 ? streamSel.value : '', term: document.getElementById('ai-cur-term').value });
+  st.textContent = 'Loading lessons…';
+  try {
+    const r = await fetch('/api/curriculum/options?' + q.toString(), { credentials: 'include' });
+    const d = await r.json();
+    if (!d.available || !d.lessons.length) { st.textContent = 'No MOE curriculum is stored for this subject / grade / term yet — the AI will use your instructions only.'; return; }
+    st.innerHTML = `📚 ${escapeHtml(d.source)} — tick the lessons to assess (${d.lessons.length} available). <a href="#" id="ai-cur-all">Select all</a> · <a href="#" id="ai-cur-none">None</a>`;
+    let lastMod = null;
+    list.innerHTML = d.lessons.map((l) => {
+      const head = l.module && l.module !== lastMod ? `<div style="font-weight:600; margin:8px 0 2px; color:#3730a3;" dir="auto">${escapeHtml(l.module)}</div>` : '';
+      lastMod = l.module;
+      return head + `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:400; margin:3px 0;" dir="auto">
+        <input type="checkbox" data-cur-key="${escapeHtml(l.key)}" style="width:auto; margin-top:3px;">
+        <span>${escapeHtml(l.lesson)}${l.weeks ? ` <span class="muted" style="font-size:12px;">· ${escapeHtml(l.weeks)}</span>` : ''}${l.outcomes ? ` <span class="muted" style="font-size:12px;">· ${l.outcomes} outcome${l.outcomes === 1 ? '' : 's'}</span>` : ''}${l.type === 'enrichment' ? ' <span class="muted" style="font-size:12px;">· enrichment</span>' : ''}</span></label>`;
+    }).join('');
+    const all = document.getElementById('ai-cur-all'), none = document.getElementById('ai-cur-none');
+    if (all) all.onclick = (e) => { e.preventDefault(); list.querySelectorAll('input[data-cur-key]').forEach((x) => { x.checked = true; }); };
+    if (none) none.onclick = (e) => { e.preventDefault(); list.querySelectorAll('input[data-cur-key]').forEach((x) => { x.checked = false; }); };
+  } catch (e) { st.textContent = 'Could not load the curriculum: ' + e.message; }
+}
+document.addEventListener('change', (e) => {
+  const id = e.target && e.target.id;
+  if (['ai-subject', 'ai-cur-grade', 'ai-cur-stream', 'ai-cur-term'].includes(id)) ccLoadCurriculumOptions();
+});

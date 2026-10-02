@@ -56,7 +56,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1790915532" />
+  <link rel="stylesheet" href="/css/styles.css?v=1790917502" />
   <style id="cc-dashboard-closes-builder">
     /* Loaded after styles.css and more specific, so it always wins:
      * on the dashboard, the builder's questions + Save row never show. */
@@ -74,11 +74,11 @@
   </script>
   <script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},svg:{fontCache:'global'}};</script>
   <script src="/vendor/mathjax/tex-svg.js" async onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js';s.async=true;document.head.appendChild(s);"></script>
-  <script src="/js/visuals.js?v=1790915532"></script>
+  <script src="/js/visuals.js?v=1790917502"></script>
 <style id="cc-admin-only-css">.cc-admin-only{display:none !important;} body.cc-admin .cc-admin-only{display:inline-block !important;}</style>
 </head>
 <body class="cc-list-only">
-  <script src="/js/credit.js?v=1790915532"></script>
+  <script src="/js/credit.js?v=1790917502"></script>
   <div class="topbar">
     <div class="brand">ClassCurio</div>
     <span class="muted">Teacher dashboard</span>
@@ -365,6 +365,19 @@
             Screenshots are read by the AI directly — diagrams, formulas, handwritten notes, Arabic text, all fine. Max 20 files; each image under 4&nbsp;MB.
           </div>
           <div id="ai-sow-files-list" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
+        </div>
+
+        <div class="field" id="ai-cur-box" style="border:1px solid #c7d2fe; background:#f5f7ff; border-radius:10px; padding:12px 14px;">
+          <label>📘 Base it on the MOE curriculum (optional)</label>
+          <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:6px;">
+            <select id="ai-cur-grade" style="width:auto;"><option value="">Grade…</option>
+              <option value="3">Grade 3</option><option value="4">Grade 4</option><option value="5">Grade 5</option><option value="6">Grade 6</option><option value="7">Grade 7</option><option value="8">Grade 8</option>
+              <option value="9">Grade 9</option><option value="10">Grade 10</option><option value="11">Grade 11</option><option value="12">Grade 12</option></select>
+            <select id="ai-cur-stream" style="width:auto; display:none;"><option value="A">Advanced</option><option value="G">General</option></select>
+            <select id="ai-cur-term" style="width:auto;"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+          </div>
+          <div id="ai-cur-status" class="muted" style="font-size:12px; margin-top:6px;">Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons this assessment should cover.</div>
+          <div id="ai-cur-list" style="max-height:260px; overflow:auto; margin-top:6px;"></div>
         </div>
 
         <div class="field">
@@ -800,6 +813,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1790915532"></script>
+  <script src="/js/teacher.js?v=1790917502"></script>
 </body>
 </html>

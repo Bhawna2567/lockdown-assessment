@@ -5424,6 +5424,11 @@ function _ccDataUrlToImageBlock(dataUrl) {
 // "Failed to fetch". When the client sends `X-CC-Async: 1`, we reply at once
 // with a job id (after the upload has been received) and let the normal
 // handler finish in the background; the client polls /api/jobs/:id.
+const _ccCurriculum = require('./curriculum-context');
+app.get('/api/curriculum/options', requireTeacher, (req, res) => {
+  const q = req.query || {};
+  res.json(_ccCurriculum.options({ subject: String(q.subject || ''), grade: String(q.grade || ''), stream: String(q.stream || ''), term: String(q.term || '') }));
+});
 const _ccJobs = new Map();
 setInterval(() => { const now = Date.now(); for (const [k, j] of _ccJobs) if (now - j.startedAt > 30 * 60 * 1000) _ccJobs.delete(k); }, 5 * 60 * 1000);
 function _ccAsyncJob(req, res, next) {
@@ -5689,6 +5694,14 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   const userContent = [
     { type: 'text', text: systemPrompt },
   ];
+  // Optional: the teacher chose MOE curriculum lessons in the AI panel.
+  try {
+    const cur = req.body && req.body.curriculum ? JSON.parse(req.body.curriculum) : null;
+    if (cur && cur.grade && cur.term) {
+      const ctx = _ccCurriculum.contextFor({ subject, grade: cur.grade, stream: cur.stream || '', term: cur.term, keys: cur.keys || [] });
+      if (ctx) userContent.push({ type: 'text', text: '---\n' + ctx });
+    }
+  } catch (e) { console.warn('[ai-generate] curriculum context skipped:', e.message); }
   if (schemeText && schemeText.trim()) {
     userContent.push({ type: 'text', text: '---\nScheme of work (extracted text):\n' + schemeText });
   }

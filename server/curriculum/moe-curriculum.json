@@ -2883,6 +2883,556 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U2M6 Chemistry in biology": [
+      "U2M6L1 — Matter (enrichment)",
+      "BIO.3.1.02.022 — Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
+      "BIO.3.1.02.021 — Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
+      "BIO.3.1.02.031 — Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
+      "BIO.3.1.02.020 — Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
+      "BIO.3.1.02.018 — Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
+      "BIO.3.1.02.023 — Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
+      "BIO.3.1.02.019 — Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
+      "BIO.3.1.02.024 — Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells"
+     ],
+     "U2M7 Cellular structure and function": [
+      "BIO.3.1.01.075 — Identify that all Living things are composed of cells",
+      "BIO.3.1.01.076 — Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
+      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+      "BIO.3.1.01.057 — Explain the processes of diffusion and osmosis and their roles within a cell",
+      "BIO.3.1.01.048 — Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
+      "BIO.3.1.01.071 — Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
+      "BIO.3.1.01.043 — Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
+      "BIO.3.1.01.054 — Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
+      "BIO.3.1.01.044 — Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
+      "BIO.3.1.01.073 — Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
+      "BIO.3.1.01.050 — Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+      "BIO.3.1.01.066 — Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
+      "BIO.3.1.01.069 — Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
+     ],
+     "U5M19 Introduction to plants": [
+      "U5M19L1 — Plant evolution and diversity (enrichment)",
+      "BIO.3.1.01.078 — Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
+      "BIO.3.1.01.082 — Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
+      "BIO.3.1.01.085 — Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
+      "BIO.3.1.01.081 — Explain about plant hormones and their function in a plant's responses to its environment",
+      "U5M19L3 — Plant reproduction (enrichment)"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M6L1",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Matter",
+      "weeks": "Weeks 1–4",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     },
+     {
+      "code": "U2M6L2",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Chemical reactions",
+      "weeks": "Weeks 1–4",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.022",
+        "text": "Identify examples of chemical reactions that support main functions of living organisms where reactants and products rearrange to form ATP, ADP and inorganic phosphate",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Define a chemical reaction",
+         "Identify the parts of a chemical equation: reactants and products",
+         "Define activation energy",
+         "Explain with a diagram the energy changes that take place during a chemical reaction"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.021",
+        "text": "Identify examples of reactions catalyzed by enzymes that occur in living systems, describing their importance in living organism and explaining why an enzyme deficiency results in the inability to perform a specific function in life",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the function of a catalyst",
+         "Describe the function of enzymes as biological catalysts and their importance in living organisms",
+         "Explain the specificity of enzymes",
+         "Identify factors that affect enzyme activity",
+         "Explore and investigate factors that affect enzyme activity"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.031",
+        "text": "Collect data on the rates of reactions (catabolism and anabolism) with and without the presence of enzymes, and build charts and graphs to represent these data and compare the rates of reactions of different enzymes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between graphs showing the activation energy of chemical reactions with and without enzymes"
+        ]
+       }
+      ],
+      "objectives": "Explore the differences between physical and chemical change. Understand how mass is conserved.",
+      "focusQuestion": "How do enzymes facilitate life?",
+      "misconceptions": [
+       "Compounds that cannot be seen are not part of chemical reactions."
+      ],
+      "vocabulary": [
+       "Chemical reaction",
+       "Reactants",
+       "Products",
+       "Activation energy",
+       "Catalyst",
+       "Enzymes",
+       "Substrates",
+       "Active site"
+      ]
+     },
+     {
+      "code": "U2M6L3",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "Water and its solutions",
+      "weeks": "Weeks 1–4",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.020",
+        "text": "Identify the solubility as the ability of a solute to dissolve in a solvent and explain the properties of water that make it the universal solvent",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify solubility as the ability of a solute to dissolve in a solvent",
+         "Describe the polarity of water",
+         "Discuss the adhesive and cohesive properties of water",
+         "Explain how the structure of water makes it a good solvent",
+         "Describe how water maintains homeostasis"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.018",
+        "text": "Distinguish between homogeneous mixtures (solutions) and heterogeneous mixtures",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between the two types of mixtures: homogenous and heterogenous",
+         "Compare and contrast solutions, suspensions and colloids"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.023",
+        "text": "Use acid-base indicators or PH test strips to classify solutions as acidic, basic, or neutral",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Compare and contrast acidic, basic and neutral solutions",
+         "Define pH and illustrate the pH scale",
+         "Identify the function of buffers",
+         "Investigate the pH of various acidic, basic and neutral solutions"
+        ]
+       }
+      ],
+      "objectives": "Explore the structure of water, the differences between solutions and suspensions, and the differences between acids and bases. understand how these interactions function in living organisms.",
+      "focusQuestion": "Why do things dissolve in water?",
+      "misconceptions": [
+       "Different phases of water have different chemical formulas."
+      ],
+      "vocabulary": [
+       "Polar molecules",
+       "Van der Waals forces",
+       "Hydrogen bond",
+       "Mixture",
+       "Solution",
+       "Solvent",
+       "Solute",
+       "Acids",
+       "Bases",
+       "pH",
+       "Buffers"
+      ]
+     },
+     {
+      "code": "U2M6L4",
+      "unit": "U2 The Cell",
+      "module": "U2M6 Chemistry in biology",
+      "lesson": "The building blocks of life",
+      "weeks": "Weeks 1–4",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.019",
+        "text": "Construct and revise an explanation based on evidence for how carbon, hydrogen, and oxygen from sugar molecules may combine with other elements to form amino acids and/or other large carbon-based molecules",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain the importance of carbon in living organisms",
+         "Determine the relationship between macromolecules and polymers",
+         "Identify the four major groups/families of biological macromolecules",
+         "Illustrate/draw/model/construct the four types of macromolecules"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.024",
+        "text": "Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Discuss the structural and functional characteristics of carbohydrates",
+         "Discuss the structural and functional characteristics of lipids",
+         "Discuss the structural and functional characteristics of proteins",
+         "Discuss the structural and functional characteristics of nucleic acids",
+         "Investigate the presence of macromolecules using biochemical tests"
+        ]
+       }
+      ],
+      "objectives": "Explore the role of carbon in living organisms and the four major families of biological macromolecules. Understand the function of each biological macromolecule.",
+      "focusQuestion": "Why is carbon essential to life?",
+      "misconceptions": [
+       "The term \"organic\" as it refers to molecules means the same as when it refers to foods."
+      ],
+      "vocabulary": [
+       "Macromolecules",
+       "Polymers",
+       "Carbohydrates",
+       "Lipids",
+       "Protein",
+       "Amino acids",
+       "Nucleic acids",
+       "Nucleotides"
+      ]
+     },
+     {
+      "code": "U2M7L1",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Cell discovery and theory",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.075",
+        "text": "Identify that all Living things are composed of cells",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify the principles of the cell theory",
+         "Differentiate between eukaryotic and prokaryotic cells",
+         "Investigate three different types of cells: Prokaryotic, Eukaryotic (Plant and Animal)"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.076",
+        "text": "Assess the role of selected technologies in enhancing our understanding of cells and cellular processes",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Explain how advances in microscope technology relate to discoveries about cells",
+         "Identify the parts of the light microscope and the function of each part",
+         "Calculate the total magnification power of a light microscope",
+         "Compare and contrast compound light microscopes and electron microscopes"
+        ]
+       }
+      ],
+      "objectives": "Recognize the discoveries that contributed to the cell theory and understand the principles of the cell theory and the differences between prokaryotic and eukaryotic cells.",
+      "focusQuestion": "How did the invention of the microscope lead to the discovery of cells?",
+      "misconceptions": [
+       "Magnification, not resolution, determines the quality of a microscope image."
+      ],
+      "vocabulary": [
+       "Cell",
+       "Cell theory",
+       "Plasma membrane",
+       "Organelles",
+       "Eukaryotic cells",
+       "Nucleus",
+       "Prokaryotic cells"
+      ]
+     },
+     {
+      "code": "U2M7L2",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "The plasma membrane",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.050",
+        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain the functions of the plasma membrane (cell membrane), including homeostasis",
+         "Describe, using diagrams, the general structures of the plasma membrane to include phospholipid bilayer, proteins, carbohydrates and cholesterol",
+         "Relate phospholipid properties and water-lipid interactions (hydrophobic and hydrophilic) to the cell membrane function",
+         "Identify the role of proteins, carbohydrates and cholesterol in the plasma membrane",
+         "Describe, using visuals, the Fluid Mosaic Model of the cell membrane"
+        ]
+       }
+      ],
+      "objectives": "Explore the roles of the plasma membrane, proteins, carbohydrates, and cholesterol, and understand how cells maintain homeostasis.",
+      "focusQuestion": "Why is the plasma membrane an important structure of the cell?",
+      "misconceptions": [
+       "Substances can only enter, and not leave, cells."
+      ],
+      "vocabulary": [
+       "Phospholipid bilayer",
+       "Transport protein",
+       "Fluid Mosaic Model",
+       "Selective permeability"
+      ]
+     },
+     {
+      "code": "U2M7L3",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Cellular transport",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.057",
+        "text": "Explain the processes of diffusion and osmosis and their roles within a cell",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify, using visuals, the different forms of passive transport including diffusion, facilitated diffusion and osmosis",
+         "Compare and contrast osmosis and diffusion"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.048",
+        "text": "Conduct experiments to answer questions about the roles of osmosis and diffusion in cells and unicellular organisms",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate osmosis and verify the movement of molecules through the membrane, according to the scientific method"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.071",
+        "text": "Explain the swelling of the cells of the living organisms when put in water and its shrinking when put in salt solution, and generalize the phenomenon on all living organisms",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Distinguish the differences between hypotonic, hypertonic and isotonic solutions",
+         "Explain the effect of a hypertonic, hypotonic or isotonic solution on a cell"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.043",
+        "text": "Build a model of the cell membrane indicating the active and passive transport in terms of the difference in concentration, the required energy, and the movement direction of the particle and explain how the movement of a particle affects the cell and as a result, affects the living organisms also",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Compare and contrast different forms of active transport including protein pumps, endocytosis and exocytosis",
+         "Compare and contrast active and passive transport"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.054",
+        "text": "Investigate and verify the particles movement through the membrane according to the scientific method by asking questions, conducting experiment and design, collecting and analysing data, and drawing conclusions",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate the movement of substances through a selectively permeable (dialysis) membrane"
+        ]
+       }
+      ],
+      "objectives": "Explore the processes of passive and active transport and understand how cells respond to changes in the environment.",
+      "focusQuestion": "What processes enable substances to move into or out of a cell?",
+      "misconceptions": [
+       "Diffusion is the only way in which substances can cross the cell membrane.",
+       "Diffusion only occurs when there is some sort of stimulus."
+      ],
+      "vocabulary": [
+       "Diffusion",
+       "Dynamic equilibrium",
+       "Facilitated diffusion",
+       "Osmosis",
+       "Isotonic solution",
+       "Hypotonic solution",
+       "Hypertonic solution",
+       "Active transport",
+       "Endocytosis",
+       "Exocytosis"
+      ]
+     },
+     {
+      "code": "U2M7L4",
+      "unit": "U2 The Cell",
+      "module": "U2M7 Cellular structure and function",
+      "lesson": "Structures and organelles",
+      "weeks": "Weeks 5–9",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.044",
+        "text": "Recognize the internal structures of at least three different types of cells, then describe and compare the composition and functions of these structures in each of the cell type using information collected from printed and electronic resources",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Investigate three different types of cells and their components; Prokaryotic, Eukaryotic (Plant and Animal)"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.073",
+        "text": "Compare the structure and function of plant and animal cells and that of eukaryote and prokaryote cell",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Compare and contrast plant, animal and prokaryotic cells, in terms of the type, shape and position of their organelles"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.050",
+        "text": "Identify structures and organelles in cells, including the nucleus, cell membrane, cell wall, chloroplasts, vacuole, mitochondria, and cytoplasm, and explain the basic functions of each",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe the functions of the key organelles in the cell including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall",
+         "Relate, using diagrams/models/simulations, between the structure and function of key cell organelles including cytoplasm, nucleus, nucleolus, vacuole, vesicle, lysosome, cytoskeleton, centriole, ribosome, endoplasmic reticulum (rough and smooth), Golgi apparatus, mitochondrion, chloroplast, cilium, flagellum, cell membrane and cell wall"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.066",
+        "text": "Design a model to describe the function of a cell as a whole and show how its parts contribute to its function",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Design and create a model of a cell using materials or applications of their choice"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.069",
+        "text": "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Examine different plant and animal cells under a microscope or similar instrument, and draw labeled biological diagrams to show how the cells’ organelles differ"
+        ]
+       }
+      ],
+      "objectives": "Explore the structures of a typical eukaryotic cell and what functions each structure serves and understand the differences between plant and animal cells.",
+      "focusQuestion": "What are the structures and their functions in prokaryotic and eukaryotic cells.",
+      "misconceptions": [
+       "Cell walls are impermeable.",
+       "Plant cells do not have mitochondria."
+      ],
+      "vocabulary": [
+       "Cytoplasm",
+       "Cytoskeleton",
+       "Centrioles",
+       "Cilia",
+       "Flagella",
+       "Cell wall",
+       "Nucleolus",
+       "Mitochondria",
+       "Chloroplasts",
+       "Ribosome",
+       "Endoplasmic reticulum",
+       "Golgi apparatus",
+       "Vacuole",
+       "Lysosomes"
+      ]
+     },
+     {
+      "code": "U5M19L1",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant evolution and diversity",
+      "weeks": "Weeks 10–11",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     },
+     {
+      "code": "U5M19L2",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant structure and function",
+      "weeks": "Weeks 10–11",
+      "periods": "8",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.01.078",
+        "text": "Identify, and draw biological diagrams of, the specialized plant tissues in roots, stems, and leaves, using a microscope and models",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Compare and contrast the major types of plant cells to include parenchyma, collenchyma and sclerenchyma",
+         "Observe and identify major types of plant cells to include parenchyma, collenchyma and sclerenchyma using the microscope",
+         "Identify the structures of roots, stems and leaves",
+         "Observe and draw diagrams of plant tissues in roots, stems and leaves using a microscope or a model"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.082",
+        "text": "Describe the structures of the various types of tissues in vascular plants, and explain the mechanisms of transport involved in the processes by which materials are distributed throughout a plant",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Identify the major types of plant tissues to include meristematic, dermal, vascular and ground",
+         "Describe and illustrate the structure of the major types of plant tissues to include meristematic, dermal, vascular and ground",
+         "Describe the adaptations of dermal tissue to include stomata, trichomes and root hairs and explain their functions",
+         "Explain the structure and function of the specialized cells forming xylem and phloem (vascular tissues)",
+         "Identify the various characteristics and functions of ground tissue",
+         "Describe the different types of roots and stems",
+         "Sequence the tissues through which water passes as it moves from a root hair to xylem tissue of a root",
+         "Describe the leaves characteristics and modifications/adaptations",
+         "Explain how the structures of roots, stems, and leaves are adapted to their functions",
+         "Describe the role and formation of annual growth rings in the stem",
+         "Compare the structures and functions of roots, stems and leaves"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.085",
+        "text": "Conduct an investigation about the importance of plants in the preparation of pharmaceuticals and their role in treating pain and inflammation",
+        "priority": "Support Outcome (Supplementary)",
+        "kpis": [
+         "Research and present the use of plants in modern day medicine or industry"
+        ]
+       },
+       {
+        "code": "BIO.3.1.01.081",
+        "text": "Explain about plant hormones and their function in a plant's responses to its environment",
+        "priority": "",
+        "kpis": [
+         "Distinguish between the different types of plant responses"
+        ]
+       }
+      ],
+      "objectives": "Understand the major types of plant cells and organs, plants tissues and their functions, and plant responses. Understand plant structure and function",
+      "focusQuestion": "What are the structures and functions of plant cells and tissues?",
+      "misconceptions": [
+       "All plant cells are green.",
+       "All plant roots grow into the soil.",
+       "A celery stalk is a stem."
+      ],
+      "vocabulary": [
+       "Epidermis",
+       "Guard cell",
+       "Xylem",
+       "Vessel element",
+       "Tracheid",
+       "Phloem",
+       "Sieve tube member",
+       "Companion cell",
+       "Ground tissue",
+       "Root cap",
+       "Cortex",
+       "Endodermis",
+       "Pericycle",
+       "Petiole",
+       "Palisade mesophyll",
+       "Spongy mesophyll",
+       "Transpiration",
+       "Nastic response",
+       "Tropism"
+      ]
+     },
+     {
+      "code": "U5M19L3",
+      "unit": "U5 The diversity of life",
+      "module": "U5M19 Introduction to plants",
+      "lesson": "Plant reproduction",
+      "weeks": "Weeks 10–11",
+      "periods": "",
+      "type": "enrichment",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -3045,6 +3595,168 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U6M23 Nervous system": [
+      "U6M23L1 — Structure of the nervous system",
+      "U6M23L2 — Organization of the nervous system",
+      "U6M23L3 — The senses",
+      "U6M23L4 — Effects of drugs"
+     ],
+     "U6M24 Circulatory, respiratory, and excretory systems": [
+      "U6M24L1 — Circulatory system",
+      "U6M24L2 — Respiratory system",
+      "U6M24L3 — Excretory system"
+     ],
+     "U6M25 Digestive and endocrine systems": [
+      "U6M25L1 — The digestive system",
+      "U6M25L2 — Nutrition",
+      "U6M25L3 — The endocrine system"
+     ],
+     "U6M26 Human reproduction and development": [
+      "U6M26L1 — Reproductive systems"
+     ],
+     "U6M26 Human reproductive system and growth": [
+      "U6M26L2 — Human development before birth",
+      "U6M26L3 — Birth, growth, and aging"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U6M23L1",
+      "unit": "U6 The human body",
+      "module": "U6M23 Nervous system",
+      "lesson": "Structure of the nervous system",
+      "weeks": "Weeks 1–4",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M23L2",
+      "unit": "U6 The human body",
+      "module": "U6M23 Nervous system",
+      "lesson": "Organization of the nervous system",
+      "weeks": "Weeks 1–4",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M23L3",
+      "unit": "U6 The human body",
+      "module": "U6M23 Nervous system",
+      "lesson": "The senses",
+      "weeks": "Weeks 1–4",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M23L4",
+      "unit": "U6 The human body",
+      "module": "U6M23 Nervous system",
+      "lesson": "Effects of drugs",
+      "weeks": "Weeks 1–4",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M24L1",
+      "unit": "U6 The human body",
+      "module": "U6M24 Circulatory, respiratory, and excretory systems",
+      "lesson": "Circulatory system",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M24L2",
+      "unit": "U6 The human body",
+      "module": "U6M24 Circulatory, respiratory, and excretory systems",
+      "lesson": "Respiratory system",
+      "weeks": "Week 5",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M24L3",
+      "unit": "U6 The human body",
+      "module": "U6M24 Circulatory, respiratory, and excretory systems",
+      "lesson": "Excretory system",
+      "weeks": "Week 5",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M25L1",
+      "unit": "U6 The human body",
+      "module": "U6M25 Digestive and endocrine systems",
+      "lesson": "The digestive system",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M25L2",
+      "unit": "U6 The human body",
+      "module": "U6M25 Digestive and endocrine systems",
+      "lesson": "Nutrition",
+      "weeks": "Week 6",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M25L3",
+      "unit": "U6 The human body",
+      "module": "U6M25 Digestive and endocrine systems",
+      "lesson": "The endocrine system",
+      "weeks": "Week 6",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M26L1",
+      "unit": "U6 The human body",
+      "module": "U6M26 Human reproduction and development",
+      "lesson": "Reproductive systems",
+      "weeks": "Weeks 7–10",
+      "periods": "8",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M26L2",
+      "unit": "U6 The human body",
+      "module": "U6M26 Human reproductive system and growth",
+      "lesson": "Human development before birth",
+      "weeks": "Weeks 7–10",
+      "periods": "8",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M26L3",
+      "unit": "U6 The human body",
+      "module": "U6M26 Human reproductive system and growth",
+      "lesson": "Birth, growth, and aging",
+      "weeks": "Weeks 7–10",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -3189,6 +3901,74 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G09_Advanced_EN.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U2M9 Cellular reproduction and sexual reproduction": [
+      "U2M9L1 — Cellular reproduction",
+      "U2M9L2 — Meiosis and sexual reproduction"
+     ],
+     "U6M22 Integumentary, skeletal and muscular systems": [
+      "U6M22L1 — Integumentary system",
+      "U6M22L2 — Skeletal system",
+      "U6M22L3 — Muscular system"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M9L1",
+      "unit": "U2 The Cell",
+      "module": "U2M9 Cellular reproduction and sexual reproduction",
+      "lesson": "Cellular reproduction",
+      "weeks": "Weeks 1–7",
+      "periods": "14",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U2M9L2",
+      "unit": "U2 The Cell",
+      "module": "U2M9 Cellular reproduction and sexual reproduction",
+      "lesson": "Meiosis and sexual reproduction",
+      "weeks": "Weeks 1–7",
+      "periods": "14",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M22L1",
+      "unit": "U6 The human body",
+      "module": "U6M22 Integumentary, skeletal and muscular systems",
+      "lesson": "Integumentary system",
+      "weeks": "Weeks 8–9",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M22L2",
+      "unit": "U6 The human body",
+      "module": "U6M22 Integumentary, skeletal and muscular systems",
+      "lesson": "Skeletal system",
+      "weeks": "Weeks 8–9",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M22L3",
+      "unit": "U6 The human body",
+      "module": "U6M22 Integumentary, skeletal and muscular systems",
+      "lesson": "Muscular system",
+      "weeks": "Weeks 8–9",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -5482,6 +6262,192 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
     "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U2M8 Cellular energy": [
+      "BIO.3.4.01.028 — Describe the complementary processes of cellular respiration and photosynthesis with respect to the flow of energy and the cycling of matter within ecosystems, and explain how human activities can disrupt the balance achieved by these processes",
+      "BIO.3.1.02.025 — Identify examples of the functions performed by the living organisms in which ATP is converted into ADP and inorganic phosphate.",
+      "BIO.3.1.02.030 — Describe that photosynthesis converts carbon dioxide plus water into sugars plus oxygen, which is released.",
+      "BIO.3.1.02.027 — Use a model to illustrate how photosynthesis transforms light energy into stored chemical energy",
+      "BIO.3.1.02.024 — Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells",
+      "BIO.3.1.02.028 — Use a model to illustrate that aerobic cellular respiration is a chemical process whereby the bonds of food molecules and oxygen molecules are broken and the bonds in new compounds are formed resulting in a net transfer of energy.",
+      "BIO.3.1.02.029 — Investigate factors that affect the processes of fermentation or cellular respiration in living organisms.",
+      "BIO.3.4.01.028 — Describe the complementary processes of cellular respiration and photosynthesis with respect to the flow of energy and the cycling of matter within ecosystems, and explain how human activities can disrupt the balance achieved by these processes"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M8L1",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "How Organisms Obtain Energy",
+      "weeks": "Weeks 1–11",
+      "periods": "2",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.4.01.028",
+        "text": "Describe the complementary processes of cellular respiration and photosynthesis with respect to the flow of energy and the cycling of matter within ecosystems, and explain how human activities can disrupt the balance achieved by these processes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Relate the two laws of thermodynamics to living organisms",
+         "Differentiate between autotrophs and heterotrophs",
+         "Sequence the flow of energy from the sun to heterotrophs",
+         "Explain the term metabolism",
+         "Differentiate between the two metabolic pathways: catabolic pathway and anabolic pathway"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.025",
+        "text": "Identify examples of the functions performed by the living organisms in which ATP is converted into ADP and inorganic phosphate.",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Recognize the role of ATP (Adenosine Triphosphate) as an important metabolic chemical that is used by cells to store and release energy",
+         "Relate ATP and ADP to their metabolic pathways",
+         "Describe, using visuals, how ATP can easily release and store energy by breaking and re-forming the bonds between its phosphate groups",
+         "Identify biological processes in living organisms in which ATP is used, to include cell division, muscle activity, digestion and excretion"
+        ]
+       }
+      ],
+      "objectives": "Explore how different organisms obtain and transform the energy they need to survive. Understand that the plants do well in greenhouses because they are exposed to lots of sunlight.",
+      "focusQuestion": "Lettuce plants can’t eat, so how do they obtain energy?",
+      "vocabulary": [
+       "Energy",
+       "Thermodynamics",
+       "Metabolism",
+       "Photosynthesis",
+       "Cellular respiration",
+       "Adenosine triphosphate (ATP)"
+      ]
+     },
+     {
+      "code": "U2M8L2",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "Photosynthesis",
+      "weeks": "Weeks 1–11",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.030",
+        "text": "Describe that photosynthesis converts carbon dioxide plus water into sugars plus oxygen, which is released.",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain the process of photosynthesis using the chemical equation",
+         "Compare and contrast the light dependent and light independent phases of photosynthesis regarding the location, main reactants and products of each phase"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.027",
+        "text": "Use a model to illustrate how photosynthesis transforms light energy into stored chemical energy",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Relate the role of various pigments to light absorption in photosynthetic organisms",
+         "Explain the main events which occur during the light-dependent phase including generating ATP and NADPH using light and water",
+         "Illustrate the details of the electron transport chain",
+         "Explain the details of the electron transport chain",
+         "Describe the importance of chemiosmosis in generating ATP molecules during photosynthesis",
+         "Explain the main events which occur during the light-independent phase (Calvin Cycle)",
+         "Describe how the structures of chloroplasts relates to their function",
+         "Predict how environmental factors can affect rates of photosynthesis, to include carbon dioxide concentration and light intensity",
+         "Compare two alternative pathways to photosynthesis, to include C4 and CAM"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.024",
+        "text": "Explain that the hydrocarbon backbones of the sugars formed during photosynthesis are used to make amino acids and other carbon-based molecules that can be assembled into larger molecules used, for example, to form new cells",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Outline how monosaccharides (e.g. glucose molecules made during photosynthesis) are synthesized into polysaccharides (e.g. starch for storage, cellulose for cell wall formation)",
+         "State that sugars are used to make amino acids/proteins and fats, which can combine to form larger molecules that can be used to form new cells"
+        ]
+       }
+      ],
+      "objectives": "Explore in depth the chemical reactions of photosynthesis. Understand that greenhouses provide an environment where the necessities of photosynthesis are available or can even be controlled.",
+      "focusQuestion": "What do lettuce plants need to survive?",
+      "misconceptions": [
+       "Plants get energy from air, soil, or minerals.",
+       "The term organic means “natural”."
+      ],
+      "vocabulary": [
+       "Thylakoids",
+       "Grana",
+       "Stroma",
+       "Pigments",
+       "NADP+",
+       "Calvin cycle",
+       "Rubisco"
+      ]
+     },
+     {
+      "code": "U2M8L3",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "Cellular Respiration",
+      "weeks": "Weeks 1–11",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.02.028",
+        "text": "Use a model to illustrate that aerobic cellular respiration is a chemical process whereby the bonds of food molecules and oxygen molecules are broken and the bonds in new compounds are formed resulting in a net transfer of energy.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain how organisms obtain energy",
+         "Define cellular respiration",
+         "Differentiate between aerobic and anaerobic respiration",
+         "Describe, using word and balanced chemical equation, the reactants and products of cellular respiration",
+         "List macromolecules that can be used as substrates for respiration to include glucose, fatty acids, glycerol and amino acids",
+         "Identify the stages of cellular respiration and the location of each",
+         "Describe chemical changes that occur during glycolysis",
+         "Describe the steps of the Krebs cycle to include the reactants and products",
+         "Summarize how the electron transport chain transfers energy from electrons in a series of coupled reactions that establish an electronic and chemical gradient across membranes including inner mitochondrial, inner chloroplast and prokaryotic membranes",
+         "Determine that in photosynthesis the terminal electron acceptor is NADP+; in aerobic respiration, prokaryotes use oxygen as a terminal electron acceptor and in anaerobic respiration, prokaryotes use other molecules",
+         "Explain the net ATP yields produced at different stages of cellular respiration",
+         "Differentiate cellular respiration in prokarytic cells and eukarotic cells"
+        ]
+       },
+       {
+        "code": "BIO.3.1.02.029",
+        "text": "Investigate factors that affect the processes of fermentation or cellular respiration in living organisms.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain how organisms get energy in the absence of oxygen",
+         "Identify the conditions that lead to fermentation",
+         "Compare and contrast the processes of lactic acid fermentation and alcohol fermentation to include the reactants and products",
+         "Analyze different variables that impact either fermentation or cellular respiration"
+        ]
+       },
+       {
+        "code": "BIO.3.4.01.028",
+        "text": "Describe the complementary processes of cellular respiration and photosynthesis with respect to the flow of energy and the cycling of matter within ecosystems, and explain how human activities can disrupt the balance achieved by these processes",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Explain the complementary relationship between cellular respiration and photosynthesis to include how the reactants of one process are the products of the other",
+         "Compare photosynthesis and cellular respiration in terms of energy storage or usage",
+         "Mention glycogen building as an example of construction process and the need for energy; and glycolysis as an example of destruction process and energy production"
+        ]
+       }
+      ],
+      "objectives": "Explore how organisms break down organic molecules during cellular respiration.",
+      "misconceptions": [
+       "Air and oxygen are the same thing."
+      ],
+      "vocabulary": [
+       "Anaerobic processes",
+       "Aerobic respiration",
+       "Aerobic processes",
+       "Glycolysis",
+       "Krebs cycle",
+       "Fermentation"
+      ]
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs + Comprehensive Curriculum Guide",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -5707,6 +6673,39 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
     "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U1M4 Population ecology": [
+      "U1M4L1 — Populations Dynamics",
+      "U1M4L2 — Human Population"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U1M4L1",
+      "unit": "U1 Population ecology",
+      "module": "U1M4 Population ecology",
+      "lesson": "Populations Dynamics",
+      "weeks": "Weeks 1–10",
+      "periods": "5",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U1M4L2",
+      "unit": "U1 Population ecology",
+      "module": "U1M4 Population ecology",
+      "lesson": "Human Population",
+      "weeks": "Weeks 1–10",
+      "periods": "5",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -5910,6 +6909,50 @@
     "source": "MOE Scope & Sequence 2026-27 · Elective Scenario 2",
     "file": "S&S, CHM G11 ADV, EN, AY 26-27.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U6M27 Immune system": [
+      "U6M27L1 — Infectious diseases",
+      "U6M27L2 — The Immune system",
+      "U6M27L3 — Noninfectious Disorders"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U6M27L1",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "Infectious diseases",
+      "weeks": "Weeks 1–9",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M27L2",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "The Immune system",
+      "weeks": "Weeks 1–9",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M27L3",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "Noninfectious Disorders",
+      "weeks": "Weeks 1–9",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -6044,7 +7087,44 @@
       "lesson": "تطور الجدول الدوري الحديث",
       "periods": "8 حصص",
       "type": "core",
-      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري"
+      "note": "تعلّم مباشر (حصتين دراسيتين) المطلوب فقط هو الجدول الدوري الحديث دراسة اثرائية: تطّور الجدول الدوري",
+      "lessonPlanSample": {
+       "module": "U1M5: The Periodic Table and Periodic Law",
+       "lesson": "Lesson 1: Development of the Modern Periodic Table (2 periods)",
+       "slos": [
+        "CHM.5.1.01.004 Explore the location of elements in the periodic table based on their electron configuration and predict their chemical and physical properties",
+        "CHM.5.1.01.010 Describe the different groups of elements in the periodic table and predict the physical and chemical properties of each group",
+        "CHM.5.1.01.007 Identify the location of Lanthanides and Actinide in the periodic table while illustrating some of their uses",
+        "CHM.5.1.01.005 Identify the special symbols on chemicals and the effects of chemicals on public health and the environment, and how to read chemical-safety documents, laboratory working procedures, safe handling of chemicals and general hazards."
+       ],
+       "priorKnowledge": [
+        "The Periodic Table and Periodic Law",
+        "Structure of the atom",
+        "Electron configuration, valence electrons, and electron -dot structures"
+       ],
+       "objectives": "Students will outline the history of the periodic table and describe why elements are arranged in it and how to extract information from the table.",
+       "misconceptions": [
+        "Students may think only a limited amount of information can be inferred from an element’s position on the periodic table"
+       ],
+       "vocabulary": [
+        "Periodic Law-  القانون الدوري",
+        "Groups-  المجموعات",
+        "Periods-  الدورات",
+        "Representative Elements-  العناصر الرئيسة",
+        "Transition Elements-  العناصر الانتقالية",
+        "Metals-  الفلزّات",
+        "Alkali Metals-  الفلزّات القلوية",
+        "Alkaline Earth Metals-  الفلزّات القلوية الأرضية",
+        "Transition Metals -  الفلزّات الانتقالية",
+        "Inner Transition Metals-  الفلزّات الانتقالية الداخلية",
+        "Lanthanide Series-  سلسلة اللانثانيدات",
+        "Actinide Series-  سلسلة الأكتينيدات",
+        "Nonmetals-  اللافلزّات",
+        "Halogens-  الهالوجينات",
+        "Noble Gases-  الغازات النبيلة",
+        "Metalloids-  أشباه الفلزّات"
+       ]
+      }
      },
      {
       "code": "القسم 2",
@@ -6549,6 +7629,337 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U3M10 Introduction to genetics and patterns of inheritance": [
+      "BIO.3.3.02.011 — Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+      "BIO.3.3.02.012 — Use the Punnett square method to solve basic genetics problems involving monohybrid crosses, incomplete dominance, codominance, dihybrid crosses, and sex-linked genes",
+      "BIO.3.1.03.038 — Explain the phases of meiosis in terms of cell division, the movement of chromosomes, and crossing over of genetic material.",
+      "BIO.3.3.01.036 — Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+      "BIO.3.2.04.010 — Explain that in artificial selection, humans have the capacity to influence certain characteristics of organisms through selective breeding",
+      "BIO.3.3.01.008 — Describe how the egg and sperm cells contain only one chromosome of each parent’s chromosome pair, and that they unite to form a new individual offspring",
+      "BIO.3.3.01.007 — Explain that in sexual reproduction, the transmission of genetic information to offspring is through egg and sperm cells",
+      "BIO.3.3.02.011 — Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+      "BIO.3.3.01.036 — Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+      "BIO.3.3.01.022 — Design a model for a particular gene on a pair of DNA molecules and build a new model including DNA molecule model in addition to a model of chromosomes in the cell nucleus.",
+      "BIO.3.3.02.011 — Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+      "BIO.3.3.02.012 — Use the Punnett square method to solve basic genetics problems involving monohybrid crosses, incomplete dominance, codominance, dihybrid crosses, and sex-linked genes",
+      "BIO.3.3.02.020 — Apply concepts of statistics and probability to explain the variation and distribution of expressed traits in a population",
+      "BIO.3.3.01.036 — Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+      "BIO.3.3.01.023 — Identify examples, using information collected from printed and electronic resources, of the qualities that depend on the amount of protein produced, which in turn depends on the number of copies of a specific version of the gene, and predict to explain how the imbalance of the lack or presence of one copy or two copies of a specific version of the gene may affect the expression of a particular trait.",
+      "BIO.3.3.02.017 — Explain that environmental factors can influence the probability of occurrences of traits in a population by inducing mutations that are inherited and by affecting the appearance of traits",
+      "BIO.3.3.02.023 — Demonstrate that the variation and distribution of observed traits depends on both genetic and environmental factors"
+     ],
+     "U3M11 Molecular genetics": [
+      "BIO.3.3.01.012 — Analyze a simulated strand of DNA to determine the genetic code and base pairing of DNA",
+      "BIO.3.3.02.015 — Recall that the information passed from parents to offspring is coded in the DNA molecules that form the chromosomes.",
+      "BIO.3.3.01.016 — Explain the current model of DNA replication and describe the different repair mechanisms that can correct mistakes in DNA sequencing including the mechanisms of biotechnology and bioinformatics."
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U3M10L1",
+      "unit": "U3 Genetics",
+      "module": "U3M10 Introduction to genetics and patterns of inheritance",
+      "lesson": "Mendelian genetics",
+      "weeks": "Weeks 1–7",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.3.02.011",
+        "text": "Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Discuss the contribution of Gregor Mendel to the study of genetics",
+         "Explain why Gregor Mendel used true-breeding plants in his experiments",
+         "Differentiate between self-fertilization and cross-pollination",
+         "Explain why Gregor Mendel used cross-pollination to study inheritance",
+         "Define the terms genetics, inheritance (heredity), genotype and phenotype",
+         "Relate between the gene and the alleles by using examples",
+         "Differentiate between F1 and F2 generations",
+         "Differentiate between the terms homozygous, heterozygous and hybrid, by using examples",
+         "Differentiate the dominant and the recessive alleles by using examples",
+         "Describe what happens during segregation and independent assortment",
+         "Explain the inheritance of genes by applying Mendel's Law of Segregation and Law of Independent Assortment"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.012",
+        "text": "Use the Punnett square method to solve basic genetics problems involving monohybrid crosses, incomplete dominance, codominance, dihybrid crosses, and sex-linked genes",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain how rules of probability can be used to analyze the passage of one gene from parent to offspring",
+         "Predict the ratio of allele distribution and offspring genotypes and phenotypes in a monohybrid cross using a Punnett square and probability",
+         "Predict the ratio of allele distribution and offspring genotypes and phenotypes in a dihybrid cross using a Punnett square and probability"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M10L2",
+      "unit": "U3 Genetics",
+      "module": "U3M10 Introduction to genetics and patterns of inheritance",
+      "lesson": "Genetic recombination and gene linkage",
+      "weeks": "Weeks 1–7",
+      "periods": "4",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.1.03.038",
+        "text": "Explain the phases of meiosis in terms of cell division, the movement of chromosomes, and crossing over of genetic material.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Define genetic recombination as the new combination of genes produced by crossing over and independent assortment",
+         "Calculate the number of possible chromosome combinations due to independent assortment, using the formula 2n"
+        ]
+       },
+       {
+        "code": "BIO.3.3.01.036",
+        "text": "Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Recall how meiosis and fertilization contribute to genetic variation, to include random assortment of chromosomes, segregation and crossing over",
+         "Explain by using figures that adjacent genes located on the same chromosome are tending to move together as one unit",
+         "Describe by examples that distance between genes of the same chromosome is the driving force of segregation and consequently variation",
+         "Identify the relationship between crossing over and distance between genes' locations",
+         "Analyze whether gene linkage is an exception to or an example of Mendel's law of independent assortment",
+         "Recognize that the probability of having parental combinations is greater than having recombinant combinations of alleles",
+         "Illustrate by using examples how gene linkage can be used to create chromosome maps",
+         "Describe polyploidy and how it is used in the field of agriculture",
+         "Compare and contrast gene linkage to polyploidy and how they do not follow all of Mendel's laws of inheritance"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M10L3",
+      "unit": "U3 Genetics",
+      "module": "U3M10 Introduction to genetics and patterns of inheritance",
+      "lesson": "Applied genetics",
+      "weeks": "Weeks 1–7",
+      "periods": "3",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.2.04.010",
+        "text": "Explain that in artificial selection, humans have the capacity to influence certain characteristics of organisms through selective breeding",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Analyze how selective breeding is used to produce organisms with desired traits, using an example",
+         "Analyze inbreeding and hybridization by identifying the effect, an advantage and a disadvantage of each",
+         "Assess the effect of selective breeding using an example",
+         "Define the terms pure breed, hybrid and test cross",
+         "Predict the genotype of an individual with a dominant phenotype using a test cross",
+         "Explain how pure breeds are maintained with an example"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M10L4",
+      "unit": "U3 Genetics",
+      "module": "U3M10 Introduction to genetics and patterns of inheritance",
+      "lesson": "Basic patterns for human inheritance",
+      "weeks": "Weeks 1–7",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.3.01.008",
+        "text": "Describe how the egg and sperm cells contain only one chromosome of each parent’s chromosome pair, and that they unite to form a new individual offspring",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Identify the sexual reproductive cells in male and female",
+         "Distinguish between the number of chromosomes in diploid and haploid cells",
+         "Recall how meiosis produces gametes",
+         "Discuss fertilization and its importance"
+        ]
+       },
+       {
+        "code": "BIO.3.3.01.007",
+        "text": "Explain that in sexual reproduction, the transmission of genetic information to offspring is through egg and sperm cells",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Discuss the relationship between chromosomes, DNA and genes",
+         "Relate fertilization to the transmission of genetic information",
+         "Describe what happens during segregation"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.011",
+        "text": "Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Differentiate between the genotype and the phenotype by using examples",
+         "Relate between the gene and the alleles by using examples",
+         "Recall the difference between dominant and recessive alleles",
+         "Compare and contrast the homozygous and the heterozygous alleles by using examples",
+         "Explain an individual who is a carrier"
+        ]
+       },
+       {
+        "code": "BIO.3.3.01.036",
+        "text": "Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Analyze genetic patterns to determine dominant and recessive inheritance patterns",
+         "Discuss examples of dominant and recessive disorders",
+         "Explain how pedigrees are used to study human traits"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M10L5",
+      "unit": "U3 Genetics",
+      "module": "U3M10 Introduction to genetics and patterns of inheritance",
+      "lesson": "Complex patterns of inheritance",
+      "weeks": "Weeks 1–7",
+      "periods": "5",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.3.01.022",
+        "text": "Design a model for a particular gene on a pair of DNA molecules and build a new model including DNA molecule model in addition to a model of chromosomes in the cell nucleus.",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Illustrate/model the organizational relationship between the following terms: alleles, loci, genes, chromosomes, nucleus, and cell"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.011",
+        "text": "Explain the concepts of genotype, phenotype, dominance, incomplete dominance, codominance, recessiveness, and sex linkage according to Mendelian laws of inheritance",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Describe the patterns of inheritance of human traits including: dominant/ recessive, codominance, incomplete dominance, multiple allele and sex-linked inheritance",
+         "Explain how patterns of complex inheritance are different from patterns described by Mendel"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.012",
+        "text": "Use the Punnett square method to solve basic genetics problems involving monohybrid crosses, incomplete dominance, codominance, dihybrid crosses, and sex-linked genes",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Recall the application of dihybrid crosses and linkage of genes",
+         "Solve genetics problems for Mendelian and non-Mendelian inheritance traits, to include monohybrid crosses, incomplete dominance, codominance, multiple alleles, dihybrid crosses and sex-linked genes",
+         "Apply multiple allele inheritance on ABO blood groups in humans and other examples"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.020",
+        "text": "Apply concepts of statistics and probability to explain the variation and distribution of expressed traits in a population",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Analyze the frequency distribution of an allele, using a graph",
+         "Use the rules of probability to analyze the passage of traits from parents to offspring, including monohybrid and dihybrid crosses"
+        ]
+       },
+       {
+        "code": "BIO.3.3.01.036",
+        "text": "Investigate that variations of inherited traits between parent and offspring arise from genetic differences that result either from the subset of chromosomes and therefore from inherited genes or rarely from mutations and show the variations of inherited traits in a pedigree",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain, using pedigrees, the inheritance of Mendelian and non-Mendelian traits to include dominance, recessiveness and sex-linked",
+         "Predict the patterns of inheritance using pedigrees, to include dominance, recessive, incomplete dominance, codominance, sex-linkage"
+        ]
+       },
+       {
+        "code": "BIO.3.3.01.023",
+        "text": "Identify examples, using information collected from printed and electronic resources, of the qualities that depend on the amount of protein produced, which in turn depends on the number of copies of a specific version of the gene, and predict to explain how the imbalance of the lack or presence of one copy or two copies of a specific version of the gene may affect the expression of a particular trait.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Describe polygenic traits, with examples",
+         "Identify the concepts of epistasis and dosage compensation",
+         "Explain how gender is determined in humans"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.017",
+        "text": "Explain that environmental factors can influence the probability of occurrences of traits in a population by inducing mutations that are inherited and by affecting the appearance of traits",
+        "priority": "Support Outcome (Basic)",
+        "kpis": [
+         "Determine that both environment and genes affect the phenotype of an organism",
+         "Identify specific environmental influences that affect gene expression and leads to different phenotype",
+         "Explain that an organism’s adaptation to the local environment reflects a flexible response of its genome"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.023",
+        "text": "Demonstrate that the variation and distribution of observed traits depends on both genetic and environmental factors",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Differentiate the effects of environmental and genetic factors based on the analysis of twin studies"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M11L1",
+      "unit": "U3 Genetics",
+      "module": "U3M11 Molecular genetics",
+      "lesson": "DNA the genetic material",
+      "weeks": "Weeks 8–11",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.3.01.012",
+        "text": "Analyze a simulated strand of DNA to determine the genetic code and base pairing of DNA",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Explain how Griffith and Avery concluded that DNA is the genetic material, involving bacterial transformation",
+         "Explain how Hershey and Chase provided evidence that DNA is the genetic material of viruses",
+         "Explain why Chargaff's data was an important clue for constructing the DNA model",
+         "Describe the data used by Watson and Crick to determine the structure of DNA",
+         "Identify the chemical components of DNA",
+         "Describe the characteristics of DNA that allow it to be used as the hereditary material, to include base pairing and purine and pyrimidine structure",
+         "Recognize how DNA strands are antiparallel",
+         "Describe the relationship between chromosome, chromatin, chromosome and gene"
+        ]
+       },
+       {
+        "code": "BIO.3.3.02.015",
+        "text": "Recall that the information passed from parents to offspring is coded in the DNA molecules that form the chromosomes.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Recall the role of DNA in heredity"
+        ]
+       }
+      ]
+     },
+     {
+      "code": "U3M11L2",
+      "unit": "U3 Genetics",
+      "module": "U3M11 Molecular genetics",
+      "lesson": "Replication of DNA",
+      "weeks": "Weeks 8–11",
+      "periods": "6",
+      "type": "core",
+      "slos": [
+       {
+        "code": "BIO.3.3.01.016",
+        "text": "Explain the current model of DNA replication and describe the different repair mechanisms that can correct mistakes in DNA sequencing including the mechanisms of biotechnology and bioinformatics.",
+        "priority": "Power Outcome",
+        "kpis": [
+         "Sequence the process of semiconservative replication of DNA",
+         "Justify the importance of semiconservative reproduction in DNA",
+         "Summarize the role of the enzymes involved in the replication of DNA including DNA ligase, DNA polymerase, topoisomerase and DNA helicase",
+         "Differentiate between the leading and lagging strands during DNA replication",
+         "Indicate the sequence of the template strand for a given non-template strand",
+         "Compare and contrast DNA replication in eukaryotic cells and prokaryotic cells",
+         "Identify where errors can occur in the replication process",
+         "Identify the mechanisms and related enzymes of proofreading and repair in DNA",
+         "Define biotechnology and bioinformatics"
+        ]
+       }
+      ]
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence + Instructional Plan + KPIs (Scenario ADV.BIO.C.101)",
+    "lang": "en",
+    "withSLOs": true
    }
   },
   "2": {
@@ -6757,6 +8168,63 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U3M11 Molecular genetics": [
+      "U3M11L3 — DNA, RNA, and proteins",
+      "U3M11L4 — Gene Regulation and Mutation"
+     ],
+     "U3M12 Biotechnology": [
+      "U3M12L1 — DNA Technology",
+      "U3M12L2 — The Human Genome"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U3M11L3",
+      "unit": "U3 Genetics",
+      "module": "U3M11 Molecular genetics",
+      "lesson": "DNA, RNA, and proteins",
+      "weeks": "Weeks 1–6",
+      "periods": "8",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U3M11L4",
+      "unit": "U3 Genetics",
+      "module": "U3M11 Molecular genetics",
+      "lesson": "Gene Regulation and Mutation",
+      "weeks": "Weeks 1–6",
+      "periods": "10",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U3M12L1",
+      "unit": "U3 Genetics",
+      "module": "U3M12 Biotechnology",
+      "lesson": "DNA Technology",
+      "weeks": "Weeks 7–10",
+      "periods": "8",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U3M12L2",
+      "unit": "U3 Genetics",
+      "module": "U3M12 Biotechnology",
+      "lesson": "The Human Genome",
+      "weeks": "Weeks 7–10",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence (Scenario ADV.BIO.C.101)",
+    "lang": "en",
+    "withSLOs": false
    }
   },
   "3": {
@@ -7001,6 +8469,109 @@
     "source": "MOE Scope & Sequence 2026-27",
     "file": "SS_AY26-27_Physics_G12_Advanced_EN_ADV.PHY.P.102.xlsx",
     "lang": "en"
+   },
+   "Biology": {
+    "strands": {
+     "U2M8 Cellular energy": [
+      "U2M8L1 — How Organisms Obtain Energy",
+      "U2M8L2 — Photosynthesis",
+      "U2M8L3 — Cellular Respiration"
+     ],
+     "U6M27 Immune system": [
+      "U6M27L1 — Infectious diseases",
+      "U6M27L2 — The Immune system",
+      "U6M27L3 — Noninfectious Disorders"
+     ],
+     "U1M4 Population ecology": [
+      "U1M4L1 — Populations Dynamics",
+      "U1M4L2 — Human Population"
+     ]
+    },
+    "lessons": [
+     {
+      "code": "U2M8L1",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "How Organisms Obtain Energy",
+      "weeks": "Weeks 1–5",
+      "periods": "4",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U2M8L2",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "Photosynthesis",
+      "weeks": "Weeks 1–5",
+      "periods": "6",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U2M8L3",
+      "unit": "U2 The cell",
+      "module": "U2M8 Cellular energy",
+      "lesson": "Cellular Respiration",
+      "weeks": "Weeks 1–5",
+      "periods": "5",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M27L1",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "Infectious diseases",
+      "weeks": "Weeks 6–8",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M27L2",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "The Immune system",
+      "weeks": "Weeks 6–8",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U6M27L3",
+      "unit": "U6 The human body",
+      "module": "U6M27 Immune system",
+      "lesson": "Noninfectious Disorders",
+      "weeks": "Weeks 6–8",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U1M4L1",
+      "unit": "U1 Population ecology",
+      "module": "U1M4 Population ecology",
+      "lesson": "Populations Dynamics",
+      "weeks": "Week 9",
+      "periods": "3",
+      "type": "core",
+      "slos": []
+     },
+     {
+      "code": "U1M4L2",
+      "unit": "U1 Population ecology",
+      "module": "U1M4 Population ecology",
+      "lesson": "Human Population",
+      "weeks": "Week 9",
+      "periods": "",
+      "type": "core",
+      "slos": []
+     }
+    ],
+    "source": "MOE Biology 2026-27: Scope & Sequence (Scenario ADV.BIO.C.101)",
+    "lang": "en",
+    "withSLOs": false
    }
   }
  },
@@ -7513,5 +9084,46 @@
     "lang": "en"
    }
   }
+ },
+ "__science_framework": {
+  "source": "Science C3 CCG Unified Lesson Plan Template (2026-27)",
+  "sep": [
+   "Asking Questions and Defining Problems",
+   "Developing and Using Models",
+   "Planning and Carrying Out Investigations",
+   "Analyzing and Interpreting Data",
+   "Using Mathematics and Computational Thinking",
+   "Constructing Explanations and Designing Solutions",
+   "Engaging in Argument from Evidence",
+   "Obtaining, Evaluating, and Communicating Information"
+  ],
+  "scientificMethod": [
+   "Make an observation",
+   "Ask a research question",
+   "Gather background information and do research",
+   "Formulate a hypothesis",
+   "Make a prediction",
+   "Plan the experiment (design the investigation and identify variables)",
+   "Conduct the experiment",
+   "Collect and record data",
+   "Analyze, interpret, and evaluate data",
+   "Draw conclusion based on evidence",
+   "Communicate findings and results",
+   "Reflect and propose next steps or further investigations"
+  ],
+  "higherOrderFocus": [
+   "Analysis",
+   "Evaluation",
+   "Justification",
+   "Reasoning",
+   "Hypothesis generation",
+   "Making connections",
+   "Drawing conclusions",
+   "Synthesizing information",
+   "Designing solutions",
+   "Arguing a position",
+   "Constructing explanation"
+  ],
+  "assessmentRules": "Cycle 3 science (Physics, Chemistry, Biology): Performance tasks are 40% of the term’s continuous-assessment score — at least one performance task and one lab per module, varied task types across modules. Dedicate 60–80% of assessment to Power outcomes and 20–40% to Support outcomes (Basic and Supplementary)."
  }
 }

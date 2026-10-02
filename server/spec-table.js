@@ -17,7 +17,7 @@ module.exports = function specTable(app, d) {
   let CUR = {};
   try { CUR = JSON.parse(fs.readFileSync(path.join(__dirname, 'curriculum', 'moe-curriculum.json'), 'utf8')); }
   catch (e) { console.warn('[spec] curriculum not loaded:', e.message); }
-  const SUBJ_KEY = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry' };
+  const SUBJ_KEY = { Math: 'Maths', Maths: 'Maths', English: 'English', Science: 'Science', Physics: 'Physics', Chemistry: 'Chemistry', Biology: 'Biology' };
   const SUBJ_AR = { Math: 'الرياضيات', Science: 'العلوم', Physics: 'الفيزياء', Chemistry: 'الكيمياء', Biology: 'الأحياء', 'Health Science': 'العلوم الصحية',
     'Islamic Studies': 'التربية الإسلامية', 'Social Studies': 'الدراسات الاجتماعية', Arabic: 'اللغة العربية', French: 'اللغة الفرنسية', English: 'اللغة الإنجليزية', Other: 'أخرى' };
   function gradeKey(grade, stream) {
@@ -35,12 +35,20 @@ module.exports = function specTable(app, d) {
     const list = [];
     if (Array.isArray(e.lessons) && e.lessons.length && !e.sequenceSource) {
       e.lessons.forEach((l, i) => {
-        const wk = String(l.weeks || '').match(/(\d+)\D+(\d+)/);
+        const wk = String(l.weeks || '').match(/(\d+)\D+(\d+)/) || (String(l.weeks || '').match(/(\d+)/) ? [0, RegExp.$1, RegExp.$1] : null);
+        if (Array.isArray(l.slos) && l.slos.length) {
+          // Biology: one outcome per SLO (code + text), linked to its lesson.
+          for (const s of l.slos) {
+            if (list.some((x) => x.code === s.code)) continue;
+            list.push({ code: s.code, text: s.text, unit: `${l.module || ''} — ${l.lesson}`.replace(/^ — /, ''), weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core' });
+          }
+          return;
+        }
         list.push({ code: l.code || `L${i + 1}`, text: `${l.module || l.unit || ''} — ${l.lesson}`.replace(/^ — /, ''),
           unit: l.unit || l.module || '', weeks: l.weeks || '', wFrom: wk ? +wk[1] : null, wTo: wk ? +wk[2] : null, type: l.type || 'core' });
       });
     } else {
-      const abbr = { English: 'EN', Maths: 'MA', Science: 'SC', Physics: 'PH', Chemistry: 'CH' }[sk];
+      const abbr = { English: 'EN', Maths: 'MA', Science: 'SC', Physics: 'PH', Chemistry: 'CH', Biology: 'BI' }[sk];
       Object.entries(e.strands || {}).forEach(([strand, outs], si) => {
         (outs || []).forEach((t, oi) => list.push({ code: `${abbr}${gk}.T${term}.${si + 1}.${oi + 1}`, text: String(t), unit: strand, weeks: '', wFrom: null, wTo: null, type: 'core' }));
       });
