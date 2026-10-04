@@ -778,77 +778,73 @@ app.put('/api/classes/:id', requireTeacher, (req, res) => {
   res.json({ class: all[idx] });
 });
 
-app.delete('/api/classes/:id', requireTeacher, (req, res) => {
+// Delete one class. Used by the single Delete button and by "Delete selected".
+//  • If the class still has assessments, it is refused unless withAssessments
+//    is set; then those assessments are archived (admin can restore) and removed.
+//  • The class itself is archived first (data/deleted/classes/<day>/).
+//  • Pre-registered students who are on no other class roster lose their
+//    account ONLY if they have never submitted anything — student results are
+//    never deleted.
+function _ccDeleteClass(classId, teacherId, withAssessments) {
   const all = readAll('classes.json');
-  const idx = all.findIndex((c) => c.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
-
-  // Refuse deletion if any assessments still reference this class.
+  const idx = all.findIndex((c) => c.id === classId);
+  if (idx === -1) return { status: 404, body: { error: 'Not found' } };
+  if (all[idx].teacherId !== teacherId) return { status: 403, body: { error: 'Forbidden' } };
   const assessments = readAll('assessments.json');
-  const inUse = assessments.some((a) => a.classId === req.params.id);
-  if (inUse) {
-    return res.status(409).json({
-      error: 'This class still contains assessments. Move or delete them first, then delete the class.',
-    });
+  const mine = assessments.filter((a) => a.classId === classId);
+  if (mine.length && !withAssessments) {
+    return { status: 409, body: { error: `"${all[idx].name}" still has ${mine.length} assessment${mine.length === 1 ? '' : 's'}.`, assessments: mine.length, className: all[idx].name } };
   }
-
-  // Capture the deleted class's roster before mutating the array, so we can
-  // cascade-clean up student accounts that were only members of THIS class.
+  if (mine.length) {
+    for (const a of mine) { try { _ccArchiveAssessment(a); } catch (e) { console.error('archive failed', e); } }
+    writeAll('assessments.json', assessments.filter((a) => a.classId !== classId));
+  }
   const deletedClass = all[idx];
-  const deletedEmails = new Set(
-    (deletedClass.roster || [])
-      .map((r) => String(r && r.email || '').trim().toLowerCase())
-      .filter(Boolean)
-  );
-
+  try {
+    const dir = _ccPath.join(_ccDataDir, 'deleted', 'classes', new Date().toISOString().slice(0, 10));
+    _ccEnsureDir(dir);
+    _ccFs.writeFileSync(_ccPath.join(dir, deletedClass.id + '__' + Date.now() + '.json'), JSON.stringify({ deletedAt: new Date().toISOString(), class: deletedClass, assessmentsRemoved: mine.map((a) => a.id) }, null, 2));
+  } catch (e) { console.error('class archive failed', e); }
+  const deletedEmails = new Set((deletedClass.roster || []).map((r) => String(r && r.email || '').trim().toLowerCase()).filter(Boolean));
   all.splice(idx, 1);
   writeAll('classes.json', all);
-
-  // CASCADE CLEANUP — after a class is gone, any pre-registered student whose
-  // email no longer appears on any remaining class roster (anywhere in the
-  // system, across all teachers) is orphaned. Remove their user account so
-  // re-pre-registering them in a new class starts them afresh (status="created"
-  // with a brand-new temp password) instead of falling into the "existed" path.
-  let removedUsers = 0;
-  let removedResults = 0;
+  let removedUsers = 0, keptUsers = 0;
   if (deletedEmails.size > 0) {
     const stillReferenced = new Set();
-    for (const c of all) {
-      for (const r of (c.roster || [])) {
-        const em = String(r && r.email || '').trim().toLowerCase();
-        if (em) stillReferenced.add(em);
-      }
-    }
-    const orphanedEmails = [...deletedEmails].filter((em) => !stillReferenced.has(em));
-    if (orphanedEmails.length > 0) {
-      const orphanedSet = new Set(orphanedEmails);
+    for (const c of all) for (const r of (c.roster || [])) { const em = String(r && r.email || '').trim().toLowerCase(); if (em) stillReferenced.add(em); }
+    const orphaned = new Set([...deletedEmails].filter((em) => !stillReferenced.has(em)));
+    if (orphaned.size) {
+      const withResults = new Set(readAll('results.json').map((r) => r.studentId));
       const users = readAll('users.json');
-      const orphanedUserIds = new Set();
-      const remainingUsers = [];
+      const remaining = [];
       for (const u of users) {
         const em = String(u.email || '').toLowerCase();
-        // Only remove student accounts that were on the deleted class's roster.
-        // Teacher accounts and self-signup students (not in any roster) are
-        // left alone.
-        if (u.role === 'student' && orphanedSet.has(em)) {
-          orphanedUserIds.add(u.id);
-          removedUsers++;
-        } else {
-          remainingUsers.push(u);
-        }
+        if (u.role === 'student' && orphaned.has(em)) {
+          if (withResults.has(u.id)) { keptUsers++; remaining.push(u); }   // keep anyone with results
+          else removedUsers++;
+        } else remaining.push(u);
       }
-      if (orphanedUserIds.size > 0) {
-        writeAll('users.json', remainingUsers);
-        const results = readAll('results.json');
-        const keptResults = results.filter((r) => !orphanedUserIds.has(r.studentId));
-        removedResults = results.length - keptResults.length;
-        if (removedResults > 0) writeAll('results.json', keptResults);
-      }
+      if (removedUsers) writeAll('users.json', remaining);
     }
   }
-
-  res.json({ ok: true, removedUsers, removedResults });
+  return { status: 200, body: { ok: true, removedUsers, keptUsers, removedResults: 0, assessmentsRemoved: mine.length } };
+}
+app.delete('/api/classes/:id', requireTeacher, (req, res) => {
+  const r = _ccDeleteClass(req.params.id, req.session.user.id, req.query.withAssessments === '1');
+  res.status(r.status).json(r.body);
+});
+app.post('/api/classes/bulk-delete', requireTeacher, (req, res) => {
+  const ids = (Array.isArray(req.body && req.body.ids) ? req.body.ids : []).map(String).slice(0, 200);
+  if (!ids.length) return res.status(400).json({ error: 'Choose at least one class.' });
+  const withA = !!(req.body && req.body.withAssessments);
+  const out = { deleted: 0, blocked: [], failed: 0, removedUsers: 0, keptUsers: 0, assessmentsRemoved: 0 };
+  for (const id of ids) {
+    const r = _ccDeleteClass(id, req.session.user.id, withA);
+    if (r.status === 200) { out.deleted++; out.removedUsers += r.body.removedUsers; out.keptUsers += r.body.keptUsers; out.assessmentsRemoved += r.body.assessmentsRemoved; }
+    else if (r.status === 409) out.blocked.push({ id, name: r.body.className, assessments: r.body.assessments });
+    else out.failed++;
+  }
+  res.json(out);
 });
 
 // Delete a single student account. A teacher can only delete a student who

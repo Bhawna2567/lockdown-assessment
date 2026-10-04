@@ -271,12 +271,24 @@ function renderClassesList() {
     els.classesList.innerHTML = `<div class="muted">No classes yet. Add one above.</div>`;
     return;
   }
-  els.classesList.innerHTML = classes.map((c) => {
+  const _csel = window._ccClassSel || (window._ccClassSel = new Set());
+  for (const id of Array.from(_csel)) if (!classes.some((c) => c.id === id)) _csel.delete(id);
+  const _aCount = (id) => (typeof allAssessments !== 'undefined' ? allAssessments.filter((a) => a.classId === id).length : 0);
+  els.classesList.innerHTML = `
+      <div id="cc-class-selbar" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:8px 12px; margin-bottom:10px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;">
+        <label style="display:flex; gap:6px; align-items:center; margin:0; text-transform:none; letter-spacing:0; font-weight:600;"><input type="checkbox" id="cc-class-selall" style="width:18px; height:18px; margin:0;" ${_csel.size && _csel.size === classes.length ? 'checked' : ''}> Select all</label>
+        <span class="muted" style="font-size:13px;">${_csel.size ? _csel.size + ' selected' : 'Tick classes to delete several at once'}</span>
+        <div class="spacer"></div>
+        <button class="btn danger" id="cc-class-delsel" ${_csel.size ? '' : 'disabled'}>🗑 Delete selected${_csel.size ? ' (' + _csel.size + ')' : ''}</button>
+      </div>` + classes.map((c) => {
     const rosterCount = (c.roster || []).length;
+    const nA = _aCount(c.id);
     return `
-      <div data-class-row="${c.id}" style="padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 10px; margin-bottom: 10px;">
+      <div data-class-row="${c.id}" style="padding: 12px 14px; border: 1px solid ${_csel.has(c.id) ? '#dc2626' : '#e5e7eb'}; ${_csel.has(c.id) ? 'background:#fff7f7;' : ''} border-radius: 10px; margin-bottom: 10px;">
         <div class="row" style="margin-bottom: 8px;">
+          <input type="checkbox" data-class-sel="${c.id}" ${_csel.has(c.id) ? 'checked' : ''} title="Select" style="width:20px; height:20px; flex:0 0 auto; margin:0 4px 0 0;" />
           <input type="text" data-class-name="${c.id}" value="${escapeAttr(c.name)}" style="flex: 1;" />
+          <span class="muted" style="font-size:12px; white-space:nowrap;">${nA} assessment${nA === 1 ? '' : 's'}</span>
           <button class="btn" data-class-rename="${c.id}">Rename</button>
           <button class="btn danger" data-class-delete="${c.id}">Delete</button>
         </div>
@@ -342,32 +354,13 @@ function renderClassesList() {
   });
 
   els.classesList.querySelectorAll('[data-class-delete]').forEach((btn) => {
-    btn.onclick = async () => {
-      const id = btn.dataset.classDelete;
-      const cls = classes.find((c) => c.id === id);
-      if (!cls) return;
-      if (!confirm(
-        `Delete the class "${cls.name}"?\n\n` +
-        `This only works if the class has no assessments. If it does, move or delete those first.\n\n` +
-        `Pre-registered students who belong ONLY to this class will be permanently removed, ` +
-        `so you can re-add them in a new class and they'll receive fresh temporary passwords.`
-      )) return;
-      try {
-        els.classesStatus.textContent = 'Deleting…';
-        const resp = await api(`/api/classes/${id}`, { method: 'DELETE' });
-        await loadClasses();
-        renderClassesList();
-        loadAssessments();
-        const removed = (resp && resp.removedUsers) || 0;
-        els.classesStatus.textContent = removed > 0
-          ? `Deleted. ${removed} student account${removed === 1 ? '' : 's'} also removed (orphaned).`
-          : 'Deleted.';
-        setTimeout(() => { els.classesStatus.textContent = ''; }, 3500);
-      } catch (e) {
-        els.classesStatus.textContent = 'Error: ' + e.message;
-      }
-    };
+    btn.onclick = () => ccDeleteClasses([btn.dataset.classDelete]);
   });
+  els.classesList.querySelectorAll('[data-class-sel]').forEach((cb) => {
+    cb.onchange = () => { const set = window._ccClassSel; if (cb.checked) set.add(cb.dataset.classSel); else set.delete(cb.dataset.classSel); renderClassesList(); };
+  });
+  { const all = document.getElementById('cc-class-selall'); if (all) all.onchange = () => { const set = window._ccClassSel; set.clear(); if (all.checked) classes.forEach((c) => set.add(c.id)); renderClassesList(); }; }
+  { const del = document.getElementById('cc-class-delsel'); if (del) del.onclick = () => ccDeleteClasses(Array.from(window._ccClassSel)); }
 
   // Template download — generates a sample CSV the teacher can fill in.
   // Includes the `studentNumber` column for use with pre-registration.
@@ -10642,3 +10635,43 @@ document.addEventListener('change', (e) => {
   list.parentNode.insertBefore(row, list);
   row.querySelector('button').onclick = () => { window._ccSel = window._ccSel ? null : new Set(); ccSelRefresh(); };
 })();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Delete one or several classes (Manage classes)
+// ═══════════════════════════════════════════════════════════════════════
+async function ccDeleteClasses(ids) {
+  ids = (ids || []).filter(Boolean);
+  if (!ids.length) return;
+  const picked = ids.map((id) => classes.find((c) => c.id === id)).filter(Boolean);
+  const nA = (id) => (typeof allAssessments !== 'undefined' ? allAssessments.filter((a) => a.classId === id).length : 0);
+  const withA = picked.filter((c) => nA(c.id) > 0);
+  const totalA = withA.reduce((n, c) => n + nA(c.id), 0);
+  const names = picked.slice(0, 10).map((c) => '• ' + c.name + (nA(c.id) ? ` (${nA(c.id)} assessment${nA(c.id) === 1 ? '' : 's'})` : '')).join('\n') + (picked.length > 10 ? `\n… and ${picked.length - 10} more` : '');
+  if (!confirm(`Delete ${picked.length} class${picked.length === 1 ? '' : 'es'}?\n\n${names}`)) return;
+  let alsoAssessments = false;
+  if (withA.length) {
+    alsoAssessments = confirm(`${withA.length === 1 ? 'This class still has' : withA.length + ' of these classes still have'} ${totalA} assessment${totalA === 1 ? '' : 's'}.\n\nOK = delete the class${withA.length === 1 ? '' : 'es'} AND ${totalA === 1 ? 'its assessment' : 'their assessments'} (your administrator can restore them; student results are kept).\nCancel = only delete classes that have no assessments.`);
+  }
+  const ok = picked.filter((c) => alsoAssessments || !nA(c.id)).map((c) => c.id);
+  if (!ok.length) { alert('Nothing was deleted. Move or delete the assessments first, or choose OK to delete them with the class.'); return; }
+  els.classesStatus.textContent = 'Deleting…';
+  try {
+    const r = await api('/api/classes/bulk-delete', { method: 'POST', body: { ids: ok, withAssessments: alsoAssessments } });
+    if (window._ccClassSel) ok.forEach((id) => window._ccClassSel.delete(id));
+    await loadClasses();
+    try { await loadAssessments(); } catch (e) {}
+    renderClassesList();
+    const parts = [`🗑 Deleted ${r.deleted} class${r.deleted === 1 ? '' : 'es'}`];
+    if (r.assessmentsRemoved) parts.push(`${r.assessmentsRemoved} assessment${r.assessmentsRemoved === 1 ? '' : 's'}`);
+    let msg = parts.join(' and ') + '.';
+    if (r.removedUsers) msg += ` ${r.removedUsers} unused student account${r.removedUsers === 1 ? '' : 's'} removed.`;
+    if (r.keptUsers) msg += ` ${r.keptUsers} student account${r.keptUsers === 1 ? '' : 's'} kept because they have results.`;
+    if (r.blocked && r.blocked.length) msg += ` Not deleted (still has assessments): ${r.blocked.map((b) => b.name).join(', ')}.`;
+    if (r.failed) msg += ` ${r.failed} could not be deleted.`;
+    els.classesStatus.textContent = msg;
+    alert(msg);
+  } catch (e) {
+    els.classesStatus.textContent = 'Error: ' + e.message;
+    alert('Could not delete: ' + e.message);
+  }
+}
