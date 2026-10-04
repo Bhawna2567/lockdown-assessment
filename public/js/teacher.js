@@ -2183,8 +2183,9 @@ if (els.aiGenerateBtn) {
       els.aiStatus.textContent = '⚠ Choose your subject first — the AI uses it to tailor question style and graphics.';
       return;
     }
-    if (!prompt && fileList.length === 0) {
-      els.aiStatus.textContent = '⚠ Tell the AI what to generate, or upload a scheme of work — at least one is required.';
+    const _qt = ccAiQuestionTypes(); let _curSel = null; try { _curSel = ccCurriculumSelection(); } catch (e) {}
+    if (!prompt && fileList.length === 0 && !_qt.length && !_curSel) {
+      els.aiStatus.textContent = '⚠ Tell the AI what to generate, tick the question types, choose curriculum lessons, or upload a scheme of work.';
       return;
     }
     if (fileList.length > 20) {
@@ -2211,6 +2212,7 @@ if (els.aiGenerateBtn) {
       fd.append('subject', subject);
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
+      try { const _t = ccAiQuestionTypes(); if (_t.length) fd.append('questionTypes', JSON.stringify(_t)); const _sk = ccMultiValue('ai-skills'); if (_sk) fd.append('skills', _sk); } catch (e) {}
       try { const _cur = ccCurriculumSelection(); if (_cur) fd.append('curriculum', JSON.stringify(_cur)); } catch (e) {}
       try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd) fd.append('weekDate', _wd); } catch (e) {}
       // Multipart standard: same field name repeated for each file. Multer
@@ -2295,6 +2297,7 @@ if (els.aiGenerateBtn) {
         if (els.subject && fake.subject) els.subject.value = fake.subject;
         if (fake.classId && els.builderClass && Array.from(els.builderClass.options).some((o) => o.value === fake.classId)) els.builderClass.value = fake.classId;
         if (fake.grade && els.grade) els.grade.value = fake.grade;
+        try { const _sk = ccMultiValue('ai-skills'); if (_sk && els.skill) { els.skill.value = _sk; ccMultiSync('skill-multi'); if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels(); } } catch (e) {}
         if (fake.term && els.term) els.term.value = fake.term;
         try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd && els.scheduledDate && !els.scheduledDate.value) { els.scheduledDate.value = _wd; ccDiffBanner(); } } catch (e) {}
         // Pre-fill the assessment language so students see the correct
@@ -2354,6 +2357,7 @@ function openBuilder(a, presets) {
     els.deliveryMode.value = a && a.deliveryMode === 'onsite' ? 'onsite' : 'online';
   }
   if (els.skill) els.skill.value = (a && a.skill) || '';
+  try { ccMultiSync('skill-multi'); } catch (e) {}
   { const sh = document.getElementById('shuffle-toggle'); if (sh) sh.checked = a ? a.shuffle === true : true; if (typeof ccShuffleStatusUpdate === 'function') ccShuffleStatusUpdate(); }
   if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels();
   // Builder class dropdown — for new assessments default to the active class;
@@ -6311,7 +6315,7 @@ function _ccApplyConditionalPanels() {
   // Skill dropdown — only relevant for language subjects.
   if (els.skillField) els.skillField.style.display = isLanguageSubject ? '' : 'none';
   // Listening Audio panel — show when subject implies listening OR skill is Listening.
-  const showListening = ['Listening','IELTS','TOEFL','PISA'].includes(subject) || skill === 'Listening';
+  const showListening = ['Listening','IELTS','TOEFL','PISA'].includes(subject) || skill.split(',').map((x) => x.trim()).includes('Listening');
   if (els.listeningAudioHost) els.listeningAudioHost.style.display = showListening ? '' : 'none';
 }
 if (els.subject) els.subject.addEventListener('change', _ccApplyConditionalPanels);
@@ -9962,4 +9966,92 @@ function ccTrainingVideosEnhance() {
   window.openUserGuide = wrapped;
   const btn = document.getElementById('open-user-guide');
   if (btn) btn.onclick = wrapped;
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  Multi-select dropdowns: language skills (builder + AI panel) and
+//  question types with optional counts (AI panel).
+// ═══════════════════════════════════════════════════════════════════════
+const CC_SKILL_OPTIONS = ['Reading', 'Writing', 'Listening', 'Speaking', 'Grammar', 'Vocabulary'];
+const CC_QTYPE_OPTIONS = [
+  ['mc', 'Multiple choice'], ['tf', 'True / False'], ['tfng', 'True / False / Not Given'], ['short', 'Short answer'],
+  ['long', 'Long answer (manual)'], ['essay', 'Essay (manual grade)'], ['writing', 'Essay (auto-graded)'], ['match', 'Match the following'],
+];
+function ccMultiBuild(host) {
+  if (!host || host._ccBuilt) return;
+  host._ccBuilt = true;
+  const kind = host.getAttribute('data-cc-multi');
+  const opts = kind === 'qtypes' ? CC_QTYPE_OPTIONS : CC_SKILL_OPTIONS.map((x) => [x, x]);
+  host.style.position = 'relative';
+  host.innerHTML = `
+    <button type="button" class="cc-multi-btn" style="width:100%; text-align:left; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px;">
+      <span class="cc-multi-sum" style="flex:1; color:#64748b;">Choose…</span><span style="color:#64748b;">▾</span></button>
+    <div class="cc-multi-panel" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:6px; z-index:50; max-height:320px; overflow:auto;">
+      ${opts.map(([v, l]) => `<label style="display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:400; font-size:14px; margin:0;">
+        <input type="checkbox" data-multi-v="${v}" style="width:auto; margin:0;"> <span style="flex:1;">${l}</span>
+        ${kind === 'qtypes' ? `<input type="number" min="1" max="50" data-multi-n="${v}" placeholder="how many" style="width:92px; padding:4px 6px; font-size:13px; display:none;">` : ''}</label>`).join('')}
+      <div style="display:flex; gap:8px; padding:6px 8px 2px; border-top:1px solid #f1f5f9; margin-top:4px;">
+        <button type="button" class="btn" data-multi-clear style="padding:4px 10px; font-size:12px;">Clear</button>
+        <div style="flex:1;"></div>
+        <button type="button" class="btn primary" data-multi-done style="padding:4px 12px; font-size:12px;">Done</button></div>
+    </div>`;
+  const btn = host.querySelector('.cc-multi-btn'), panel = host.querySelector('.cc-multi-panel');
+  btn.onclick = (e) => { e.preventDefault(); panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
+  host.querySelector('[data-multi-done]').onclick = () => { panel.style.display = 'none'; };
+  host.querySelector('[data-multi-clear]').onclick = () => { host.querySelectorAll('[data-multi-v]').forEach((c) => { c.checked = false; }); host.querySelectorAll('[data-multi-n]').forEach((n) => { n.value = ''; }); changed(); };
+  document.addEventListener('click', (e) => { if (!host.contains(e.target)) panel.style.display = 'none'; });
+  function changed() {
+    host.querySelectorAll('[data-multi-v]').forEach((c) => { const n = host.querySelector(`[data-multi-n="${c.getAttribute('data-multi-v')}"]`); if (n) n.style.display = c.checked ? '' : 'none'; });
+    ccMultiSummary(host);
+    if (host.id === 'skill-multi' && els.skill) { els.skill.value = ccMultiValue('skill-multi'); els.skill.dispatchEvent(new Event('change', { bubbles: true })); }
+    if (kind === 'qtypes') {
+      const t = ccAiQuestionTypes();
+      if (t.length && t.every((x) => x.count > 0) && els.aiCount) els.aiCount.value = String(Math.min(50, t.reduce((n, x) => n + x.count, 0)));
+    }
+  }
+  host.addEventListener('change', changed);
+  host.addEventListener('input', (e) => { if (e.target.hasAttribute('data-multi-n')) changed(); });
+  ccMultiSummary(host);
+}
+function ccMultiSummary(host) {
+  const sum = host.querySelector('.cc-multi-sum');
+  const parts = [];
+  host.querySelectorAll('[data-multi-v]:checked').forEach((c) => {
+    const v = c.getAttribute('data-multi-v');
+    const label = c.nextElementSibling ? c.nextElementSibling.textContent : v;
+    const n = host.querySelector(`[data-multi-n="${v}"]`);
+    parts.push(label + (n && n.value ? ' × ' + n.value : ''));
+  });
+  sum.textContent = parts.length ? parts.join(', ') : (host.getAttribute('data-cc-multi') === 'qtypes' ? 'Any type — the AI decides' : '— No skill —');
+  sum.style.color = parts.length ? '#1a1e33' : '#64748b';
+}
+function ccMultiValue(id) {
+  const host = document.getElementById(id);
+  if (!host) return '';
+  return Array.from(host.querySelectorAll('[data-multi-v]:checked')).map((c) => c.getAttribute('data-multi-v')).join(', ');
+}
+function ccMultiSync(id) {
+  const host = document.getElementById(id);
+  if (!host) return;
+  ccMultiBuild(host);
+  const want = new Set(String((els.skill && els.skill.value) || '').split(',').map((x) => x.trim()).filter(Boolean));
+  host.querySelectorAll('[data-multi-v]').forEach((c) => { c.checked = want.has(c.getAttribute('data-multi-v')); });
+  ccMultiSummary(host);
+}
+function ccAiQuestionTypes() {
+  const host = document.getElementById('ai-qtypes');
+  if (!host) return [];
+  return Array.from(host.querySelectorAll('[data-multi-v]:checked')).map((c) => {
+    const v = c.getAttribute('data-multi-v');
+    const n = host.querySelector(`[data-multi-n="${v}"]`);
+    return { type: v, count: Math.max(0, Math.min(50, parseInt(n && n.value, 10) || 0)) };
+  });
+}
+(function ccMultiInit() {
+  document.querySelectorAll('[data-cc-multi]').forEach(ccMultiBuild);
+  // Skills only matter for language subjects in the AI panel.
+  const subj = document.getElementById('ai-subject'), f = document.getElementById('ai-skills-field');
+  const lang = () => { if (f && subj) f.style.display = ['English', 'Arabic', 'French', 'Listening', 'IELTS', 'TOEFL', 'PISA'].includes(subj.value) ? '' : 'none'; };
+  if (subj) subj.addEventListener('change', lang);
+  lang();
 })();

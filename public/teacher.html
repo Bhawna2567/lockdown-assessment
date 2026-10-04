@@ -419,6 +419,19 @@
           <div class="muted" style="font-size: 12px; margin-top: 4px;">When ticked, the AI flags which questions would benefit from a diagram, chart, or image — and describes what to upload. You can still add your own graphics manually to any question.</div>
         </div>
 
+        <div class="row" style="gap:14px; flex-wrap:wrap; align-items:flex-start;">
+          <div class="field" style="flex:1 1 320px; margin-bottom:0;">
+            <label>🧩 Question types (optional)</label>
+            <div id="ai-qtypes" data-cc-multi="qtypes"></div>
+            <div class="muted" style="font-size:12px; margin-top:4px;">Tick the types you want and, if you like, how many of each — no need to type it in the instructions.</div>
+          </div>
+          <div class="field" id="ai-skills-field" style="flex:1 1 260px; margin-bottom:0;">
+            <label>📝 Skills to assess (optional, language subjects)</label>
+            <div id="ai-skills" data-cc-multi="skills"></div>
+            <div class="muted" style="font-size:12px; margin-top:4px;">Choose one or more skills — each gets its own section.</div>
+          </div>
+        </div>
+
         <div class="row">
           <div class="field" style="flex: 0 0 200px;">
             <label>Number of questions</label>
@@ -488,16 +501,9 @@
           </div>
           <div class="field" id="skill-field" style="flex:1; display:none;">
             <label>📝 Skill (for language assessments)</label>
-            <select id="skill">
-              <option value="">— No skill —</option>
-              <option value="Reading">Reading</option>
-              <option value="Writing">Writing</option>
-              <option value="Listening">Listening</option>
-              <option value="Speaking">Speaking</option>
-              <option value="Grammar">Grammar</option>
-              <option value="Vocabulary">Vocabulary</option>
-            </select>
-            <div class="muted" style="font-size: 12px; margin-top: 4px;">Pick the language skill this assessment trains.</div>
+            <input type="hidden" id="skill" value="" />
+            <div id="skill-multi" data-cc-multi="skills"></div>
+            <div class="muted" style="font-size: 12px; margin-top: 4px;">Tick every language skill this assessment trains — you can choose more than one.</div>
           </div>
           <div class="field" style="flex:1;">
             <label>🌐 Language of assessment</label>

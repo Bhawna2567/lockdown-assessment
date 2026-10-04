@@ -1076,7 +1076,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     published: Boolean(published),
     audioFile: null,
     audioScript: audioScript ? String(audioScript).slice(0, 12000) : '',
-    skill: skill ? String(skill).slice(0, 40) : null,
+    skill: skill ? String(skill).slice(0, 120) : null,
     audioVoice:  audioVoice  ? String(audioVoice).slice(0, 200)  : '',
     audioVoices: (audioVoices && typeof audioVoices === 'object') ? audioVoices : {},
     questions: questions.map((q, i) => {
@@ -1321,7 +1321,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
     audioFile: all[idx].audioFile || null,
-    skill: req.body.skill === undefined ? (all[idx].skill || null) : (req.body.skill ? String(req.body.skill).slice(0, 40) : null),
+    skill: req.body.skill === undefined ? (all[idx].skill || null) : (req.body.skill ? String(req.body.skill).slice(0, 120) : null),
     audioScript: audioScript === undefined
       ? (all[idx].audioScript || '')
       : (audioScript ? String(audioScript).slice(0, 12000) : ''),
@@ -5668,11 +5668,17 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     });
   }
   const prompt = String(req.body?.prompt || '').trim();
-  const requestedCount = Math.max(1, Math.min(50, parseInt(req.body?.count, 10) || 10));
+  // Question types (and optional counts) and language skills picked in the AI panel.
+  const _QT_NAMES = { mc: 'Multiple choice', tf: 'True / False', tfng: 'True / False / Not Given', short: 'Short answer', long: 'Long answer (teacher-marked)', essay: 'Essay (teacher-marked)', writing: 'Essay (auto-graded with the rubric)', match: 'Match the following' };
+  let _qTypes = [];
+  try { const t = JSON.parse(req.body?.questionTypes || '[]'); if (Array.isArray(t)) _qTypes = t.filter((x) => x && _QT_NAMES[x.type]).map((x) => ({ type: x.type, count: Math.max(0, Math.min(50, parseInt(x.count, 10) || 0)) })); } catch (e) {}
+  const _skills = String(req.body?.skills || '').split(',').map((x) => x.trim()).filter((x) => /^(Reading|Writing|Listening|Speaking|Grammar|Vocabulary)$/.test(x));
+  const _typeTotal = _qTypes.reduce((n, x) => n + x.count, 0);
+  const requestedCount = Math.max(1, Math.min(50, (_qTypes.length && _qTypes.every((x) => x.count > 0)) ? _typeTotal : (parseInt(req.body?.count, 10) || 10)));
   const subject = String(req.body?.subject || '').trim();
   const language = String(req.body?.language || 'English').trim();
   const files = Array.isArray(req.files) ? req.files : [];
-  if (!prompt && files.length === 0) {
+  if (!prompt && files.length === 0 && !_qTypes.length && !req.body?.curriculum) {
     return res.status(400).json({
       ok: false,
       error: 'Either a prompt or a scheme-of-work file is required.',
@@ -5884,8 +5890,18 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     '  ]',
     '}',
     '',
+    _qTypes.length ? ('QUESTION TYPES CHOSEN BY THE TEACHER (must be followed exactly):\n' +
+      '   - Use ONLY these question types: ' + _qTypes.map((x) => _QT_NAMES[x.type] + ' ("' + x.type + '")' + (x.count ? ' × ' + x.count : '')).join(', ') + '.\n' +
+      (_qTypes.every((x) => x.count > 0) ? '   - Write exactly these numbers of each type — ' + requestedCount + ' questions in total.\n' : '   - Choose a sensible mix of these types, about ' + requestedCount + ' questions in total.\n') +
+      (_qTypes.some((x) => x.type === 'match') ? '   - For "match": give "pairs" [{left, right}] (4–6 pairs) and "matchVariant": "word-definition".\n' : '')) : '',
+    _skills.length ? ('LANGUAGE SKILLS CHOSEN BY THE TEACHER: ' + _skills.join(', ') + '.\n' +
+      '   - Cover every one of these skills, each in its own section with a clear title (e.g. "Section A — Reading").\n' +
+      '   - Spread the questions sensibly across the skills.' + (_skills.includes('Reading') ? ' Reading questions need a reading passage in that section.' : '') +
+      (_skills.includes('Listening') ? ' For Listening, write the full audioScript (rule C0).' : '') +
+      (_skills.includes('Writing') ? ' Writing needs at least one extended writing task.' : '') +
+      (_skills.includes('Speaking') ? ' Speaking tasks are prompts the student answers in writing or orally to the teacher; keep them short.' : '') + '\n') : '',
     'Teacher\'s request:',
-    prompt || '(no prompt — design a balanced assessment based on the scheme of work)',
+    prompt || (_qTypes.length || _skills.length ? '(no extra instructions — follow the question types, skills and curriculum given above)' : '(no prompt — design a balanced assessment based on the scheme of work)'),
   ].filter(Boolean).join('\n');
 
   const userContent = [
