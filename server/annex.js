@@ -47,7 +47,19 @@ const STRATEGIES = {
 const CODE_RE = /^\s*[A-Z][A-Z0-9&]{1,6}(?:\.[0-9A-Z]{1,4}){2,7}\s*/;
 
 module.exports = function annex(app, d) {
-  const { readAll, requireAdmin, claudeList, questionEarned } = d;
+  const { readAll, claudeList, questionEarned } = d;
+  const ADMINS = (d.adminEmails || []).map((x) => String(x).toLowerCase());
+  const isAdmin = (req) => {
+    const u = req.session && req.session.user;
+    return !!(u && (ADMINS.includes(String(u.email || '').toLowerCase()) || (req.session.ccViewAs && req.session.ccViewAs.admin)));
+  };
+  // Admins see every class; teachers see and download only their own classes.
+  const requireAdmin = (req, res, next) => {
+    const u = req.session && req.session.user;
+    if (!u) return res.status(401).json({ error: 'Not signed in' });
+    if (isAdmin(req) || u.role === 'teacher') return next();
+    return res.status(403).json({ error: 'Teachers only' });
+  };
   const rd = (n) => { const r = readAll(n); return Array.isArray(r) ? r : []; };
 
   function bandsFor(grade) {
@@ -70,7 +82,8 @@ module.exports = function annex(app, d) {
     const taken = new Map();
     for (const r of rd('results.json')) taken.set(r.assessmentId, (taken.get(r.assessmentId) || 0) + 1);
     const assessments = rd('assessments.json').filter((a) => !a.deletedAt);
-    const classes = rd('classes.json').map((c) => {
+    const me = req.session.user, admin = isAdmin(req);
+    const classes = rd('classes.json').filter((c) => admin || c.teacherId === me.id).map((c) => {
       const t = users.get(c.teacherId) || {};
       const list = assessments.filter((a) => a.classId === c.id).map((a) => ({
         id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', term: a.term || '',
@@ -78,7 +91,7 @@ module.exports = function annex(app, d) {
       })).sort((x, y) => String(y.date).localeCompare(String(x.date)));
       return { id: c.id, name: c.name, teacherId: c.teacherId, teacher: t.name || t.email || '', assessments: list };
     }).filter((c) => c.assessments.some((a) => a.submissions > 0));
-    res.json({ classes, strategies: STRATEGIES });
+    res.json({ classes, strategies: STRATEGIES, admin });
   });
 
   // ── Build the tables from the chosen assessments ─────────────────────────
@@ -89,6 +102,7 @@ module.exports = function annex(app, d) {
       if (!ids.size) return res.status(400).json({ error: 'Choose at least one assessment.' });
       const cls = rd('classes.json').find((c) => c.id === b.classId);
       if (!cls) return res.status(404).json({ error: 'Class not found.' });
+      if (!isAdmin(req) && cls.teacherId !== req.session.user.id) return res.status(403).json({ error: 'You can only build sheets for your own classes.' });
       const teacher = rd('users.json').find((u) => u.id === cls.teacherId) || {};
       const as = rd('assessments.json').filter((a) => ids.has(a.id) && a.classId === cls.id);
       const grade = String(b.grade || (as.find((a) => a.grade) || {}).grade || '');
@@ -215,7 +229,7 @@ module.exports = function annex(app, d) {
   }
   // Estimate how tall a row will be (7pt text, word-wrapped) so each slide
   // only gets as many rows as fit above the signature lines.
-  const LINE = 97000, PAD = 91440, MIN_ROW = 304800, TABLE_Y = 2240000, FOOTER_Y = 4480000, HEAD_H = 330000;
+  const LINE = 84000, PAD = 91440, MIN_ROW = 304800, TABLE_Y = 2240000, FOOTER_Y = 4480000, HEAD_H = 330000;
   function wrapLines(text, chars) {
     let n = 0;
     for (const para of String(text == null ? '' : text).split('\n')) {
@@ -296,20 +310,31 @@ module.exports = function annex(app, d) {
       const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => [
         r.subject, r.section, r.skill, r.students, r.proficient, (r.proficiencyPct !== '' && r.proficiencyPct != null ? r.proficiencyPct + '%' : ''), r.level2, r.level3, r.action,
       ]);
-      const buf = await buildPptx('annex3.pptx', rows, 5, null, 20);
+      const buf = await buildPptx('annex3.pptx', rows, 5, null, 22);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex3_Skills_Analysis_${safeName(b.section)}.pptx"`);
       res.send(buf);
     } catch (e) { console.error('[annex3.pptx]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
   });
+  // The printed form has narrow columns: keep each group to its label + 3 short names.
+  function shortStudents(t) {
+    return String(t || '').split('\n').map((ln) => {
+      const m = ln.match(/^([^:]+):\s*(.*)$/);
+      if (!m) return ln;
+      const more = (m[2].match(/\+(\d+) more\s*$/) || [])[1];
+      const names = m[2].replace(/\s*\+\d+ more\s*$/, '').split(/\s*,\s*/).filter(Boolean);
+      const extra = names.length - 3 + (more ? +more : 0);
+      return `${m[1]}: ${names.slice(0, 3).map((n) => n.split(/\s+/).slice(0, 2).join(' ')).join(', ')}${extra > 0 ? ` +${extra}` : ''}`;
+    }).join('\n');
+  }
   app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
     try {
       const b = req.body || {};
       const month = String(b.month || 'First Month').slice(0, 40);
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
-        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), p.students, p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
+        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
-      const buf = await buildPptx('annex4.pptx', rows, 5, (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(month)}</a:t>`), 23);
+      const buf = await buildPptx('annex4.pptx', rows, 5, (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(month)}</a:t>`), 20);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex4_Intervention_Plan_${safeName(b.section)}.pptx"`);
       res.send(buf);

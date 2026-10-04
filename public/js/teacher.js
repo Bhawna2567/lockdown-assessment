@@ -10715,7 +10715,7 @@ async function ccOpenAnnex() {
     <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;"><h2 style="margin:0; flex:1;">📑 Annex 3 &amp; 4 — skills analysis and intervention plan</h2><button class="btn" data-ax="close">Close</button></div>
     <div class="muted" style="font-size:13px; margin-bottom:10px;">Built from students' real results. Choose your strategies, let the AI fill the sheets, edit anything, then download. Signatures are left blank.</div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-      <label style="margin:0; flex:1 1 280px;">Class section (teacher)<select data-ax="class" style="width:100%;"><option value="">— choose —</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)} — ${esc(c.teacher)}</option>`).join('')}</select></label>
+      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <label style="margin:0;">Annex 4 month<select data-ax="month"><option>First Month</option><option>Second Month</option><option>Third Month</option></select></label>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">School form (PowerPoint — same as provided)</option><option value="enhanced">Enhanced version (Word — more detail)</option></select></label>
@@ -10853,9 +10853,10 @@ async function ccOpenAnnex() {
   }
 }
 document.addEventListener('click', (e) => {
-  const b = e.target && e.target.closest && e.target.closest('#admin-annex');
+  const b = e.target && e.target.closest && e.target.closest('#admin-annex, #tools-annex');
   if (!b) return;
   e.preventDefault();
   const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+  const tm = document.getElementById('tools-menu-dropdown'); if (tm && b.id === 'tools-annex') tm.style.display = 'none';
   ccOpenAnnex();
 });

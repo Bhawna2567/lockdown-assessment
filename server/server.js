@@ -3970,7 +3970,7 @@ try {
 } catch (e) { console.error('[coverage] module failed to load:', e); }
 // ── 📑 Annex 3 & 4 (skills analysis + intervention plan) — admin only ──
 try {
-  require('./annex')(app, { readAll, requireAdmin: _ccRequireAdmin, questionEarned: (q, r) => _ccQuestionEarned(q, r),
+  require('./annex')(app, { readAll, adminEmails: ADMIN_EMAILS, questionEarned: (q, r) => _ccQuestionEarned(q, r),
     claudeList: (o) => _ccClaudeList(Object.assign({ tier: 'bg' }, o)) });
 } catch (e) { console.error('[annex] module failed to load:', e); }
 
