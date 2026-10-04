@@ -10675,3 +10675,131 @@ async function ccDeleteClasses(ids) {
     alert('Could not delete: ' + e.message);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  📑 Annex 3 (Skills Analysis and Student Classification) +
+//     Annex 4 (Intervention and Enrichment Plan) — admin only.
+//  Bands: Cycle 3 (G9–12) pass 60 · BF 50–59.9 · F < 50 · BP 60–69.9
+//         Cycle 2 (G5–8)  pass 50 · BF 40–49.9 · F < 40 · BP 50–59.9
+// ═══════════════════════════════════════════════════════════════════════
+async function ccOpenAnnex() {
+  document.getElementById('cc-annex')?.remove();
+  const ov = document.createElement('div'); ov.id = 'cc-annex';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 10px;';
+  ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(1200px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading classes…</div></div>';
+  document.body.appendChild(ov);
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  let opts;
+  try { opts = await api('/api/admin/annex/options'); } catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div><button class="btn" onclick="document.getElementById('cc-annex').remove()">Close</button>`; return; }
+  const st = { data: null };
+  box.innerHTML = `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;"><h2 style="margin:0; flex:1;">📑 Annex 3 &amp; 4 — skills analysis and intervention plan</h2><button class="btn" data-ax="close">Close</button></div>
+    <div class="muted" style="font-size:13px; margin-bottom:10px;">Built from students' real results. Everything can be edited before you download the school's PowerPoint forms. Signatures are left blank.</div>
+    <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
+      <label style="margin:0; flex:1 1 280px;">Class section (teacher)<select data-ax="class" style="width:100%;"><option value="">— choose —</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)} — ${esc(c.teacher)}</option>`).join('')}</select></label>
+      <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
+      <label style="margin:0;">Annex 4 month<select data-ax="month"><option>First Month</option><option>Second Month</option><option>Third Month</option></select></label>
+    </div>
+    <div data-ax="alist" style="margin-top:10px;"></div>
+    <div data-ax="bands" style="margin-top:8px;"></div>
+    <div style="margin-top:10px;"><button class="btn primary" data-ax="build">📊 Build Annex 3 &amp; 4</button> <span class="muted" data-ax="status" style="font-size:13px;"></span></div>
+    <div data-ax="out" style="margin-top:14px;"></div>`;
+  const $ = (k) => box.querySelector(`[data-ax="${k}"]`);
+  $('close').onclick = () => ov.remove();
+  const gradeOf = (c, ids) => { const g = c.assessments.filter((a) => !ids || ids.includes(a.id)).map((a) => parseInt(a.grade, 10)).filter(Boolean); return g.length ? Math.max(...g) : 0; };
+  const bandsHtml = (g) => {
+    const c3 = g >= 9; const d = c3 ? { pass: 60, bf: 50, bp: 70 } : { pass: 50, bf: 40, bp: 60 };
+    return `<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:8px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:13px;">
+      <strong>${c3 ? 'Cycle 3 (Grades 9–12)' : 'Cycle 2 (Grades 5–8)'}</strong>
+      <label style="margin:0; text-transform:none; letter-spacing:0;">Pass mark (Proficient ≥) <input data-ax="pass" type="number" value="${d.pass}" style="width:64px;">%</label>
+      <label style="margin:0; text-transform:none; letter-spacing:0;">Level 2 = BF from <input data-ax="bf" type="number" value="${d.bf}" style="width:64px;">% to below the pass mark</label>
+      <span>· Level 3 = F below that</span>
+      <label style="margin:0; text-transform:none; letter-spacing:0;">· BP (at risk) below <input data-ax="bp" type="number" value="${d.bp}" style="width:64px;">%</label></div>`;
+  };
+  $('class').onchange = () => {
+    const c = opts.classes.find((x) => x.id === $('class').value);
+    if (!c) { $('alist').innerHTML = ''; $('bands').innerHTML = ''; return; }
+    const taken = c.assessments.filter((a) => a.submissions > 0);
+    $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Assessments to include <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">all</a> · <a href="#" data-ax="none">none</a></div>
+      <div style="max-height:180px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px;">${taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" checked style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''} · ${a.submissions} students</span></label>`).join('')}</div>`;
+    $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
+    $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
+    $('bands').innerHTML = bandsHtml(gradeOf(c));
+  };
+  $('build').onclick = async () => {
+    const ids = Array.from(box.querySelectorAll('[data-ax-a]:checked')).map((x) => x.getAttribute('data-ax-a'));
+    if (!$('class').value || !ids.length) { alert('Choose a class and at least one assessment.'); return; }
+    $('status').textContent = 'Working out each student’s score per skill…';
+    try {
+      st.data = await api('/api/admin/annex/build', { method: 'POST', body: { classId: $('class').value, assessmentIds: ids, groupBy: $('by').value,
+        pass: $('pass') && $('pass').value, bf: $('bf') && $('bf').value, bp: $('bp') && $('bp').value } });
+      $('status').textContent = '';
+      renderOut();
+    } catch (e) { $('status').textContent = '⚠ ' + e.message; }
+  };
+  const cell = (v, k, i, ta) => ta
+    ? `<textarea data-ax-c="${k}" data-ax-i="${i}" rows="3" style="width:100%; min-width:120px; font-size:12px; padding:4px;">${esc(v)}</textarea>`
+    : `<input data-ax-c="${k}" data-ax-i="${i}" value="${esc(v)}" style="width:100%; min-width:50px; font-size:12px; padding:4px;">`;
+  function renderOut() {
+    const d = st.data;
+    if (!d.rows.length) { $('out').innerHTML = '<div class="panel muted">No tagged questions in these assessments. Tag skills (or question focus) first, then build again.</div>'; return; }
+    const th = (t) => `<th style="background:#4472c4; color:#fff; padding:6px; font-size:12px;">${t}</th>`;
+    const th4 = (t) => `<th style="background:#70ad47; color:#fff; padding:6px; font-size:12px;">${t}</th>`;
+    $('out').innerHTML = `
+      <div style="font-size:13px; margin-bottom:6px;"><strong>${esc(d.class.name)}</strong> · ${esc(d.subject)} · Grade ${esc(d.grade)} · ${d.students} students · ${d.assessments.length} assessment(s) · Proficient ≥ ${d.bands.pass}% · Level 2 (BF) ${d.bands.bf}–${d.bands.pass - 0.1}% · Level 3 (F) &lt; ${d.bands.bf}%</div>
+      <h3 style="margin:10px 0 6px;">Annex 3 — Skills Analysis and Student Classification</h3>
+      <div style="overflow:auto;"><table style="width:100%; border-collapse:collapse;" data-ax="t3"><tr>${['Subject', 'Grade/Section', 'Skill', 'No. of Students', 'Proficient', 'Proficiency %', 'Level 2', 'Level 3', 'Suggested Action'].map(th).join('')}<th style="background:#e5e7eb; padding:6px; font-size:12px;" title="Passed, but only just — not printed on the form">At risk (BP)</th></tr>
+        ${d.rows.map((r, i) => `<tr>${[['subject'], ['section'], ['skill', 1], ['students'], ['proficient'], ['proficiencyPct'], ['level2'], ['level3'], ['action', 1]].map(([k, ta]) => `<td style="border:1px solid #e5e7eb; padding:2px; vertical-align:top;">${cell(r[k], k, i, ta)}</td>`).join('')}
+          <td style="border:1px solid #e5e7eb; padding:4px; font-size:11px; color:#92400e; vertical-align:top;" title="${esc(r.atRiskNames.join(', '))}">${r.atRisk}</td></tr>
+          <tr><td colspan="10" style="font-size:11px; color:#64748b; padding:2px 6px 8px;">${r.level3 ? `<strong style="color:#991b1b;">Level 3:</strong> ${esc(r.level3Names.join(', '))} ` : ''}${r.level2 ? `<strong style="color:#92400e;">Level 2:</strong> ${esc(r.level2Names.join(', '))}` : ''}</td></tr>`).join('')}
+      </table></div>
+      <h3 style="margin:16px 0 6px;">Annex 4 — Intervention and Enrichment Plan <span class="muted" style="font-size:13px; font-weight:400;">(${esc($('month').value)})</span></h3>
+      <div style="overflow:auto;"><table style="width:100%; border-collapse:collapse;" data-ax="t4"><tr>${['Target Skill', 'Category/Students', 'Baseline', 'Strategy', 'Responsible Person', 'Sessions &amp; Timing', 'Progress Indicator', 'Follow-up Decision'].map(th4).join('')}<th></th></tr>
+        ${d.plan.map((p, i) => `<tr>${[['skill', 1], ['students', 1], ['baseline', 1], ['strategy', 1], ['responsible'], ['sessions', 1], ['indicator', 1], ['followUp', 1]].map(([k, ta]) => `<td style="border:1px solid #e5e7eb; padding:2px; vertical-align:top;">${cell(p[k], 'p.' + k, i, ta)}</td>`).join('')}<td><button class="btn" data-ax-del="${i}" title="Remove row">✕</button></td></tr>`).join('')}
+      </table></div>
+      <div style="margin-top:6px;"><button class="btn" data-ax="addrow">＋ Add a row</button></div>
+      <div class="row" style="gap:8px; margin-top:14px; flex-wrap:wrap;">
+        <button class="btn" data-ax="ai">✨ Draft suggested actions &amp; plan with AI</button>
+        <div class="spacer"></div>
+        <button class="btn primary" data-ax="dl3">⬇ Annex 3 (PowerPoint)</button>
+        <button class="btn primary" data-ax="dl4">⬇ Annex 4 (PowerPoint)</button>
+      </div>
+      <div class="muted" style="font-size:12px; margin-top:6px;">The AI writes short drafts only for empty cells; check and edit them. Student names appear on screen and in Annex 4; Annex 3 shows numbers only.</div>`;
+    $('out').oninput = (e) => {
+      const t = e.target; const k = t.getAttribute('data-ax-c'); if (!k) return;
+      const i = +t.getAttribute('data-ax-i');
+      if (k.startsWith('p.')) st.data.plan[i][k.slice(2)] = t.value; else st.data.rows[i][k] = t.value;
+    };
+    $('out').querySelectorAll('[data-ax-del]').forEach((b) => { b.onclick = () => { st.data.plan.splice(+b.getAttribute('data-ax-del'), 1); renderOut(); }; });
+    $('addrow').onclick = () => { st.data.plan.push({ kind: 'intervention', skill: '', students: '', baseline: '', strategy: '', responsible: st.data.teacher || '', sessions: '', indicator: '', followUp: '' }); renderOut(); };
+    $('ai').onclick = async () => {
+      const b = $('ai'); b.disabled = true; b.textContent = '✨ Drafting…';
+      try {
+        const r = await api('/api/admin/annex/draft', { method: 'POST', body: { subject: d.subject, grade: d.grade, section: d.class.name, pass: d.bands.pass, rows: d.rows, plan: d.plan } });
+        d.rows.forEach((row, i) => { if (!String(row.action || '').trim() && r.actions['R' + i]) row.action = r.actions['R' + i]; });
+        d.plan.forEach((p, i) => { const x = r.plan['P' + i]; if (!x) return; ['strategy', 'sessions', 'indicator'].forEach((k) => { if (!String(p[k] || '').trim() && x[k]) p[k] = x[k]; }); });
+        renderOut();
+      } catch (e) { alert(e.message); b.disabled = false; b.textContent = '✨ Draft suggested actions & plan with AI'; }
+    };
+    const download = async (url, body, btn) => {
+      const old = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
+      try {
+        const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
+        if (!res.ok) { let m = 'Failed'; try { m = (await res.json()).error || m; } catch (e) {} throw new Error(m); }
+        const blob = await res.blob();
+        const cd = res.headers.get('Content-Disposition') || ''; const m = cd.match(/filename="?([^";]+)"?/i);
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = m ? m[1] : 'annex.pptx'; document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.textContent = old; }
+    };
+    $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows }, $('dl3'));
+    $('dl4').onclick = () => download('/api/admin/annex/annex4.pptx', { section: d.class.name, month: $('month').value, plan: d.plan }, $('dl4'));
+  }
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#admin-annex');
+  if (!b) return;
+  e.preventDefault();
+  const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none';
+  ccOpenAnnex();
+});
