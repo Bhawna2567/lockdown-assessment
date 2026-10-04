@@ -2184,8 +2184,8 @@ if (els.aiGenerateBtn) {
       return;
     }
     const _qt = ccAiQuestionTypes(); let _curSel = null; try { _curSel = ccCurriculumSelection(); } catch (e) {}
-    if (!prompt && fileList.length === 0 && !_qt.length && !_curSel) {
-      els.aiStatus.textContent = '⚠ Tell the AI what to generate, tick the question types, choose curriculum lessons, or upload a scheme of work.';
+    if (!prompt && fileList.length === 0 && !_qt.length && !_curSel && !ccAiQuestionFocus().length && !ccAiSkillsList().length) {
+      els.aiStatus.textContent = '⚠ Tell the AI what to generate, tick question types, focus or skills, choose curriculum lessons, or upload a scheme of work.';
       return;
     }
     if (fileList.length > 20) {
@@ -2212,7 +2212,7 @@ if (els.aiGenerateBtn) {
       fd.append('subject', subject);
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
-      try { const _t = ccAiQuestionTypes(); if (_t.length) fd.append('questionTypes', JSON.stringify(_t)); const _sk = ccMultiValue('ai-skills'); if (_sk) fd.append('skills', _sk); } catch (e) {}
+      try { const _t = ccAiQuestionTypes(); if (_t.length) fd.append('questionTypes', JSON.stringify(_t)); const _f = ccAiQuestionFocus(); if (_f.length) fd.append('questionFocus', JSON.stringify(_f)); const _sk = ccAiSkillsList(); if (_sk.length) { fd.append('skillsList', JSON.stringify(_sk)); fd.append('skills', _sk.join(', ')); } } catch (e) {}
       try { const _cur = ccCurriculumSelection(); if (_cur) fd.append('curriculum', JSON.stringify(_cur)); } catch (e) {}
       try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd) fd.append('weekDate', _wd); } catch (e) {}
       // Multipart standard: same field name repeated for each file. Multer
@@ -2297,7 +2297,7 @@ if (els.aiGenerateBtn) {
         if (els.subject && fake.subject) els.subject.value = fake.subject;
         if (fake.classId && els.builderClass && Array.from(els.builderClass.options).some((o) => o.value === fake.classId)) els.builderClass.value = fake.classId;
         if (fake.grade && els.grade) els.grade.value = fake.grade;
-        try { const _sk = ccMultiValue('ai-skills'); if (_sk && els.skill) { els.skill.value = _sk; ccMultiSync('skill-multi'); if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels(); } } catch (e) {}
+        try { const _sk = ccAiSkillsList().filter((x) => CC_SKILL_OPTIONS.includes(x)).join(', '); if (_sk && els.skill) { els.skill.value = _sk; ccMultiSync('skill-multi'); if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels(); } } catch (e) {}
         if (fake.term && els.term) els.term.value = fake.term;
         try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd && els.scheduledDate && !els.scheduledDate.value) { els.scheduledDate.value = _wd; ccDiffBanner(); } } catch (e) {}
         // Pre-fill the assessment language so students see the correct
@@ -2679,6 +2679,7 @@ function renderQuestions() {
     }
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
     { const sk = root.querySelector('[data-f=skill]'); if (sk) sk.oninput = (e) => { q.skill = e.target.value; }; }
+    { const fo = root.querySelector('[data-f=focus]'); if (fo) { fo.oninput = (e) => { q.focus = e.target.value; }; fo.onfocus = () => { try { ccFocusDatalist(); } catch (e) {} }; } }
     { const ex = root.querySelector('[data-f=explanation]'); if (ex) ex.oninput = (e) => { q.explanation = e.target.value; }; }
     root.querySelector('[data-act=remove]').onclick = () => {
       const ix = questions.indexOf(q);
@@ -2987,6 +2988,10 @@ function renderQuestion(q, idx) {
         <div class="field" style="flex:1; min-width:200px;">
           <label>🎯 Skill / outcome tested</label>
           <input type="text" data-f="skill" dir="auto" value="${escapeAttr(q.skill || '')}" placeholder="e.g. Differentiation — product rule" />
+        </div>
+        <div class="field" style="flex:1; min-width:180px;">
+          <label>🔎 Question focus</label>
+          <input type="text" data-f="focus" dir="auto" list="cc-focus-dl" value="${escapeAttr(q.focus || '')}" placeholder="e.g. Inference" />
         </div>
         <div class="field" style="flex:2; min-width:260px;">
           <label>💡 Feedback students see after results are released</label>
@@ -8566,6 +8571,12 @@ function ccSkillsBlockHtml(rep) {
     <div class="report-card" style="margin-top:14px;">
       <h2 style="margin-top:0;">🎯 Skills report</h2>
       ${rows}
+      ${Array.isArray(rep.focus) && rep.focus.length ? `<h3 style="margin:14px 0 4px;">🔎 Question focus</h3>` + rep.focus.slice().sort((a, b) => b.pct - a.pct).map((s) => `
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)}</div>
+      <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.pct}%; height:100%; background:${colour(s.pct)};"></div></div>
+      <div style="flex:0 0 120px; text-align:right; font-size:13px; color:${colour(s.pct)}; font-weight:600;">${s.pct}% · ${esc(s.status)}</div>
+    </div>`).join('') : ''}
       <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:12px;">
         ${rep.strengths && rep.strengths.length ? `<div style="flex:1; min-width:220px; background:#ecfdf5; border-radius:8px; padding:10px 12px;"><strong>✅ Strengths</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.strengths)}</ul></div>` : ''}
         ${rep.needsWork && rep.needsWork.length ? `<div style="flex:1; min-width:220px; background:#fef2f2; border-radius:8px; padding:10px 12px;"><strong>📌 Skills to work on</strong><ul style="margin:6px 0 0 18px; padding:0;">${list(rep.needsWork)}</ul><div style="font-size:12px; color:#6b7280; margin-top:6px;">Review the feedback on the questions for these skills below.</div></div>` : ''}
@@ -8732,6 +8743,16 @@ function ccAnalyticsSkillsHtml(assessmentId, a) {
     if (weak.length) body += `<div style="margin-top:10px; padding:10px 12px; background:#fef2f2; border-radius:8px;"><strong>📌 The class is struggling with:</strong> ${weak.map((s) => esc(s.skill) + ' (' + s.classPct + '%)').join(', ')}</div>`;
   } else {
     body += `<div class="muted" style="margin-top:12px;">No skills tagged yet.</div>`;
+  }
+  const focus = Array.isArray(a.classFocus) ? a.classFocus : [];
+  if (focus.length) {
+    body += `<h3 style="margin-top:16px;">🔎 Question focus — class average</h3>` + focus.map((s) => `
+      <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+        <div dir="auto" style="flex:0 0 36%;">${esc(s.skill)} <span class="muted" style="font-size:12px;">(${s.questionNums.map((n) => 'Q' + n).join(', ')})</span></div>
+        <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.classPct}%; height:100%; background:${colour(s.classPct)};"></div></div>
+        <div style="flex:0 0 60px; text-align:right; font-weight:600; color:${colour(s.classPct)};">${s.classPct}%</div>
+      </div>
+      ${s.strugglingCount ? `<div class="muted" style="font-size:12px; margin:-2px 0 6px 0;">Below 60%: ${s.struggling.map((x) => esc(x.name) + ' (' + x.pct + '%)').join(', ')}</div>` : ''}`).join('');
   }
   const _untagged = (a.questions || []).filter((q) => !q.skill).length;
   if (_untagged) {
@@ -9408,6 +9429,7 @@ async function ccLoadCurriculumOptions() {
         ${cov.pending ? `<div class="muted" style="font-size:12px;">⏳ ${cov.pending} question(s) in older assessments are still being matched to outcomes by AI — the picture will be complete in a few minutes.</div>` : ''}
         <div class="muted" style="font-size:12px;">Only assessments students have taken count. Power outcomes need 2 assessments.</div></div>`;
     }
+    window._ccCurLessons = d.lessons;
     let lastMod = null;
     list.innerHTML = d.lessons.map((l) => {
       const head = l.module && l.module !== lastMod ? `<div style="font-weight:600; margin:8px 0 2px; color:#3730a3;" dir="auto">${escapeHtml(l.module)}</div>` : '';
@@ -9969,27 +9991,51 @@ function ccTrainingVideosEnhance() {
 })();
 
 // ═══════════════════════════════════════════════════════════════════════
-//  Multi-select dropdowns: language skills (builder + AI panel) and
-//  question types with optional counts (AI panel).
+//  Multi-select dropdowns (AI panel + builder):
+//   • Question types (format) with optional counts
+//   • Question focus (what each question tests) with optional counts,
+//     depending on the subject, plus the teacher's own focus
+//   • Skills to assess: language skills and skills taken from the MOE
+//     curriculum (strands / units) for every subject
 // ═══════════════════════════════════════════════════════════════════════
 const CC_SKILL_OPTIONS = ['Reading', 'Writing', 'Listening', 'Speaking', 'Grammar', 'Vocabulary'];
+const CC_LANG_SUBJECTS = ['English', 'Arabic', 'French', 'Listening', 'IELTS', 'TOEFL', 'PISA'];
 const CC_QTYPE_OPTIONS = [
   ['mc', 'Multiple choice'], ['tf', 'True / False'], ['tfng', 'True / False / Not Given'], ['short', 'Short answer'],
   ['long', 'Long answer (manual)'], ['essay', 'Essay (manual grade)'], ['writing', 'Essay (auto-graded)'], ['match', 'Match the following'],
 ];
+const CC_FOCUS = {
+  lang: ['Main idea', 'Identify specific details', 'Inference', 'Vocabulary in context', "Author's purpose", 'Text structure', 'Sequencing events', 'Cause and effect', 'Fact vs opinion', 'Reference words', 'Summarising', 'Tone and attitude', 'Compare and contrast', 'Grammar'],
+  Arabic: ['الفكرة الرئيسة', 'تحديد التفاصيل', 'الاستنتاج', 'معاني المفردات في السياق', 'هدف الكاتب', 'بنية النص', 'ترتيب الأحداث', 'السبب والنتيجة', 'الحقيقة والرأي', 'الضمائر وما تعود إليه', 'التلخيص', 'النبرة والموقف', 'المقارنة', 'القواعد'],
+  Math: ['Procedural fluency', 'Application / word problems', 'Reasoning & proof', 'Interpreting graphs & tables'],
+  science: ['Recall of facts', 'Applying concepts', 'Interpreting data', 'Experimental design', 'Explaining phenomena', 'Calculations'],
+  other: ['Key concepts', 'Case-study analysis', 'Application', 'Evaluation'],
+};
+function ccFocusOptionsFor(subject) {
+  if (subject === 'Arabic') return CC_FOCUS.Arabic;
+  if (CC_LANG_SUBJECTS.includes(subject)) return CC_FOCUS.lang;
+  if (subject === 'Math') return CC_FOCUS.Math;
+  if (['Science', 'Physics', 'Chemistry', 'Biology'].includes(subject)) return CC_FOCUS.science;
+  return CC_FOCUS.other;
+}
 function ccMultiBuild(host) {
   if (!host || host._ccBuilt) return;
   host._ccBuilt = true;
   const kind = host.getAttribute('data-cc-multi');
-  const opts = kind === 'qtypes' ? CC_QTYPE_OPTIONS : CC_SKILL_OPTIONS.map((x) => [x, x]);
+  const opts = host._ccOpts || (kind === 'qtypes' ? CC_QTYPE_OPTIONS : kind === 'focus' ? [] : CC_SKILL_OPTIONS.map((x) => [x, x]));
+  const counts = kind === 'qtypes' || kind === 'focus';
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
   host.style.position = 'relative';
   host.innerHTML = `
     <button type="button" class="cc-multi-btn" style="width:100%; text-align:left; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px;">
       <span class="cc-multi-sum" style="flex:1; color:#64748b;">Choose…</span><span style="color:#64748b;">▾</span></button>
-    <div class="cc-multi-panel" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:6px; z-index:50; max-height:400px; overflow:auto;">
-      ${opts.map(([v, l]) => `<label style="display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:400; font-size:14px; margin:0;">
-        <input type="checkbox" data-multi-v="${v}" style="width:auto; margin:0;"> <span style="flex:1;">${l}</span>
-        ${kind === 'qtypes' ? `<input type="number" min="1" max="50" data-multi-n="${v}" placeholder="how many" style="width:92px; padding:4px 6px; font-size:13px; display:none;">` : ''}</label>`).join('')}
+    <div class="cc-multi-panel" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:6px; z-index:50; max-height:400px; overflow:auto; min-width:260px;">
+      ${opts.map(([v, l, head]) => `${head ? `<div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; padding:8px 8px 2px;">${esc(head)}</div>` : ''}<label style="display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:400; font-size:14px; margin:0;">
+        <input type="checkbox" data-multi-v="${esc(v)}" style="width:auto; margin:0;"> <span style="flex:1;" dir="auto">${esc(l)}</span>
+        ${counts ? `<input type="number" min="1" max="50" data-multi-n="${esc(v)}" placeholder="how many" style="width:92px; padding:4px 6px; font-size:13px; display:none;">` : ''}</label>`).join('')}
+      ${kind === 'focus' ? `<div style="display:flex; gap:6px; padding:6px 8px;"><input type="text" data-multi-own maxlength="60" placeholder="Add your own focus…" style="flex:1; padding:5px 8px; font-size:13px;"><button type="button" class="btn" data-multi-add style="padding:4px 10px; font-size:12px;">＋ Add</button></div>` : ''}
+      ${kind === 'skills' && host.id === 'ai-skills' && !opts.some((o) => String(o[0]).startsWith('cur:')) ? `<div class="muted" style="font-size:12px; padding:6px 8px;">Choose the grade in the MOE curriculum box above to see the skills and units from the curriculum here.</div>` : ''}
+      ${!opts.length && kind !== 'focus' ? '<div class="muted" style="font-size:12px; padding:6px 8px;">Nothing to choose yet.</div>' : ''}
       <div style="display:flex; gap:8px; padding:6px 8px 2px; border-top:1px solid #f1f5f9; margin-top:4px;">
         <button type="button" class="btn" data-multi-clear style="padding:4px 10px; font-size:12px;">Clear</button>
         <div style="flex:1;"></div>
@@ -9999,18 +10045,54 @@ function ccMultiBuild(host) {
   btn.onclick = (e) => { e.preventDefault(); panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
   host.querySelector('[data-multi-done]').onclick = () => { panel.style.display = 'none'; };
   host.querySelector('[data-multi-clear]').onclick = () => { host.querySelectorAll('[data-multi-v]').forEach((c) => { c.checked = false; }); host.querySelectorAll('[data-multi-n]').forEach((n) => { n.value = ''; }); changed(); };
-  document.addEventListener('click', (e) => { if (!host.contains(e.target)) panel.style.display = 'none'; });
-  function changed() {
-    host.querySelectorAll('[data-multi-v]').forEach((c) => { const n = host.querySelector(`[data-multi-n="${c.getAttribute('data-multi-v')}"]`); if (n) n.style.display = c.checked ? '' : 'none'; });
+  const add = host.querySelector('[data-multi-add]');
+  if (add) {
+    const own = host.querySelector('[data-multi-own]');
+    const doAdd = () => {
+      const t = String(own.value || '').trim().slice(0, 60);
+      if (!t) return;
+      const st = ccMultiState(host);
+      st.checked[t] = true;
+      host._ccExtra = (host._ccExtra || []).concat([t]).filter((x, i, a) => a.indexOf(x) === i);
+      ccMultiRebuild(host, (host._ccOpts || []).concat(host._ccOpts.some((o) => o[0] === t) ? [] : [[t, t]]), st);
+      host.querySelector('.cc-multi-panel').style.display = 'block';
+    };
+    add.onclick = doAdd;
+    own.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); doAdd(); } };
+  }
+  if (!host._ccDocClick) { host._ccDocClick = true; document.addEventListener('click', (e) => { const p = host.querySelector('.cc-multi-panel'); if (p && !host.contains(e.target)) p.style.display = 'none'; }); }
+  function changed(e) {
+    host.querySelectorAll('[data-multi-v]').forEach((c) => { const n = host.querySelector(`[data-multi-n="${CSS.escape(c.getAttribute('data-multi-v'))}"]`); if (n) n.style.display = c.checked ? '' : 'none'; });
     ccMultiSummary(host);
     if (host.id === 'skill-multi' && els.skill) { els.skill.value = ccMultiValue('skill-multi'); els.skill.dispatchEvent(new Event('change', { bubbles: true })); }
-    if (kind === 'qtypes') {
-      const t = ccAiQuestionTypes();
-      if (t.length && t.every((x) => x.count > 0) && els.aiCount) els.aiCount.value = String(Math.min(50, t.reduce((n, x) => n + x.count, 0)));
+    if (counts) ccAiAutoCount();
+    if (host.id === 'ai-skills' && e && e.target && e.target.hasAttribute && e.target.hasAttribute('data-multi-v')) {
+      const v = e.target.getAttribute('data-multi-v');
+      if (v.startsWith('cur:')) ccCurSkillApply(v, e.target.checked);
     }
   }
   host.addEventListener('change', changed);
   host.addEventListener('input', (e) => { if (e.target.hasAttribute('data-multi-n')) changed(); });
+  ccMultiSummary(host);
+}
+function ccMultiState(host) {
+  const st = { checked: {}, counts: {} };
+  host.querySelectorAll('[data-multi-v]').forEach((c) => { const v = c.getAttribute('data-multi-v'); if (c.checked) st.checked[v] = true; const n = host.querySelector(`[data-multi-n="${CSS.escape(v)}"]`); if (n && n.value) st.counts[v] = n.value; });
+  return st;
+}
+function ccMultiRebuild(host, opts, state) {
+  if (!host) return;
+  const st = state || ccMultiState(host);
+  const open = host.querySelector('.cc-multi-panel') && host.querySelector('.cc-multi-panel').style.display === 'block';
+  host._ccOpts = opts; host._ccBuilt = false;
+  ccMultiBuild(host);
+  host.querySelectorAll('[data-multi-v]').forEach((c) => {
+    const v = c.getAttribute('data-multi-v');
+    c.checked = !!st.checked[v];
+    const n = host.querySelector(`[data-multi-n="${CSS.escape(v)}"]`);
+    if (n) { n.value = st.counts[v] || ''; n.style.display = c.checked ? '' : 'none'; }
+  });
+  if (open) host.querySelector('.cc-multi-panel').style.display = 'block';
   ccMultiSummary(host);
 }
 function ccMultiSummary(host) {
@@ -10019,10 +10101,11 @@ function ccMultiSummary(host) {
   host.querySelectorAll('[data-multi-v]:checked').forEach((c) => {
     const v = c.getAttribute('data-multi-v');
     const label = c.nextElementSibling ? c.nextElementSibling.textContent : v;
-    const n = host.querySelector(`[data-multi-n="${v}"]`);
+    const n = host.querySelector(`[data-multi-n="${CSS.escape(v)}"]`);
     parts.push(label + (n && n.value ? ' × ' + n.value : ''));
   });
-  sum.textContent = parts.length ? parts.join(', ') : (host.getAttribute('data-cc-multi') === 'qtypes' ? 'Any type — the AI decides' : '— No skill —');
+  const kind = host.getAttribute('data-cc-multi');
+  sum.textContent = parts.length ? parts.join(', ') : (kind === 'qtypes' ? 'Any type — the AI decides' : kind === 'focus' ? 'Any focus — the AI decides' : '— No skill —');
   sum.style.color = parts.length ? '#1a1e33' : '#64748b';
 }
 function ccMultiValue(id) {
@@ -10038,22 +10121,102 @@ function ccMultiSync(id) {
   host.querySelectorAll('[data-multi-v]').forEach((c) => { c.checked = want.has(c.getAttribute('data-multi-v')); });
   ccMultiSummary(host);
 }
-function ccAiQuestionTypes() {
-  const host = document.getElementById('ai-qtypes');
+function ccMultiCounted(id, key) {
+  const host = document.getElementById(id);
   if (!host) return [];
   return Array.from(host.querySelectorAll('[data-multi-v]:checked')).map((c) => {
     const v = c.getAttribute('data-multi-v');
-    const n = host.querySelector(`[data-multi-n="${v}"]`);
-    return { type: v, count: Math.max(0, Math.min(50, parseInt(n && n.value, 10) || 0)) };
+    const n = host.querySelector(`[data-multi-n="${CSS.escape(v)}"]`);
+    return { [key]: v, count: Math.max(0, Math.min(50, parseInt(n && n.value, 10) || 0)) };
   });
+}
+function ccAiQuestionTypes() { return ccMultiCounted('ai-qtypes', 'type'); }
+function ccAiQuestionFocus() { return ccMultiCounted('ai-focus', 'focus'); }
+// The number of questions follows the counts: question types first, otherwise question focus.
+function ccAiAutoCount() {
+  if (!els.aiCount) return;
+  const t = ccAiQuestionTypes(), f = ccAiQuestionFocus();
+  const sum = (a) => a.reduce((n, x) => n + x.count, 0);
+  if (t.length && t.every((x) => x.count > 0)) els.aiCount.value = String(Math.min(50, sum(t)));
+  else if (f.length && f.every((x) => x.count > 0)) els.aiCount.value = String(Math.min(50, sum(f)));
+}
+// Skills chosen in the AI panel: language skills + curriculum skills (labels sent to the AI).
+function ccAiSkillsList() {
+  const host = document.getElementById('ai-skills');
+  if (!host || host.closest('[style*="display: none"]')) return [];
+  return Array.from(host.querySelectorAll('[data-multi-v]:checked')).map((c) => {
+    const v = c.getAttribute('data-multi-v');
+    if (!v.startsWith('cur:')) return v;
+    const g = (window._ccCurSkillGroups || []).find((x) => x.id === v);
+    return g ? g.label : '';
+  }).filter(Boolean);
+}
+// ── Skills from the MOE curriculum ──────────────────────────────────────
+const CC_STRAND_NAMES = { RV: 'Reading & Viewing', WR: 'Writing & Representing', L: 'Listening', S: 'Speaking', LS: 'Listening & Speaking', R: 'Reading', W: 'Writing', V: 'Viewing', G: 'Grammar', LA: 'Language' };
+function ccCurSkillGroups(lessons) {
+  const groups = new Map();
+  const add = (key, label, kind, member) => {
+    if (!groups.has(key)) groups.set(key, { id: 'cur:' + groups.size, label, keys: new Set(), codes: new Set() });
+    const g = groups.get(key);
+    if (kind === 'key') g.keys.add(member); else g.codes.add(member);
+  };
+  const strandOf = (code) => { const p = String(code || '').split('.'); return p.length > 3 && /^[A-Z]{1,3}$/.test(p[2]) ? p[2] : ''; };
+  const useStrands = (lessons || []).some((l) => (l.slos || []).some((s) => strandOf(s.code)));
+  for (const l of lessons || []) {
+    const slos = Array.isArray(l.slos) ? l.slos : [];
+    if (useStrands && slos.length) {
+      for (const s of slos) { const st = strandOf(s.code); if (st) add('S:' + st, CC_STRAND_NAMES[st] || st, 'code', s.code); }
+    } else {
+      const m = String(l.module || '').trim() || 'Other lessons';
+      if (slos.length) slos.forEach((s) => add('M:' + m, m, 'code', s.code)); else add('M:' + m, m, 'key', l.key);
+    }
+  }
+  return Array.from(groups.values()).map((g) => ({ id: g.id, label: g.label, keys: Array.from(g.keys), codes: Array.from(g.codes) }));
+}
+function ccCurSkillApply(id, on) {
+  const g = (window._ccCurSkillGroups || []).find((x) => x.id === id);
+  const list = document.getElementById('ai-cur-list');
+  if (!g || !list) return;
+  const fire = (x) => { if (x.checked !== on) { x.checked = on; x.dispatchEvent(new Event('change', { bubbles: true })); } };
+  g.keys.forEach((k) => { const x = list.querySelector(`input[data-cur-key="${CSS.escape(k)}"]`); if (x) fire(x); });
+  g.codes.forEach((c) => list.querySelectorAll(`input[data-cur-out="${CSS.escape(c)}"]`).forEach(fire));
+}
+function ccAiSkillsRefresh() {
+  const host = document.getElementById('ai-skills'), f = document.getElementById('ai-skills-field');
+  if (!host) return;
+  const subj = (document.getElementById('ai-subject') || {}).value || '';
+  const isLang = CC_LANG_SUBJECTS.includes(subj);
+  const groups = window._ccCurSkillGroups || [];
+  const opts = [];
+  if (isLang) CC_SKILL_OPTIONS.forEach((x, i) => opts.push([x, x, i === 0 ? 'Language skills' : '']));
+  groups.forEach((g, i) => opts.push([g.id, g.label, i === 0 ? 'From the MOE curriculum' : '']));
+  const st = ccMultiState(host);
+  Object.keys(st.checked).forEach((k) => { if (!opts.some((o) => o[0] === k)) delete st.checked[k]; });
+  ccMultiRebuild(host, opts, st);
+  if (f) f.style.display = subj ? '' : 'none';
+}
+function ccAiFocusRefresh() {
+  const host = document.getElementById('ai-focus'), f = document.getElementById('ai-focus-field');
+  if (!host) return;
+  const subj = (document.getElementById('ai-subject') || {}).value || '';
+  if (host._ccSubj === subj && host._ccBuilt) return;
+  host._ccSubj = subj;
+  const opts = ccFocusOptionsFor(subj).map((x) => [x, x]).concat((host._ccExtra || []).map((x) => [x, x]));
+  ccMultiRebuild(host, opts, { checked: {}, counts: {} });
+  if (f) f.style.display = subj ? '' : 'none';
 }
 (function ccMultiInit() {
   document.querySelectorAll('[data-cc-multi]').forEach(ccMultiBuild);
-  // Skills only matter for language subjects in the AI panel.
-  const subj = document.getElementById('ai-subject'), f = document.getElementById('ai-skills-field');
-  const lang = () => { if (f && subj) f.style.display = ['English', 'Arabic', 'French', 'Listening', 'IELTS', 'TOEFL', 'PISA'].includes(subj.value) ? '' : 'none'; };
-  if (subj) subj.addEventListener('change', lang);
-  lang();
+  const subj = document.getElementById('ai-subject');
+  const refresh = () => { ccAiSkillsRefresh(); ccAiFocusRefresh(); };
+  if (subj) subj.addEventListener('change', () => { window._ccCurSkillGroups = []; refresh(); });
+  // Rebuild the curriculum skills whenever the curriculum lessons are (re)loaded.
+  const list = document.getElementById('ai-cur-list');
+  if (list && window.MutationObserver) new MutationObserver(() => {
+    window._ccCurSkillGroups = list.children.length ? ccCurSkillGroups(window._ccCurLessons || []) : [];
+    ccAiSkillsRefresh();
+  }).observe(list, { childList: true });
+  refresh();
 })();
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -10311,4 +10474,52 @@ async function ccOcGenerate(code, host, opt) {
   }
   // Remove the import hint when another assessment is opened.
   document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('[data-edit], #new-btn, .cc-edit-btn')) { const n = document.getElementById('cc-import-next'); if (n) n.remove(); } });
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  🔎 Question focus in the builder: suggestions list + "Tag focus with AI"
+// ═══════════════════════════════════════════════════════════════════════
+function ccFocusDatalist() {
+  let dl = document.getElementById('cc-focus-dl');
+  if (!dl) { dl = document.createElement('datalist'); dl.id = 'cc-focus-dl'; document.body.appendChild(dl); }
+  const subj = els.subject ? els.subject.value : '';
+  const names = ccFocusOptionsFor(subj).concat((questions || []).map((q) => String(q.focus || '').trim()).filter(Boolean));
+  const uniq = names.filter((x, i, a) => a.indexOf(x) === i);
+  if (dl._k === uniq.join('|')) return;
+  dl._k = uniq.join('|');
+  dl.innerHTML = uniq.map((x) => `<option value="${escapeAttr(x)}"></option>`).join('');
+}
+async function ccTagFocusAI(btn) {
+  if (!questions || !questions.length) { alert('Add or import some questions first.'); return; }
+  const todo = questions.filter((q) => !String(q.focus || '').trim() && String(q.prompt || '').trim());
+  if (!todo.length) { alert('Every question already has a question focus.'); return; }
+  const subj = els.subject ? els.subject.value : '';
+  const options = ccFocusOptionsFor(subj).concat(questions.map((q) => String(q.focus || '').trim()).filter(Boolean)).filter((x, i, a) => a.indexOf(x) === i);
+  const old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '🔎 Tagging…'; }
+  try {
+    const r = await api('/api/focus/tag', { method: 'POST', body: { subject: subj, options,
+      sections: (sections || []).map((s) => ({ id: s.id, passage: String(s.passage || '').slice(0, 600) })),
+      questions: todo.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt, options: q.options, sectionId: q.sectionId })) } });
+    let n = 0;
+    for (const q of questions) if (r.focus && r.focus[q.id] && !String(q.focus || '').trim()) { q.focus = r.focus[q.id]; n++; }
+    try { renderQuestions(); } catch (e) { console.warn(e); }
+    if (els.saveStatus) els.saveStatus.textContent = `🔎 Question focus added to ${n} question${n === 1 ? '' : 's'} — check them, then save.`;
+  } catch (e) { alert(e.message); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+}
+(function ccFocusInit() {
+  const add = () => {
+    if (document.getElementById('cc-focus-btn')) return;
+    const after = document.getElementById('cc-oc-btn') || document.getElementById('cc-diff-btn') || document.getElementById('tag-skills-btn');
+    if (!after) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.id = 'cc-focus-btn';
+    b.style.cssText = 'margin-left:8px; background:#f0fdf4; border-color:#bbf7d0; color:#166534;';
+    b.title = 'Fill in the question focus (main idea, inference, vocabulary…) for questions that don\'t have one';
+    b.textContent = '🔎 Tag focus with AI';
+    b.onclick = () => ccTagFocusAI(b);
+    after.insertAdjacentElement('afterend', b);
+  };
+  add(); setTimeout(add, 2000);
 })();

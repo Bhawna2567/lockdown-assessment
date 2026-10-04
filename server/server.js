@@ -1098,6 +1098,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
@@ -1348,6 +1349,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
             skill: (typeof q.skill === 'string' && q.skill.trim()) ? q.skill.slice(0, 80) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).skill || ''),
+            focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).focus || ''),
             explanation: (typeof q.explanation === 'string' && q.explanation.trim()) ? q.explanation.slice(0, 1500) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).explanation || ''),
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
@@ -3187,27 +3189,43 @@ function _ccSkillReport(a, result) {
       return { ...s, earned: Math.round(s.earned * 100) / 100, pct, status: pct >= 80 ? 'strong' : pct >= 60 ? 'developing' : 'needs work' };
     })
     .sort((x, y) => x.pct - y.pct);
+  const fmap = new Map();
+  for (const q of a.questions || []) {
+    const name = _ccFocusName(q);
+    if (!name) continue;
+    const e = _ccQuestionEarned(q, result);
+    if (!fmap.has(name)) fmap.set(name, { skill: name, earned: 0, max: 0 });
+    if (e) { const f = fmap.get(name); f.earned += e.earned; f.max += e.max; }
+  }
+  const focus = Array.from(fmap.values()).filter((f) => f.max > 0).map((f) => {
+    const pct = Math.round((f.earned / f.max) * 100);
+    return { skill: f.skill, pct, status: pct >= 80 ? 'strong' : pct >= 60 ? 'developing' : 'needs work' };
+  }).sort((x, y) => x.pct - y.pct);
   return {
     skills,
+    focus,
     strengths: skills.filter((s) => s.pct >= 80 && s.skill !== 'Untagged').map((s) => s.skill).reverse(),
     needsWork: skills.filter((s) => s.pct < 60 && s.skill !== 'Untagged').map((s) => s.skill),
   };
 }
 
 // Class-level skills + question analysis.
-function _ccClassSkillAnalysis(a, results) {
+function _ccFocusName(q) { const f = String((q && q.focus) || '').trim(); return f || null; }
+function _ccClassSkillAnalysis(a, results, nameOf) {
+  nameOf = nameOf || _ccSkillName;
   const map = new Map();
   for (const q of a.questions || []) {
-    const name = _ccSkillName(q);
-    if (!map.has(name)) map.set(name, { skill: name, earned: 0, max: 0, questionNums: [], struggling: [] });
+    const name = nameOf(q);
+    if (name && !map.has(name)) map.set(name, { skill: name, earned: 0, max: 0, questionNums: [], struggling: [] });
   }
-  (a.questions || []).forEach((q, i) => map.get(_ccSkillName(q)).questionNums.push(i + 1));
+  (a.questions || []).forEach((q, i) => { const nm = nameOf(q); if (nm) map.get(nm).questionNums.push(i + 1); });
   for (const r of results) {
     const per = new Map();
     for (const q of a.questions || []) {
+      const name = nameOf(q);
+      if (!name) continue;
       const e = _ccQuestionEarned(q, r);
       if (!e) continue;
-      const name = _ccSkillName(q);
       const s = map.get(name);
       s.earned += e.earned; s.max += e.max;
       const p = per.get(name) || { earned: 0, max: 0 };
@@ -3351,6 +3369,23 @@ app.get('/api/assessments/:id/skills-report.xlsx', requireTeacher, async (req, r
     for (const s of cls) {
       const row = ws1.addRow({ s: s.skill, q: s.questionNums.map((n) => 'Q' + n).join(', '), p: s.classPct, n: s.strugglingCount, w: s.struggling.map((x) => `${x.name} (${x.pct}%)`).join(', ') });
       band(row.getCell('p'), s.classPct);
+    }
+    // 1b. Question focus (main idea, inference, …) when the questions have one
+    const foc = _ccClassSkillAnalysis(a, results, _ccFocusName);
+    if (foc.length) {
+      const wsf = wb.addWorksheet('Question focus');
+      wsf.columns = [
+        { header: 'Question focus', key: 's', width: 32 },
+        { header: 'Questions', key: 'q', width: 18 },
+        { header: 'Class average %', key: 'p', width: 16 },
+        { header: 'Students below 60%', key: 'n', width: 18 },
+        { header: 'Students who need support', key: 'w', width: 70 },
+      ];
+      head(wsf);
+      for (const s of foc) {
+        const row = wsf.addRow({ s: s.skill, q: s.questionNums.map((n) => 'Q' + n).join(', '), p: s.classPct, n: s.strugglingCount, w: s.struggling.map((x) => `${x.name} (${x.pct}%)`).join(', ') });
+        band(row.getCell('p'), s.classPct);
+      }
     }
 
     // 2. Question analysis
@@ -4212,6 +4247,46 @@ app.post('/api/coverage/outcome-questions', requireTeacher, async (req, res) => 
   }
 });
 
+// ── 🔎 Tag question focus with AI (for imported or older papers) ─────────
+app.post('/api/focus/tag', requireTeacher, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const names = (Array.isArray(b.options) ? b.options : []).map((x) => String(x || '').trim().slice(0, 60)).filter(Boolean).slice(0, 30);
+    if (!names.length) return res.status(400).json({ error: 'No focus list for this subject.' });
+    const qs = (Array.isArray(b.questions) ? b.questions : []).filter((q) => q && q.id && String(q.prompt || '').trim()).slice(0, 120);
+    if (!qs.length) return res.json({ focus: {} });
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const secs = new Map((Array.isArray(b.sections) ? b.sections : []).map((s) => [s.id, String(s.passage || '').slice(0, 600)]));
+    const system = [
+      'You are an experienced teacher. For each assessment question, choose the ONE "question focus" (what the question tests) from the list.',
+      `Subject: ${String(b.subject || '').slice(0, 40) || 'not given'}.`,
+      'Allowed focus names (copy one exactly): ' + names.map((n) => '"' + n + '"').join(', ') + '.',
+      'Definitions: main idea = the overall point of a text or paragraph; specific details = information stated directly; inference = a conclusion not stated directly; vocabulary in context = meaning of a word as used in the text; reference words = what a pronoun refers to.',
+      'If none fits at all, return focus "". Return one entry per question with exactly the same ids.',
+    ].join('\n');
+    const out = {};
+    for (let i = 0; i < qs.length; i += 15) {
+      const chunk = qs.slice(i, i + 15);
+      const user = JSON.stringify({ questions: chunk.map((q) => ({ id: q.id, type: q.type, prompt: String(q.prompt).replace(/<[^>]+>/g, ' ').slice(0, 1200),
+        options: Array.isArray(q.options) && q.options.length ? q.options.slice(0, 6) : undefined, passage: secs.get(q.sectionId) || undefined })) });
+      let arr = null;
+      for (let t = 0; t < 2 && !Array.isArray(arr); t++) {
+        try { arr = await _ccClaudeList({ system, user, maxTokens: 2500, tier: 'bg', itemProps: { id: { type: 'string' }, focus: { type: 'string' } }, required: ['id', 'focus'] }); }
+        catch (e) { if (/API key|credit|billing/i.test(e.message || '')) throw e; }
+      }
+      for (const x of Array.isArray(arr) ? arr : []) {
+        const f = String((x && x.focus) || '').trim();
+        const hit = names.find((n) => n.toLowerCase() === f.toLowerCase());
+        if (x && x.id && hit) out[String(x.id).trim()] = hit;
+      }
+    }
+    res.json({ focus: out });
+  } catch (e) {
+    console.error('[focus/tag]', e);
+    res.status(500).json({ error: 'Could not tag the focus: ' + (e.message || e) });
+  }
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);
@@ -4831,7 +4906,7 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
     return res.json({
       assessmentTitle: a.title,
       resultsReleased: _ccResultsReleased(a),
-      classSkills: [],
+      classSkills: [], classFocus: [],
       submissionCount: 0,
       mean: null, median: null, min: null, max: null, avgTimeMinutes: null,
       histogram: [],
@@ -4936,6 +5011,7 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
     assessmentTitle: a.title,
     resultsReleased: _ccResultsReleased(a),
     classSkills: _ccClassSkillAnalysis(a, results),
+    classFocus: _ccClassSkillAnalysis(a, results, _ccFocusName),
     submissionCount: results.length,
     mean: Math.round(mean * 10) / 10,
     median: Math.round(median * 10) / 10,
@@ -5826,13 +5902,20 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   const _QT_NAMES = { mc: 'Multiple choice', tf: 'True / False', tfng: 'True / False / Not Given', short: 'Short answer', long: 'Long answer (teacher-marked)', essay: 'Essay (teacher-marked)', writing: 'Essay (auto-graded with the rubric)', match: 'Match the following' };
   let _qTypes = [];
   try { const t = JSON.parse(req.body?.questionTypes || '[]'); if (Array.isArray(t)) _qTypes = t.filter((x) => x && _QT_NAMES[x.type]).map((x) => ({ type: x.type, count: Math.max(0, Math.min(50, parseInt(x.count, 10) || 0)) })); } catch (e) {}
-  const _skills = String(req.body?.skills || '').split(',').map((x) => x.trim()).filter((x) => /^(Reading|Writing|Listening|Speaking|Grammar|Vocabulary)$/.test(x));
+  let _skillsAll = [];
+  try { const t = JSON.parse(req.body?.skillsList || 'null'); if (Array.isArray(t)) _skillsAll = t.map((x) => String(x || '').trim().slice(0, 80)).filter(Boolean).slice(0, 15); } catch (e) {}
+  if (!_skillsAll.length) _skillsAll = String(req.body?.skills || '').split(',').map((x) => x.trim().slice(0, 80)).filter(Boolean).slice(0, 15);
+  const _skills = _skillsAll.filter((x) => /^(Reading|Writing|Listening|Speaking|Grammar|Vocabulary)$/.test(x));
+  const _curSkills = _skillsAll.filter((x) => !_skills.includes(x));
+  let _focus = [];
+  try { const t = JSON.parse(req.body?.questionFocus || '[]'); if (Array.isArray(t)) _focus = t.filter((x) => x && String(x.focus || '').trim()).slice(0, 15).map((x) => ({ focus: String(x.focus).trim().slice(0, 60), count: Math.max(0, Math.min(50, parseInt(x.count, 10) || 0)) })); } catch (e) {}
+  const _focusTotal = _focus.reduce((n, x) => n + x.count, 0);
   const _typeTotal = _qTypes.reduce((n, x) => n + x.count, 0);
-  const requestedCount = Math.max(1, Math.min(50, (_qTypes.length && _qTypes.every((x) => x.count > 0)) ? _typeTotal : (parseInt(req.body?.count, 10) || 10)));
+  const requestedCount = Math.max(1, Math.min(50, (_qTypes.length && _qTypes.every((x) => x.count > 0)) ? _typeTotal : ((_focus.length && _focus.every((x) => x.count > 0)) ? _focusTotal : (parseInt(req.body?.count, 10) || 10))));
   const subject = String(req.body?.subject || '').trim();
   const language = String(req.body?.language || 'English').trim();
   const files = Array.isArray(req.files) ? req.files : [];
-  if (!prompt && files.length === 0 && !_qTypes.length && !req.body?.curriculum) {
+  if (!prompt && files.length === 0 && !_qTypes.length && !_focus.length && !_skillsAll.length && !req.body?.curriculum) {
     return res.status(400).json({
       ok: false,
       error: 'Either a prompt or a scheme-of-work file is required.',
@@ -6054,8 +6137,15 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       (_skills.includes('Listening') ? ' For Listening, write the full audioScript (rule C0).' : '') +
       (_skills.includes('Writing') ? ' Writing needs at least one extended writing task.' : '') +
       (_skills.includes('Speaking') ? ' Speaking tasks are prompts the student answers in writing or orally to the teacher; keep them short.' : '') + '\n') : '',
+    _curSkills.length ? ('CURRICULUM SKILLS / TOPICS CHOSEN BY THE TEACHER: ' + _curSkills.join(' | ') + '.\n' +
+      '   - Cover every one of these, each in its own section with a clear title, using the matching MOE curriculum outcomes given above.\n') : '',
+    _focus.length ? ('QUESTION FOCUS CHOSEN BY THE TEACHER (what each question tests — this is separate from the question type):\n' +
+      '   - Give EVERY question a "focus" field with exactly one of these names, written exactly as shown: ' + _focus.map((x) => '"' + x.focus + '"' + (x.count ? ' × ' + x.count : '')).join(', ') + '.\n' +
+      (_focus.every((x) => x.count > 0) ? '   - Write exactly these numbers of questions for each focus (' + _focusTotal + ' in total), combined with the question types above.\n' : '   - Spread the questions sensibly across these focus areas.\n') +
+      '   - Each question must genuinely test its focus (e.g. an "Inference" question cannot be answered by copying a sentence; a "Main idea" question asks about the whole text or paragraph; a "Vocabulary in context" question asks the meaning of a word as used in the passage).\n' +
+      '   - Keep the weekly difficulty mix across the focus areas: each focus can have easy, medium and hard questions.\n') : '',
     'Teacher\'s request:',
-    prompt || (_qTypes.length || _skills.length ? '(no extra instructions — follow the question types, skills and curriculum given above)' : '(no prompt — design a balanced assessment based on the scheme of work)'),
+    prompt || (_qTypes.length || _skills.length || _focus.length || _curSkills.length ? '(no extra instructions — follow the question types, skills and curriculum given above)' : '(no prompt — design a balanced assessment based on the scheme of work)'),
   ].filter(Boolean).join('\n');
 
   const userContent = [
@@ -6102,7 +6192,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
             type: { type: 'string', enum: ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match'] },
             prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } },
             correctAnswer: {}, points: { type: 'number' }, sectionIndex: { type: 'integer' },
-            imageDescription: { type: 'string' }, skill: { type: 'string' }, explanation: { type: 'string' },
+            imageDescription: { type: 'string' }, skill: { type: 'string' }, focus: { type: 'string' }, explanation: { type: 'string' },
             difficulty: { type: 'string' }, difficultyReason: { type: 'string' },
             matchVariant: { type: 'string' }, pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
           }, required: ['type', 'prompt'] } },
@@ -6197,6 +6287,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
         difficulty: q.difficulty, difficultyReason: q.difficultyReason,
       };
@@ -6398,6 +6489,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), _ccAsyncJob, asyn
               imageUrl: _imgFor(q.imageRef),
               imageDescription: '',
               skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
+              focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
               explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
               difficulty: q.difficulty, difficultyReason: q.difficultyReason,
             };
@@ -8444,7 +8536,7 @@ function _prBullet(text, opts) {
   });
 }
 
-function _prBuildReportDoc(lang, student, assessments, records, kind, weakSkills) {
+function _prBuildReportDoc(lang, student, assessments, records, kind, weakSkills, weakFocus) {
   const L = kind === 'low' ? Object.assign({}, _prT[lang], _prT[lang].low) : _prT[lang];
   const rtl = (lang === 'ar');
   const first = String(student.name || 'Student').split(' ')[0];
@@ -8543,6 +8635,11 @@ function _prBuildReportDoc(lang, student, assessments, records, kind, weakSkills
     children.push(_prPara([_prRun(L.skills_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
     weakSkills.forEach(w => children.push(_prBullet(w.skill + ' — ' + (rtl ? _prLtr(w.pct + '%') : w.pct + '%'), { size: 21, color: _PR.DARK, rtl })));
   }
+  if (Array.isArray(weakFocus) && weakFocus.length) {
+    const fh = rtl ? 'أنواع الأسئلة التي تجد فيها صعوبة أكبر' : 'TYPES OF QUESTION SHE FINDS HARDEST';
+    children.push(_prPara([_prRun(fh, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
+    weakFocus.forEach(w => children.push(_prBullet(w.skill + ' — ' + (rtl ? _prLtr(w.pct + '%') : w.pct + '%'), { size: 21, color: _PR.DARK, rtl })));
+  }
 
   // What the school will do.
   children.push(_prPara([_prRun(L.school_h, { size: 22, bold: true, color: _PR.BURG, rtl })], { align: rtl ? _prAlign.RIGHT : _prAlign.LEFT, rtl, spacing: { before: 200 } }));
@@ -8596,7 +8693,7 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
   const flagged = [];
   students.forEach(student => {
     const records = [];
-    const skillAgg = new Map();
+    const skillAgg = new Map(), focusAgg = new Map();
     assessments.forEach(a => {
       const subs = _ccMpLoadSubmissions(a.id);
       const sid = String(student.id || student.email || '');
@@ -8627,6 +8724,16 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
         const cur = skillAgg.get(sk) || { earned: 0, max: 0 };
         cur.earned += e; cur.max += m; skillAgg.set(sk, cur);
       });
+      // Question focus (main idea, inference, …): marks earned per focus.
+      qs.forEach((q, i) => {
+        const fo = String((q && q.focus) || '').trim();
+        if (!fo) return;
+        const e = Number(_ccMpPointsEarned(sub, i, q));
+        if (!Number.isFinite(e)) return;
+        const m = _ccMpQuestionPoints(q);
+        const cur = focusAgg.get(fo) || { earned: 0, max: 0 };
+        cur.earned += e; cur.max += m; focusAgg.set(fo, cur);
+      });
     });
     if (records.length < need) return;
     // Sort chronologically.
@@ -8649,7 +8756,13 @@ function _prDetectInconsistent(students, assessments, threshold, minConsecutive)
         .filter(x => x.pct < Math.max(cutoff, 60))
         .sort((a, b) => a.pct - b.pct || b.max - a.max)
         .slice(0, 4);
-      flagged.push({ student, records, reason: 'consecutive_low', consecutive: maxRun, kind, weakSkills });
+      const weakFocus = Array.from(focusAgg.entries())
+        .filter(([, v]) => v.max > 0)
+        .map(([skill, v]) => ({ skill: skill.slice(0, 60), pct: Math.round(v.earned / v.max * 100), max: v.max }))
+        .filter(x => x.pct < Math.max(cutoff, 60))
+        .sort((a, b) => a.pct - b.pct || b.max - a.max)
+        .slice(0, 4);
+      flagged.push({ student, records, reason: 'consecutive_low', consecutive: maxRun, kind, weakSkills, weakFocus });
     }
   });
   return flagged;
@@ -8719,7 +8832,7 @@ app.post('/api/teacher/parent-reports/generate', express.json({ limit: '1mb' }),
 
     for (const f of flagged) {
       for (const lang of langs) {
-        const buf = await _prBuildReportDoc(lang, f.student, assessments, f.records, f.kind, f.weakSkills);
+        const buf = await _prBuildReportDoc(lang, f.student, assessments, f.records, f.kind, f.weakSkills, f.weakFocus);
         const nm = (f.kind === 'low' ? 'Low-performance_' : 'Inconsistent_') + _ccMpSlug((f.student.name || 'student') + '_' + lang) + '.docx';
         archive.append(buf, { name: nm });
       }
