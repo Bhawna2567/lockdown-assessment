@@ -9878,7 +9878,7 @@ document.addEventListener('click', (e) => { if (e.target && e.target.closest && 
 //  🎬 Training videos inside the User Guide (English + Arabic, 14 chapters)
 //  Files live in /videos/<en|ar>/<NN>.mp4 (streamed, not cached offline).
 // ═══════════════════════════════════════════════════════════════════════
-const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 96, "dar": 117}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 100}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 92, "dar": 121}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 94, "dar": 119}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages and parent reports", "ar": "متوسطات الصف وتقارير أولياء الأمور", "den": 115, "dar": 147}, {"n": 12, "en": "Outcome coverage", "ar": "تغطية نواتج التعلم", "den": 30, "dar": 38}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
+const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 142, "dar": 178}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 101}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 92, "dar": 121}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 94, "dar": 119}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages and parent reports", "ar": "متوسطات الصف وتقارير أولياء الأمور", "den": 115, "dar": 147}, {"n": 12, "en": "Outcome coverage and the Outcome check", "ar": "تغطية نواتج التعلم وفحص النواتج", "den": 88, "dar": 116}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
 function ccFmtDur(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function ccTrainingVideosEnhance() {
   const overlay = document.getElementById('cc-user-guide-overlay');
@@ -9919,7 +9919,7 @@ function ccTrainingVideosEnhance() {
       </div>
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div style="flex:1 1 520px; min-width:280px;">
-          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4"></video>
+          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=2"></video>
           <div style="margin-top:6px; font-weight:600;" dir="${rtl ? 'rtl' : 'ltr'}">${t.ch} ${c.n} · ${rtl ? c.ar : c.en}</div>
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; margin-top:6px; text-transform:none; letter-spacing:0; font-weight:400;" dir="${rtl ? 'rtl' : 'ltr'}"><input type="checkbox" id="cc-tv-all" ${playAll ? 'checked' : ''} style="width:auto;"> ${t.all}</label>
         </div>
@@ -9986,7 +9986,7 @@ function ccMultiBuild(host) {
   host.innerHTML = `
     <button type="button" class="cc-multi-btn" style="width:100%; text-align:left; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px;">
       <span class="cc-multi-sum" style="flex:1; color:#64748b;">Choose…</span><span style="color:#64748b;">▾</span></button>
-    <div class="cc-multi-panel" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:6px; z-index:50; max-height:320px; overflow:auto;">
+    <div class="cc-multi-panel" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:6px; z-index:50; max-height:400px; overflow:auto;">
       ${opts.map(([v, l]) => `<label style="display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:400; font-size:14px; margin:0;">
         <input type="checkbox" data-multi-v="${v}" style="width:auto; margin:0;"> <span style="flex:1;">${l}</span>
         ${kind === 'qtypes' ? `<input type="number" min="1" max="50" data-multi-n="${v}" placeholder="how many" style="width:92px; padding:4px 6px; font-size:13px; display:none;">` : ''}</label>`).join('')}
@@ -10180,7 +10180,7 @@ function ccOcForm(code, needLevel) {
     const c = d.matched[q.id]; const o = c ? byCode.get(c) : null;
     if (q.type === 'writing') return { score: -1, why: '' };
     if (c === '') return { score: 3, why: 'no curriculum outcome' };
-    if (o && draftCount.get(c) > 1) return { score: 2, why: `${c} appears ${draftCount.get(c)}× in this paper` };
+    if (o && draftCount.get(c) > 1) return { score: 2 + Math.min(0.9, draftCount.get(c) / 100), why: `${c} appears ${draftCount.get(c)}× in this paper` };
     if (o && o.status === 'met') return { score: 1, why: `${c} already assessed ×${o.count}` };
     return { score: 0, why: c || '' };
   };
