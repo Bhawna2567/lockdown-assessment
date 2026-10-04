@@ -332,5 +332,5 @@ module.exports = function coverage(app, d) {
       res.status(500).json({ error: 'Could not build the file: ' + e.message });
     }
   });
-  return { compute, adminRows };
+  return { compute, adminRows, profileFor, codeFromSkill, nowWeek, subjectsOf, isPower };
 };

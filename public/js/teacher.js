@@ -10055,3 +10055,260 @@ function ccAiQuestionTypes() {
   if (subj) subj.addEventListener('change', lang);
   lang();
 })();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  🎯 Outcome check (builder) — works for any draft, including Quick Import.
+//  Shows which MOE outcomes the paper covers, which ones this class section
+//  has still not been assessed on, and lets the teacher add or swap in an AI
+//  question for a missing outcome at the difficulty level the week needs.
+// ═══════════════════════════════════════════════════════════════════════
+const CC_OC_TYPES = [['mc', 'Multiple choice'], ['tf', 'True / False'], ['tfng', 'True / False / Not Given'], ['short', 'Short answer'], ['long', 'Long answer'], ['match', 'Match the following']];
+function ccOcClassId() {
+  const ov = document.getElementById('cc-outcheck');
+  const pick = ov && ov.querySelector('#cc-oc-class');
+  return (pick && pick.value) || (els.builderClass && els.builderClass.value) || getActiveClassId() || '';
+}
+function ccOcPlain(q) { return String((q && q.prompt) || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); }
+async function ccOpenOutcomeCheck() {
+  if (!questions || !questions.length) { alert('Add or import some questions first.'); return; }
+  let ov = document.getElementById('cc-outcheck');
+  const keepClass = ov && ov.querySelector('#cc-oc-class') ? ov.querySelector('#cc-oc-class').value : '';
+  if (!ov) {
+    ov = document.createElement('div'); ov.id = 'cc-outcheck';
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,0.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(1000px,100%); padding:20px 24px; box-shadow:0 16px 48px rgba(0,0,0,.3);"></div>';
+    document.body.appendChild(ov);
+  }
+  const box = ov.firstElementChild;
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const classId = keepClass || ccOcClassId();
+  const classOpts = (typeof classes !== 'undefined' ? classes : []).map((c) => `<option value="${esc(c.id)}" ${c.id === classId ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+  const head = (extra) => `
+    <div class="row" style="align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+      <h2 style="margin:0; flex:1;">🎯 Outcome check</h2>
+      <label style="display:flex; align-items:center; gap:6px; margin:0; text-transform:none; letter-spacing:0; font-weight:600;">Class section
+        <select id="cc-oc-class" style="width:auto; min-width:160px;"><option value="">— choose —</option>${classOpts}</select></label>
+      <button class="btn" id="cc-oc-close">Close</button>
+    </div>${extra || ''}`;
+  const wire = () => {
+    box.querySelector('#cc-oc-close').onclick = () => ov.remove();
+    const cs = box.querySelector('#cc-oc-class'); if (cs) cs.onchange = () => ccOpenOutcomeCheck();
+  };
+  if (!classId) { box.innerHTML = head('<div class="muted">Choose the class section this assessment is for — coverage is tracked per section (for example 10A-1 and 10A-2 separately).</div>'); wire(); return; }
+  box.innerHTML = head('<div class="muted">🎯 Matching each question to the MOE learning outcomes…</div>'); wire();
+  const subject = els.subject ? els.subject.value : '';
+  const body = {
+    classId, subject, grade: els.grade ? els.grade.value : '', term: els.term ? els.term.value : '',
+    scheduledDate: els.scheduledDate ? els.scheduledDate.value : '',
+    sections: (sections || []).map((s) => ({ id: s.id, passage: String(s.passage || '').slice(0, 500) })),
+    questions: questions.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt || '', options: q.options, skill: q.skill || '', sectionId: q.sectionId })),
+  };
+  let d, diff = null;
+  try {
+    [d, diff] = await Promise.all([
+      api('/api/coverage/draft-check', { method: 'POST', body }),
+      (questions.length >= 1 ? api('/api/difficulty/check', { method: 'POST', body: ccDiffPayload() }).catch(() => null) : Promise.resolve(null)),
+    ]);
+  } catch (e) { box.innerHTML = head(`<div class="error">${esc(e.message)}</div>`); wire(); return; }
+  if (!document.body.contains(ov)) return;
+  window._ccOc = { d, diff };
+  if (!d.available) {
+    box.innerHTML = head(`<div style="padding:10px 12px; border-radius:10px; background:#fef3c7; border:1px solid #fde68a;">No MOE curriculum is stored for <strong>${esc(subject || 'this subject')}</strong>, Grade ${esc(d.profile.grade || '?')}${d.profile.stream ? ' ' + esc(d.profile.stream) : ''}, Term ${esc(d.term)} — the outcome check needs it. Check the subject and grade in the assessment settings.</div>`);
+    wire(); return;
+  }
+  const s = d.summary;
+  const qIndex = new Map(questions.map((q, i) => [q.id, i]));
+  const byCode = new Map(d.outcomes.map((o) => [o.code, o]));
+  const lvl = (diff && diff.levels) || {};
+  // Level the week needs most (for "add"), from the difficulty check.
+  let needLevel = 'medium';
+  if (diff && diff.need) {
+    const best = ['easy', 'medium', 'hard'].sort((a, b) => (diff.need[b] || 0) - (diff.need[a] || 0))[0];
+    if ((diff.need[best] || 0) > 0.4) needLevel = best;
+    else if (diff.target) needLevel = ['easy', 'medium', 'hard'].sort((a, b) => diff.target.pct[b] - diff.target.pct[a])[0];
+  }
+  const missing = d.outcomes.filter((o) => o.required > 0 && o.status !== 'met' && !o.inDraft.length)
+    .sort((a, b) => (b.taught - a.taught) || (b.power - a.power));
+  const missTaught = missing.filter((o) => o.taught), missLater = missing.filter((o) => !o.taught);
+  const newHere = d.outcomes.filter((o) => o.required > 0 && o.status !== 'met' && o.inDraft.length);
+  const diffLine = diff && diff.target ? `<div style="font-size:13px; margin-top:6px;">⚖ <strong>${esc(diff.target.label)}</strong> — this paper now: ${diff.pct.easy}% easy · ${diff.pct.medium}% medium · ${diff.pct.hard}% difficult (target ${diff.target.pct.easy} / ${diff.target.pct.medium} / ${diff.target.pct.hard}). ${diff.ok ? '✅ Mix is right.' : '⚠ New questions below default to the level that brings the mix closer.'}</div>` : '';
+  const outRow = (o) => `
+    <div style="border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; margin:8px 0;" data-oc-out="${esc(o.code)}">
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <div style="flex:1;" dir="auto"><span style="font-family:monospace; font-size:12px; color:#475569;">${esc(o.code)}</span>${ccCovPowerTag(o.priority)} ${ccCovChip(o)}
+          <div style="margin-top:3px;">${esc(o.text)}</div>
+          ${o.unit || o.lesson ? `<div class="muted" style="font-size:12px; margin-top:2px;">${esc([o.unit, o.lesson].filter(Boolean).join(' · '))}${o.weeks ? ' · weeks ' + esc(o.weeks) : ''}</div>` : ''}</div>
+        <button class="btn primary" data-oc-write="${esc(o.code)}" style="white-space:nowrap;">✨ Write a question</button>
+      </div>
+      <div data-oc-form="${esc(o.code)}"></div>
+    </div>`;
+  const qList = questions.map((q, i) => {
+    const code = d.matched[q.id];
+    const o = code ? byCode.get(code) : null;
+    const tag = o ? `<span style="font-family:monospace; font-size:12px;">${esc(o.code)}</span> <span dir="auto">${esc(o.text.slice(0, 110))}${o.text.length > 110 ? '…' : ''}</span>${o.status !== 'met' ? ' <span style="font-size:11px; padding:1px 7px; border-radius:999px; background:#dbeafe; color:#1e40af;">new for this class</span>' : ''}`
+      : (code === '' ? '<span class="muted">No matching curriculum outcome</span>' : '<span class="muted">Not checked</span>');
+    return `<div style="display:flex; gap:10px; padding:6px 0; border-bottom:1px solid #f1f5f9; font-size:13px;"><div style="min-width:34px; font-weight:700;">Q${i + 1}</div>
+      <div style="flex:1;"><div dir="auto" style="color:#334155;">${esc(ccOcPlain(q).slice(0, 140))}${ccOcPlain(q).length > 140 ? '…' : ''}${q.imageUrl ? ' <span class="muted">[picture]</span>' : ''}</div><div style="margin-top:2px;">→ ${tag} ${lvl[q.id] ? ccLvlChip(lvl[q.id]) : ''}</div></div></div>`;
+  }).join('');
+  box.innerHTML = head(`
+    <div style="font-size:14px; margin-bottom:8px;"><strong>${esc(d.class.name)}</strong> · ${esc(d.subject)} · Grade ${esc(d.profile.grade || '?')}${d.profile.stream ? (d.profile.stream === 'A' ? ' Advanced' : ' General') : ''} · Term ${esc(d.term)}${d.week ? ' (now week ' + esc(d.week) + ')' : ''} <span class="muted">· ${esc(d.curriculum ? d.curriculum.source : '')}</span></div>
+    <div style="padding:10px 12px; border-radius:10px; background:#eef2ff; border:1px solid #c7d2fe; margin-bottom:10px; font-size:14px;">
+      This paper assesses <strong>${s.draftOutcomes}</strong> curriculum outcome${s.draftOutcomes === 1 ? '' : 's'}${newHere.length ? `, including <strong>${newHere.length}</strong> not yet assessed for this class ✅` : ''}.
+      <br>Still not assessed after this paper: <strong>${s.stillMissing}</strong> of ${s.required} required outcomes${s.stillMissing ? ` — <strong>${s.stillMissingTaught}</strong> of them already taught.` : ' 🎉'}
+      ${s.unmatched ? `<div class="muted" style="font-size:12px; margin-top:4px;">${s.unmatched} question(s) don't match any outcome for this term.</div>` : ''}
+      ${diffLine}
+    </div>
+    ${missTaught.length ? `<h3 style="margin:12px 0 2px;">Taught but not assessed yet (${missTaught.length})</h3><div class="muted" style="font-size:12px;">Add a question for an outcome, or swap one in for a question whose outcome is already covered.</div>${missTaught.map(outRow).join('')}` : ''}
+    ${missLater.length ? `<details ${missTaught.length ? '' : 'open'} style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600;">Not taught yet according to the scope &amp; sequence (${missLater.length})</summary>${missLater.map(outRow).join('')}</details>` : ''}
+    <details style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600;">Questions in this paper → outcome (${questions.length})</summary>${qList}</details>
+    <div class="muted" style="font-size:12px; margin-top:10px;">Coverage only counts once students have taken the assessment. Outcome codes are for teachers — students never see them.</div>`);
+  wire();
+  box.querySelectorAll('[data-oc-write]').forEach((b) => { b.onclick = () => ccOcForm(b.getAttribute('data-oc-write'), needLevel); });
+}
+function ccOcForm(code, needLevel) {
+  const st = window._ccOc; if (!st) return;
+  const { d, diff } = st;
+  const host = document.querySelector(`[data-oc-form="${CSS.escape(code)}"]`);
+  if (!host) return;
+  if (host.innerHTML) { host.innerHTML = ''; return; }
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const lvl = (diff && diff.levels) || {};
+  const byCode = new Map(d.outcomes.map((o) => [o.code, o]));
+  // Rank questions that are the best to swap out: unmatched, outcome already met, or outcome repeated in this paper.
+  const draftCount = new Map(); Object.values(d.matched).forEach((c) => { if (c) draftCount.set(c, (draftCount.get(c) || 0) + 1); });
+  const rank = (q) => {
+    const c = d.matched[q.id]; const o = c ? byCode.get(c) : null;
+    if (q.type === 'writing') return { score: -1, why: '' };
+    if (c === '') return { score: 3, why: 'no curriculum outcome' };
+    if (o && draftCount.get(c) > 1) return { score: 2, why: `${c} appears ${draftCount.get(c)}× in this paper` };
+    if (o && o.status === 'met') return { score: 1, why: `${c} already assessed ×${o.count}` };
+    return { score: 0, why: c || '' };
+  };
+  const cands = questions.map((q, i) => Object.assign({ q, i }, rank(q))).filter((x) => x.score >= 0).sort((a, b) => b.score - a.score || a.i - b.i);
+  const qOpt = (x) => `<option value="${esc(x.q.id)}">Q${x.i + 1}${lvl[x.q.id] ? ' · ' + CC_LVL[lvl[x.q.id]].name : ''}${x.why ? ' · ' + esc(x.why) : ''} — ${esc(ccOcPlain(x.q).slice(0, 50))}</option>`;
+  host.innerHTML = `
+    <div style="margin-top:10px; padding:10px 12px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:grid; gap:8px;">
+      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:14px;">
+        <label style="display:flex; gap:6px; align-items:center; margin:0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="oc-mode-${esc(code)}" value="add" checked style="width:auto;"> Add as a new question</label>
+        <label style="display:flex; gap:6px; align-items:center; margin:0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="oc-mode-${esc(code)}" value="replace" style="width:auto;"> Replace a question</label>
+        <select data-oc-rep style="flex:1 1 100%; width:100%; min-width:0; max-width:100%; display:none;">${cands.map(qOpt).join('')}</select>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+        <label style="margin:0;">Question type<select data-oc-type style="width:auto;">${CC_OC_TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></label>
+        <label style="margin:0;">Difficulty<select data-oc-level style="width:auto;">${['easy', 'medium', 'hard'].map((l) => `<option value="${l}" ${l === needLevel ? 'selected' : ''}>${CC_LVL[l].name}</option>`).join('')}</select></label>
+        <label style="margin:0;">Marks<input data-oc-pts type="number" min="0.5" max="50" step="0.5" value="1" style="width:80px;"></label>
+        <button class="btn primary" data-oc-gen>✨ Write 3 options</button>
+      </div>
+      <div class="muted" style="font-size:12px;" data-oc-hint></div>
+      <div data-oc-res></div>
+    </div>`;
+  const modeEls = host.querySelectorAll(`input[name="oc-mode-${CSS.escape(code)}"]`);
+  const rep = host.querySelector('[data-oc-rep]'), typ = host.querySelector('[data-oc-type]'), lev = host.querySelector('[data-oc-level]'), pts = host.querySelector('[data-oc-pts]'), hint = host.querySelector('[data-oc-hint]');
+  const mode = () => Array.from(modeEls).find((r) => r.checked).value;
+  const sync = () => {
+    const m = mode();
+    rep.style.display = m === 'replace' ? '' : 'none';
+    if (m === 'replace') {
+      const q = questions.find((x) => x.id === rep.value);
+      if (q) {
+        if (CC_OC_TYPES.some(([v]) => v === q.type)) typ.value = q.type;
+        pts.value = q.points || 1;
+      }
+      const from = lvl[rep.value];
+      const helps = from && diff && !diff.ok && diff.need && (diff.need[from] || 0) < -0.4 && (diff.need[needLevel] || 0) > 0.4 && from !== needLevel;
+      if (helps) { lev.value = needLevel; hint.textContent = `This question is ${CC_LVL[from].name.toLowerCase()}; the new one will be ${CC_LVL[needLevel].name.toLowerCase()}: this covers the missing outcome AND moves the mix toward this week's target. You can change it.`; }
+      else if (from) { lev.value = from; hint.textContent = `Same level as the question it replaces (${CC_LVL[from].name}), so the weekly mix stays the same. You can change it.`; }
+      else hint.textContent = 'Same type and marks as the question it replaces.';
+    } else {
+      hint.textContent = diff && diff.target ? `${diff.target.label}: ${CC_LVL[needLevel].name} is the level this paper needs most right now.` : '';
+    }
+  };
+  modeEls.forEach((r) => { r.onchange = sync; }); rep.onchange = sync; sync();
+  host.querySelector('[data-oc-gen]').onclick = () => ccOcGenerate(code, host, { mode: mode(), replaceId: rep.value, type: typ.value, level: lev.value, points: Number(pts.value) || 1 });
+}
+async function ccOcGenerate(code, host, opt) {
+  const st = window._ccOc; if (!st) return;
+  const o = st.d.outcomes.find((x) => x.code === code); if (!o) return;
+  const res = host.querySelector('[data-oc-res]');
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const old = opt.mode === 'replace' ? questions.find((x) => x.id === opt.replaceId) : null;
+  const sec = old ? (sections || []).find((s) => s.id === old.sectionId) || {} : (sections || [])[sections.length - 1] || {};
+  res.innerHTML = `<div class="muted">✨ Writing 3 ${CC_LVL[opt.level].name.toLowerCase()} questions for ${esc(code)}…</div>`;
+  let r;
+  try {
+    r = await api('/api/coverage/outcome-questions', { method: 'POST', body: {
+      outcome: { code: o.code, text: o.text, unit: o.unit, lesson: o.lesson }, level: opt.level, type: opt.type, points: opt.points,
+      subject: els.subject ? els.subject.value : '', grade: els.grade ? els.grade.value : '', language: els.assessmentLanguage ? els.assessmentLanguage.value : '',
+      passage: sec.passage || '', instructions: sec.instructions || '', replacing: old ? ccOcPlain(old) : '',
+      avoid: questions.map(ccOcPlain).filter(Boolean).slice(0, 40) } });
+  } catch (e) { res.innerHTML = `<div class="error">${esc(e.message)} <button class="btn" data-oc-retry>Try again</button></div>`; res.querySelector('[data-oc-retry]').onclick = () => ccOcGenerate(code, host, opt); return; }
+  const ansHtml = (a) => {
+    if (a.type === 'mc') return `<ol type="A" style="margin:4px 0 0 18px; padding:0;">${a.options.map((x, i) => `<li style="${i === a.correctAnswer ? 'font-weight:700; color:#166534;' : ''}" dir="auto">${esc(x)}${i === a.correctAnswer ? ' ✓' : ''}</li>`).join('')}</ol>`;
+    if (a.type === 'match') return `<div style="font-size:13px; margin-top:4px;">${(a.pairs || []).map((p) => `${esc(p.left)} → ${esc(p.right)}`).join('<br>')}</div>`;
+    if (a.correctAnswer === null || a.correctAnswer === undefined || a.correctAnswer === '') return '';
+    return `<div style="font-size:13px; margin-top:4px; color:#166534;">Answer: <strong dir="auto">${esc(a.correctAnswer === true ? 'True' : a.correctAnswer === false ? 'False' : a.correctAnswer)}</strong></div>`;
+  };
+  res.innerHTML = `<div style="display:grid; gap:8px;">${r.questions.map((a, k) => `
+    <div style="border:1px dashed #a5b4fc; border-radius:8px; padding:8px 10px; background:#fff;">
+      <div style="display:flex; gap:8px; align-items:flex-start;"><div style="flex:1;" dir="auto"><strong>Option ${k + 1}</strong> ${ccLvlChip(opt.level)}<div style="margin-top:4px; white-space:pre-wrap;">${esc(a.prompt)}</div>${ansHtml(a)}
+        ${a.difficultyReason ? `<div class="muted" style="font-size:12px; margin-top:4px;">Why ${CC_LVL[opt.level].name.toLowerCase()}: ${esc(a.difficultyReason)}</div>` : ''}</div>
+        <button class="btn primary" data-oc-use="${k}" style="white-space:nowrap;">${old ? 'Replace Q' + (questions.indexOf(old) + 1) : '➕ Add to paper'}</button></div></div>`).join('')}
+    <div><button class="btn" data-oc-more>↻ Other options</button></div></div>`;
+  res.querySelector('[data-oc-more]').onclick = () => ccOcGenerate(code, host, opt);
+  res.querySelectorAll('[data-oc-use]').forEach((b) => {
+    b.onclick = () => {
+      const a = r.questions[Number(b.getAttribute('data-oc-use'))];
+      const nq = { id: uid(), type: a.type, prompt: a.prompt, points: a.points || 1, skill: a.skill || '', explanation: a.explanation || '' };
+      if (a.type === 'mc') { nq.options = a.options; nq.correctAnswer = a.correctAnswer; }
+      else if (a.type === 'match') { nq.pairs = (a.pairs || []).map((p) => ({ left: p.left, right: p.right, rightImageUrl: '' })); nq.matchVariant = a.matchVariant || 'word-definition'; }
+      else nq.correctAnswer = a.correctAnswer;
+      if (old) {
+        const i = questions.findIndex((x) => x.id === old.id);
+        if (i < 0) return;
+        nq.sectionId = old.sectionId;
+        questions[i] = nq;
+      } else {
+        if (!sections.length) sections.push({ id: uid(), title: '', instructions: '', passage: '', order: 0 });
+        nq.sectionId = sections[sections.length - 1].id;
+        questions.push(nq);
+      }
+      try { renderQuestions(); } catch (e) { console.warn(e); }
+      ccOpenOutcomeCheck();
+    };
+  });
+}
+// Builder button (next to ⚖ Difficulty check) + a hint after Quick Import
+(function ccOutcomeInit() {
+  const add = () => {
+    if (document.getElementById('cc-oc-btn')) return;
+    const after = document.getElementById('cc-diff-btn') || document.getElementById('tag-skills-btn');
+    if (!after) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.id = 'cc-oc-btn';
+    b.style.cssText = 'margin-left:8px; background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;';
+    b.title = 'See which MOE learning outcomes this paper covers and which ones this class has not been assessed on yet';
+    b.textContent = '🎯 Outcome check';
+    b.onclick = () => ccOpenOutcomeCheck();
+    after.insertAdjacentElement('afterend', b);
+  };
+  add(); setTimeout(add, 1500);
+  if (typeof runImport === 'function') {
+    const orig = runImport;
+    runImport = async function (file) {
+      await orig.apply(this, arguments);
+      if (!questions || !questions.length || (els.importPanel && els.importPanel.style.display !== 'none')) return;
+      const host = document.getElementById('cc-diff-banner');
+      if (!host || document.getElementById('cc-import-next')) return;
+      const n = document.createElement('div'); n.id = 'cc-import-next';
+      n.style.cssText = 'margin:8px 0 2px; padding:8px 12px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;';
+      n.innerHTML = '<span style="flex:1;">📄 Imported. Next: check the difficulty mix for the week and the learning outcomes this paper covers.</span>' +
+        '<button type="button" class="btn" data-n="d">⚖ Difficulty check</button><button type="button" class="btn" data-n="o">🎯 Outcome check</button><button type="button" class="btn" data-n="x" title="Hide">✕</button>';
+      n.querySelector('[data-n="d"]').onclick = () => ccOpenDiffCheck({});
+      n.querySelector('[data-n="o"]').onclick = () => ccOpenOutcomeCheck();
+      n.querySelector('[data-n="x"]').onclick = () => n.remove();
+      host.insertAdjacentElement('afterend', n);
+    };
+  }
+  // Remove the import hint when another assessment is opened.
+  document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('[data-edit], #new-btn, .cc-edit-btn')) { const n = document.getElementById('cc-import-next'); if (n) n.remove(); } });
+})();

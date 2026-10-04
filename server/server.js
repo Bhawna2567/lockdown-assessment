@@ -3882,8 +3882,9 @@ try {
   });
 } catch (e) { console.error('[spec] module failed to load:', e); }
 // ── Learning-outcome coverage per class section (teachers + admin report) ──
+let _ccCov = null;
 try {
-  if (_ccSpec) require('./coverage')(app, { readAll, writeAll, ADMIN_EMAILS, spec: _ccSpec });
+  if (_ccSpec) _ccCov = require('./coverage')(app, { readAll, writeAll, ADMIN_EMAILS, spec: _ccSpec });
 } catch (e) { console.error('[coverage] module failed to load:', e); }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -4038,7 +4039,7 @@ app.post('/api/difficulty/alternatives', requireTeacher, async (req, res) => {
       if (type === 'mc') {
         o.options = (Array.isArray(x.options) ? x.options : []).map(String).slice(0, 6);
         let ci = Number(x.correctAnswer);
-        if (!Number.isInteger(ci)) ci = o.options.findIndex((t) => t === String(x.correctAnswer));
+        if (typeof x.correctAnswer !== 'number' || !Number.isInteger(ci) || ci < 0 || ci >= o.options.length) { const ti = o.options.findIndex((t) => t.trim() === String(x.correctAnswer).trim()); if (ti >= 0 || !Number.isInteger(ci)) ci = ti; }
         o.correctAnswer = ci >= 0 && ci < o.options.length ? ci : 0;
       } else if (type === 'tf') o.correctAnswer = x.correctAnswer === true || /^(true|صح|صحيح)$/i.test(String(x.correctAnswer));
       else if (type === 'tfng') { const s = String(x.correctAnswer || '').toLowerCase(); o.correctAnswer = /^(ng|not)/.test(s) ? 'ng' : (/^f/.test(s) ? 'false' : 'true'); }
@@ -4057,6 +4058,159 @@ app.post('/api/difficulty/alternatives', requireTeacher, async (req, res) => {
   }
 });
 
+
+// ════════════════════════════════════════════════════════════════════════
+//  🎯 Outcome check for a draft (any assessment in the builder, including
+//  Quick Import). Shows which MOE outcomes the paper covers, which ones the
+//  class section has still not been assessed on, and writes questions for a
+//  missing outcome at the difficulty level the teacher needs.
+// ════════════════════════════════════════════════════════════════════════
+const _ccOutPending = new Map(); // teacher + question text -> outcome code ('' = none fits)
+app.post('/api/coverage/draft-check', requireTeacher, async (req, res) => {
+  try {
+    if (!_ccCov || !_ccSpec) return res.status(503).json({ error: 'Outcome coverage is not available on this server.' });
+    const b = req.body || {};
+    const u = req.session.user;
+    const myClasses = readAll('classes.json').filter((c) => c.teacherId === u.id);
+    const cls = myClasses.find((c) => c.id === b.classId);
+    if (!cls) return res.status(400).json({ error: 'Choose the class section this assessment is for.', needClass: true });
+    const subject = String(b.subject || '').trim();
+    if (!subject) return res.status(400).json({ error: 'Choose the subject of the assessment first (Settings at the top of the builder).' });
+    const assessments = readAll('assessments.json').filter((a) => a.teacherId === u.id && !a.deletedAt);
+    let prof = Object.assign({}, _ccCov.profileFor(cls, assessments));
+    const g = String(parseInt(b.grade, 10) || '');
+    if (g && (prof.guessed || !prof.grade)) prof.grade = g;
+    if (['A', 'G'].includes(b.stream)) prof.stream = b.stream;
+    const wk = b.scheduledDate ? _ccSpec.weekOf(String(b.scheduledDate).slice(0, 10)) : null;
+    const term = ['1', '2', '3'].includes(String(b.term || '')) ? String(b.term) : ((wk && wk.term) || ((_ccCov.nowWeek() || {}).term) || '1');
+    const c = _ccCov.compute({ cls, subject, term, prof, assessments, results: readAll('results.json'), teacherId: u.id, kick: false });
+    const meta = { class: c.class, subject, term, profile: c.profile, curriculum: c.curriculum, week: c.week, taken: c.assessments.length };
+    if (!c.outcomes.length) return res.json(Object.assign(meta, { available: false, matched: {}, outcomes: [], summary: c.summary }));
+    const codes = new Set(c.outcomes.map((o) => o.code));
+    const qs = (Array.isArray(b.questions) ? b.questions : []).slice(0, 150).filter((q) => q && q.id);
+    const secs = new Map((Array.isArray(b.sections) ? b.sections : []).map((s) => [s.id, String(s.passage || '').slice(0, 500)]));
+    const ctx = `${subject}|${c.profile.grade}|${c.profile.stream}|${term}|`;
+    const keyOf = (q) => _ccDiffKey(u.id, ctx + String(q.prompt || ''));
+    const matched = {}, todo = [];
+    for (const q of qs) {
+      const fromSkill = _ccCov.codeFromSkill(q.skill, codes);
+      if (fromSkill) { matched[q.id] = fromSkill; continue; }
+      const hit = _ccOutPending.get(keyOf(q));
+      if (hit && (hit.code === '' || codes.has(hit.code))) { matched[q.id] = hit.code; continue; }
+      if (String(q.prompt || '').trim()) todo.push(q);
+    }
+    if (todo.length) {
+      if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings — the outcome check needs it.' });
+      const outList = c.outcomes.slice(0, 220).map((o, i) => ({ id: 'O' + (i + 1), outcome: String(o.text || '').slice(0, 220), unit: o.unit || undefined }));
+      const system = [
+        'You are an experienced teacher and assessment moderator in the UAE (MOE curriculum).',
+        `Subject: ${subject}. Grade: ${c.profile.grade || '?'}${c.profile.stream ? ' (' + (c.profile.stream === 'A' ? 'Advanced' : 'General') + ' stream)' : ''}. Term ${term}.`,
+        'For EACH question, choose the ONE curriculum learning outcome (by its id, e.g. "O7") that the question assesses best.',
+        'Only if no outcome in the list fits at all, return outcomeId "". Return one entry per question with exactly the same ids.',
+      ].join('\n');
+      const now = Date.now();
+      for (const [k, v] of _ccOutPending) if (now - v.at > 24 * 3600 * 1000) _ccOutPending.delete(k);
+      for (let i = 0; i < todo.length; i += 12) {
+        const chunk = todo.slice(i, i + 12);
+        const user = JSON.stringify({ curriculumOutcomes: outList, questions: chunk.map((q) => ({ id: q.id, type: q.type,
+          prompt: String(q.prompt || '').replace(/<[^>]+>/g, ' ').slice(0, 1500), options: Array.isArray(q.options) && q.options.length ? q.options.slice(0, 6) : undefined,
+          passage: secs.get(q.sectionId) || undefined })) });
+        let arr = null;
+        for (let t = 0; t < 2 && !Array.isArray(arr); t++) {
+          try { arr = await _ccClaudeList({ system, user, maxTokens: 3000, tier: 'bg', itemProps: { id: { type: 'string' }, outcomeId: { type: 'string' } }, required: ['id', 'outcomeId'] }); }
+          catch (e) { if (/API key|credit|billing/i.test(e.message || '')) throw e; }
+        }
+        if (!Array.isArray(arr)) continue;
+        const byId = new Map(arr.filter((x) => x && x.id).map((x) => [String(x.id).trim(), x]));
+        for (const q of chunk) {
+          const x = byId.get(q.id);
+          if (!x) continue;
+          const oid = String(x.outcomeId || '').trim();
+          const idx = /^O\d+$/.test(oid) ? Number(oid.slice(1)) - 1 : -1;
+          const code = idx >= 0 && idx < outList.length ? c.outcomes[idx].code : '';
+          matched[q.id] = code;
+          _ccOutPending.set(keyOf(q), { code, at: now });
+        }
+      }
+    }
+    const inDraft = new Map();
+    for (const [qid, code] of Object.entries(matched)) if (code) { if (!inDraft.has(code)) inDraft.set(code, []); inDraft.get(code).push(qid); }
+    const outcomes = c.outcomes.map((o) => Object.assign({}, o, { inDraft: inDraft.get(o.code) || [] }));
+    const req2 = outcomes.filter((o) => o.required > 0);
+    const summary = Object.assign({}, c.summary, {
+      draftOutcomes: inDraft.size,
+      draftNew: req2.filter((o) => o.status !== 'met' && o.inDraft.length).length,
+      stillMissing: req2.filter((o) => o.status !== 'met' && !o.inDraft.length).length,
+      stillMissingTaught: req2.filter((o) => o.status !== 'met' && !o.inDraft.length && o.taught).length,
+      unmatched: qs.filter((q) => matched[q.id] === '').length,
+      unchecked: qs.filter((q) => !(q.id in matched)).length,
+    });
+    res.json(Object.assign(meta, { available: true, matched, outcomes, summary }));
+  } catch (e) {
+    console.error('[coverage/draft-check]', e);
+    res.status(500).json({ error: 'Could not check the outcomes: ' + (e.message || e) });
+  }
+});
+
+app.post('/api/coverage/outcome-questions', requireTeacher, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const o = b.outcome || {};
+    if (!String(o.text || '').trim()) return res.status(400).json({ error: 'Choose a learning outcome.' });
+    const level = _ccNormLevel(b.level);
+    if (!level) return res.status(400).json({ error: 'level must be easy, medium or hard' });
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const type = ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'match'].includes(b.type) ? b.type : 'mc';
+    const points = Math.max(0.5, Math.min(50, Number(b.points) || 1));
+    const language = String(b.language || '').slice(0, 60) || 'the same language as the other questions in the paper (English if unsure)';
+    const avoid = (Array.isArray(b.avoid) ? b.avoid : []).map((x) => String(x || '').replace(/<[^>]+>/g, ' ').slice(0, 200)).filter(Boolean).slice(0, 40);
+    const system = [
+      'You are an experienced teacher and assessment writer for the UAE MOE curriculum.',
+      `Write 3 different questions for a ${b.subject || ''} assessment for Grade ${b.grade || '?'}.`,
+      `Every question MUST assess this learning outcome: ${o.code ? '[' + o.code + '] ' : ''}${String(o.text).slice(0, 400)}${o.unit ? ' (Unit/lesson: ' + String(o.unit).slice(0, 120) + ')' : ''}`,
+      `Each question must be genuinely ${level.toUpperCase()} for this grade:`,
+      _CC_DIFF_DEFS,
+      `- Question type "${type}", worth ${points} mark${points === 1 ? '' : 's'}.`,
+      '- Make the 3 questions clearly different from each other (different context, numbers or angle), and different from the questions already in the paper (listed).',
+      b.passage ? '- A reading passage is given: if the outcome is a reading skill, the questions must be answerable from that passage; otherwise write stand-alone questions.' : '- Write stand-alone questions (no passage, no picture).',
+      '- "mc": exactly 4 options and correctAnswer = 0-based index of the right option; plausible distractors based on common mistakes.',
+      '- "tf": correctAnswer true/false. "tfng": correctAnswer "true" | "false" | "ng". "short": a concise correctAnswer. "long"/"essay": no correctAnswer.',
+      '- "match": give 4–6 pairs [{left, right}] instead of options.',
+      '- explanation: 1–2 sentences of feedback for students. difficultyReason: one short sentence on why it is ' + level + '.',
+      '- NEVER mention the outcome code, difficulty, "easy", "hard" etc. in the question text.',
+      `- Write everything in ${language}.`,
+      _ccMathRulesFor('generate'),
+    ].join('\n');
+    const user = JSON.stringify({ outcome: o, wantedLevel: level, type, points,
+      passage: String(b.passage || '').slice(0, 6000) || undefined, sectionInstructions: String(b.instructions || '').slice(0, 600) || undefined,
+      replacing: b.replacing ? String(b.replacing).replace(/<[^>]+>/g, ' ').slice(0, 600) : undefined, questionsAlreadyInPaper: avoid.length ? avoid : undefined });
+    const items = await _ccClaudeList({ system, user, maxTokens: 6000, itemProps: {
+      prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } }, correctAnswer: {},
+      pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
+      explanation: { type: 'string' }, difficultyReason: { type: 'string' } }, required: ['prompt'] });
+    const skill = ((o.code ? o.code + ' ' : '') + String(o.text)).slice(0, 80);
+    const out = (Array.isArray(items) ? items : []).filter((x) => x && String(x.prompt || '').trim()).slice(0, 3).map((x) => {
+      const q = { type, prompt: String(x.prompt), points, skill, explanation: String(x.explanation || '').slice(0, 1500), difficulty: level, difficultyReason: String(x.difficultyReason || '').slice(0, 300) };
+      if (type === 'mc') {
+        q.options = (Array.isArray(x.options) ? x.options : []).map(String).slice(0, 6);
+        let ci = Number(x.correctAnswer);
+        if (typeof x.correctAnswer !== 'number' || !Number.isInteger(ci) || ci < 0 || ci >= q.options.length) { const ti = q.options.findIndex((t) => t.trim() === String(x.correctAnswer).trim()); if (ti >= 0 || !Number.isInteger(ci)) ci = ti; }
+        q.correctAnswer = ci >= 0 && ci < q.options.length ? ci : 0;
+      } else if (type === 'tf') q.correctAnswer = x.correctAnswer === true || /^(true|صح|صحيح)$/i.test(String(x.correctAnswer));
+      else if (type === 'tfng') { const s = String(x.correctAnswer || '').toLowerCase(); q.correctAnswer = /^(ng|not)/.test(s) ? 'ng' : (/^f/.test(s) ? 'false' : 'true'); }
+      else if (type === 'short') q.correctAnswer = x.correctAnswer == null ? '' : String(x.correctAnswer);
+      else if (type === 'match') { q.pairs = (Array.isArray(x.pairs) ? x.pairs : []).map((p) => ({ left: String(p.left || ''), right: String(p.right || '') })).filter((p) => p.left && p.right); q.matchVariant = 'word-definition'; }
+      else q.correctAnswer = null;
+      return q;
+    }).filter((q) => (q.type !== 'mc' || q.options.length >= 2) && (q.type !== 'match' || q.pairs.length >= 2));
+    if (!out.length) return res.status(502).json({ error: 'The AI did not return usable questions — please try again.' });
+    _ccStashDifficulty(req, out.map((q) => Object.assign({}, q)), 'ai-outcome');
+    res.json({ level, questions: out.map((q) => { const c = Object.assign({}, q); delete c.difficulty; return c; }) });
+  } catch (e) {
+    console.error('[coverage/outcome-questions]', e);
+    res.status(500).json({ error: 'Could not write questions: ' + (e.message || e) });
+  }
+});
 
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
