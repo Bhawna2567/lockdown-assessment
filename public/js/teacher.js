@@ -10718,7 +10718,7 @@ async function ccOpenAnnex() {
       <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
-      <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">School form (PowerPoint — same as provided)</option><option value="enhanced">Enhanced version (Word — more detail)</option></select></label>
+      <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">MOE school form (PowerPoint — same as provided)</option><option value="enhanced">ClassCurio enhanced version (Word — more detail)</option><option value="both">Both formats (one ZIP file)</option></select></label>
     </div>
     <div data-ax="alist" style="margin-top:10px;"></div>
     <div data-ax="bands" style="margin-top:8px;"></div>
@@ -10781,13 +10781,23 @@ async function ccOpenAnnex() {
       <label style="margin:0; text-transform:none; letter-spacing:0;">· BP (at risk) below <input data-ax="bp" type="number" value="${d.bp}" style="width:64px;">%</label></div>`;
   };
   $('class').onchange = () => {
+    // A new class: clear the previous class's tables so the window only shows this class.
+    st.data = null; $('out').innerHTML = ''; $('status').textContent = '';
     const c = opts.classes.find((x) => x.id === $('class').value);
     if (!c) { $('alist').innerHTML = ''; $('bands').innerHTML = ''; return; }
-    const taken = c.assessments.filter((a) => a.submissions > 0);
-    $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Assessments to include <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">all</a> · <a href="#" data-ax="none">none</a></div>
-      <div style="max-height:180px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px;">${taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" checked style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''} · ${a.submissions} students</span></label>`).join('')}</div>`;
-    $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
-    $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
+    const cy = opts.currentYear || '';
+    const taken = c.assessments.filter((a) => a.submissions > 0)
+      .sort((x, y) => (x.year === cy ? 0 : 1) - (y.year === cy ? 0 : 1) || String(y.year).localeCompare(String(x.year)) || String(y.date).localeCompare(String(x.date)));
+    let lastYear = null;
+    const rowsHtml = taken.map((a) => {
+      const head = a.year !== lastYear ? `<div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;">${esc(a.year || 'Year not set')}${a.year === cy ? ' — this academic year' : ''}</div>` : '';
+      lastYear = a.year;
+      return head + `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''} · ${a.submissions} students</span></label>`;
+    }).join('');
+    $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Tick the assessments to include <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
+      ${taken.length ? `<div style="max-height:200px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px;">${rowsHtml}</div>` : '<div class="muted" style="font-size:13px;">No assessments in this class have been taken by students yet.</div>'}`;
+    if ($('all')) $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
+    if ($('none')) $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
     $('bands').innerHTML = bandsHtml(gradeOf(c));
   };
   async function aiFill() {
@@ -10803,7 +10813,8 @@ async function ccOpenAnnex() {
   }
   $('build').onclick = async () => {
     const ids = Array.from(box.querySelectorAll('[data-ax-a]:checked')).map((x) => x.getAttribute('data-ax-a'));
-    if (!$('class').value || !ids.length) { alert('Choose a class and at least one assessment.'); return; }
+    if (!$('class').value) { alert('Choose a class first.'); return; }
+    if (!ids.length) { alert('Tick at least one assessment to include.'); return; }
     $('status').textContent = 'Working out each student’s score per skill…';
     try {
       st.data = await api('/api/admin/annex/build', { method: 'POST', body: { classId: $('class').value, assessmentIds: ids, groupBy: $('by').value,
@@ -10846,8 +10857,11 @@ async function ccOpenAnnex() {
         <button class="btn" data-ax="ai">✨ Fill empty cells with AI again</button>
         <div class="spacer"></div>
         ${fmt === 'school'
-          ? `<span class="muted" style="font-size:12px;">School form (PowerPoint)</span><button class="btn primary" data-ax="dl3">⬇ Annex 3</button><button class="btn primary" data-ax="dl4">⬇ Annex 4</button>`
-          : `<span class="muted" style="font-size:12px;">Enhanced version (Word)</span><button class="btn primary" data-ax="dw3">⬇ Annex 3</button><button class="btn primary" data-ax="dw4">⬇ Annex 4</button><button class="btn primary" data-ax="dwb">⬇ Both in one file</button>`}
+          ? `<span class="muted" style="font-size:12px;">MOE school form (PowerPoint)</span><button class="btn primary" data-ax="dl3">⬇ Annex 3</button><button class="btn primary" data-ax="dl4">⬇ Annex 4</button>`
+          : fmt === 'enhanced'
+            ? `<span class="muted" style="font-size:12px;">ClassCurio enhanced version (Word)</span><button class="btn primary" data-ax="dw3">⬇ Annex 3</button><button class="btn primary" data-ax="dw4">⬇ Annex 4</button><button class="btn primary" data-ax="dwb">⬇ Annex 3 + 4 in one file</button>`
+            : ''}
+        <button class="btn ${fmt === 'both' ? 'primary' : ''}" data-ax="dzip" title="MOE school form (PowerPoint) + ClassCurio enhanced version (Word) in one ZIP file">🗜 Both formats (ZIP)</button>
       </div>
       <div class="muted" style="font-size:12px; margin-top:6px;">Change the strategies at the top to update every row, or pick different ones for a single row. To get new AI text for a cell, empty it and click “Fill empty cells with AI again”.</div>`;
     $('out').oninput = (e) => {
@@ -10879,8 +10893,9 @@ async function ccOpenAnnex() {
       $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan, approvers: approvers() }, $('dl4')); };
     } else {
       const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers() }, btn); };
-      $('dw3').onclick = () => w('3', $('dw3')); $('dw4').onclick = () => w('4', $('dw4')); $('dwb').onclick = () => w('both', $('dwb'));
+      if ($('dw3')) { $('dw3').onclick = () => w('3', $('dw3')); $('dw4').onclick = () => w('4', $('dw4')); $('dwb').onclick = () => w('both', $('dwb')); }
     }
+    $('dzip').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/bundle.zip', { section: d.class.name, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers() }, $('dzip')); };
   }
 }
 document.addEventListener('click', (e) => {

@@ -85,6 +85,10 @@ module.exports = function annex(app, d) {
     if (!s) return null;
     return s.replace(CODE_RE, '').trim() || s;
   }
+  // Academic year runs September → August, e.g. "2026-2027".
+  function yearFromDate(d) { const t = new Date(d); if (isNaN(t)) return ''; const y = t.getUTCFullYear(), m = t.getUTCMonth() + 1; return m >= 9 ? `${y}-${y + 1}` : `${y - 1}-${y}`; }
+  function yearOf(a) { const y = String(a.academicYear || '').replace(/\s+/g, '').replace('/', '-'); if (/^\d{4}-\d{4}$/.test(y)) return y; return yearFromDate(a.scheduledDate || a.createdAt || ''); }
+  const currentYear = () => yearFromDate(new Date().toISOString());
   const num = (v, dflt) => (v === '' || v == null || !Number.isFinite(+v) ? dflt : +v);
 
   // ── Options: classes → assessments (with how many students took them) ────
@@ -98,11 +102,11 @@ module.exports = function annex(app, d) {
       const t = users.get(c.teacherId) || {};
       const list = assessments.filter((a) => a.classId === c.id).map((a) => ({
         id: a.id, title: a.title, subject: a.subject || '', grade: a.grade || '', term: a.term || '',
-        date: a.scheduledDate || '', submissions: taken.get(a.id) || 0,
+        date: a.scheduledDate || '', submissions: taken.get(a.id) || 0, year: yearOf(a),
       })).sort((x, y) => String(y.date).localeCompare(String(x.date)));
       return { id: c.id, name: c.name, teacherId: c.teacherId, teacher: t.name || t.email || '', assessments: list };
     }).filter((c) => c.assessments.some((a) => a.submissions > 0));
-    res.json({ classes, strategies: STRATEGIES, admin });
+    res.json({ classes, strategies: STRATEGIES, admin, currentYear: currentYear() });
   });
 
   // ── Build the tables from the chosen assessments ─────────────────────────
@@ -326,13 +330,16 @@ module.exports = function annex(app, d) {
   }
   const safeName = (s) => String(s || '').replace(/[^\w -]+/g, '').trim().replace(/\s+/g, '_').slice(0, 60) || 'class';
 
+  async function makeAnnex3(b) {
+    const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => [
+      r.subject, r.section, r.skill, r.students, r.proficient, (r.proficiencyPct !== '' && r.proficiencyPct != null ? r.proficiencyPct + '%' : ''), r.level2, r.level3, r.action,
+    ]);
+    return buildPptx('annex3.pptx', rows, 5, null, 18, null, approversOf(b));
+  }
   app.post('/api/admin/annex/annex3.pptx', requireAdmin, async (req, res) => {
     try {
       const b = req.body || {};
-      const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => [
-        r.subject, r.section, r.skill, r.students, r.proficient, (r.proficiencyPct !== '' && r.proficiencyPct != null ? r.proficiencyPct + '%' : ''), r.level2, r.level3, r.action,
-      ]);
-      const buf = await buildPptx('annex3.pptx', rows, 5, null, 18, null, approversOf(b));
+      const buf = await makeAnnex3(b);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex3_Skills_Analysis_${safeName(b.section)}.pptx"`);
       res.send(buf);
@@ -349,14 +356,17 @@ module.exports = function annex(app, d) {
       return `${m[1]}: ${names.slice(0, 3).map((n) => n.split(/\s+/).slice(0, 2).join(' ')).join(', ')}${extra > 0 ? ` +${extra}` : ''}`;
     }).join('\n');
   }
-  app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
-    try {
-      const b = req.body || {};
+  async function makeAnnex4(b) {
       const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || 'First Month']).map((m) => String(m).slice(0, 40)).slice(0, 12);
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
         (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
-      const buf = await buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(m)}</a:t>`) })), approversOf(b));
+      return buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(m)}</a:t>`) })), approversOf(b));
+  }
+  app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const buf = await makeAnnex4(b);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex4_Intervention_Plan_${safeName(b.section)}.pptx"`);
       res.send(buf);
@@ -434,9 +444,7 @@ module.exports = function annex(app, d) {
     out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Target skill', 'Group / students', 'Baseline → target', 'Strategies', 'Platform', 'Sessions & timing', 'Responsible', 'Progress indicator & checks', 'Follow-up decision'], W, GREEN), ...tr] }));
     return out.concat(signatures(meta.approvers));
   }
-  app.post('/api/admin/annex/enhanced.docx', requireAdmin, async (req, res) => {
-    try {
-      const b = req.body || {};
+  async function makeEnhanced(b) {
       const meta = Object.assign({}, b.meta || {}, { month: b.month || '', approvers: approversOf(b) });
       const which = String(b.which || 'both');
       const sections = [];
@@ -445,11 +453,34 @@ module.exports = function annex(app, d) {
       const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || '']).map((m) => String(m).slice(0, 40)).slice(0, 12);
       if (which !== '3') for (const m of months) sections.push({ properties: { page }, children: enhanced4(Object.assign({}, meta, { month: m }), (Array.isArray(b.plan) ? b.plan : []).slice(0, 100)) });
       const doc = new Document({ creator: 'ClassCurio', title: 'Annex 3 & 4', sections });
-      const buf = await Packer.toBuffer(doc);
+      return Packer.toBuffer(doc);
+  }
+  app.post('/api/admin/annex/enhanced.docx', requireAdmin, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const meta = Object.assign({}, b.meta || {});
+      const which = String(b.which || 'both');
+      const buf = await makeEnhanced(b);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
       res.setHeader('Content-Disposition', `attachment; filename="Annex${which === 'both' ? '3-4' : which}_Enhanced_${safeName(meta.section)}.docx"`);
       res.send(buf);
     } catch (e) { console.error('[annex enhanced]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
+  });
+
+  // Both formats in one ZIP: the MOE school form (PowerPoint) + the ClassCurio enhanced version (Word).
+  app.post('/api/admin/annex/bundle.zip', requireAdmin, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const name = safeName((b.meta && b.meta.section) || b.section);
+      const zip = new JSZip();
+      zip.file(`MOE form/Annex3_Skills_Analysis_${name}.pptx`, await makeAnnex3(b));
+      zip.file(`MOE form/Annex4_Intervention_Plan_${name}.pptx`, await makeAnnex4(b));
+      zip.file(`ClassCurio version/Annex3-4_Enhanced_${name}.docx`, await makeEnhanced(Object.assign({}, b, { which: 'both' })));
+      const buf = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="Annex3-4_${name}.zip"`);
+      res.send(buf);
+    } catch (e) { console.error('[annex bundle]', e); res.status(500).json({ error: 'Could not build the ZIP: ' + e.message }); }
   });
 
   return { buildPptx };
