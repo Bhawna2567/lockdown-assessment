@@ -1094,7 +1094,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
@@ -1110,6 +1110,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     createdAt: new Date().toISOString(),
   };
   assessment.shuffle = !(req.body && req.body.shuffle === false);
+  assessment.showOutcomes = !!(req.body && req.body.showOutcomes);
   assessment.resultsReleased = false;
   const all = readAll('assessments.json');
   all.push(assessment);
@@ -1346,6 +1347,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
             skill: (typeof q.skill === 'string' && q.skill.trim()) ? q.skill.slice(0, 80) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).skill || ''),
             focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).focus || ''),
+            outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).outcome || ''),
             cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
             explanation: (typeof q.explanation === 'string' && q.explanation.trim()) ? q.explanation.slice(0, 1500) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).explanation || ''),
           };
@@ -1363,6 +1365,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     updatedAt: new Date().toISOString(),
   };
   if (req.body && req.body.shuffle !== undefined) updated.shuffle = !!req.body.shuffle;
+  if (req.body && req.body.showOutcomes !== undefined) updated.showOutcomes = !!req.body.showOutcomes;
   all[idx] = updated;
   writeAll('assessments.json', all);
   _ccDifficultyAfterSave(req, updated);
@@ -2824,7 +2827,8 @@ app.get('/api/assessments/:id/export', requireTeacher, (req, res) => {
   if (a.teacherId !== req.session.user.id) {
     return res.status(403).json({ error: 'Forbidden' });
   }
-  res.json({ ok: true, assessment: a });
+  const _exp = Object.assign({}, a, { questions: (a.questions || []).map((q) => Object.assign({}, q, { outcomeText: a.showOutcomes ? _ccOutcomeText(a, q) : '' })) });
+  res.json({ ok: true, assessment: _exp });
 });
 
 // Word document export — the teacher downloads the assessment as a .docx
@@ -2911,9 +2915,13 @@ app.get('/api/assessments/:id/export.docx', requireTeacher, async (req, res) => 
     const questions = a.questions || [];
     const renderQuestion = (q) => {
       qNum++;
+      const _lo = a.showOutcomes ? _ccOutcomeText(a, q) : '';
       const blocks = [
+        ...(_lo ? [new Paragraph({ spacing: { before: 200, after: 20 }, children: [
+          new TextRun({ text: 'Learning outcome: ', bold: true, italics: true, font: 'Calibri', size: 18, color: '4338CA' }),
+          new TextRun({ text: _lo, italics: true, font: 'Calibri', size: 18, color: '4338CA' }) ] })] : []),
         new Paragraph({
-          spacing: { before: 200, after: 60 },
+          spacing: { before: _lo ? 40 : 200, after: 60 },
           children: [
             new TextRun({ text: 'Q' + qNum + ' ', bold: true, font: 'Calibri', size: 24, color: NAVY }),
             new TextRun({ text: '(' + (q.points || 1) + ' pt' + ((q.points || 1) === 1 ? '' : 's') + '):  ', bold: true, font: 'Calibri', size: 22, color: MUTED }),
@@ -3064,6 +3072,7 @@ app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
     audioVoice:  a.audioVoice  || '',
     audioVoices: a.audioVoices || {},
     sections: Array.isArray(a.sections) ? a.sections : [],
+    showOutcomes: !!a.showOutcomes,
     // For preview we INCLUDE the answer key so the teacher can verify it.
     questions: (a.questions || []).map((q) => {
       const out = {
@@ -3075,6 +3084,7 @@ app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
         options: q.options,
         points: q.points,
         imageUrl: q.imageUrl || '',
+        outcome: a.showOutcomes ? _ccOutcomeText(a, q) : '',
         correctAnswer: q.correctAnswer,   // ← only sent in preview
       };
       if (q.type === 'match') {
@@ -4339,6 +4349,95 @@ app.post('/api/focus/tag', requireTeacher, async (req, res) => {
   }
 });
 
+// ── 📘 Learning outcome of each question (shown above it when the teacher turns it on) ──
+// Order: the teacher's own text → the outcome matched for the specification table →
+// the MOE curriculum text for the outcome code at the start of the skill tag → the skill tag.
+let _ccCodeIdx = null;
+function _ccCodeIndex() {
+  if (_ccCodeIdx) return _ccCodeIdx;
+  _ccCodeIdx = new Map();
+  try {
+    const walk = (o) => {
+      if (Array.isArray(o)) return o.forEach(walk);
+      if (o && typeof o === 'object') {
+        if (typeof o.code === 'string' && typeof o.text === 'string' && /\./.test(o.code) && !_ccCodeIdx.has(o.code)) _ccCodeIdx.set(o.code, o.text);
+        Object.values(o).forEach(walk);
+      }
+    };
+    walk(require('./curriculum/moe-curriculum.json'));
+  } catch (e) { console.warn('[outcomes] index', e.message); }
+  return _ccCodeIdx;
+}
+function _ccOutcomeFromSkill(skill) {
+  const s = String(skill || '').trim();
+  const m = s.match(/^([A-Z][A-Z0-9&]{1,6}(?:\.[0-9A-Z]{1,4}){2,7})\s*(.*)$/);
+  if (!m) return '';
+  const idx = _ccCodeIndex();
+  let c = m[1];
+  while (c) { if (idx.has(c)) return idx.get(c); const k = c.lastIndexOf('.'); if (k < 0) break; c = c.slice(0, k); }
+  return m[2] || '';
+}
+function _ccOutcomeText(a, q) {
+  if (q && typeof q.outcome === 'string' && q.outcome.trim()) return q.outcome.trim();
+  try { const t = _ccSpec && _ccSpec.tagsFor ? _ccSpec.tagsFor(a.id).get(q.id) : null; if (t && t.outcome) return String(t.outcome); } catch (e) {}
+  return _ccOutcomeFromSkill(q && q.skill) || '';
+}
+// Fill the outcome of every question in a draft (builder button).
+app.post('/api/outcomes/resolve', requireTeacher, async (req, res) => {
+  try {
+    const b = req.body || {};
+    const qs = (Array.isArray(b.questions) ? b.questions : []).filter((q) => q && q.id).slice(0, 150);
+    const out = {};
+    const a = b.assessmentId ? readAll('assessments.json').find((x) => x.id === b.assessmentId && x.teacherId === req.session.user.id) : null;
+    const todo = [];
+    for (const q of qs) {
+      let t = _ccOutcomeFromSkill(q.skill);
+      if (!t && a) { try { const tg = _ccSpec.tagsFor(a.id).get(q.id); if (tg && tg.outcome) t = tg.outcome; } catch (e) {} }
+      if (t) out[q.id] = t; else if (String(q.prompt || '').trim()) todo.push(q);
+    }
+    if (todo.length) {
+      if (!readApiKey()) return res.json({ outcomes: out, missing: todo.length, note: 'No AI key — only questions with an outcome code were filled.' });
+      const grade = String(b.grade || '');
+      const subject = String(b.subject || '');
+      const term = ['1', '2', '3'].includes(String(b.term)) ? String(b.term) : (((_ccSpec.weekOf && _ccSpec.weekOf(new Date().toISOString().slice(0, 10))) || {}).term || '1');
+      let stream = ['A', 'G'].includes(b.stream) ? b.stream : '';
+      if (!stream && b.classId && _ccCov) {
+        const cls = readAll('classes.json').find((c) => c.id === b.classId);
+        if (cls) { try { stream = (_ccCov.profileFor(cls, readAll('assessments.json')) || {}).stream || ''; } catch (e) {} }
+      }
+      let list = [];
+      try {
+        list = _ccSpec.curriculumOutcomes({ grade, subject }, { stream, term }).list;
+        if (!list.length && parseInt(grade, 10) >= 9) list = _ccSpec.curriculumOutcomes({ grade, subject }, { stream: stream === 'A' ? 'G' : 'A', term }).list;
+      } catch (e) {}
+      const outList = list.slice(0, 220).map((o, i) => ({ id: 'O' + (i + 1), outcome: String(o.text || '').slice(0, 220) }));
+      const system = [
+        'You are an experienced teacher. For each assessment question, give the learning outcome it assesses.',
+        `Subject: ${subject || 'not given'}. Grade: ${grade || 'not given'}.`,
+        outList.length ? 'Choose the ONE curriculum outcome (by id, e.g. "O7") that fits best. Only if none fits, leave outcomeId empty and write outcomeText.'
+          : 'No curriculum list is available: write outcomeText — one short learning-outcome statement (max 20 words) in the language of the question, MOE style ("Identify…", "Explain…"). Use the same wording for questions that assess the same thing.',
+        'Return one entry per question with exactly the same ids.',
+      ].join('\n');
+      for (let i = 0; i < todo.length; i += 12) {
+        const chunk = todo.slice(i, i + 12);
+        const user = JSON.stringify({ curriculumOutcomes: outList.length ? outList : undefined, questions: chunk.map((q) => ({ id: q.id, type: q.type, prompt: String(q.prompt).replace(/<[^>]+>/g, ' ').slice(0, 1200), options: Array.isArray(q.options) && q.options.length ? q.options.slice(0, 6) : undefined, skill: q.skill || undefined })) });
+        let arr = null;
+        try { arr = await _ccClaudeList({ system, user, maxTokens: 3000, tier: 'bg', itemProps: { id: { type: 'string' }, outcomeId: { type: 'string' }, outcomeText: { type: 'string' } }, required: ['id'] }); } catch (e) { if (/API key|credit|billing/i.test(e.message || '')) throw e; }
+        for (const x of arr || []) {
+          if (!x || !x.id) continue;
+          const oid = String(x.outcomeId || '').trim(); const k = /^O\d+$/.test(oid) ? +oid.slice(1) - 1 : -1;
+          const t = k >= 0 && k < outList.length ? list[k].text : String(x.outcomeText || '').trim();
+          if (t) out[String(x.id).trim()] = t.slice(0, 300);
+        }
+      }
+    }
+    res.json({ outcomes: out });
+  } catch (e) {
+    console.error('[outcomes/resolve]', e);
+    res.status(500).json({ error: 'Could not fill the outcomes: ' + (e.message || e) });
+  }
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);
@@ -4411,6 +4510,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
     remainingMs: (already && Number.isFinite(already.remainingMs)) ? already.remainingMs : null,
     sections: Array.isArray(a.sections) ? a.sections : [],
     shuffleKey: _layout ? 'v1' : null,
+    showOutcomes: !!a.showOutcomes,
     questions: (_layout ? _layout.questions : a.questions).map((q, _qi) => {
       const out = {
         id: q.id,
@@ -4421,6 +4521,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
         options: _layout && _layout.perms[q.id] ? _layout.perms[q.id].map((i) => q.options[i]) : q.options,
         points: q.points,
         imageUrl: q.imageUrl || '',
+        outcome: a.showOutcomes ? _ccOutcomeText(a, q) : '',
       };
       if (q.type === 'match' && Array.isArray(q.pairs)) {
         // Shuffle the right column so the order isn't the answer key.
@@ -6354,7 +6455,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
         difficulty: q.difficulty, difficultyReason: q.difficultyReason,
       };
@@ -6556,7 +6657,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), _ccAsyncJob, asyn
               imageUrl: _imgFor(q.imageRef),
               imageDescription: '',
               skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-              focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
+              focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
               explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
               difficulty: q.difficulty, difficultyReason: q.difficultyReason,
             };

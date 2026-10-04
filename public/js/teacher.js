@@ -2356,6 +2356,7 @@ function openBuilder(a, presets) {
   if (els.skill) els.skill.value = (a && a.skill) || '';
   try { ccMultiSync('skill-multi'); } catch (e) {}
   { const sh = document.getElementById('shuffle-toggle'); if (sh) sh.checked = a ? a.shuffle === true : true; if (typeof ccShuffleStatusUpdate === 'function') ccShuffleStatusUpdate(); }
+  { const so = document.getElementById('show-outcomes-toggle'); if (so) so.checked = !!(a && a.showOutcomes); }
   if (typeof _ccApplyConditionalPanels === 'function') _ccApplyConditionalPanels();
   // Builder class dropdown — for new assessments default to the active class;
   // for edits use the assessment's stored classId.
@@ -2676,6 +2677,7 @@ function renderQuestions() {
     }
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
     { const sk = root.querySelector('[data-f=skill]'); if (sk) sk.oninput = (e) => { q.skill = e.target.value; }; }
+    { const oc = root.querySelector('[data-f=outcome]'); if (oc) oc.oninput = (e) => { q.outcome = e.target.value; }; }
     { const ce = root.querySelector('[data-f=cefr]'); if (ce) ce.onchange = (e) => { q.cefr = e.target.value; }; }
     { const cs = root.querySelector('[data-f=cefrScale]'); if (cs) { cs.oninput = (e) => { q.cefrScale = e.target.value; }; cs.onfocus = () => { let dl = document.getElementById('cc-cefr-scale-dl'); if (!dl) { dl = document.createElement('datalist'); dl.id = 'cc-cefr-scale-dl'; dl.innerHTML = CC_CEFR_SCALES.flatMap((g) => g[1]).map((x) => `<option value="${escapeAttr(x)}"></option>`).join(''); document.body.appendChild(dl); } }; } }
     { const fo = root.querySelector('[data-f=focus]'); if (fo) { fo.oninput = (e) => { q.focus = e.target.value; }; fo.onfocus = () => { try { ccFocusDatalist(); } catch (e) {} }; } }
@@ -2965,6 +2967,10 @@ function renderQuestion(q, idx) {
         <button class="btn ghost" data-act="clear" title="Empty this question so you can type or paste a new one">🧹 Clear</button>
         <button class="btn danger" data-act="remove">Remove</button>
       </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label style="margin:0 0 2px; color:#4338ca;">📘 Learning outcome <span style="font-weight:400; text-transform:none; letter-spacing:0; color:#94a3b8;">(shown above the question when “Show the learning outcome” is ticked)</span></label>
+        <input type="text" data-f="outcome" dir="auto" value="${escapeAttr(q.outcome || '')}" placeholder="e.g. Infer the meaning of unknown words from context" style="font-style:italic; color:#3730a3; background:#f5f7ff;" />
+      </div>
       <div class="field">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
           <label style="margin:0;">Prompt</label>
@@ -3094,6 +3100,7 @@ els.saveBtn.onclick = async () => {
       assessmentLanguage: els.assessmentLanguage ? els.assessmentLanguage.value || null : null,
       deliveryMode: els.deliveryMode ? els.deliveryMode.value : 'online',
       shuffle: !!(document.getElementById('shuffle-toggle') || {}).checked,
+      showOutcomes: !!(document.getElementById('show-outcomes-toggle') || {}).checked,
       skill: els.skill ? els.skill.value || null : null,
       classId: els.builderClass ? els.builderClass.value || null : null,
       academicYear: els.academicYear ? (els.academicYear.value || '').trim() || null : null,
@@ -4384,6 +4391,7 @@ async function printAssessmentPDF(assessmentId, setNo) {
       .passage { background:#fef7e6; border:1px solid #f59e0b; border-radius: 6px; padding: 12px 14px; white-space: pre-wrap; margin: 8px 0 14px; font-size: 14px; }
       .q { margin: 12px 0; padding-bottom: 8px; border-bottom: 1px dashed #cbd5e1; page-break-inside: avoid; }
       .q-prompt { font-weight: 600; margin-bottom: 6px; }
+      .q-lo { font-size: 11px; font-style: italic; color: #4338ca; margin-bottom: 3px; }
       .opt { padding: 3px 0 3px 22px; position: relative; }
       .opt::before { content: '○'; position: absolute; left: 4px; color:#64748b; }
       .write-lines { border-bottom: 1px solid #94a3b8; height: 22px; margin: 6px 0; }
@@ -4420,13 +4428,13 @@ async function printAssessmentPDF(assessmentId, setNo) {
       if (sec.passage) body += `<div class="passage">${escapeHtml(sec.passage)}</div>`;
       for (const q of questions.filter((qq) => qq.sectionId === sec.id)) {
         qi++;
-        body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt${(q.points || 1) === 1 ? '' : 's'}): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
+        body += `<div class="q">${a.showOutcomes && q.outcomeText ? `<div class="q-lo">📘 Learning outcome: ${escapeHtml(q.outcomeText)}</div>` : ''}<div class="q-prompt">Q${qi} (${q.points || 1} pt${(q.points || 1) === 1 ? '' : 's'}): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
       }
     }
   } else {
     for (const q of questions) {
       qi++;
-      body += `<div class="q"><div class="q-prompt">Q${qi} (${q.points || 1} pt): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
+      body += `<div class="q">${a.showOutcomes && q.outcomeText ? `<div class="q-lo">📘 Learning outcome: ${escapeHtml(q.outcomeText)}</div>` : ''}<div class="q-prompt">Q${qi} (${q.points || 1} pt): ${escapeHtml(q.prompt)}</div>${answerLine(q)}</div>`;
     }
   }
   body += `<div class="pagebreak"></div><h2>Answer Key${_setLabel}</h2><div class="key">${questions.map((q, i) => correctLine(q, i)).join('')}</div>`;
@@ -10909,3 +10917,41 @@ document.addEventListener('click', (e) => {
   const tm = document.getElementById('tools-menu-dropdown'); if (tm && b.id === 'tools-annex') tm.style.display = 'none';
   ccOpenAnnex();
 });
+
+// ═══════════════════════════════════════════════════════════════════════
+//  📘 Learning outcome above each question — "Fill learning outcomes" button
+// ═══════════════════════════════════════════════════════════════════════
+async function ccFillOutcomes(btn) {
+  if (!questions || !questions.length) { alert('Add or import some questions first.'); return; }
+  const todo = questions.filter((q) => !String(q.outcome || '').trim());
+  if (!todo.length) { alert('Every question already has a learning outcome.'); return; }
+  const old = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = '📘 Filling…'; }
+  try {
+    const r = await api('/api/outcomes/resolve', { method: 'POST', body: {
+      assessmentId: (typeof editingId !== 'undefined' && editingId) || null,
+      subject: els.subject ? els.subject.value : '', grade: els.grade ? els.grade.value : '', term: els.term ? els.term.value : '',
+      classId: els.builderClass ? els.builderClass.value : '',
+      questions: todo.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt, options: q.options, skill: q.skill })) } });
+    let n = 0;
+    for (const q of questions) if (!String(q.outcome || '').trim() && r.outcomes && r.outcomes[q.id]) { q.outcome = r.outcomes[q.id]; n++; }
+    const so = document.getElementById('show-outcomes-toggle'); if (so && n) so.checked = true;
+    try { renderQuestions(); } catch (e) { console.warn(e); }
+    if (els.saveStatus) els.saveStatus.textContent = `📘 Learning outcome added to ${n} question${n === 1 ? '' : 's'}${r.note ? ' — ' + r.note : ''}. Check them, then save.`;
+  } catch (e) { alert(e.message); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+}
+(function ccOutcomeBtnInit() {
+  const add = () => {
+    if (document.getElementById('cc-lo-btn')) return;
+    const after = document.getElementById('cc-focus-btn') || document.getElementById('cc-oc-btn') || document.getElementById('tag-skills-btn');
+    if (!after) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn'; b.id = 'cc-lo-btn';
+    b.style.cssText = 'margin-left:8px; background:#eef2ff; border-color:#c7d2fe; color:#3730a3;';
+    b.title = 'Fill the learning outcome of every question that does not have one (from the MOE curriculum)';
+    b.textContent = '📘 Fill learning outcomes';
+    b.onclick = () => ccFillOutcomes(b);
+    after.insertAdjacentElement('afterend', b);
+  };
+  add(); setTimeout(add, 2500);
+})();

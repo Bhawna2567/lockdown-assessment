@@ -1070,6 +1070,7 @@ function renderQuestions() {
       : '';
     return `
       <div class="panel">
+        ${q.outcome ? `<div dir="auto" style="margin-bottom:6px; padding:6px 10px; background:#eef2ff; border-left:3px solid #6366f1; border-radius:6px; color:#3730a3; font-size:13px; font-style:italic;">📘 Learning outcome: ${escapeHtml(q.outcome)}</div>` : ''}
         <div style="margin-bottom: 6px; color: #475569; font-size: 14px;">Question ${globalIdx + 1} of ${currentAssessment.questions.length} · ${q.points} point${q.points === 1 ? '' : 's'}</div>
         ${imageBlock}
         <div style="font-size: 18px; line-height: 1.6; margin-bottom: 14px; color:#1a1e33;">${escapeHtml(q.prompt)}</div>
