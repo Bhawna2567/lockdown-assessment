@@ -9968,7 +9968,7 @@ function ccTrainingVideosEnhance() {
       </div>
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div style="flex:1 1 520px; min-width:280px;">
-          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=6"></video>
+          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=7"></video>
           <div style="margin-top:6px; font-weight:600;" dir="${rtl ? 'rtl' : 'ltr'}">${t.ch} ${c.n} · ${rtl ? c.ar : c.en}</div>
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; margin-top:6px; text-transform:none; letter-spacing:0; font-weight:400;" dir="${rtl ? 'rtl' : 'ltr'}"><input type="checkbox" id="cc-tv-all" ${playAll ? 'checked' : ''} style="width:auto;"> ${t.all}</label>
         </div>
@@ -10729,6 +10729,7 @@ async function ccOpenAnnex() {
         <div style="display:flex; gap:6px; margin-top:4px;"><input data-ax="se-own" placeholder="Add your own strategy…" style="flex:1; font-size:13px; padding:5px 8px;"><button class="btn" data-ax="se-add" style="padding:4px 10px;">＋ Add</button></div></div>
     </div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:10px;">
+      <label style="margin:0; flex:1 1 100%;">School name (printed at the top of the sheets)<input data-ax="school" style="width:100%;"></label>
       <label style="margin:0; flex:1 1 260px;">Academic approval — name (optional)<input data-ax="apA" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
       <label style="margin:0; flex:1 1 260px;">School Principal approval — name (optional)<input data-ax="apP" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
       <span class="muted" style="font-size:12px; flex:1 1 220px;">The date is filled in automatically; signatures are always left blank. Names are remembered on this computer only.</span>
@@ -10737,10 +10738,12 @@ async function ccOpenAnnex() {
     <div data-ax="out" style="margin-top:14px;"></div>`;
   const $ = (k) => box.querySelector(`[data-ax="${k}"]`);
   $('close').onclick = () => ov.remove();
-  try { $('apA').value = localStorage.getItem('cc_annex_apA') || ''; $('apP').value = localStorage.getItem('cc_annex_apP') || ''; } catch (e) {}
-  const saveAp = () => { try { localStorage.setItem('cc_annex_apA', $('apA').value.trim()); localStorage.setItem('cc_annex_apP', $('apP').value.trim()); } catch (e) {} };
-  $('apA').oninput = saveAp; $('apP').oninput = saveAp;
+  $('school').value = 'Al-Noaimiyah Girls School-Cycle 1,2&3';
+  try { $('apA').value = localStorage.getItem('cc_annex_apA') || ''; $('apP').value = localStorage.getItem('cc_annex_apP') || ''; const sc = localStorage.getItem('cc_annex_school'); if (sc) $('school').value = sc; } catch (e) {}
+  const saveAp = () => { try { localStorage.setItem('cc_annex_apA', $('apA').value.trim()); localStorage.setItem('cc_annex_apP', $('apP').value.trim()); localStorage.setItem('cc_annex_school', $('school').value.trim()); } catch (e) {} };
+  $('apA').oninput = saveAp; $('apP').oninput = saveAp; $('school').oninput = saveAp;
   const approvers = () => ({ academic: $('apA').value.trim(), principal: $('apP').value.trim() });
+  const school = () => $('school').value.trim();
   const stratHost = (kind) => {
     const host = $(kind === 'intervention' ? 'si' : 'se');
     ccAnnexMulti(host, ST[kind].concat(st.extra[kind]), st.strat[kind], (v) => { st.strat[kind] = v; if (st.data) { st.data.plan.forEach((p) => { if (p.kind === kind && !p._own) p.strategies = v.slice(); }); renderOut(); } });
@@ -10889,13 +10892,13 @@ async function ccOpenAnnex() {
     };
     const meta = () => ({ section: d.class.name, subject: d.subject, grade: d.grade, teacher: d.teacher, bands: d.bands, assessments: d.assessments.map((a) => a.title).join('; ') });
     if (fmt === 'school') {
-      $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows, approvers: approvers() }, $('dl3'));
-      $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan, approvers: approvers() }, $('dl4')); };
+      $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows, approvers: approvers(), school: school() }, $('dl3'));
+      $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan, approvers: approvers(), school: school() }, $('dl4')); };
     } else {
-      const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers() }, btn); };
+      const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers(), school: school() }, btn); };
       if ($('dw3')) { $('dw3').onclick = () => w('3', $('dw3')); $('dw4').onclick = () => w('4', $('dw4')); $('dwb').onclick = () => w('both', $('dwb')); }
     }
-    $('dzip').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/bundle.zip', { section: d.class.name, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers() }, $('dzip')); };
+    $('dzip').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/bundle.zip', { section: d.class.name, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers(), school: school() }, $('dzip')); };
   }
 }
 document.addEventListener('click', (e) => {

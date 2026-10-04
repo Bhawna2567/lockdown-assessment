@@ -46,9 +46,11 @@ const STRATEGIES = {
 };
 // Approver names are optional (typed in the tool, so every school can use its own); signatures stay blank;
 // the date is the day the sheet is generated (UAE time).
+const DEFAULT_SCHOOL = 'Al-Noaimiyah Girls School-Cycle 1,2&3';
 function approversOf(b) {
   const a = (b && b.approvers) || {};
-  return { academic: String(a.academic || '').trim().slice(0, 80), principal: String(a.principal || '').trim().slice(0, 80) };
+  return { academic: String(a.academic || '').trim().slice(0, 80), principal: String(a.principal || '').trim().slice(0, 80),
+    school: String((b && b.school) || '').trim().slice(0, 120) || DEFAULT_SCHOOL };
 }
 function todayUAE() {
   const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(new Date());
@@ -228,7 +230,7 @@ module.exports = function annex(app, d) {
     return tcXml.slice(0, i) + paras + tcXml.slice(j + 6);
   }
   function fillSlide(slideXml, rows, rowsPerSlide, extra, approvers) {
-    approvers = approvers || { academic: '', principal: '' };
+    approvers = approvers || { academic: '', principal: '', school: DEFAULT_SCHOOL };
     const trs = slideXml.match(/<a:tr\b[\s\S]*?<\/a:tr>/g) || [];
     const head = trs[0], tmpl = trs[1];
     const filled = [];
@@ -241,6 +243,8 @@ module.exports = function annex(app, d) {
     let out = slideXml.slice(0, a) + head + filled.join('') + slideXml.slice(z);
     out = out.replace('<a:off x="274320" y="2560320"/>', `<a:off x="274320" y="${TABLE_Y}"/>`);
     const date = todayUAE();
+    out = out.replace('<a:t>Al-Nouimiah School</a:t>', `<a:t>${xmlEsc(approvers.school || DEFAULT_SCHOOL)}</a:t>`)
+      .replace('<a:t>Cycles 1, 2, 3 - Girls Section</a:t>', '<a:t></a:t>');
     out = out.replace(/(Academic Approval:\s*Name: )(_+)(\s*Signature: _+\s*Date: )_+/, (m, a, u, c) => a + (approvers.academic ? xmlEsc(approvers.academic) : u) + c + date)
       .replace(/(School Principal Approval:\s*Name: )(_+)(\s*Signature: _+\s*Date: )_+/, (m, a, u, c) => a + (approvers.principal ? xmlEsc(approvers.principal) : u) + c + date);
     if (extra) out = extra(out);
@@ -388,8 +392,7 @@ module.exports = function annex(app, d) {
   const lvlFill = (pct, pass) => (pct >= 80 ? 'DCFCE7' : pct >= pass ? 'FEF9C3' : pct >= 40 ? 'FFEDD5' : 'FEE2E2');
   function header(meta, title, sub) {
     return [
-      para(tx('Al-Nouimiah School', { bold: true, size: 30, color: NAVY })),
-      para(tx('Cycles 1, 2, 3 — Girls Section', { size: 18, color: GREY })),
+      para(tx((meta.approvers && meta.approvers.school) || DEFAULT_SCHOOL, { bold: true, size: 30, color: NAVY })),
       para([tx(title, { bold: true, size: 26, color: NAVY }), tx(sub ? '   ' + sub : '', { italics: true, size: 20, color: GREY })], { spacing: { before: 120, after: 60 } }),
       para([tx('Class: ', { bold: true }), tx(meta.section || ''), tx('    Subject: ', { bold: true }), tx(meta.subject || ''), tx('    Grade: ', { bold: true }), tx(meta.grade || ''),
         tx('    Teacher: ', { bold: true }), tx(meta.teacher || ''), tx('    Date: ', { bold: true }), tx(new Date().toISOString().slice(0, 10))]),
