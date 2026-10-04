@@ -2184,7 +2184,7 @@ if (els.aiGenerateBtn) {
       return;
     }
     const _qt = ccAiQuestionTypes(); let _curSel = null; try { _curSel = ccCurriculumSelection(); } catch (e) {}
-    if (!prompt && fileList.length === 0 && !_qt.length && !_curSel && !ccAiQuestionFocus().length && !ccAiSkillsList().length) {
+    if (!prompt && fileList.length === 0 && !_qt.length && !_curSel && !ccAiQuestionFocus().length && !ccAiSkillsList().length && !ccAiCefrLevels().length && !ccAiCefrScales().length) {
       els.aiStatus.textContent = '⚠ Tell the AI what to generate, tick question types, focus or skills, choose curriculum lessons, or upload a scheme of work.';
       return;
     }
@@ -2212,7 +2212,7 @@ if (els.aiGenerateBtn) {
       fd.append('subject', subject);
       fd.append('language', language);
       fd.append('wantGraphics', wantGraphics ? '1' : '0');
-      try { const _t = ccAiQuestionTypes(); if (_t.length) fd.append('questionTypes', JSON.stringify(_t)); const _f = ccAiQuestionFocus(); if (_f.length) fd.append('questionFocus', JSON.stringify(_f)); const _sk = ccAiSkillsList(); if (_sk.length) { fd.append('skillsList', JSON.stringify(_sk)); fd.append('skills', _sk.join(', ')); } } catch (e) {}
+      try { const _t = ccAiQuestionTypes(); if (_t.length) fd.append('questionTypes', JSON.stringify(_t)); const _f = ccAiQuestionFocus(); if (_f.length) fd.append('questionFocus', JSON.stringify(_f)); const _cl = ccAiCefrLevels(); if (_cl.length) fd.append('cefrLevels', JSON.stringify(_cl)); const _cs = ccAiCefrScales(); if (_cs.length) fd.append('cefrScales', JSON.stringify(_cs)); const _sk = ccAiSkillsList(); if (_sk.length) { fd.append('skillsList', JSON.stringify(_sk)); fd.append('skills', _sk.join(', ')); } } catch (e) {}
       try { const _cur = ccCurriculumSelection(); if (_cur) fd.append('curriculum', JSON.stringify(_cur)); } catch (e) {}
       try { const _wd = (document.getElementById('ai-week-date') || {}).value; if (_wd) fd.append('weekDate', _wd); } catch (e) {}
       // Multipart standard: same field name repeated for each file. Multer
@@ -2260,6 +2260,7 @@ if (els.aiGenerateBtn) {
           imageDescription: q.imageDescription || '',
           skill: q.skill || '',
           focus: q.focus || '',
+          cefr: q.cefr || '', cefrScale: q.cefrScale || '',
           explanation: q.explanation || '',
         })),
       };
@@ -2680,6 +2681,8 @@ function renderQuestions() {
     }
     root.querySelector('[data-f=points]').oninput = (e) => { q.points = Number(e.target.value) || 1; };
     { const sk = root.querySelector('[data-f=skill]'); if (sk) sk.oninput = (e) => { q.skill = e.target.value; }; }
+    { const ce = root.querySelector('[data-f=cefr]'); if (ce) ce.onchange = (e) => { q.cefr = e.target.value; }; }
+    { const cs = root.querySelector('[data-f=cefrScale]'); if (cs) { cs.oninput = (e) => { q.cefrScale = e.target.value; }; cs.onfocus = () => { let dl = document.getElementById('cc-cefr-scale-dl'); if (!dl) { dl = document.createElement('datalist'); dl.id = 'cc-cefr-scale-dl'; dl.innerHTML = CC_CEFR_SCALES.flatMap((g) => g[1]).map((x) => `<option value="${escapeAttr(x)}"></option>`).join(''); document.body.appendChild(dl); } }; } }
     { const fo = root.querySelector('[data-f=focus]'); if (fo) { fo.oninput = (e) => { q.focus = e.target.value; }; fo.onfocus = () => { try { ccFocusDatalist(); } catch (e) {} }; } }
     { const ex = root.querySelector('[data-f=explanation]'); if (ex) ex.oninput = (e) => { q.explanation = e.target.value; }; }
     root.querySelector('[data-act=remove]').onclick = () => {
@@ -2994,6 +2997,14 @@ function renderQuestion(q, idx) {
           <label>🔎 Question focus</label>
           <input type="text" data-f="focus" dir="auto" list="cc-focus-dl" value="${escapeAttr(q.focus || '')}" placeholder="e.g. Inference" />
         </div>
+        ${(typeof CC_CEFR_SUBJECTS !== 'undefined' && els.subject && CC_CEFR_SUBJECTS.includes(els.subject.value)) || q.cefr || q.cefrScale ? `<div class="field" style="flex:0 0 110px;">
+          <label>🌍 CEFR</label>
+          <select data-f="cefr"><option value="">—</option>${['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => `<option value="${l}" ${q.cefr === l ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        </div>
+        <div class="field" style="flex:1; min-width:180px;">
+          <label>📏 CEFR scale</label>
+          <input type="text" data-f="cefrScale" list="cc-cefr-scale-dl" value="${escapeAttr(q.cefrScale || '')}" placeholder="e.g. Reading for orientation" />
+        </div>` : ''}
         <div class="field" style="flex:2; min-width:260px;">
           <label>💡 Feedback students see after results are released</label>
           <textarea data-f="explanation" dir="auto" rows="2" placeholder="Why the correct answer is right, and the common mistake behind the wrong ones.">${escapeHtml(q.explanation || '')}</textarea>
@@ -8572,6 +8583,12 @@ function ccSkillsBlockHtml(rep) {
     <div class="report-card" style="margin-top:14px;">
       <h2 style="margin-top:0;">🎯 Skills report</h2>
       ${rows}
+      ${Array.isArray(rep.cefr) && rep.cefr.length ? `<h3 style="margin:14px 0 4px;">🌍 CEFR level</h3>` + rep.cefr.map((s) => `
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)} questions</div>
+      <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.pct}%; height:100%; background:${colour(s.pct)};"></div></div>
+      <div style="flex:0 0 120px; text-align:right; font-size:13px; color:${colour(s.pct)}; font-weight:600;">${s.pct}% · ${esc(s.status)}</div>
+    </div>`).join('') : ''}
       ${Array.isArray(rep.focus) && rep.focus.length ? `<h3 style="margin:14px 0 4px;">🔎 Question focus</h3>` + rep.focus.slice().sort((a, b) => b.pct - a.pct).map((s) => `
     <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
       <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)}</div>
@@ -8745,6 +8762,15 @@ function ccAnalyticsSkillsHtml(assessmentId, a) {
   } else {
     body += `<div class="muted" style="margin-top:12px;">No skills tagged yet.</div>`;
   }
+  const bars = (title, list) => `<h3 style="margin-top:16px;">${title}</h3>` + list.map((s) => `
+      <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+        <div dir="auto" style="flex:0 0 36%;">${esc(s.skill)} <span class="muted" style="font-size:12px;">(${s.questionNums.map((n) => 'Q' + n).join(', ')})</span></div>
+        <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.classPct}%; height:100%; background:${colour(s.classPct)};"></div></div>
+        <div style="flex:0 0 60px; text-align:right; font-weight:600; color:${colour(s.classPct)};">${s.classPct}%</div>
+      </div>
+      ${s.strugglingCount ? `<div class="muted" style="font-size:12px; margin:-2px 0 6px 0;">Below 60%: ${s.struggling.map((x) => esc(x.name) + ' (' + x.pct + '%)').join(', ')}</div>` : ''}`).join('');
+  if (Array.isArray(a.classCefr) && a.classCefr.length) body += bars('🌍 CEFR level of the questions — class average', a.classCefr);
+  if (Array.isArray(a.classCefrScale) && a.classCefrScale.length) body += bars('📏 CEFR scales — class average', a.classCefrScale);
   const focus = Array.isArray(a.classFocus) ? a.classFocus : [];
   if (focus.length) {
     body += `<h3 style="margin-top:16px;">🔎 Question focus — class average</h3>` + focus.map((s) => `
@@ -9906,7 +9932,7 @@ document.addEventListener('click', (e) => { if (e.target && e.target.closest && 
 //  🎬 Training videos inside the User Guide (English + Arabic, 14 chapters)
 //  Files live in /videos/<en|ar>/<NN>.mp4 (streamed, not cached offline).
 // ═══════════════════════════════════════════════════════════════════════
-const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 142, "dar": 178}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 101}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 92, "dar": 121}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 94, "dar": 119}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages and parent reports", "ar": "متوسطات الصف وتقارير أولياء الأمور", "den": 115, "dar": 147}, {"n": 12, "en": "Outcome coverage and the Outcome check", "ar": "تغطية نواتج التعلم وفحص النواتج", "den": 88, "dar": 116}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
+const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 181, "dar": 229}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 101}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 112, "dar": 147}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 110, "dar": 139}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages and parent reports", "ar": "متوسطات الصف وتقارير أولياء الأمور", "den": 128, "dar": 166}, {"n": 12, "en": "Outcome coverage and the Outcome check", "ar": "تغطية نواتج التعلم وفحص النواتج", "den": 88, "dar": 116}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
 function ccFmtDur(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function ccTrainingVideosEnhance() {
   const overlay = document.getElementById('cc-user-guide-overlay');
@@ -9947,7 +9973,7 @@ function ccTrainingVideosEnhance() {
       </div>
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div style="flex:1 1 520px; min-width:280px;">
-          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=2"></video>
+          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=3"></video>
           <div style="margin-top:6px; font-weight:600;" dir="${rtl ? 'rtl' : 'ltr'}">${t.ch} ${c.n} · ${rtl ? c.ar : c.en}</div>
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; margin-top:6px; text-transform:none; letter-spacing:0; font-weight:400;" dir="${rtl ? 'rtl' : 'ltr'}"><input type="checkbox" id="cc-tv-all" ${playAll ? 'checked' : ''} style="width:auto;"> ${t.all}</label>
         </div>
@@ -10017,6 +10043,16 @@ const CC_FOCUS = {
   science: ['Recall of facts', 'Applying concepts', 'Interpreting data', 'Experimental design', 'Explaining phenomena', 'Calculations'],
   other: ['Key concepts', 'Case-study analysis', 'Application', 'Evaluation'],
 };
+const CC_CEFR_SUBJECTS = ['English', 'French', 'Listening', 'IELTS', 'TOEFL'];
+const CC_CEFR_LEVELS = [['A1', 'A1 — Beginner'], ['A2', 'A2 — Elementary'], ['B1', 'B1 — Intermediate (Threshold)'], ['B2', 'B2 — Upper-intermediate (Vantage)'], ['C1', 'C1 — Advanced'], ['C2', 'C2 — Proficiency']];
+const CC_CEFR_SCALES = [
+  ['Reading', ['Overall reading comprehension', 'Reading correspondence', 'Reading for orientation', 'Reading for information and argument', 'Reading instructions', 'Reading as a leisure activity']],
+  ['Listening', ['Overall listening comprehension', 'Understanding conversation between other people', 'Listening as a member of a live audience', 'Listening to announcements and instructions', 'Listening to audio media and recordings']],
+  ['Writing', ['Overall written production', 'Creative writing', 'Reports and essays', 'Correspondence', 'Notes, messages and forms']],
+  ['Speaking', ['Overall oral production', 'Sustained monologue: describing experience', 'Sustained monologue: putting a case', 'Overall spoken interaction', 'Information exchange']],
+  ['Mediation', ['Processing text (summarising)', 'Explaining data', 'Expressing a personal response to creative texts']],
+  ['Language competence', ['Vocabulary range', 'Grammatical accuracy', 'Orthographic control', 'Coherence and cohesion']],
+];
 function ccFocusOptionsFor(subject) {
   if (subject === 'Arabic') return CC_FOCUS.Arabic;
   if (CC_LANG_SUBJECTS.includes(subject)) return CC_FOCUS.lang;
@@ -10028,8 +10064,9 @@ function ccMultiBuild(host) {
   if (!host || host._ccBuilt) return;
   host._ccBuilt = true;
   const kind = host.getAttribute('data-cc-multi');
-  const opts = host._ccOpts || (kind === 'qtypes' ? CC_QTYPE_OPTIONS : kind === 'focus' ? [] : CC_SKILL_OPTIONS.map((x) => [x, x]));
-  const counts = kind === 'qtypes' || kind === 'focus';
+  const opts = host._ccOpts || (kind === 'qtypes' ? CC_QTYPE_OPTIONS : kind === 'focus' ? [] : kind === 'cefr' ? CC_CEFR_LEVELS
+    : kind === 'cefrscales' ? CC_CEFR_SCALES.flatMap(([g, list]) => list.map((x, i) => [x, x, i === 0 ? g : ''])) : CC_SKILL_OPTIONS.map((x) => [x, x]));
+  const counts = kind === 'qtypes' || kind === 'focus' || kind === 'cefr';
   const esc = (x) => escapeHtml(String(x == null ? '' : x));
   host.style.position = 'relative';
   host.innerHTML = `
@@ -10111,7 +10148,7 @@ function ccMultiSummary(host) {
     parts.push(label + (n && n.value ? ' × ' + n.value : ''));
   });
   const kind = host.getAttribute('data-cc-multi');
-  sum.textContent = parts.length ? parts.join(', ') : (kind === 'qtypes' ? 'Any type — the AI decides' : kind === 'focus' ? 'Any focus — the AI decides' : '— No skill —');
+  sum.textContent = parts.length ? parts.join(', ') : (kind === 'qtypes' ? 'Any type — the AI decides' : kind === 'focus' ? 'Any focus — the AI decides' : kind === 'cefr' ? 'No CEFR level' : kind === 'cefrscales' ? 'No CEFR scale' : '— No skill —');
   sum.style.color = parts.length ? '#1a1e33' : '#64748b';
 }
 function ccMultiValue(id) {
@@ -10138,13 +10175,17 @@ function ccMultiCounted(id, key) {
 }
 function ccAiQuestionTypes() { return ccMultiCounted('ai-qtypes', 'type'); }
 function ccAiQuestionFocus() { return ccMultiCounted('ai-focus', 'focus'); }
+function ccAiCefrOn() { const r = document.getElementById('ai-cefr-row'); return !!(r && r.style.display !== 'none'); }
+function ccAiCefrLevels() { return ccAiCefrOn() ? ccMultiCounted('ai-cefr', 'level') : []; }
+function ccAiCefrScales() { return ccAiCefrOn() ? (ccMultiValue('ai-cefr-scales') ? Array.from(document.querySelectorAll('#ai-cefr-scales [data-multi-v]:checked')).map((c) => c.getAttribute('data-multi-v')) : []) : []; }
 // The number of questions follows the counts: question types first, otherwise question focus.
 function ccAiAutoCount() {
   if (!els.aiCount) return;
-  const t = ccAiQuestionTypes(), f = ccAiQuestionFocus();
+  const t = ccAiQuestionTypes(), f = ccAiQuestionFocus(), c = ccAiCefrLevels();
   const sum = (a) => a.reduce((n, x) => n + x.count, 0);
   if (t.length && t.every((x) => x.count > 0)) els.aiCount.value = String(Math.min(50, sum(t)));
   else if (f.length && f.every((x) => x.count > 0)) els.aiCount.value = String(Math.min(50, sum(f)));
+  else if (c.length && c.every((x) => x.count > 0)) els.aiCount.value = String(Math.min(50, sum(c)));
 }
 // Skills chosen in the AI panel: language skills + curriculum skills (labels sent to the AI).
 function ccAiSkillsList() {
@@ -10220,7 +10261,8 @@ function ccAiFocusRefresh() {
 (function ccMultiInit() {
   document.querySelectorAll('[data-cc-multi]').forEach(ccMultiBuild);
   const subj = document.getElementById('ai-subject');
-  const refresh = () => { ccAiSkillsRefresh(); ccAiFocusRefresh(); };
+  const cefrRow = () => { const r = document.getElementById('ai-cefr-row'); if (r && subj) r.style.display = CC_CEFR_SUBJECTS.includes(subj.value) ? '' : 'none'; };
+  const refresh = () => { ccAiSkillsRefresh(); ccAiFocusRefresh(); cefrRow(); };
   if (subj) subj.addEventListener('change', () => { window._ccCurSkillGroups = []; refresh(); });
   // Rebuild the curriculum skills whenever the curriculum lessons are (re)loaded.
   const list = document.getElementById('ai-cur-list');

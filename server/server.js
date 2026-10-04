@@ -1098,7 +1098,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
@@ -1350,6 +1350,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
             skill: (typeof q.skill === 'string' && q.skill.trim()) ? q.skill.slice(0, 80) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).skill || ''),
             focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).focus || ''),
+            cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
             explanation: (typeof q.explanation === 'string' && q.explanation.trim()) ? q.explanation.slice(0, 1500) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).explanation || ''),
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
@@ -3201,15 +3202,30 @@ function _ccSkillReport(a, result) {
     const pct = Math.round((f.earned / f.max) * 100);
     return { skill: f.skill, pct, status: pct >= 80 ? 'strong' : pct >= 60 ? 'developing' : 'needs work' };
   }).sort((x, y) => x.pct - y.pct);
+  const cmap = new Map();
+  for (const q of a.questions || []) {
+    const name = _ccCefrName(q);
+    if (!name) continue;
+    const e = _ccQuestionEarned(q, result);
+    if (!cmap.has(name)) cmap.set(name, { skill: name, earned: 0, max: 0 });
+    if (e) { const f = cmap.get(name); f.earned += e.earned; f.max += e.max; }
+  }
+  const cefr = Array.from(cmap.values()).filter((f) => f.max > 0).map((f) => {
+    const pct = Math.round((f.earned / f.max) * 100);
+    return { skill: f.skill, pct, status: pct >= 80 ? 'strong' : pct >= 60 ? 'developing' : 'needs work' };
+  }).sort((x, y) => x.skill.localeCompare(y.skill));
   return {
     skills,
     focus,
+    cefr,
     strengths: skills.filter((s) => s.pct >= 80 && s.skill !== 'Untagged').map((s) => s.skill).reverse(),
     needsWork: skills.filter((s) => s.pct < 60 && s.skill !== 'Untagged').map((s) => s.skill),
   };
 }
 
 // Class-level skills + question analysis.
+function _ccCefrName(q) { const c = String((q && q.cefr) || ''); return /^(A1|A2|B1|B2|C1|C2)$/.test(c) ? 'CEFR ' + c : null; }
+function _ccCefrScaleName(q) { const t = String((q && q.cefrScale) || '').trim(); return t || null; }
 function _ccFocusName(q) { const f = String((q && q.focus) || '').trim(); return f || null; }
 function _ccClassSkillAnalysis(a, results, nameOf) {
   nameOf = nameOf || _ccSkillName;
@@ -3384,6 +3400,25 @@ app.get('/api/assessments/:id/skills-report.xlsx', requireTeacher, async (req, r
       head(wsf);
       for (const s of foc) {
         const row = wsf.addRow({ s: s.skill, q: s.questionNums.map((n) => 'Q' + n).join(', '), p: s.classPct, n: s.strugglingCount, w: s.struggling.map((x) => `${x.name} (${x.pct}%)`).join(', ') });
+        band(row.getCell('p'), s.classPct);
+      }
+    }
+
+    // 1c. CEFR level / scale of the questions
+    const cefrRows = _ccClassSkillAnalysis(a, results, _ccCefrName).sort((x, y) => x.skill.localeCompare(y.skill))
+      .concat(_ccClassSkillAnalysis(a, results, (q) => { const t = _ccCefrScaleName(q); return t ? 'Scale: ' + t : null; }));
+    if (cefrRows.length) {
+      const wsc = wb.addWorksheet('CEFR');
+      wsc.columns = [
+        { header: 'CEFR level / scale', key: 's', width: 40 },
+        { header: 'Questions', key: 'q', width: 18 },
+        { header: 'Class average %', key: 'p', width: 16 },
+        { header: 'Students below 60%', key: 'n', width: 18 },
+        { header: 'Students who need support', key: 'w', width: 70 },
+      ];
+      head(wsc);
+      for (const s of cefrRows) {
+        const row = wsc.addRow({ s: s.skill, q: s.questionNums.map((n) => 'Q' + n).join(', '), p: s.classPct, n: s.strugglingCount, w: s.struggling.map((x) => `${x.name} (${x.pct}%)`).join(', ') });
         band(row.getCell('p'), s.classPct);
       }
     }
@@ -4906,7 +4941,7 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
     return res.json({
       assessmentTitle: a.title,
       resultsReleased: _ccResultsReleased(a),
-      classSkills: [], classFocus: [],
+      classSkills: [], classFocus: [], classCefr: [], classCefrScale: [],
       submissionCount: 0,
       mean: null, median: null, min: null, max: null, avgTimeMinutes: null,
       histogram: [],
@@ -5012,6 +5047,8 @@ app.get('/api/assessments/:id/analytics', requireTeacher, (req, res) => {
     resultsReleased: _ccResultsReleased(a),
     classSkills: _ccClassSkillAnalysis(a, results),
     classFocus: _ccClassSkillAnalysis(a, results, _ccFocusName),
+    classCefr: _ccClassSkillAnalysis(a, results, _ccCefrName).sort((x, y) => x.skill.localeCompare(y.skill)),
+    classCefrScale: _ccClassSkillAnalysis(a, results, _ccCefrScaleName),
     submissionCount: results.length,
     mean: Math.round(mean * 10) / 10,
     median: Math.round(median * 10) / 10,
@@ -5910,12 +5947,16 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
   let _focus = [];
   try { const t = JSON.parse(req.body?.questionFocus || '[]'); if (Array.isArray(t)) _focus = t.filter((x) => x && String(x.focus || '').trim()).slice(0, 15).map((x) => ({ focus: String(x.focus).trim().slice(0, 60), count: Math.max(0, Math.min(50, parseInt(x.count, 10) || 0)) })); } catch (e) {}
   const _focusTotal = _focus.reduce((n, x) => n + x.count, 0);
+  let _cefr = [], _cefrScales = [];
+  try { const t = JSON.parse(req.body?.cefrLevels || '[]'); if (Array.isArray(t)) _cefr = t.filter((x) => x && /^(A1|A2|B1|B2|C1|C2)$/.test(x.level)).map((x) => ({ level: x.level, count: Math.max(0, Math.min(50, parseInt(x.count, 10) || 0)) })); } catch (e) {}
+  try { const t = JSON.parse(req.body?.cefrScales || '[]'); if (Array.isArray(t)) _cefrScales = t.map((x) => String(x || '').trim().slice(0, 80)).filter(Boolean).slice(0, 20); } catch (e) {}
+  const _cefrTotal = _cefr.reduce((n, x) => n + x.count, 0);
   const _typeTotal = _qTypes.reduce((n, x) => n + x.count, 0);
-  const requestedCount = Math.max(1, Math.min(50, (_qTypes.length && _qTypes.every((x) => x.count > 0)) ? _typeTotal : ((_focus.length && _focus.every((x) => x.count > 0)) ? _focusTotal : (parseInt(req.body?.count, 10) || 10))));
+  const requestedCount = Math.max(1, Math.min(50, (_qTypes.length && _qTypes.every((x) => x.count > 0)) ? _typeTotal : ((_focus.length && _focus.every((x) => x.count > 0)) ? _focusTotal : ((_cefr.length && _cefr.every((x) => x.count > 0)) ? _cefrTotal : (parseInt(req.body?.count, 10) || 10)))));
   const subject = String(req.body?.subject || '').trim();
   const language = String(req.body?.language || 'English').trim();
   const files = Array.isArray(req.files) ? req.files : [];
-  if (!prompt && files.length === 0 && !_qTypes.length && !_focus.length && !_skillsAll.length && !req.body?.curriculum) {
+  if (!prompt && files.length === 0 && !_qTypes.length && !_focus.length && !_skillsAll.length && !_cefr.length && !_cefrScales.length && !req.body?.curriculum) {
     return res.status(400).json({
       ok: false,
       error: 'Either a prompt or a scheme-of-work file is required.',
@@ -6144,8 +6185,17 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
       (_focus.every((x) => x.count > 0) ? '   - Write exactly these numbers of questions for each focus (' + _focusTotal + ' in total), combined with the question types above.\n' : '   - Spread the questions sensibly across these focus areas.\n') +
       '   - Each question must genuinely test its focus (e.g. an "Inference" question cannot be answered by copying a sentence; a "Main idea" question asks about the whole text or paragraph; a "Vocabulary in context" question asks the meaning of a word as used in the passage).\n' +
       '   - Keep the weekly difficulty mix across the focus areas: each focus can have easy, medium and hard questions.\n') : '',
+    _cefr.length ? ('CEFR TARGET LEVEL' + (_cefr.length > 1 ? 'S' : '') + ' CHOSEN BY THE TEACHER (Common European Framework of Reference, Companion Volume 2020): ' + _cefr.map((x) => x.level + (x.count ? ' × ' + x.count : '')).join(', ') + '.\n' +
+      '   - Pitch every reading passage, audio script and question at the chosen level(s): text length and organisation, vocabulary range, grammatical structures, topic familiarity (concrete → abstract) and the task demand must match the CEFR descriptors for that level.\n' +
+      '   - Give EVERY question a "cefr" field with exactly one of: ' + _cefr.map((x) => '"' + x.level + '"').join(', ') + ' — the level it genuinely targets.\n' +
+      (_cefr.every((x) => x.count > 0) ? '   - Write exactly these numbers of questions per level (' + _cefrTotal + ' in total).\n' : (_cefr.length > 1 ? '   - Spread the questions sensibly across these levels, lower levels first.\n' : '')) +
+      (_cefr.length > 1 ? '   - When levels are mixed, use one passage per level, or one passage at the lower level with harder tasks for the higher level, and show the level in the section title (e.g. "Section B — Reading (B2)").\n' : '') +
+      '   - CEFR levels are separate from the weekly easy/medium/hard mix: within a level, questions can still be easy, medium or hard.\n') : '',
+    _cefrScales.length ? ('CEFR SCALES TO ASSESS: ' + _cefrScales.join(' | ') + '.\n' +
+      '   - Every question must assess one of these CEFR scales (illustrative descriptor scales of the CEFR Companion Volume). Give EVERY question a "cefrScale" field with the scale name written exactly as listed.\n' +
+      '   - Choose the task types each scale needs (e.g. "Reading for orientation" = scanning a notice, timetable or advert for specific information; "Reading for information and argument" = following the line of argument and the writer\'s viewpoint; "Listening to announcements and instructions" = short spoken instructions; "Reports and essays" = an extended written task).\n') : '',
     'Teacher\'s request:',
-    prompt || (_qTypes.length || _skills.length || _focus.length || _curSkills.length ? '(no extra instructions — follow the question types, skills and curriculum given above)' : '(no prompt — design a balanced assessment based on the scheme of work)'),
+    prompt || (_qTypes.length || _skills.length || _focus.length || _curSkills.length || _cefr.length || _cefrScales.length ? '(no extra instructions — follow the question types, skills and curriculum given above)' : '(no prompt — design a balanced assessment based on the scheme of work)'),
   ].filter(Boolean).join('\n');
 
   const userContent = [
@@ -6192,7 +6242,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
             type: { type: 'string', enum: ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match'] },
             prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } },
             correctAnswer: {}, points: { type: 'number' }, sectionIndex: { type: 'integer' },
-            imageDescription: { type: 'string' }, skill: { type: 'string' }, focus: { type: 'string' }, explanation: { type: 'string' },
+            imageDescription: { type: 'string' }, skill: { type: 'string' }, focus: { type: 'string' }, cefr: { type: 'string', enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] }, cefrScale: { type: 'string' }, explanation: { type: 'string' },
             difficulty: { type: 'string' }, difficultyReason: { type: 'string' },
             matchVariant: { type: 'string' }, pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
           }, required: ['type', 'prompt'] } },
@@ -6287,7 +6337,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
         imageUrl: '', // populated client-side after teacher uploads
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
+        focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
         difficulty: q.difficulty, difficultyReason: q.difficultyReason,
       };
@@ -6489,7 +6539,7 @@ app.post('/api/import', requireTeacher, upload.single('file'), _ccAsyncJob, asyn
               imageUrl: _imgFor(q.imageRef),
               imageDescription: '',
               skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
-              focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '',
+              focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
               explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
               difficulty: q.difficulty, difficultyReason: q.difficultyReason,
             };

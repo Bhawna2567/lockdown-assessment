@@ -2847,6 +2847,12 @@ function ccSkillsBlockHtml(rep) {
     <div class="report-card" style="margin-top:14px;">
       <h2 style="margin-top:0;">🎯 Skills report</h2>
       ${rows}
+      ${Array.isArray(rep.cefr) && rep.cefr.length ? `<h3 style="margin:14px 0 4px;">🌍 CEFR level</h3>` + rep.cefr.map((s) => `
+    <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
+      <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)} questions</div>
+      <div style="flex:1; background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;"><div style="width:${s.pct}%; height:100%; background:${colour(s.pct)};"></div></div>
+      <div style="flex:0 0 120px; text-align:right; font-size:13px; color:${colour(s.pct)}; font-weight:600;">${s.pct}% · ${esc(s.status)}</div>
+    </div>`).join('') : ''}
       ${Array.isArray(rep.focus) && rep.focus.length ? `<h3 style="margin:14px 0 4px;">🔎 Question focus</h3>` + rep.focus.slice().sort((a, b) => b.pct - a.pct).map((s) => `
     <div style="display:flex; align-items:center; gap:10px; margin:6px 0;">
       <div dir="auto" style="flex:0 0 42%; font-size:14px;">${esc(s.skill)}</div>
