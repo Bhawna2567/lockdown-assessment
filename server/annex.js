@@ -44,6 +44,13 @@ const STRATEGIES = {
     'Creative writing workshop',
   ],
 };
+// Approvers printed on every sheet (signatures stay blank); date = day the sheet is generated (UAE time).
+const APPROVERS = { academic: 'Bhawna Sharma', principal: 'Fanda Salem Ahmed Helais Alkaabi' };
+function todayUAE() {
+  const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(new Date());
+  const g = (t) => (p.find((x) => x.type === t) || {}).value || '';
+  return `${g('day')}/${g('month')}/${g('year')}`;
+}
 const CODE_RE = /^\s*[A-Z][A-Z0-9&]{1,6}(?:\.[0-9A-Z]{1,4}){2,7}\s*/;
 
 module.exports = function annex(app, d) {
@@ -224,6 +231,9 @@ module.exports = function annex(app, d) {
     const a = slideXml.indexOf(head), z = slideXml.indexOf('</a:tbl>');
     let out = slideXml.slice(0, a) + head + filled.join('') + slideXml.slice(z);
     out = out.replace('<a:off x="274320" y="2560320"/>', `<a:off x="274320" y="${TABLE_Y}"/>`);
+    const date = todayUAE();
+    out = out.replace(/(Academic Approval:\s*Name: )_+(\s*Signature: _+\s*Date: )_+/, `$1${xmlEsc(APPROVERS.academic)}$2${date}`)
+      .replace(/(School Principal Approval:\s*Name: )_+(\s*Signature: _+\s*Date: )_+/, `$1${xmlEsc(APPROVERS.principal)}$2${date}`);
     if (extra) out = extra(out);
     return out;
   }
@@ -254,8 +264,15 @@ module.exports = function annex(app, d) {
     if (cur.length || !pages.length) pages.push(cur);
     return pages;
   }
-  async function buildPptx(templateName, rows, rowsPerSlide, extra, chars) {
-    const pageRows = paginate(rows, chars || 17, rowsPerSlide);
+  async function buildPptx(templateName, rows, rowsPerSlide, extra, chars, sections) {
+    // sections: optional [{ rows, extra }] — e.g. one Annex 4 block per month.
+    const secs = Array.isArray(sections) && sections.length ? sections : [{ rows, extra }];
+    const pageList = [];
+    for (const sec of secs) {
+      const pr = paginate(sec.rows, chars || 17, rowsPerSlide);
+      pr.forEach((r, k) => pageList.push({ rows: r, extra: sec.extra, last: k === pr.length - 1 }));
+    }
+    const pageRows = pageList.map((x) => x.rows);
     const zip = await JSZip.loadAsync(fs.readFileSync(path.join(__dirname, 'templates', templateName)));
     const base = await zip.file('ppt/slides/slide1.xml').async('string');
     const pages = pageRows.length;
@@ -288,8 +305,8 @@ module.exports = function annex(app, d) {
       // Fill the page's rows; the last page is topped up with empty rows only while they still fit.
       const pr = pageRows[p];
       let blanks = 0, used = pr.reduce((n, r) => n + rowHeight(r, chars || 17), 0);
-      while (p === pages - 1 && pr.length + blanks < rowsPerSlide && used + MIN_ROW * 1.15 <= FOOTER_Y - TABLE_Y - HEAD_H) { blanks++; used += MIN_ROW * 1.15; }
-      zip.file(`ppt/slides/slide${n}.xml`, fillSlide(base, pr, pr.length + blanks, extra));
+      while (pageList[p].last && pr.length + blanks < rowsPerSlide && used + MIN_ROW * 1.15 <= FOOTER_Y - TABLE_Y - HEAD_H) { blanks++; used += MIN_ROW * 1.15; }
+      zip.file(`ppt/slides/slide${n}.xml`, fillSlide(base, pr, pr.length + blanks, pageList[p].extra));
       if (n === 1) continue;
       zip.file(`ppt/slides/_rels/slide${n}.xml.rels`, rels1);
       ct = ct.replace('</Types>', `<Override PartName="/ppt/slides/slide${n}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>`);
@@ -310,7 +327,7 @@ module.exports = function annex(app, d) {
       const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => [
         r.subject, r.section, r.skill, r.students, r.proficient, (r.proficiencyPct !== '' && r.proficiencyPct != null ? r.proficiencyPct + '%' : ''), r.level2, r.level3, r.action,
       ]);
-      const buf = await buildPptx('annex3.pptx', rows, 5, null, 22);
+      const buf = await buildPptx('annex3.pptx', rows, 5, null, 18);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex3_Skills_Analysis_${safeName(b.section)}.pptx"`);
       res.send(buf);
@@ -330,11 +347,11 @@ module.exports = function annex(app, d) {
   app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
     try {
       const b = req.body || {};
-      const month = String(b.month || 'First Month').slice(0, 40);
+      const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || 'First Month']).map((m) => String(m).slice(0, 40)).slice(0, 12);
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
         (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
-      const buf = await buildPptx('annex4.pptx', rows, 5, (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(month)}</a:t>`), 20);
+      const buf = await buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(m)}</a:t>`) })));
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex4_Intervention_Plan_${safeName(b.section)}.pptx"`);
       res.send(buf);
@@ -366,8 +383,8 @@ module.exports = function annex(app, d) {
   }
   const signatures = () => [
     para(tx(' '), { spacing: { before: 200 } }),
-    para(tx('Academic Approval:      Name: ______________________     Signature: ______________     Date: ____________', { size: 17 })),
-    para(tx('School Principal Approval:      Name: ______________________     Signature: ______________     Date: ____________', { size: 17 }), { spacing: { before: 160 } }),
+    para([tx('Academic Approval:      Name: ', { size: 17 }), tx(APPROVERS.academic, { size: 17, bold: true }), tx('     Signature: ______________     Date: ', { size: 17 }), tx(todayUAE(), { size: 17, bold: true })]),
+    para([tx('School Principal Approval:      Name: ', { size: 17 }), tx(APPROVERS.principal, { size: 17, bold: true }), tx('     Signature: ______________     Date: ', { size: 17 }), tx(todayUAE(), { size: 17, bold: true })], { spacing: { before: 160 } }),
   ];
   function enhanced3(meta, rows) {
     const b = meta.bands || {};
@@ -416,7 +433,8 @@ module.exports = function annex(app, d) {
       const sections = [];
       const page = { size: { orientation: PageOrientation.LANDSCAPE }, margin: { top: 600, bottom: 600, left: 600, right: 600 } };
       if (which !== '4') sections.push({ properties: { page }, children: enhanced3(meta, (Array.isArray(b.rows) ? b.rows : []).slice(0, 200)) });
-      if (which !== '3') sections.push({ properties: { page }, children: enhanced4(meta, (Array.isArray(b.plan) ? b.plan : []).slice(0, 100)) });
+      const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || '']).map((m) => String(m).slice(0, 40)).slice(0, 12);
+      if (which !== '3') for (const m of months) sections.push({ properties: { page }, children: enhanced4(Object.assign({}, meta, { month: m }), (Array.isArray(b.plan) ? b.plan : []).slice(0, 100)) });
       const doc = new Document({ creator: 'ClassCurio', title: 'Annex 3 & 4', sections });
       const buf = await Packer.toBuffer(doc);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');

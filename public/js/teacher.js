@@ -10717,7 +10717,7 @@ async function ccOpenAnnex() {
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
       <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
-      <label style="margin:0;">Annex 4 month<select data-ax="month"><option>First Month</option><option>Second Month</option><option>Third Month</option></select></label>
+      <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">School form (PowerPoint — same as provided)</option><option value="enhanced">Enhanced version (Word — more detail)</option></select></label>
     </div>
     <div data-ax="alist" style="margin-top:10px;"></div>
@@ -10737,6 +10737,28 @@ async function ccOpenAnnex() {
     ccAnnexMulti(host, ST[kind].concat(st.extra[kind]), st.strat[kind], (v) => { st.strat[kind] = v; if (st.data) { st.data.plan.forEach((p) => { if (p.kind === kind && !p._own) p.strategies = v.slice(); }); renderOut(); } });
   };
   stratHost('intervention'); stratHost('enrichment');
+  // Annex 4 months: tick one or more; "All" ticks every month.
+  const MONTHS = ['First Month', 'Second Month', 'Third Month'];
+  st.months = ['First Month'];
+  {
+    const host = $('months');
+    host.setAttribute('data-cc-multi', 'months'); host._ccBuilt = false;
+    host._ccOpts = [['__all', 'All months']].concat(MONTHS.map((m) => [m, m]));
+    ccMultiBuild(host);
+    const sync = () => {
+      host.querySelectorAll('[data-multi-v]').forEach((c) => { const v = c.getAttribute('data-multi-v'); c.checked = v === '__all' ? st.months.length === MONTHS.length : st.months.includes(v); });
+      const sum = host.querySelector('.cc-multi-sum');
+      if (sum) { sum.textContent = st.months.length === MONTHS.length ? 'All months' : (st.months.join(', ') || 'Choose months…'); sum.style.color = st.months.length ? '#1a1e33' : '#64748b'; }
+    };
+    host.addEventListener('change', (e) => {
+      const c = e.target; if (!c || !c.hasAttribute || !c.hasAttribute('data-multi-v')) return;
+      const v = c.getAttribute('data-multi-v');
+      if (v === '__all') st.months = c.checked ? MONTHS.slice() : [];
+      else st.months = MONTHS.filter((m) => (m === v ? c.checked : st.months.includes(m)));
+      sync(); if (st.data) renderOut();
+    });
+    sync();
+  }
   const addOwn = (kind, inp) => { const t = String($(inp).value || '').trim(); if (!t) return; st.extra[kind].push(t); st.strat[kind].push(t); $(inp).value = ''; stratHost(kind); if (st.data) { st.data.plan.forEach((p) => { if (p.kind === kind && !p._own) p.strategies = st.strat[kind].slice(); }); renderOut(); } };
   $('si-add').onclick = () => addOwn('intervention', 'si-own'); $('se-add').onclick = () => addOwn('enrichment', 'se-own');
   const gradeOf = (c) => { const g = c.assessments.map((a) => parseInt(a.grade, 10)).filter(Boolean); return g.length ? Math.max(...g) : 0; };
@@ -10800,7 +10822,7 @@ async function ccOpenAnnex() {
           <td style="border:1px solid #e5e7eb; padding:4px; font-size:11px; color:#92400e; vertical-align:top;" title="${esc(r.atRiskNames.join(', '))}">${r.atRisk}</td></tr>
           <tr><td colspan="10" style="font-size:11px; color:#64748b; padding:2px 6px 8px;">${r.level3 ? `<strong style="color:#991b1b;">Level 3:</strong> ${esc(r.level3Names.join(', '))} ` : ''}${r.level2 ? `<strong style="color:#92400e;">Level 2:</strong> ${esc(r.level2Names.join(', '))}` : ''}</td></tr>`).join('')}
       </table></div>
-      <h3 style="margin:16px 0 6px;">Annex 4 — Intervention and Enrichment Plan <span class="muted" style="font-size:13px; font-weight:400;">(${esc($('month').value)})</span></h3>
+      <h3 style="margin:16px 0 6px;">Annex 4 — Intervention and Enrichment Plan <span class="muted" style="font-size:13px; font-weight:400;">(${esc(st.months.length === 3 ? 'All months' : st.months.join(', ') || 'no month chosen')} — the same plan is printed for each month chosen)</span></h3>
       <div><table style="width:100%; border-collapse:collapse; table-layout:fixed;"><tr>${['Target Skill', 'Category/Students', 'Baseline → Target', 'Strategies (choose)', 'Strategy details', 'Responsible Person', 'Sessions &amp; Timing', 'Progress Indicator', 'Follow-up Decision'].map(th4).join('')}<th></th></tr>
         ${d.plan.map((p, i) => `<tr style="background:${p.kind === 'enrichment' ? '#f0fdf4' : '#fff'};">
           <td style="border:1px solid #e5e7eb; padding:2px; vertical-align:top;">${cell(p.skill, 'p.skill', i, 1)}<div style="font-size:11px; color:${p.kind === 'enrichment' ? '#15803d' : '#b91c1c'};">${p.kind === 'enrichment' ? 'Enrichment' : 'Intervention'}</div></td>
@@ -10845,9 +10867,9 @@ async function ccOpenAnnex() {
     const meta = () => ({ section: d.class.name, subject: d.subject, grade: d.grade, teacher: d.teacher, bands: d.bands, assessments: d.assessments.map((a) => a.title).join('; ') });
     if (fmt === 'school') {
       $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows }, $('dl3'));
-      $('dl4').onclick = () => download('/api/admin/annex/annex4.pptx', { section: d.class.name, month: $('month').value, plan: d.plan }, $('dl4'));
+      $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan }, $('dl4')); };
     } else {
-      const w = (which, btn) => download('/api/admin/annex/enhanced.docx', { which, month: $('month').value, meta: meta(), rows: d.rows, plan: d.plan }, btn);
+      const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan }, btn); };
       $('dw3').onclick = () => w('3', $('dw3')); $('dw4').onclick = () => w('4', $('dw4')); $('dwb').onclick = () => w('both', $('dwb'));
     }
   }
