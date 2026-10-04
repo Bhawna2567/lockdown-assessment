@@ -1888,9 +1888,11 @@ function renderList() {
         a.academicYear ? a.academicYear : null,
         a.scheduledDate ? `📅 ${a.scheduledDate}` : null,
       ].filter(Boolean).join(' · ');
+      const _sel = window._ccSel;
       return `
-      <div class="card">
+      <div class="card" data-cc-aid="${escapeAttr(a.id)}" ${_sel && _sel.has(a.id) ? 'style="outline:2px solid #dc2626; outline-offset:-2px; background:#fff7f7;"' : ''}>
         <div class="row">
+          ${_sel ? `<label style="display:flex; align-items:flex-start; padding:4px 10px 0 0; margin:0; cursor:pointer;" title="Select"><input type="checkbox" data-cc-sel="${escapeAttr(a.id)}" ${_sel.has(a.id) ? 'checked' : ''} style="width:20px; height:20px; margin:0;"></label>` : ''}
           <div style="flex:1; min-width: 0;">
             <div class="card-title">${escapeHtml(a.title)}
               <span class="badge ${a.published ? 'green' : ''}">${a.published ? 'Published' : 'Draft'}</span>
@@ -10576,4 +10578,67 @@ async function ccTagFocusAI(btn) {
     after.insertAdjacentElement('afterend', b);
   };
   add(); setTimeout(add, 2000);
+})();
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ☑ Select several assessments and delete them together
+//  window._ccSel is a Set of selected ids while "select mode" is on.
+// ═══════════════════════════════════════════════════════════════════════
+function ccSelBar() {
+  let bar = document.getElementById('cc-sel-bar');
+  if (!window._ccSel) { if (bar) bar.remove(); ccSelToggleBtn(); return; }
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'cc-sel-bar';
+    bar.style.cssText = 'position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:9000; background:#1e1b4b; color:#fff; border-radius:14px; padding:10px 14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; box-shadow:0 12px 32px rgba(0,0,0,.3); max-width:calc(100% - 24px);';
+    document.body.appendChild(bar);
+  }
+  const n = window._ccSel.size;
+  bar.innerHTML = `<strong style="min-width:110px;">${n} selected</strong>
+    <button type="button" class="btn" data-sel="all" style="padding:6px 10px;">Select all shown</button>
+    <button type="button" class="btn" data-sel="none" style="padding:6px 10px;">Clear</button>
+    <button type="button" class="btn" data-sel="del" ${n ? '' : 'disabled'} style="padding:6px 12px; background:#dc2626; color:#fff; border-color:#dc2626;">🗑 Delete selected</button>
+    <button type="button" class="btn" data-sel="cancel" style="padding:6px 10px;">Done</button>`;
+  bar.querySelector('[data-sel=all]').onclick = () => { document.querySelectorAll('[data-cc-sel]').forEach((c) => window._ccSel.add(c.getAttribute('data-cc-sel'))); ccSelRefresh(); };
+  bar.querySelector('[data-sel=none]').onclick = () => { window._ccSel.clear(); ccSelRefresh(); };
+  bar.querySelector('[data-sel=cancel]').onclick = () => { window._ccSel = null; ccSelRefresh(); };
+  bar.querySelector('[data-sel=del]').onclick = ccSelDelete;
+  ccSelToggleBtn();
+}
+function ccSelRefresh() { try { render(); } catch (e) { console.warn(e); } ccSelBar(); }
+async function ccSelDelete() {
+  const ids = Array.from(window._ccSel || []);
+  if (!ids.length) return;
+  const titles = ids.map((id) => (allAssessments.find((a) => a.id === id) || {}).title).filter(Boolean);
+  const list = titles.slice(0, 8).map((t) => '• ' + t).join('\n') + (titles.length > 8 ? `\n… and ${titles.length - 8} more` : '');
+  if (!confirm(`Delete ${ids.length} assessment${ids.length === 1 ? '' : 's'}?\n\n${list}\n\nStudent results are kept. Your administrator can restore a deleted assessment if needed.`)) return;
+  const btn = document.querySelector('#cc-sel-bar [data-sel=del]'); if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+  try {
+    const r = await api('/api/assessments/bulk-delete', { method: 'POST', body: { ids } });
+    window._ccSel = null;
+    await loadAssessments();
+    ccSelBar();
+    alert(`🗑 Deleted ${r.deleted} assessment${r.deleted === 1 ? '' : 's'}.` + (r.skipped ? ` ${r.skipped} could not be deleted (they belong to another teacher).` : ''));
+  } catch (e) { alert(e.message); if (btn) { btn.disabled = false; btn.textContent = '🗑 Delete selected'; } }
+}
+function ccSelToggleBtn() {
+  const b = document.getElementById('cc-sel-toggle');
+  if (b) { b.textContent = window._ccSel ? '✓ Selecting…' : '☑ Select'; b.classList.toggle('primary', !!window._ccSel); }
+}
+document.addEventListener('change', (e) => {
+  const c = e.target && e.target.closest && e.target.closest('[data-cc-sel]');
+  if (!c || !window._ccSel) return;
+  const id = c.getAttribute('data-cc-sel');
+  if (c.checked) window._ccSel.add(id); else window._ccSel.delete(id);
+  const card = c.closest('[data-cc-aid]');
+  if (card) { card.style.outline = c.checked ? '2px solid #dc2626' : ''; card.style.outlineOffset = '-2px'; card.style.background = c.checked ? '#fff7f7' : ''; }
+  ccSelBar();
+});
+(function ccSelInit() {
+  const list = document.getElementById('assessments');
+  if (!list || document.getElementById('cc-sel-toggle')) return;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex; justify-content:flex-end; margin:0 0 8px;';
+  row.innerHTML = '<button type="button" id="cc-sel-toggle" class="btn" title="Select several assessments, for example to delete them together">☑ Select</button>';
+  list.parentNode.insertBefore(row, list);
+  row.querySelector('button').onclick = () => { window._ccSel = window._ccSel ? null : new Set(); ccSelRefresh(); };
 })();

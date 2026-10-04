@@ -1373,6 +1373,22 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
   res.json({ assessment: updated });
 });
 
+// Delete several assessments at once (each is archived first, so an admin can restore it).
+app.post('/api/assessments/bulk-delete', requireTeacher, (req, res) => {
+  const ids = new Set((Array.isArray(req.body && req.body.ids) ? req.body.ids : []).map(String).slice(0, 500));
+  if (!ids.size) return res.status(400).json({ error: 'Choose at least one assessment.' });
+  const all = readAll('assessments.json');
+  const keep = [], gone = [];
+  for (const a of all) {
+    if (ids.has(a.id) && a.teacherId === req.session.user.id) {
+      try { _ccArchiveAssessment(a); } catch (e) { console.error('archive failed', e); }
+      gone.push(a.id);
+    } else keep.push(a);
+  }
+  if (gone.length) writeAll('assessments.json', keep);
+  res.json({ ok: true, deleted: gone.length, skipped: ids.size - gone.length });
+});
+
 app.delete('/api/assessments/:id', requireTeacher, (req, res) => {
   const all = readAll('assessments.json');
   const idx = all.findIndex((a) => a.id === req.params.id);
