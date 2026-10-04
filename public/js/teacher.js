@@ -2259,6 +2259,7 @@ if (els.aiGenerateBtn) {
           imageUrl: '',
           imageDescription: q.imageDescription || '',
           skill: q.skill || '',
+          focus: q.focus || '',
           explanation: q.explanation || '',
         })),
       };
@@ -9418,8 +9419,8 @@ async function ccLoadCurriculumOptions() {
     }
     if (seq !== window._ccCurSeq) return;
     const covOf = (l, s) => (s ? window._ccCovMap[s.code] : (window._ccCovMap[l.key] || window._ccCovMap['L:' + l.key]));
-    st.innerHTML = `📚 ${escapeHtml(d.source)} — tick lessons or single outcomes (${d.lessons.length} lessons). <a href="#" id="ai-cur-all">Select all</a> · <a href="#" id="ai-cur-none">None</a>`
-      + (cov ? ` · <a href="#" id="ai-cov-gaps-taught" style="color:#b91c1c; font-weight:600;">Select not-yet-assessed (taught so far)</a> · <a href="#" id="ai-cov-gaps-all" style="color:#b91c1c;">all not-yet-assessed</a>` : '');
+    st.innerHTML = `📚 ${escapeHtml(d.source)} — tick the lessons or single outcomes you want to assess (${d.lessons.length} lessons). <a href="#" id="ai-cur-none">Clear ticks</a>`
+      + (cov ? `<div style="margin-top:4px; font-size:12px;">Status for this class: <span style="background:#dcfce7; color:#166534; padding:1px 7px; border-radius:999px;">🟢 assessed</span> <span style="background:#fef3c7; color:#92400e; padding:1px 7px; border-radius:999px;">🟠 partly assessed (Power outcome: 1 of 2)</span> <span style="background:#fee2e2; color:#991b1b; padding:1px 7px; border-radius:999px;">🔴 not assessed</span> — nothing is ticked for you; you choose.</div>` : '');
     if (covBox && cov) {
       const s = cov.summary;
       const cls = (classes.find((c) => c.id === classId) || {}).name || '';
@@ -9436,9 +9437,15 @@ async function ccLoadCurriculumOptions() {
       lastMod = l.module;
       const slos = Array.isArray(l.slos) ? l.slos : [];
       const lessonCov = !slos.length && cov ? covOf(l) : null;
+      let lessonSum = '';
+      if (slos.length && cov) {
+        const n = { met: 0, partial: 0, none: 0 };
+        slos.forEach((x) => { const o = covOf(l, x); if (o && n[o.status] !== undefined) n[o.status]++; });
+        lessonSum = ` <span style="font-size:11px; font-weight:400; color:#475569;">(${[n.met ? '🟢 ' + n.met : '', n.partial ? '🟠 ' + n.partial : '', n.none ? '🔴 ' + n.none : ''].filter(Boolean).join(' · ')})</span>`;
+      }
       const row = `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:${slos.length ? 600 : 400}; margin:3px 0;" dir="auto">
         <input type="checkbox" data-cur-key="${escapeHtml(l.key)}" style="width:auto; margin-top:3px;">
-        <span>${escapeHtml(l.lesson)}${l.weeks ? ` <span class="muted" style="font-size:12px; font-weight:400;">· ${escapeHtml(l.weeks)}</span>` : ''}${l.type === 'enrichment' ? ' <span class="muted" style="font-size:12px; font-weight:400;">· enrichment</span>' : ''}${lessonCov ? ccCovChip(lessonCov) : ''}</span></label>`;
+        <span>${escapeHtml(l.lesson)}${l.weeks ? ` <span class="muted" style="font-size:12px; font-weight:400;">· ${escapeHtml(l.weeks)}</span>` : ''}${l.type === 'enrichment' ? ' <span class="muted" style="font-size:12px; font-weight:400;">· enrichment</span>' : ''}${lessonCov ? ccCovChip(lessonCov) : ''}${lessonSum}</span></label>`;
       const sub = slos.map((s) => `<label style="display:flex; gap:8px; align-items:flex-start; text-transform:none; letter-spacing:0; font-weight:400; margin:2px 0 2px 26px; font-size:13px;" dir="auto">
         <input type="checkbox" data-cur-out="${escapeHtml(s.code)}" data-cur-lesson="${escapeHtml(l.key)}" style="width:auto; margin-top:3px;">
         <span><span style="color:#475569; font-family:monospace; font-size:11px;">${escapeHtml(s.code)}</span>${ccCovPowerTag(s.priority)} ${escapeHtml(s.text)}${cov ? ccCovChip(covOf(l, s)) : ''}</span></label>`).join('');
@@ -9469,7 +9476,6 @@ async function ccLoadCurriculumOptions() {
     const gap = (taughtOnly) => (o) => o && o.required > 0 && o.status !== 'met' && (!taughtOnly || o.taught);
     const bind = (id, fn) => { const a = document.getElementById(id); if (a) a.onclick = (e) => { e.preventDefault(); setAll(fn); }; };
     bind('ai-cur-all', () => true); bind('ai-cur-none', () => false);
-    bind('ai-cov-gaps-taught', gap(true)); bind('ai-cov-gaps-all', gap(false));
     // Outcomes chosen in the coverage window
     const pre = window._ccCovPreselect;
     if (pre && Array.isArray(pre.codes)) {
@@ -10068,7 +10074,7 @@ function ccMultiBuild(host) {
     if (counts) ccAiAutoCount();
     if (host.id === 'ai-skills' && e && e.target && e.target.hasAttribute && e.target.hasAttribute('data-multi-v')) {
       const v = e.target.getAttribute('data-multi-v');
-      if (v.startsWith('cur:')) ccCurSkillApply(v, e.target.checked);
+      /* Curriculum skills only name the sections — the teacher ticks the outcomes herself. */
     }
   }
   host.addEventListener('change', changed);
@@ -10189,7 +10195,13 @@ function ccAiSkillsRefresh() {
   const groups = window._ccCurSkillGroups || [];
   const opts = [];
   if (isLang) CC_SKILL_OPTIONS.forEach((x, i) => opts.push([x, x, i === 0 ? 'Language skills' : '']));
-  groups.forEach((g, i) => opts.push([g.id, g.label, i === 0 ? 'From the MOE curriculum' : '']));
+  groups.forEach((g, i) => {
+    const n = { met: 0, partial: 0, none: 0 };
+    g.codes.forEach((c) => { const o = (window._ccCovMap || {})[c]; if (o && n[o.status] !== undefined) n[o.status]++; });
+    g.keys.forEach((k) => { const o = (window._ccCovMap || {})[k] || (window._ccCovMap || {})['L:' + k]; if (o && n[o.status] !== undefined) n[o.status]++; });
+    const tag = [n.met ? '🟢 ' + n.met : '', n.partial ? '🟠 ' + n.partial : '', n.none ? '🔴 ' + n.none : ''].filter(Boolean).join(' · ');
+    opts.push([g.id, g.label + (tag ? '   (' + tag + ')' : ''), i === 0 ? 'From the MOE curriculum' : '']);
+  });
   const st = ccMultiState(host);
   Object.keys(st.checked).forEach((k) => { if (!opts.some((o) => o[0] === k)) delete st.checked[k]; });
   ccMultiRebuild(host, opts, st);
