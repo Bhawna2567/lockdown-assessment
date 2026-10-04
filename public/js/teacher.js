@@ -10728,10 +10728,19 @@ async function ccOpenAnnex() {
       <div style="flex:1 1 320px;"><label style="margin:0 0 4px;">🚀 Enrichment strategies (proficient students)</label><div data-ax="se"></div>
         <div style="display:flex; gap:6px; margin-top:4px;"><input data-ax="se-own" placeholder="Add your own strategy…" style="flex:1; font-size:13px; padding:5px 8px;"><button class="btn" data-ax="se-add" style="padding:4px 10px;">＋ Add</button></div></div>
     </div>
+    <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:10px;">
+      <label style="margin:0; flex:1 1 260px;">Academic approval — name (optional)<input data-ax="apA" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
+      <label style="margin:0; flex:1 1 260px;">School Principal approval — name (optional)<input data-ax="apP" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
+      <span class="muted" style="font-size:12px; flex:1 1 220px;">The date is filled in automatically; signatures are always left blank. Names are remembered on this computer only.</span>
+    </div>
     <div style="margin-top:12px;"><button class="btn primary" data-ax="build">📊 Build Annex 3 &amp; 4 and fill with AI</button> <span class="muted" data-ax="status" style="font-size:13px;"></span></div>
     <div data-ax="out" style="margin-top:14px;"></div>`;
   const $ = (k) => box.querySelector(`[data-ax="${k}"]`);
   $('close').onclick = () => ov.remove();
+  try { $('apA').value = localStorage.getItem('cc_annex_apA') || ''; $('apP').value = localStorage.getItem('cc_annex_apP') || ''; } catch (e) {}
+  const saveAp = () => { try { localStorage.setItem('cc_annex_apA', $('apA').value.trim()); localStorage.setItem('cc_annex_apP', $('apP').value.trim()); } catch (e) {} };
+  $('apA').oninput = saveAp; $('apP').oninput = saveAp;
+  const approvers = () => ({ academic: $('apA').value.trim(), principal: $('apP').value.trim() });
   const stratHost = (kind) => {
     const host = $(kind === 'intervention' ? 'si' : 'se');
     ccAnnexMulti(host, ST[kind].concat(st.extra[kind]), st.strat[kind], (v) => { st.strat[kind] = v; if (st.data) { st.data.plan.forEach((p) => { if (p.kind === kind && !p._own) p.strategies = v.slice(); }); renderOut(); } });
@@ -10866,10 +10875,10 @@ async function ccOpenAnnex() {
     };
     const meta = () => ({ section: d.class.name, subject: d.subject, grade: d.grade, teacher: d.teacher, bands: d.bands, assessments: d.assessments.map((a) => a.title).join('; ') });
     if (fmt === 'school') {
-      $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows }, $('dl3'));
-      $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan }, $('dl4')); };
+      $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows, approvers: approvers() }, $('dl3'));
+      $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan, approvers: approvers() }, $('dl4')); };
     } else {
-      const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan }, btn); };
+      const w = (which, btn) => { if (which !== '3' && !st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/enhanced.docx', { which, months: st.months, meta: meta(), rows: d.rows, plan: d.plan, approvers: approvers() }, btn); };
       $('dw3').onclick = () => w('3', $('dw3')); $('dw4').onclick = () => w('4', $('dw4')); $('dwb').onclick = () => w('both', $('dwb'));
     }
   }
