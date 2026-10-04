@@ -15,6 +15,35 @@ const fs = require('fs');
 const path = require('path');
 const JSZip = require('jszip');
 
+const STRATEGIES = {
+  intervention: [
+    'Weekly practice on the Adeptly platform',
+    'Practice on the IELTS platform',
+    'Small-group reteaching',
+    'Guided reading with question stems',
+    'Modelling with think-alouds',
+    'Graphic organisers',
+    'Vocabulary journals / word walls',
+    'Differentiated worksheets',
+    'Peer tutoring (paired with a proficient student)',
+    'Short daily retrieval practice (5-minute starters)',
+    'Exit tickets after each lesson',
+    'After-school remedial sessions',
+    'Parent communication and home practice plan',
+  ],
+  enrichment: [
+    'Weekly practice on the Adeptly platform',
+    'Practice on the IELTS platform',
+    'Extension tasks at a higher level',
+    'Advanced reading circle / book club',
+    'Project-based learning task',
+    'Peer mentor / leadership role',
+    'Competitions and olympiads',
+    'Debate and presentation club',
+    'Independent research task',
+    'Creative writing workshop',
+  ],
+};
 const CODE_RE = /^\s*[A-Z][A-Z0-9&]{1,6}(?:\.[0-9A-Z]{1,4}){2,7}\s*/;
 
 module.exports = function annex(app, d) {
@@ -49,7 +78,7 @@ module.exports = function annex(app, d) {
       })).sort((x, y) => String(y.date).localeCompare(String(x.date)));
       return { id: c.id, name: c.name, teacherId: c.teacherId, teacher: t.name || t.email || '', assessments: list };
     }).filter((c) => c.assessments.some((a) => a.submissions > 0));
-    res.json({ classes });
+    res.json({ classes, strategies: STRATEGIES });
   });
 
   // ── Build the tables from the chosen assessments ─────────────────────────
@@ -110,10 +139,10 @@ module.exports = function annex(app, d) {
       const plan = [];
       for (const r of rows.filter((x) => x.level2 + x.level3 > 0).slice(0, 8)) {
         const who = [r.level3 ? `Level 3 (${r.level3}): ${short(r.level3Names, 5)}` : '', r.level2 ? `Level 2 (${r.level2}): ${short(r.level2Names, 5)}` : ''].filter(Boolean).join('\n');
-        plan.push({ kind: 'intervention', skill: r.skill, students: who, baseline: `${r.proficiencyPct}% proficient (avg ${r.average}%)`, strategy: '', responsible: teacher.name || '', sessions: '', indicator: '', followUp: '' });
+        plan.push({ kind: 'intervention', skill: r.skill, level: r.proficiencyPct < 50 ? 'High' : 'Medium', size: r.level2 + r.level3, baselinePct: r.proficiencyPct, students: who, baseline: `${r.proficiencyPct}% proficient (avg ${r.average}%)`, strategies: [], target: '', strategy: '', responsible: teacher.name || '', sessions: '', indicator: '', followUp: '' });
       }
       for (const r of rows.filter((x) => x.proficiencyPct >= 80 && x.proficient > 0).slice(-2)) {
-        plan.push({ kind: 'enrichment', skill: r.skill, students: `Proficient (${r.proficient}): ${short(r.proficientNames, 5)}`, baseline: `${r.proficiencyPct}% proficient (avg ${r.average}%)`, strategy: '', responsible: teacher.name || '', sessions: '', indicator: '', followUp: '' });
+        plan.push({ kind: 'enrichment', skill: r.skill, level: 'Enrichment', size: r.proficient, baselinePct: r.proficiencyPct, students: `Proficient (${r.proficient}): ${short(r.proficientNames, 5)}`, baseline: `${r.proficiencyPct}% proficient (avg ${r.average}%)`, strategies: [], target: '', strategy: '', responsible: teacher.name || '', sessions: '', indicator: '', followUp: '' });
       }
       res.json({ class: { id: cls.id, name: cls.name }, teacher: teacher.name || teacher.email || '', subject, grade, bands, groupBy: by,
         assessments: as.map((a) => ({ id: a.id, title: a.title })), students: names.size, rows, plan });
@@ -143,10 +172,15 @@ module.exports = function annex(app, d) {
         for (const x of items || []) if (x && x.id) out.actions[String(x.id).trim()] = String(x.action || '').slice(0, 220);
       }
       if (plan.length) {
-        const items = await claudeList({ system: sys + '\nFor each plan row write: "strategy" (a concrete teaching strategy for that group and skill), "sessions" (number, length and timing, e.g. "3 × 30 min, weekly, weeks 1–4"), "indicator" (a measurable progress indicator with a target, e.g. "Exit quiz ≥ 60% by week 4"). Intervention rows are for students below the pass mark; enrichment rows are for proficient students.',
-          user: JSON.stringify(plan.map((p, i) => ({ id: 'P' + i, kind: p.kind, skill: p.skill, baseline: p.baseline, group: String(p.students || '').split('\n').map((x) => x.replace(/:.*$/, '')).join(', ') }))),
-          maxTokens: 3500, itemProps: { id: { type: 'string' }, strategy: { type: 'string' }, sessions: { type: 'string' }, indicator: { type: 'string' } }, required: ['id', 'strategy', 'sessions', 'indicator'] });
-        for (const x of items || []) if (x && x.id) out.plan[String(x.id).trim()] = { strategy: String(x.strategy || '').slice(0, 220), sessions: String(x.sessions || '').slice(0, 120), indicator: String(x.indicator || '').slice(0, 160) };
+        const items = await claudeList({ system: sys + '\nFor each plan row write:\n' +
+          '- "strategy": how the CHOSEN strategies (field "strategies") will be used for this group and skill, in one or two short sentences. Use ONLY the chosen strategies when any are given; if none are given, choose suitable ones. Mention platform practice (Adeptly, IELTS) by name when chosen, with what students do there.\n' +
+          '- "sessions": number, length and timing, including platform practice frequency, e.g. "2 × 30 min small group + 1 Adeptly task weekly, weeks 1–4".\n' +
+          '- "indicator": a measurable progress indicator, e.g. "Adeptly task score ≥ 70% and exit quiz ≥ pass mark by week 4".\n' +
+          '- "target": the target for the end of the month as a short phrase, e.g. "70% of the group at or above the pass mark".\n' +
+          'Intervention rows are for students below the pass mark; enrichment rows are for proficient students.',
+          user: JSON.stringify(plan.map((p, i) => ({ id: 'P' + i, kind: p.kind, skill: p.skill, baseline: p.baseline, groupSize: p.size, strategies: Array.isArray(p.strategies) ? p.strategies.slice(0, 6) : [], group: String(p.students || '').split('\n').map((x) => x.replace(/:.*$/, '')).join(', ') }))),
+          maxTokens: 4000, itemProps: { id: { type: 'string' }, strategy: { type: 'string' }, sessions: { type: 'string' }, indicator: { type: 'string' }, target: { type: 'string' } }, required: ['id', 'strategy', 'sessions', 'indicator'] });
+        for (const x of items || []) if (x && x.id) out.plan[String(x.id).trim()] = { strategy: String(x.strategy || '').slice(0, 260), sessions: String(x.sessions || '').slice(0, 140), indicator: String(x.indicator || '').slice(0, 160), target: String(x.target || '').slice(0, 100) };
       }
       res.json(out);
     } catch (e) {
@@ -273,13 +307,97 @@ module.exports = function annex(app, d) {
       const b = req.body || {};
       const month = String(b.month || 'First Month').slice(0, 40);
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
-        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), p.students, p.baseline, p.strategy, p.responsible, p.sessions, p.indicator, p.followUp,
+        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), p.students, p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
       const buf = await buildPptx('annex4.pptx', rows, 5, (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(month)}</a:t>`), 23);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
       res.setHeader('Content-Disposition', `attachment; filename="Annex4_Intervention_Plan_${safeName(b.section)}.pptx"`);
       res.send(buf);
     } catch (e) { console.error('[annex4.pptx]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
+  });
+
+  // ── Enhanced version (Word, landscape) ─────────────────────────────────
+  const docx = require('docx');
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, ShadingType, PageOrientation, BorderStyle, VerticalAlign } = docx;
+  const NAVY = '1F3864', BLUE = '4472C4', GREEN = '70AD47', GREY = '64748B';
+  const tx = (t, o = {}) => new TextRun(Object.assign({ text: String(t == null ? '' : t), size: 17, font: 'Calibri' }, o));
+  const para = (runs, o = {}) => new Paragraph(Object.assign({ children: Array.isArray(runs) ? runs : [runs], spacing: { after: 40 } }, o));
+  const lines = (t, o) => String(t == null ? '' : t).split('\n').map((ln) => para(tx(ln, o)));
+  const cellOf = (content, o = {}) => new TableCell({ children: Array.isArray(content) ? content : lines(content, o.run), verticalAlign: VerticalAlign.CENTER,
+    shading: o.fill ? { type: ShadingType.CLEAR, color: 'auto', fill: o.fill } : undefined, width: o.w ? { size: o.w, type: WidthType.DXA } : undefined,
+    margins: { top: 50, bottom: 50, left: 70, right: 70 } });
+  const headRow = (labels, widths, fill) => new TableRow({ tableHeader: true, children: labels.map((l, i) => cellOf([para(tx(l, { bold: true, color: 'FFFFFF', size: 17 }), { alignment: AlignmentType.CENTER })], { fill, w: widths[i] })) });
+  const bar = (pct) => { const n = Math.round(Math.max(0, Math.min(100, +pct || 0)) / 10); return '█'.repeat(n) + '░'.repeat(10 - n); };
+  const lvlFill = (pct, pass) => (pct >= 80 ? 'DCFCE7' : pct >= pass ? 'FEF9C3' : pct >= 40 ? 'FFEDD5' : 'FEE2E2');
+  function header(meta, title, sub) {
+    return [
+      para(tx('Al-Nouimiah School', { bold: true, size: 30, color: NAVY })),
+      para(tx('Cycles 1, 2, 3 — Girls Section', { size: 18, color: GREY })),
+      para([tx(title, { bold: true, size: 26, color: NAVY }), tx(sub ? '   ' + sub : '', { italics: true, size: 20, color: GREY })], { spacing: { before: 120, after: 60 } }),
+      para([tx('Class: ', { bold: true }), tx(meta.section || ''), tx('    Subject: ', { bold: true }), tx(meta.subject || ''), tx('    Grade: ', { bold: true }), tx(meta.grade || ''),
+        tx('    Teacher: ', { bold: true }), tx(meta.teacher || ''), tx('    Date: ', { bold: true }), tx(new Date().toISOString().slice(0, 10))]),
+      para(tx(meta.assessments ? 'Based on: ' + meta.assessments : '', { size: 15, color: GREY, italics: true })),
+    ];
+  }
+  const signatures = () => [
+    para(tx(' '), { spacing: { before: 200 } }),
+    para(tx('Academic Approval:      Name: ______________________     Signature: ______________     Date: ____________', { size: 17 })),
+    para(tx('School Principal Approval:      Name: ______________________     Signature: ______________     Date: ____________', { size: 17 }), { spacing: { before: 160 } }),
+  ];
+  function enhanced3(meta, rows) {
+    const b = meta.bands || {};
+    const W = [1900, 650, 750, 1250, 1250, 1250, 900, 1350, 850, 3100];
+    const out = header(meta, 'Annex 3 — Skills Analysis and Student Classification', '');
+    out.push(para([tx('Levels: ', { bold: true }), tx(`Proficient ≥ ${b.pass}%  ·  Level 2 (BF) ${b.bf}–${b.pass - 0.1}%  ·  Level 3 (F) below ${b.bf}%  ·  At risk (BP) ${b.pass}–${b.bp - 0.1}%  ·  Priority: High < 50% proficient, Medium 50–79%, Low ≥ 80%`, { size: 15, color: GREY })]));
+    const tr = rows.map((r) => {
+      const n = +r.students || 0; const pc = (k) => (n ? Math.round((+r[k] || 0) / n * 100) + '%' : '');
+      const pr = +r.proficiencyPct || 0; const prio = pr < 50 ? 'High' : pr < 80 ? 'Medium' : 'Low';
+      return new TableRow({ children: [
+        cellOf(r.skill, { run: { bold: true } }), cellOf(String(n)), cellOf((r.average != null ? r.average + '%' : '')),
+        cellOf(`${r.proficient} (${pr}%)`, { fill: lvlFill(pr, b.pass) }), cellOf(`${r.level2} (${pc('level2')})`, { fill: +r.level2 ? 'FFEDD5' : undefined }),
+        cellOf(`${r.level3} (${pc('level3')})`, { fill: +r.level3 ? 'FEE2E2' : undefined }), cellOf(String(r.atRisk || 0)),
+        cellOf(bar(pr), { run: { color: pr >= b.pass ? '16A34A' : 'DC2626', size: 15 } }),
+        cellOf(prio, { run: { bold: true, color: prio === 'High' ? 'B91C1C' : prio === 'Medium' ? 'B45309' : '15803D' } }), cellOf(r.action || ''),
+      ] });
+    });
+    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Skill', 'No. of students', 'Average', 'Proficient', 'Level 2 (BF)', 'Level 3 (F)', 'At risk (BP)', 'Proficiency', 'Priority', 'Suggested action'], W, BLUE), ...tr] }));
+    // Classification lists
+    out.push(para(tx('Student classification by skill', { bold: true, size: 22, color: NAVY }), { spacing: { before: 240, after: 80 } }));
+    const W2 = [2400, 4300, 4300, 4300];
+    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Skill', 'Level 3 (F) — intensive support', 'Level 2 (BF) — targeted support', 'At risk (BP) — monitor'], W2, NAVY),
+      ...rows.map((r) => new TableRow({ children: [cellOf(r.skill, { run: { bold: true } }), cellOf((r.level3Names || []).join(', ') || '—', { fill: 'FEF2F2' }), cellOf((r.level2Names || []).join(', ') || '—', { fill: 'FFF7ED' }), cellOf((r.atRiskNames || []).join(', ') || '—', { fill: 'FEFCE8' })] }))] }));
+    return out.concat(signatures());
+  }
+  function enhanced4(meta, plan) {
+    const W = [1700, 2300, 1300, 2700, 1500, 1500, 1200, 1700, 1700];
+    const out = header(meta, 'Annex 4 — Intervention and Enrichment Plan', meta.month || '');
+    const plat = (p) => (Array.isArray(p.strategies) ? p.strategies.filter((x) => /adeptly|ielts/i.test(x)) : []).map((x) => x.replace(/^(Weekly )?practice on the /i, '')).join(', ');
+    const tr = plan.map((p) => new TableRow({ children: [
+      cellOf([para(tx(p.skill || '', { bold: true })), para(tx(p.kind === 'enrichment' ? 'Enrichment' : `Intervention · priority ${p.level || ''}`, { size: 15, color: p.kind === 'enrichment' ? '15803D' : 'B91C1C' }))], { fill: p.kind === 'enrichment' ? 'F0FDF4' : 'FEF2F2' }),
+      cellOf(p.students || ''), cellOf((p.baseline || '') + (p.target ? '\n→ Target: ' + p.target : '')),
+      cellOf([...(Array.isArray(p.strategies) && p.strategies.length ? p.strategies.map((x) => para(tx('• ' + x, { bold: true, size: 16 }))) : []), ...lines(p.strategy || '')]),
+      cellOf(plat(p) || '—'), cellOf(p.sessions || ''), cellOf(p.responsible || ''),
+      cellOf([para(tx('Indicator: ', { bold: true })), ...lines(p.indicator || ''), para(tx('Week 2: ______   Week 4: ______', { size: 15, color: GREY }))]),
+      cellOf([...(p.followUp ? lines(p.followUp) : []), para(tx('☐ Continue', { size: 16 })), para(tx('☐ Move to enrichment', { size: 16 })), para(tx('☐ Escalate / refer', { size: 16 }))]),
+    ] }));
+    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Target skill', 'Group / students', 'Baseline → target', 'Strategies', 'Platform', 'Sessions & timing', 'Responsible', 'Progress indicator & checks', 'Follow-up decision'], W, GREEN), ...tr] }));
+    return out.concat(signatures());
+  }
+  app.post('/api/admin/annex/enhanced.docx', requireAdmin, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const meta = Object.assign({}, b.meta || {}, { month: b.month || '' });
+      const which = String(b.which || 'both');
+      const sections = [];
+      const page = { size: { orientation: PageOrientation.LANDSCAPE }, margin: { top: 600, bottom: 600, left: 600, right: 600 } };
+      if (which !== '4') sections.push({ properties: { page }, children: enhanced3(meta, (Array.isArray(b.rows) ? b.rows : []).slice(0, 200)) });
+      if (which !== '3') sections.push({ properties: { page }, children: enhanced4(meta, (Array.isArray(b.plan) ? b.plan : []).slice(0, 100)) });
+      const doc = new Document({ creator: 'ClassCurio', title: 'Annex 3 & 4', sections });
+      const buf = await Packer.toBuffer(doc);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="Annex${which === 'both' ? '3-4' : which}_Enhanced_${safeName(meta.section)}.docx"`);
+      res.send(buf);
+    } catch (e) { console.error('[annex enhanced]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
   });
 
   return { buildPptx };
