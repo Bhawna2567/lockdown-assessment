@@ -10723,7 +10723,7 @@ async function ccOpenAnnex() {
     <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;"><h2 style="margin:0; flex:1;">📑 Annex 3 &amp; 4 — skills analysis and intervention plan</h2><button class="btn" data-ax="close">Close</button></div>
     <div class="muted" style="font-size:13px; margin-bottom:10px;">Built from students' real results. Choose your strategies, let the AI fill the sheets, edit anything, then download. Signatures are left blank.</div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.filter((c) => c.assessments.some((a) => a.submissions > 0)).length > 1 ? `<option value="__all">★ Combined report — choose the classes</option>` : ''}${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
+      <div style="margin:0; flex:1 1 300px;"><label style="margin:0 0 4px;">${opts.admin ? 'Class sections (teacher)' : 'Your class sections'} <span class="muted" style="font-size:11px; text-transform:none; letter-spacing:0; font-weight:400;">— tick one, or several for a combined report</span></label><div data-ax="classes"></div><select data-ax="class" style="display:none;"><option value=""></option><option value="__all"></option>${opts.classes.map((c) => `<option value="${esc(c.id)}"></option>`).join('')}</select></div>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">MOE school form (PowerPoint — same as provided)</option><option value="enhanced">ClassCurio enhanced version (Word — more detail)</option><option value="both">Both formats (one ZIP file)</option></select></label>
@@ -10784,6 +10784,36 @@ async function ccOpenAnnex() {
     });
     sync();
   }
+  // Class sections: tick-box dropdown. One class = that class's report; two or more = one combined report.
+  st.classes = [];
+  const withResults = opts.classes.filter((c) => c.assessments.some((a) => a.submissions > 0));
+  {
+    const host = $('classes');
+    host.setAttribute('data-cc-multi', 'classes'); host._ccBuilt = false;
+    let lastT = null;
+    host._ccOpts = (withResults.length > 1 ? [['__all', opts.admin ? '★ All classes' : '★ All my classes']] : []).concat(withResults.map((c) => {
+      const head = opts.admin && c.teacher !== lastT ? c.teacher : ''; lastT = c.teacher;
+      return [c.id, c.name, head];
+    }));
+    ccMultiBuild(host);
+    const sync = () => {
+      host.querySelectorAll('[data-multi-v]').forEach((c) => { const v = c.getAttribute('data-multi-v'); c.checked = v === '__all' ? st.classes.length === withResults.length : st.classes.includes(v); });
+      const sum = host.querySelector('.cc-multi-sum');
+      const names = withResults.filter((c) => st.classes.includes(c.id)).map((c) => c.name);
+      if (sum) { sum.textContent = !names.length ? (withResults.length ? 'Choose class sections…' : 'No class has results yet') : names.length === withResults.length && names.length > 1 ? `${opts.admin ? 'All classes' : 'All my classes'} (${names.length}) — combined` : names.length > 1 ? `${names.join(', ')} — combined` : names[0]; sum.style.color = names.length ? '#1a1e33' : '#64748b'; }
+      $('class').value = !st.classes.length ? '' : st.classes.length === 1 ? st.classes[0] : '__all';
+      if ($('class').onchange) $('class').onchange();
+    };
+    host.addEventListener('change', (e) => {
+      const c = e.target; if (!c || !c.hasAttribute || !c.hasAttribute('data-multi-v')) return;
+      const v = c.getAttribute('data-multi-v');
+      if (v === '__all') st.classes = c.checked ? withResults.map((x) => x.id) : [];
+      else st.classes = withResults.map((x) => x.id).filter((id) => (id === v ? c.checked : st.classes.includes(id)));
+      sync();
+    });
+    host.querySelector('[data-multi-clear]').addEventListener('click', () => { st.classes = []; sync(); });
+    sync();
+  }
   const addOwn = (kind, inp) => { const t = String($(inp).value || '').trim(); if (!t) return; st.extra[kind].push(t); st.strat[kind].push(t); $(inp).value = ''; stratHost(kind); if (st.data) { st.data.plan.forEach((p) => { if (p.kind === kind && !p._own) p.strategies = st.strat[kind].slice(); }); renderOut(); } };
   $('si-add').onclick = () => addOwn('intervention', 'si-own'); $('se-add').onclick = () => addOwn('enrichment', 'se-own');
   const gradeOf = (c) => { const g = c.assessments.map((a) => parseInt(a.grade, 10)).filter(Boolean); return g.length ? Math.max(...g) : 0; };
@@ -10801,20 +10831,11 @@ async function ccOpenAnnex() {
     st.data = null; $('out').innerHTML = ''; $('status').textContent = '';
     if ($('class').value === '__all') {
       const cy0 = opts.currentYear || '';
-      const withResults = opts.classes.filter((c) => c.assessments.some((a) => a.submissions > 0));
-      // Step 1: the teacher ticks the classes to combine (nothing ticked by default).
-      const teachers = opts.admin ? withResults.map((c) => c.teacher).filter((t, i, a) => a.indexOf(t) === i) : [null];
-      const clsHtml = teachers.map((t) => {
-        const list = withResults.filter((c) => !opts.admin || c.teacher === t);
-        return (opts.admin ? `<div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;">${esc(t)}</div>` : '') +
-          `<div style="display:flex; flex-wrap:wrap; gap:4px 18px;">` + list.map((c) => `<label style="display:flex; gap:6px; align-items:center; margin:2px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-c="${esc(c.id)}" style="width:auto; margin:0;"> ${esc(c.name)}</label>`).join('') + `</div>`;
-      }).join('');
-      $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">1. Tick the classes to combine · <a href="#" data-ax="call">tick all</a> · <a href="#" data-ax="cnone">clear</a></div>
-        <div style="max-height:200px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px; margin-bottom:10px;">${clsHtml || '<span class="muted">No class has results yet.</span>'}</div>
-        <div data-ax="alist2"></div>`;
+      const kept0 = new Set(Array.from(box.querySelectorAll('[data-ax-a]:checked')).map((x) => x.getAttribute('data-ax-a')));
+      $('alist').innerHTML = '<div data-ax="alist2"></div>';
       const renderAssess = () => {
-        const kept = new Set(Array.from(box.querySelectorAll('[data-ax-a]:checked')).map((x) => x.getAttribute('data-ax-a')));
-        const chosen = Array.from(box.querySelectorAll('[data-ax-c]:checked')).map((x) => x.getAttribute('data-ax-c'));
+        const kept = kept0;
+        const chosen = st.classes.slice();
         const host = $('alist2');
         if (!chosen.length) { host.innerHTML = '<div class="muted" style="font-size:13px;">Tick at least one class above to see its assessments.</div>'; return; }
         const blocks = withResults.filter((c) => chosen.includes(c.id)).map((c) => {
@@ -10822,15 +10843,12 @@ async function ccOpenAnnex() {
           return `<div style="font-size:12px; font-weight:700; color:#C01C35; margin:8px 0 2px;">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''} <a href="#" data-ax-cls-all="${esc(c.id)}" style="font-weight:400; font-size:11px;">tick all</a></div>` +
             taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" data-ax-cls="${esc(c.id)}" ${kept.has(a.id) ? 'checked' : ''} style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''}${a.year && a.year !== cy0 ? ' · ' + esc(a.year) : ''} · ${a.submissions} students</span></label>`).join('');
         }).join('');
-        host.innerHTML = `<div style="font-weight:600; margin-bottom:4px;">2. Tick the assessments to include for each class <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
+        host.innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Tick the assessments to include for each class <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
           <div style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px;">${blocks}</div>`;
         $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
         $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
         box.querySelectorAll('[data-ax-cls-all]').forEach((l) => { l.onclick = (e) => { e.preventDefault(); box.querySelectorAll(`[data-ax-cls="${CSS.escape(l.getAttribute('data-ax-cls-all'))}"]`).forEach((x) => { x.checked = true; }); }; });
       };
-      box.querySelectorAll('[data-ax-c]').forEach((x) => { x.onchange = () => { st.data = null; $('out').innerHTML = ''; renderAssess(); }; });
-      if ($('call')) $('call').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-c]').forEach((x) => { x.checked = true; }); renderAssess(); };
-      if ($('cnone')) $('cnone').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-c]').forEach((x) => { x.checked = false; }); renderAssess(); };
       renderAssess();
       $('bands').innerHTML = '<div style="padding:8px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:13px;">Each class uses the levels of its own cycle — <strong>Cycle 3 (Grades 9–12):</strong> pass 60%, Level 2 (BF) 50–59.9%, Level 3 (F) below 50% · <strong>Cycle 2 (Grades 5–8):</strong> pass 50%, Level 2 (BF) 40–49.9%, Level 3 (F) below 40%.</div>';
       return;
