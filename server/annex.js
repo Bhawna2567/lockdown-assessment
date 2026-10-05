@@ -47,10 +47,28 @@ const STRATEGIES = {
 // Approver names are optional (typed in the tool, so every school can use its own); signatures stay blank;
 // the date is the day the sheet is generated (UAE time).
 const DEFAULT_SCHOOL = 'Al-Noaimiyah Girls School-Cycle 1,2&3';
+const DEFAULT_SCHOOL_AR = 'مدرسة النعيمية للبنات - الحلقة 1 و2 و3';
+// Colours of the parent reports (burgundy + gold) and the MOE logo.
+const PR_BURG = 'C01C35', PR_GOLD = 'B38A39';
+let LOGO_BUF = null;
+try { LOGO_BUF = fs.readFileSync(path.join(__dirname, 'templates', 'moe_logo.png')); } catch (e) { console.warn('[annex] MOE logo missing'); }
+// Arabic text for the school forms (template wording; layout unchanged, right-to-left).
+const AR_TEXT = {
+  'Annex 3:': 'الملحق 3:', 'Skills Analysis and Student Classification': 'تحليل المهارات وتصنيف الطالبات',
+  'Subject': 'المادة', 'Grade/Section': 'الصف/الشعبة', 'Skill': 'المهارة', 'No. of Students': 'عدد الطالبات', 'Proficient': 'المتقنات',
+  'Proficiency %': 'نسبة الإتقان %', 'Level 2': 'المستوى 2', 'Level 3': 'المستوى 3', 'Suggested Action': 'الإجراء المقترح',
+  'Annex 4:': 'الملحق 4:', 'Intervention and Enrichment Plan': 'خطة العلاج والإثراء',
+  'Target Skill': 'المهارة المستهدفة', 'Category/Students': 'الفئة/الطالبات', 'Baseline': 'نقطة البداية', 'Strategy': 'الاستراتيجية',
+  'Responsible Person': 'المسؤول', 'Sessions &amp; Timing': 'الحصص والتوقيت', 'Progress Indicator': 'مؤشر التقدم', 'Follow-up Decision': 'قرار المتابعة',
+  'First Month': 'الشهر الأول', 'Second Month': 'الشهر الثاني', 'Third Month': 'الشهر الثالث',
+};
+const MONTH_AR = { 'First Month': 'الشهر الأول', 'Second Month': 'الشهر الثاني', 'Third Month': 'الشهر الثالث' };
 function approversOf(b) {
   const a = (b && b.approvers) || {};
   return { academic: String(a.academic || '').trim().slice(0, 80), principal: String(a.principal || '').trim().slice(0, 80),
-    school: String((b && b.school) || '').trim().slice(0, 120) || DEFAULT_SCHOOL };
+    school: String((b && b.school) || '').trim().slice(0, 120) || DEFAULT_SCHOOL,
+    schoolAr: String((b && b.schoolAr) || '').trim().slice(0, 120) || DEFAULT_SCHOOL_AR,
+    lang: b && b.lang === 'ar' ? 'ar' : 'en' };
 }
 function todayUAE() {
   const p = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(new Date());
@@ -248,6 +266,37 @@ module.exports = function annex(app, d) {
     out = out.replace(/(Academic Approval:\s*Name: )(_+)(\s*Signature: _+\s*Date: )_+/, (m, a, u, c) => a + (approvers.academic ? xmlEsc(approvers.academic) : u) + c + date)
       .replace(/(School Principal Approval:\s*Name: )(_+)(\s*Signature: _+\s*Date: )_+/, (m, a, u, c) => a + (approvers.principal ? xmlEsc(approvers.principal) : u) + c + date);
     if (extra) out = extra(out);
+    // Parent-report colours: burgundy headings and header row, gold borders.
+    out = out.replace(/srgbClr val="(4472C4|70AD47|1F497D)"/g, `srgbClr val="${PR_BURG}"`).replace(/srgbClr val="999999"/g, `srgbClr val="${PR_GOLD}"`);
+    if (approvers.lang === 'ar') out = toArabicSlide(out, approvers, date);
+    // Keep the school name clear of the logo (same template, slightly narrower title box).
+    out = out.replace('<a:off x="457200" y="274320"/><a:ext cx="7772400" cy="365760"/>', approvers.lang === 'ar'
+      ? '<a:off x="2743200" y="274320"/><a:ext cx="5943600" cy="365760"/>' : '<a:off x="457200" y="274320"/><a:ext cx="5943600" cy="365760"/>')
+      .replace('<a:rPr lang="en-US" sz="2800" b="1" dirty="0">', '<a:rPr lang="en-US" sz="2400" b="1" dirty="0">')
+      .replace('<a:rPr lang="ar-AE" sz="2800" b="1" dirty="0">', '<a:rPr lang="ar-AE" sz="2000" b="1" dirty="0">');
+    if (LOGO_BUF) out = out.replace('</p:spTree>', logoPic(approvers.lang === 'ar') + '</p:spTree>');
+    return out;
+  }
+  function logoPic(left) {
+    const cx = 2286000, cy = Math.round(2286000 * 167 / 900);
+    const x = left ? 300000 : 9144000 - cx - 300000;
+    return `<p:pic><p:nvPicPr><p:cNvPr id="900" name="MOE logo"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rIdMoeLogo"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${x}" y="150000"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+  }
+  function toArabicSlide(xml, ap, date) {
+    let out = xml.replace(/<a:t>([^<]*)<\/a:t>/g, (m, t) => (AR_TEXT[t] ? `<a:t>${AR_TEXT[t]}</a:t>` : m));
+    out = out.replace(`<a:t>${xmlEsc(ap.school || DEFAULT_SCHOOL)}</a:t>`, `<a:t>${xmlEsc(ap.schoolAr || DEFAULT_SCHOOL_AR)}</a:t>`);
+    out = out.replace(/<a:t>Academic Approval:[^<]*<\/a:t>/, `<a:t>${xmlEsc(`اعتماد الشؤون الأكاديمية:     الاسم: ${ap.academic || '____________'}     التوقيع: ____________     التاريخ: ${date}`)}</a:t>`)
+      .replace(/<a:t>School Principal Approval:[^<]*<\/a:t>/, `<a:t>${xmlEsc(`اعتماد مديرة المدرسة:     الاسم: ${ap.principal || '____________'}     التوقيع: ____________     التاريخ: ${date}`)}</a:t>`);
+    // Right-to-left: table columns start from the right, text boxes align right.
+    out = out.replace(/<a:tr\b([^>]*)>([\s\S]*?)<\/a:tr>/g, (m, attrs, inner) => {
+      const cells = inner.match(/<a:tc>[\s\S]*?<\/a:tc>/g) || [];
+      return `<a:tr${attrs}>${cells.reverse().join('')}</a:tr>`;
+    });
+    // English words, class names and numbers keep their left-to-right order inside Arabic cells.
+    out = out.replace(/<a:t>([^<]*)<\/a:t>/g, (m, t) => (t && !/[\u0600-\u06FF]/.test(t) && /[A-Za-z0-9]/.test(t) ? `<a:t>\u202A${t}\u202C</a:t>` : m));
+    out = out.replace(/<a:pPr indent="0" marL="0">/g, '<a:pPr indent="0" marL="0" algn="r" rtl="1">')
+      .replace(/<a:pPr algn="ctr" indent="0" marL="0">/g, '<a:pPr algn="ctr" indent="0" marL="0" rtl="1">')
+      .replace(/lang="en-US"/g, 'lang="ar-AE"');
     return out;
   }
   // Estimate how tall a row will be (7pt text, word-wrapped) so each slide
@@ -311,7 +360,14 @@ module.exports = function annex(app, d) {
       zip.remove(f); zip.remove(`ppt/notesSlides/_rels/notesSlide${n}.xml.rels`);
       ct = ct.replace(new RegExp(`<Override PartName="/ppt/notesSlides/notesSlide${n}\\.xml"[^>]*/>`), '');
     }
-    const rels1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/></Relationships>';
+    const LOGO_REL = '<Relationship Id="rIdMoeLogo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/moe_logo.png"/>';
+    const rels1 = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>' + (LOGO_BUF ? LOGO_REL : '') + '</Relationships>';
+    if (LOGO_BUF) {
+      zip.file('ppt/media/moe_logo.png', LOGO_BUF);
+      if (!/Extension="png"/i.test(ct)) ct = ct.replace('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">', '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="png" ContentType="image/png"/>');
+      const r1 = await zip.file('ppt/slides/_rels/slide1.xml.rels').async('string');
+      if (!r1.includes('rIdMoeLogo')) zip.file('ppt/slides/_rels/slide1.xml.rels', r1.replace('</Relationships>', LOGO_REL + '</Relationships>'));
+    }
     let maxId = Math.max(256, ...Array.from(pres.matchAll(/<p:sldId id="(\d+)"/g)).map((m) => +m[1]));
     for (let p = 0; p < pages; p++) {
       const n = p + 1;
@@ -365,7 +421,8 @@ module.exports = function annex(app, d) {
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
         (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
-      return buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(m)}</a:t>`) })), approversOf(b));
+      const ap = approversOf(b);
+      return buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(ap.lang === 'ar' ? (MONTH_AR[m] || m) : m)}</a:t>`) })), ap);
   }
   app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
     try {
@@ -377,42 +434,73 @@ module.exports = function annex(app, d) {
     } catch (e) { console.error('[annex4.pptx]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
   });
 
-  // ── Enhanced version (Word, landscape) ─────────────────────────────────
+  // ── Enhanced version (Word, landscape) — English or Arabic ─────────────
   const docx = require('docx');
-  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, ShadingType, PageOrientation, BorderStyle, VerticalAlign } = docx;
-  const NAVY = '1F3864', BLUE = '4472C4', GREEN = '70AD47', GREY = '64748B';
-  const tx = (t, o = {}) => new TextRun(Object.assign({ text: String(t == null ? '' : t), size: 17, font: 'Calibri' }, o));
-  const para = (runs, o = {}) => new Paragraph(Object.assign({ children: Array.isArray(runs) ? runs : [runs], spacing: { after: 40 } }, o));
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, ShadingType, PageOrientation, BorderStyle, VerticalAlign, ImageRun } = docx;
+  const NAVY = PR_BURG, BLUE = PR_BURG, GREEN = PR_GOLD, GREY = '6B6255';
+  const ENH = {
+    en: { cls: 'Class: ', subj: '    Subject: ', grade: '    Grade: ', teacher: '    Teacher: ', date: '    Date: ', based: 'Based on: ',
+      a3: 'Annex 3 — Skills Analysis and Student Classification', a4: 'Annex 4 — Intervention and Enrichment Plan',
+      levels: 'Levels: ', levelsTxt: (b) => `Proficient ≥ ${b.pass}%  ·  Level 2 (BF) ${b.bf}–${b.pass - 0.1}%  ·  Level 3 (F) below ${b.bf}%  ·  At risk (BP) ${b.pass}–${b.bp - 0.1}%  ·  Priority: High < 50% proficient, Medium 50–79%, Low ≥ 80%`,
+      h3: ['Skill', 'No. of students', 'Average', 'Proficient', 'Level 2 (BF)', 'Level 3 (F)', 'At risk (BP)', 'Proficiency', 'Priority', 'Suggested action'],
+      prio: { High: 'High', Medium: 'Medium', Low: 'Low' }, classTitle: 'Student classification by skill',
+      hc: ['Skill', 'Level 3 (F) — intensive support', 'Level 2 (BF) — targeted support', 'At risk (BP) — monitor'],
+      h4: ['Target skill', 'Group / students', 'Baseline → target', 'Strategies', 'Platform', 'Sessions & timing', 'Responsible', 'Progress indicator & checks', 'Follow-up decision'],
+      enr: 'Enrichment', intv: 'Intervention · priority ', target: '→ Target: ', ind: 'Indicator: ', weeks: 'Week 2: ______   Week 4: ______',
+      cont: '☐ Continue', move: '☐ Move to enrichment', esc: '☐ Escalate / refer',
+      acad: 'Academic Approval:      Name: ', princ: 'School Principal Approval:      Name: ', sig: '     Signature: ______________     Date: ' },
+    ar: { cls: 'الصف: ', subj: '    المادة: ', grade: '    الصف الدراسي: ', teacher: '    المعلمة: ', date: '    التاريخ: ', based: 'بناءً على: ',
+      a3: 'الملحق 3 — تحليل المهارات وتصنيف الطالبات', a4: 'الملحق 4 — خطة العلاج والإثراء',
+      levels: 'المستويات: ', levelsTxt: (b) => `متقنة ≥ ${b.pass}%  ·  المستوى 2 (BF) ${b.bf}–${b.pass - 0.1}%  ·  المستوى 3 (F) أقل من ${b.bf}%  ·  معرّضة للخطر (BP) ${b.pass}–${b.bp - 0.1}%  ·  الأولوية: عالية < 50%، متوسطة 50–79%، منخفضة ≥ 80%`,
+      h3: ['المهارة', 'عدد الطالبات', 'المتوسط', 'المتقنات', 'المستوى 2 (BF)', 'المستوى 3 (F)', 'معرّضة للخطر (BP)', 'الإتقان', 'الأولوية', 'الإجراء المقترح'],
+      prio: { High: 'عالية', Medium: 'متوسطة', Low: 'منخفضة' }, classTitle: 'تصنيف الطالبات حسب المهارة',
+      hc: ['المهارة', 'المستوى 3 (F) — دعم مكثف', 'المستوى 2 (BF) — دعم موجّه', 'معرّضة للخطر (BP) — متابعة'],
+      h4: ['المهارة المستهدفة', 'المجموعة / الطالبات', 'نقطة البداية ← الهدف', 'الاستراتيجيات', 'المنصة', 'الحصص والتوقيت', 'المسؤول', 'مؤشر التقدم والمتابعة', 'قرار المتابعة'],
+      enr: 'إثراء', intv: 'علاج · الأولوية ', target: '← الهدف: ', ind: 'المؤشر: ', weeks: 'الأسبوع 2: ______   الأسبوع 4: ______',
+      cont: '☐ الاستمرار', move: '☐ الانتقال إلى الإثراء', esc: '☐ التصعيد / الإحالة',
+      acad: 'اعتماد الشؤون الأكاديمية:      الاسم: ', princ: 'اعتماد مديرة المدرسة:      الاسم: ', sig: '     التوقيع: ______________     التاريخ: ' },
+  };
+  let RTL = false; // set per document while it is built
+  const tx = (t, o = {}) => new TextRun(Object.assign({ text: String(t == null ? '' : t), size: 17, font: 'Calibri', rightToLeft: RTL }, o));
+  const para = (runs, o = {}) => new Paragraph(Object.assign({ children: Array.isArray(runs) ? runs : [runs], spacing: { after: 40 }, bidirectional: RTL, alignment: RTL ? AlignmentType.RIGHT : undefined }, o));
   const lines = (t, o) => String(t == null ? '' : t).split('\n').map((ln) => para(tx(ln, o)));
   const cellOf = (content, o = {}) => new TableCell({ children: Array.isArray(content) ? content : lines(content, o.run), verticalAlign: VerticalAlign.CENTER,
     shading: o.fill ? { type: ShadingType.CLEAR, color: 'auto', fill: o.fill } : undefined, width: o.w ? { size: o.w, type: WidthType.DXA } : undefined,
     margins: { top: 50, bottom: 50, left: 70, right: 70 } });
   const headRow = (labels, widths, fill) => new TableRow({ tableHeader: true, children: labels.map((l, i) => cellOf([para(tx(l, { bold: true, color: 'FFFFFF', size: 17 }), { alignment: AlignmentType.CENTER })], { fill, w: widths[i] })) });
+  const goldBorders = { top: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD }, bottom: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD }, left: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD }, right: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD }, insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD }, insideVertical: { style: BorderStyle.SINGLE, size: 4, color: PR_GOLD } };
+  const tableOf = (rows) => new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows, borders: goldBorders, visuallyRightToLeft: RTL });
   const bar = (pct) => { const n = Math.round(Math.max(0, Math.min(100, +pct || 0)) / 10); return '█'.repeat(n) + '░'.repeat(10 - n); };
   const lvlFill = (pct, pass) => (pct >= 80 ? 'DCFCE7' : pct >= pass ? 'FEF9C3' : pct >= 40 ? 'FFEDD5' : 'FEE2E2');
   function header(meta, title, sub) {
+    const T = ENH[RTL ? 'ar' : 'en'];
+    const ap = meta.approvers || {};
+    const school = RTL ? (ap.schoolAr || DEFAULT_SCHOOL_AR) : (ap.school || DEFAULT_SCHOOL);
     return [
-      para(tx((meta.approvers && meta.approvers.school) || DEFAULT_SCHOOL, { bold: true, size: 30, color: NAVY })),
-      para([tx(title, { bold: true, size: 26, color: NAVY }), tx(sub ? '   ' + sub : '', { italics: true, size: 20, color: GREY })], { spacing: { before: 120, after: 60 } }),
-      para([tx('Class: ', { bold: true }), tx(meta.section || ''), tx('    Subject: ', { bold: true }), tx(meta.subject || ''), tx('    Grade: ', { bold: true }), tx(meta.grade || ''),
-        tx('    Teacher: ', { bold: true }), tx(meta.teacher || ''), tx('    Date: ', { bold: true }), tx(new Date().toISOString().slice(0, 10))]),
-      para(tx(meta.assessments ? 'Based on: ' + meta.assessments : '', { size: 15, color: GREY, italics: true })),
+      ...(LOGO_BUF ? [para(new ImageRun({ data: LOGO_BUF, transformation: { width: 260, height: Math.round(260 * 167 / 900) } }), { alignment: AlignmentType.RIGHT, spacing: { after: 0 } })] : []),
+      para(tx(school, { bold: true, size: 30, color: PR_BURG })),
+      para([tx(title, { bold: true, size: 26, color: PR_BURG }), tx(sub ? '   ' + sub : '', { italics: true, size: 20, color: GREY })], { spacing: { before: 120, after: 60 } }),
+      para([tx(T.cls, { bold: true }), tx(meta.section || ''), tx(T.subj, { bold: true }), tx(meta.subject || ''), tx(T.grade, { bold: true }), tx(meta.grade || ''),
+        tx(T.teacher, { bold: true }), tx(meta.teacher || ''), tx(T.date, { bold: true }), tx(todayUAE())]),
+      para(tx(meta.assessments ? T.based + meta.assessments : '', { size: 15, color: GREY, italics: true })),
     ];
   }
   const signatures = (ap) => {
+    const T = ENH[RTL ? 'ar' : 'en'];
     ap = ap || { academic: '', principal: '' };
     const nm = (v) => (v ? tx(v, { size: 17, bold: true }) : tx('______________________', { size: 17 }));
     return [
       para(tx(' '), { spacing: { before: 200 } }),
-      para([tx('Academic Approval:      Name: ', { size: 17 }), nm(ap.academic), tx('     Signature: ______________     Date: ', { size: 17 }), tx(todayUAE(), { size: 17, bold: true })]),
-      para([tx('School Principal Approval:      Name: ', { size: 17 }), nm(ap.principal), tx('     Signature: ______________     Date: ', { size: 17 }), tx(todayUAE(), { size: 17, bold: true })], { spacing: { before: 160 } }),
+      para([tx(T.acad, { size: 17 }), nm(ap.academic), tx(T.sig, { size: 17 }), tx(todayUAE(), { size: 17, bold: true })]),
+      para([tx(T.princ, { size: 17 }), nm(ap.principal), tx(T.sig, { size: 17 }), tx(todayUAE(), { size: 17, bold: true })], { spacing: { before: 160 } }),
     ];
   };
   function enhanced3(meta, rows) {
+    const T = ENH[RTL ? 'ar' : 'en'];
     const b = meta.bands || {};
     const W = [1900, 650, 750, 1250, 1250, 1250, 900, 1350, 850, 3100];
-    const out = header(meta, 'Annex 3 — Skills Analysis and Student Classification', '');
-    out.push(para([tx('Levels: ', { bold: true }), tx(`Proficient ≥ ${b.pass}%  ·  Level 2 (BF) ${b.bf}–${b.pass - 0.1}%  ·  Level 3 (F) below ${b.bf}%  ·  At risk (BP) ${b.pass}–${b.bp - 0.1}%  ·  Priority: High < 50% proficient, Medium 50–79%, Low ≥ 80%`, { size: 15, color: GREY })]));
+    const out = header(meta, T.a3, '');
+    out.push(para([tx(T.levels, { bold: true }), tx(T.levelsTxt(b), { size: 15, color: GREY })]));
     const tr = rows.map((r) => {
       const n = +r.students || 0; const pc = (k) => (n ? Math.round((+r[k] || 0) / n * 100) + '%' : '');
       const pr = +r.proficiencyPct || 0; const prio = pr < 50 ? 'High' : pr < 80 ? 'Medium' : 'Low';
@@ -421,40 +509,42 @@ module.exports = function annex(app, d) {
         cellOf(`${r.proficient} (${pr}%)`, { fill: lvlFill(pr, b.pass) }), cellOf(`${r.level2} (${pc('level2')})`, { fill: +r.level2 ? 'FFEDD5' : undefined }),
         cellOf(`${r.level3} (${pc('level3')})`, { fill: +r.level3 ? 'FEE2E2' : undefined }), cellOf(String(r.atRisk || 0)),
         cellOf(bar(pr), { run: { color: pr >= b.pass ? '16A34A' : 'DC2626', size: 15 } }),
-        cellOf(prio, { run: { bold: true, color: prio === 'High' ? 'B91C1C' : prio === 'Medium' ? 'B45309' : '15803D' } }), cellOf(r.action || ''),
+        cellOf(T.prio[prio], { run: { bold: true, color: prio === 'High' ? 'B91C1C' : prio === 'Medium' ? 'B45309' : '15803D' } }), cellOf(r.action || ''),
       ] });
     });
-    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Skill', 'No. of students', 'Average', 'Proficient', 'Level 2 (BF)', 'Level 3 (F)', 'At risk (BP)', 'Proficiency', 'Priority', 'Suggested action'], W, BLUE), ...tr] }));
-    // Classification lists
-    out.push(para(tx('Student classification by skill', { bold: true, size: 22, color: NAVY }), { spacing: { before: 240, after: 80 } }));
+    out.push(tableOf([headRow(T.h3, W, BLUE), ...tr]));
+    out.push(para(tx(T.classTitle, { bold: true, size: 22, color: PR_BURG }), { spacing: { before: 240, after: 80 } }));
     const W2 = [2400, 4300, 4300, 4300];
-    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Skill', 'Level 3 (F) — intensive support', 'Level 2 (BF) — targeted support', 'At risk (BP) — monitor'], W2, NAVY),
-      ...rows.map((r) => new TableRow({ children: [cellOf(r.skill, { run: { bold: true } }), cellOf((r.level3Names || []).join(', ') || '—', { fill: 'FEF2F2' }), cellOf((r.level2Names || []).join(', ') || '—', { fill: 'FFF7ED' }), cellOf((r.atRiskNames || []).join(', ') || '—', { fill: 'FEFCE8' })] }))] }));
+    out.push(tableOf([headRow(T.hc, W2, PR_GOLD),
+      ...rows.map((r) => new TableRow({ children: [cellOf(r.skill, { run: { bold: true } }), cellOf((r.level3Names || []).join(', ') || '—', { fill: 'FEF2F2' }), cellOf((r.level2Names || []).join(', ') || '—', { fill: 'FFF7ED' }), cellOf((r.atRiskNames || []).join(', ') || '—', { fill: 'FEFCE8' })] }))]));
     return out.concat(signatures(meta.approvers));
   }
   function enhanced4(meta, plan) {
+    const T = ENH[RTL ? 'ar' : 'en'];
     const W = [1700, 2300, 1300, 2700, 1500, 1500, 1200, 1700, 1700];
-    const out = header(meta, 'Annex 4 — Intervention and Enrichment Plan', meta.month || '');
-    const plat = (p) => (Array.isArray(p.strategies) ? p.strategies.filter((x) => /adeptly|ielts/i.test(x)) : []).map((x) => x.replace(/^(Weekly )?practice on the /i, '')).join(', ');
+    const out = header(meta, T.a4, RTL ? (MONTH_AR[meta.month] || meta.month || '') : (meta.month || ''));
+    const plat = (p) => (Array.isArray(p.strategies) ? p.strategies.filter((x) => /adeptly|ielts/i.test(x)) : []).map((x) => (/adeptly/i.test(x) ? 'Adeptly' : 'IELTS')).filter((x, i, a) => a.indexOf(x) === i).join(', ');
     const tr = plan.map((p) => new TableRow({ children: [
-      cellOf([para(tx(p.skill || '', { bold: true })), para(tx(p.kind === 'enrichment' ? 'Enrichment' : `Intervention · priority ${p.level || ''}`, { size: 15, color: p.kind === 'enrichment' ? '15803D' : 'B91C1C' }))], { fill: p.kind === 'enrichment' ? 'F0FDF4' : 'FEF2F2' }),
-      cellOf(p.students || ''), cellOf((p.baseline || '') + (p.target ? '\n→ Target: ' + p.target : '')),
+      cellOf([para(tx(p.skill || '', { bold: true })), para(tx(p.kind === 'enrichment' ? T.enr : `${T.intv}${T.prio[p.level] || p.level || ''}`, { size: 15, color: p.kind === 'enrichment' ? '15803D' : 'B91C1C' }))], { fill: p.kind === 'enrichment' ? 'F0FDF4' : 'FEF2F2' }),
+      cellOf(p.students || ''), cellOf((p.baseline || '') + (p.target ? '\n' + T.target + p.target : '')),
       cellOf([...(Array.isArray(p.strategies) && p.strategies.length ? p.strategies.map((x) => para(tx('• ' + x, { bold: true, size: 16 }))) : []), ...lines(p.strategy || '')]),
       cellOf(plat(p) || '—'), cellOf(p.sessions || ''), cellOf(p.responsible || ''),
-      cellOf([para(tx('Indicator: ', { bold: true })), ...lines(p.indicator || ''), para(tx('Week 2: ______   Week 4: ______', { size: 15, color: GREY }))]),
-      cellOf([...(p.followUp ? lines(p.followUp) : []), para(tx('☐ Continue', { size: 16 })), para(tx('☐ Move to enrichment', { size: 16 })), para(tx('☐ Escalate / refer', { size: 16 }))]),
+      cellOf([para(tx(T.ind, { bold: true })), ...lines(p.indicator || ''), para(tx(T.weeks, { size: 15, color: GREY }))]),
+      cellOf([...(p.followUp ? lines(p.followUp) : []), para(tx(T.cont, { size: 16 })), para(tx(T.move, { size: 16 })), para(tx(T.esc, { size: 16 }))]),
     ] }));
-    out.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [headRow(['Target skill', 'Group / students', 'Baseline → target', 'Strategies', 'Platform', 'Sessions & timing', 'Responsible', 'Progress indicator & checks', 'Follow-up decision'], W, GREEN), ...tr] }));
+    out.push(tableOf([headRow(T.h4, W, GREEN), ...tr]));
     return out.concat(signatures(meta.approvers));
   }
   async function makeEnhanced(b) {
       const meta = Object.assign({}, b.meta || {}, { month: b.month || '', approvers: approversOf(b) });
+      RTL = approversOf(b).lang === 'ar';
       const which = String(b.which || 'both');
       const sections = [];
       const page = { size: { orientation: PageOrientation.LANDSCAPE }, margin: { top: 600, bottom: 600, left: 600, right: 600 } };
       if (which !== '4') sections.push({ properties: { page }, children: enhanced3(meta, (Array.isArray(b.rows) ? b.rows : []).slice(0, 200)) });
       const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || '']).map((m) => String(m).slice(0, 40)).slice(0, 12);
       if (which !== '3') for (const m of months) sections.push({ properties: { page }, children: enhanced4(Object.assign({}, meta, { month: m }), (Array.isArray(b.plan) ? b.plan : []).slice(0, 100)) });
+      RTL = false;
       const doc = new Document({ creator: 'ClassCurio', title: 'Annex 3 & 4', sections });
       return Packer.toBuffer(doc);
   }
@@ -468,6 +558,42 @@ module.exports = function annex(app, d) {
       res.setHeader('Content-Disposition', `attachment; filename="Annex${which === 'both' ? '3-4' : which}_Enhanced_${safeName(meta.section)}.docx"`);
       res.send(buf);
     } catch (e) { console.error('[annex enhanced]', e); res.status(500).json({ error: 'Could not build the file: ' + e.message }); }
+  });
+
+  // ── Arabic: translate the editable cell text (names, numbers and platform names stay) ──
+  const LABEL_AR = (t) => String(t || '')
+    .replace(/Level 3 \((\d+)\):/g, 'المستوى 3 ($1):').replace(/Level 2 \((\d+)\):/g, 'المستوى 2 ($1):')
+    .replace(/Proficient \((\d+)\):/g, 'المتقنات ($1):').replace(/\+(\d+) more/g, '+$1 أخريات');
+  app.post('/api/admin/annex/translate', requireAdmin, async (req, res) => {
+    try {
+      const b = req.body || {};
+      const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => Object.assign({}, r));
+      const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => Object.assign({}, p, { strategies: Array.isArray(p.strategies) ? p.strategies.slice() : [] }));
+      const texts = new Map();
+      const want = (t) => { const v = String(t || '').trim(); if (v && !/^[\d\s.,%()+\-–:/×≥≤<>]*$/.test(v) && !/[؀-ۿ]/.test(v)) texts.set(v, ''); };
+      rows.forEach((r) => ['subject', 'skill', 'action'].forEach((k) => want(r[k])));
+      plan.forEach((p) => { ['skill', 'baseline', 'target', 'strategy', 'sessions', 'indicator', 'followUp'].forEach((k) => want(p[k])); p.strategies.forEach(want); });
+      const list = Array.from(texts.keys());
+      for (let i = 0; i < list.length; i += 40) {
+        const chunk = list.slice(i, i + 40);
+        const items = await claudeList({
+          system: 'Translate each text into clear, concise Modern Standard Arabic for an official UAE school report (MOE). Keep numbers, percentages, CEFR levels, student names and platform names (Adeptly, IELTS) as they are. Keep it short — the same length as the original. Return one entry per id.',
+          user: JSON.stringify(chunk.map((t, k) => ({ id: 'T' + (i + k), text: t }))),
+          maxTokens: 6000, itemProps: { id: { type: 'string' }, ar: { type: 'string' } }, required: ['id', 'ar'] });
+        for (const x of items || []) { const k = /^T\d+$/.test(String(x && x.id)) ? +String(x.id).slice(1) : -1; if (k >= 0 && list[k] && x.ar) texts.set(list[k], String(x.ar).slice(0, 400)); }
+      }
+      const tr = (t) => { const v = String(t || '').trim(); return (v && texts.get(v)) || t; };
+      rows.forEach((r) => ['subject', 'skill', 'action'].forEach((k) => { r[k] = tr(r[k]); }));
+      plan.forEach((p) => {
+        ['skill', 'baseline', 'target', 'strategy', 'sessions', 'indicator', 'followUp'].forEach((k) => { p[k] = tr(p[k]); });
+        p.strategies = p.strategies.map(tr);
+        p.students = LABEL_AR(p.students);
+      });
+      res.json({ rows, plan });
+    } catch (e) {
+      console.error('[annex translate]', e);
+      res.status(500).json({ error: 'Could not translate into Arabic: ' + (e.message || e) });
+    }
   });
 
   // Both formats in one ZIP: the MOE school form (PowerPoint) + the ClassCurio enhanced version (Word).

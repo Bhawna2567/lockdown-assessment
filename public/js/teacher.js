@@ -10727,6 +10727,7 @@ async function ccOpenAnnex() {
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">MOE school form (PowerPoint — same as provided)</option><option value="enhanced">ClassCurio enhanced version (Word — more detail)</option><option value="both">Both formats (one ZIP file)</option></select></label>
+      <label style="margin:0;">Sheet language<select data-ax="lang"><option value="en">English</option><option value="ar">العربية (Arabic)</option></select></label>
     </div>
     <div data-ax="alist" style="margin-top:10px;"></div>
     <div data-ax="bands" style="margin-top:8px;"></div>
@@ -10737,7 +10738,8 @@ async function ccOpenAnnex() {
         <div style="display:flex; gap:6px; margin-top:4px;"><input data-ax="se-own" placeholder="Add your own strategy…" style="flex:1; font-size:13px; padding:5px 8px;"><button class="btn" data-ax="se-add" style="padding:4px 10px;">＋ Add</button></div></div>
     </div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end; margin-top:10px;">
-      <label style="margin:0; flex:1 1 100%;">School name (printed at the top of the sheets)<input data-ax="school" style="width:100%;"></label>
+      <label style="margin:0; flex:1 1 320px;">School name (English sheets)<input data-ax="school" style="width:100%;"></label>
+      <label style="margin:0; flex:1 1 320px;">School name (Arabic sheets)<input data-ax="schoolAr" dir="rtl" style="width:100%;"></label>
       <label style="margin:0; flex:1 1 260px;">Academic approval — name (optional)<input data-ax="apA" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
       <label style="margin:0; flex:1 1 260px;">School Principal approval — name (optional)<input data-ax="apP" placeholder="Leave blank to sign by hand" style="width:100%;"></label>
       <span class="muted" style="font-size:12px; flex:1 1 220px;">The date is filled in automatically; signatures are always left blank. Names are remembered on this computer only.</span>
@@ -10747,6 +10749,9 @@ async function ccOpenAnnex() {
   const $ = (k) => box.querySelector(`[data-ax="${k}"]`);
   $('close').onclick = () => ov.remove();
   $('school').value = 'Al-Noaimiyah Girls School-Cycle 1,2&3';
+  $('schoolAr').value = 'مدرسة النعيمية للبنات - الحلقة 1 و2 و3';
+  try { const sa = localStorage.getItem('cc_annex_schoolAr'); if (sa) $('schoolAr').value = sa; } catch (e) {}
+  $('schoolAr').oninput = () => { try { localStorage.setItem('cc_annex_schoolAr', $('schoolAr').value.trim()); } catch (e) {} };
   try { $('apA').value = localStorage.getItem('cc_annex_apA') || ''; $('apP').value = localStorage.getItem('cc_annex_apP') || ''; const sc = localStorage.getItem('cc_annex_school'); if (sc) $('school').value = sc; } catch (e) {}
   const saveAp = () => { try { localStorage.setItem('cc_annex_apA', $('apA').value.trim()); localStorage.setItem('cc_annex_apP', $('apP').value.trim()); localStorage.setItem('cc_annex_school', $('school').value.trim()); } catch (e) {} };
   $('apA').oninput = saveAp; $('apP').oninput = saveAp; $('school').oninput = saveAp;
@@ -10891,6 +10896,19 @@ async function ccOpenAnnex() {
     const download = async (url, body, btn) => {
       const old = btn.textContent; btn.disabled = true; btn.textContent = 'Preparing…';
       try {
+        if ($('lang').value === 'ar') {
+          btn.textContent = 'Translating into Arabic…';
+          const key = JSON.stringify([d.rows, d.plan]);
+          if (!st.arCache || st.arCache.key !== key) {
+            const t = await api('/api/admin/annex/translate', { method: 'POST', body: { rows: d.rows, plan: d.plan } });
+            st.arCache = { key, rows: t.rows, plan: t.plan };
+          }
+          body = Object.assign({}, body, { lang: 'ar', schoolAr: $('schoolAr').value.trim() });
+          if (body.rows) body.rows = st.arCache.rows;
+          if (body.plan) body.plan = st.arCache.plan;
+          if (body.meta) body.meta = Object.assign({}, body.meta, { subject: (st.arCache.rows[0] && st.arCache.rows[0].subject) || body.meta.subject });
+          btn.textContent = 'Preparing…';
+        }
         const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
         if (!res.ok) { let m = 'Failed'; try { m = (await res.json()).error || m; } catch (e) {} throw new Error(m); }
         const blob = await res.blob();
