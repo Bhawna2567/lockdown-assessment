@@ -9935,7 +9935,7 @@ document.addEventListener('click', (e) => { if (e.target && e.target.closest && 
 //  🎬 Training videos inside the User Guide (English + Arabic, 14 chapters)
 //  Files live in /videos/<en|ar>/<NN>.mp4 (streamed, not cached offline).
 // ═══════════════════════════════════════════════════════════════════════
-const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 215, "dar": 272}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 101}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 157, "dar": 197}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 110, "dar": 139}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages, parent reports and Annex sheets", "ar": "متوسطات الصف وتقارير أولياء الأمور والملحقات", "den": 249, "dar": 313}, {"n": 12, "en": "Outcome coverage and the Outcome check", "ar": "تغطية نواتج التعلم وفحص النواتج", "den": 88, "dar": 116}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
+const CC_TRAINING_CHAPTERS = [{"n": 1, "en": "Getting started and the dashboard", "ar": "البداية ولوحة التحكم", "den": 231, "dar": 297}, {"n": 2, "en": "Classes and students", "ar": "الصفوف والطالبات", "den": 93, "dar": 113}, {"n": 3, "en": "Creating an assessment with AI and the MOE curriculum", "ar": "إنشاء تقييم بالذكاء الاصطناعي ومنهج الوزارة", "den": 215, "dar": 272}, {"n": 4, "en": "The builder: assessment settings", "ar": "محرر التقييم: الإعدادات", "den": 79, "dar": 101}, {"n": 5, "en": "The builder: questions", "ar": "محرر التقييم: الأسئلة", "den": 157, "dar": 197}, {"n": 6, "en": "Difficulty check", "ar": "فحص مستوى الصعوبة", "den": 55, "dar": 68}, {"n": 7, "en": "Listening assessments", "ar": "اختبارات الاستماع", "den": 38, "dar": 48}, {"n": 8, "en": "Sharing and running the exam", "ar": "المشاركة وتطبيق الاختبار", "den": 88, "dar": 106}, {"n": 9, "en": "Results and report cards", "ar": "النتائج وتقارير الطالبات", "den": 110, "dar": 139}, {"n": 10, "en": "Marking writing with AI", "ar": "تصحيح الكتابة بالذكاء الاصطناعي", "den": 76, "dar": 100}, {"n": 11, "en": "Class averages, parent reports and Annex sheets", "ar": "متوسطات الصف وتقارير أولياء الأمور والملحقات", "den": 269, "dar": 336}, {"n": 12, "en": "Outcome coverage and the Outcome check", "ar": "تغطية نواتج التعلم وفحص النواتج", "den": 88, "dar": 116}, {"n": 13, "en": "The specification table (from your coordinator)", "ar": "جدول المواصفات (من المنسقة)", "den": 53, "dar": 58}, {"n": 14, "en": "Settings and final tips", "ar": "الإعدادات ونصائح ختامية", "den": 46, "dar": 61}];
 function ccFmtDur(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 function ccTrainingVideosEnhance() {
   const overlay = document.getElementById('cc-user-guide-overlay');
@@ -9976,7 +9976,7 @@ function ccTrainingVideosEnhance() {
       </div>
       <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
         <div style="flex:1 1 520px; min-width:280px;">
-          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=8"></video>
+          <video id="cc-tv-player" controls playsinline preload="metadata" style="width:100%; border-radius:10px; background:#0b1020; aspect-ratio:16/9;" src="/videos/${lang}/${nn}.mp4?v=9"></video>
           <div style="margin-top:6px; font-weight:600;" dir="${rtl ? 'rtl' : 'ltr'}">${t.ch} ${c.n} · ${rtl ? c.ar : c.en}</div>
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:#475569; margin-top:6px; text-transform:none; letter-spacing:0; font-weight:400;" dir="${rtl ? 'rtl' : 'ltr'}"><input type="checkbox" id="cc-tv-all" ${playAll ? 'checked' : ''} style="width:auto;"> ${t.all}</label>
         </div>
@@ -10723,7 +10723,7 @@ async function ccOpenAnnex() {
     <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;"><h2 style="margin:0; flex:1;">📑 Annex 3 &amp; 4 — skills analysis and intervention plan</h2><button class="btn" data-ax="close">Close</button></div>
     <div class="muted" style="font-size:13px; margin-bottom:10px;">Built from students' real results. Choose your strategies, let the AI fill the sheets, edit anything, then download. Signatures are left blank.</div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.length > 1 ? `<option value="__all">★ ${opts.admin ? 'All classes listed' : 'All my classes'} — one combined report</option>` : ''}${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
+      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.filter((c) => c.assessments.some((a) => a.submissions > 0)).length > 1 ? `<option value="__all">★ Combined report — choose the classes</option>` : ''}${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">MOE school form (PowerPoint — same as provided)</option><option value="enhanced">ClassCurio enhanced version (Word — more detail)</option><option value="both">Both formats (one ZIP file)</option></select></label>
@@ -10801,17 +10801,37 @@ async function ccOpenAnnex() {
     st.data = null; $('out').innerHTML = ''; $('status').textContent = '';
     if ($('class').value === '__all') {
       const cy0 = opts.currentYear || '';
-      const blocks = opts.classes.map((c) => {
-        const taken = c.assessments.filter((a) => a.submissions > 0).sort((x, y) => (x.year === cy0 ? 0 : 1) - (y.year === cy0 ? 0 : 1) || String(y.date).localeCompare(String(x.date)));
-        if (!taken.length) return '';
-        return `<div style="font-size:12px; font-weight:700; color:#C01C35; margin:8px 0 2px;">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''} <a href="#" data-ax-cls-all="${esc(c.id)}" style="font-weight:400; font-size:11px;">tick all</a></div>` +
-          taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" data-ax-cls="${esc(c.id)}" style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''}${a.year && a.year !== cy0 ? ' · ' + esc(a.year) : ''} · ${a.submissions} students</span></label>`).join('');
+      const withResults = opts.classes.filter((c) => c.assessments.some((a) => a.submissions > 0));
+      // Step 1: the teacher ticks the classes to combine (nothing ticked by default).
+      const teachers = opts.admin ? withResults.map((c) => c.teacher).filter((t, i, a) => a.indexOf(t) === i) : [null];
+      const clsHtml = teachers.map((t) => {
+        const list = withResults.filter((c) => !opts.admin || c.teacher === t);
+        return (opts.admin ? `<div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin:6px 0 2px;">${esc(t)}</div>` : '') +
+          `<div style="display:flex; flex-wrap:wrap; gap:4px 18px;">` + list.map((c) => `<label style="display:flex; gap:6px; align-items:center; margin:2px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-c="${esc(c.id)}" style="width:auto; margin:0;"> ${esc(c.name)}</label>`).join('') + `</div>`;
       }).join('');
-      $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Tick the assessments to include for each class <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
-        <div style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px;">${blocks}</div>`;
-      $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
-      $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
-      box.querySelectorAll('[data-ax-cls-all]').forEach((l) => { l.onclick = (e) => { e.preventDefault(); box.querySelectorAll(`[data-ax-cls="${CSS.escape(l.getAttribute('data-ax-cls-all'))}"]`).forEach((x) => { x.checked = true; }); }; });
+      $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">1. Tick the classes to combine · <a href="#" data-ax="call">tick all</a> · <a href="#" data-ax="cnone">clear</a></div>
+        <div style="max-height:200px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px; margin-bottom:10px;">${clsHtml || '<span class="muted">No class has results yet.</span>'}</div>
+        <div data-ax="alist2"></div>`;
+      const renderAssess = () => {
+        const kept = new Set(Array.from(box.querySelectorAll('[data-ax-a]:checked')).map((x) => x.getAttribute('data-ax-a')));
+        const chosen = Array.from(box.querySelectorAll('[data-ax-c]:checked')).map((x) => x.getAttribute('data-ax-c'));
+        const host = $('alist2');
+        if (!chosen.length) { host.innerHTML = '<div class="muted" style="font-size:13px;">Tick at least one class above to see its assessments.</div>'; return; }
+        const blocks = withResults.filter((c) => chosen.includes(c.id)).map((c) => {
+          const taken = c.assessments.filter((a) => a.submissions > 0).sort((x, y) => (x.year === cy0 ? 0 : 1) - (y.year === cy0 ? 0 : 1) || String(y.date).localeCompare(String(x.date)));
+          return `<div style="font-size:12px; font-weight:700; color:#C01C35; margin:8px 0 2px;">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''} <a href="#" data-ax-cls-all="${esc(c.id)}" style="font-weight:400; font-size:11px;">tick all</a></div>` +
+            taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" data-ax-cls="${esc(c.id)}" ${kept.has(a.id) ? 'checked' : ''} style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''}${a.year && a.year !== cy0 ? ' · ' + esc(a.year) : ''} · ${a.submissions} students</span></label>`).join('');
+        }).join('');
+        host.innerHTML = `<div style="font-weight:600; margin-bottom:4px;">2. Tick the assessments to include for each class <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
+          <div style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px;">${blocks}</div>`;
+        $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
+        $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
+        box.querySelectorAll('[data-ax-cls-all]').forEach((l) => { l.onclick = (e) => { e.preventDefault(); box.querySelectorAll(`[data-ax-cls="${CSS.escape(l.getAttribute('data-ax-cls-all'))}"]`).forEach((x) => { x.checked = true; }); }; });
+      };
+      box.querySelectorAll('[data-ax-c]').forEach((x) => { x.onchange = () => { st.data = null; $('out').innerHTML = ''; renderAssess(); }; });
+      if ($('call')) $('call').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-c]').forEach((x) => { x.checked = true; }); renderAssess(); };
+      if ($('cnone')) $('cnone').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-c]').forEach((x) => { x.checked = false; }); renderAssess(); };
+      renderAssess();
       $('bands').innerHTML = '<div style="padding:8px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:13px;">Each class uses the levels of its own cycle — <strong>Cycle 3 (Grades 9–12):</strong> pass 60%, Level 2 (BF) 50–59.9%, Level 3 (F) below 50% · <strong>Cycle 2 (Grades 5–8):</strong> pass 50%, Level 2 (BF) 40–49.9%, Level 3 (F) below 40%.</div>';
       return;
     }
@@ -10861,7 +10881,7 @@ async function ccOpenAnnex() {
         }
         const uniq = (arr) => arr.filter((x, i, a) => x && a.indexOf(x) === i);
         st.data = {
-          class: { id: '__all', name: opts.admin ? 'All classes' : 'All my classes' },
+          class: { id: '__all', name: parts.length <= 3 ? parts.map((p) => p.class.name).join(' + ') : (opts.admin ? 'Combined classes' : 'My classes') + ` (${parts.length})` },
           teacher: uniq(parts.map((p) => p.teacher)).join(', '),
           subject: uniq(parts.map((p) => p.subject)).join(', '),
           grade: uniq(parts.map((p) => p.grade)).join(', '),
