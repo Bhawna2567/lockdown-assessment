@@ -394,7 +394,8 @@ module.exports = function annex(app, d) {
     const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 200).map((r) => [
       r.subject, r.section, r.skill, r.students, r.proficient, (r.proficiencyPct !== '' && r.proficiencyPct != null ? r.proficiencyPct + '%' : ''), r.level2, r.level3, r.action,
     ]);
-    return buildPptx('annex3.pptx', rows, 5, null, 18, null, approversOf(b));
+    const ap3 = approversOf(b);
+    return buildPptx('annex3.pptx', rows, 5, null, ap3.lang === 'ar' ? 13 : 18, null, ap3);
   }
   app.post('/api/admin/annex/annex3.pptx', requireAdmin, async (req, res) => {
     try {
@@ -419,10 +420,10 @@ module.exports = function annex(app, d) {
   async function makeAnnex4(b) {
       const months = (Array.isArray(b.months) && b.months.length ? b.months : [b.month || 'First Month']).map((m) => String(m).slice(0, 40)).slice(0, 12);
       const rows = (Array.isArray(b.plan) ? b.plan : []).slice(0, 100).map((p) => [
-        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? '\nTarget: ' + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
+        (p.kind === 'enrichment' ? 'Enrichment: ' : '') + (p.skill || ''), shortStudents(p.students), p.baseline + (p.target ? (b.lang === 'ar' ? '\nالهدف: ' : '\nTarget: ') + p.target : ''), p.strategy || (Array.isArray(p.strategies) ? p.strategies.join('; ') : ''), p.responsible, p.sessions, p.indicator, p.followUp,
       ]);
       const ap = approversOf(b);
-      return buildPptx('annex4.pptx', rows, 5, null, 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(ap.lang === 'ar' ? (MONTH_AR[m] || m) : m)}</a:t>`) })), ap);
+      return buildPptx('annex4.pptx', rows, 5, null, ap.lang === 'ar' ? 15 : 20, months.map((m) => ({ rows, extra: (xml) => xml.replace('<a:t>First Month</a:t>', `<a:t>${xmlEsc(ap.lang === 'ar' ? (MONTH_AR[m] || m) : m)}</a:t>`) })), ap);
   }
   app.post('/api/admin/annex/annex4.pptx', requireAdmin, async (req, res) => {
     try {
