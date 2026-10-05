@@ -500,15 +500,18 @@ module.exports = function annex(app, d) {
     const b = meta.bands || {};
     const W = [1900, 650, 750, 1250, 1250, 1250, 900, 1350, 850, 3100];
     const out = header(meta, T.a3, '');
-    out.push(para([tx(T.levels, { bold: true }), tx(T.levelsTxt(b), { size: 15, color: GREY })]));
+    const mixed = !(b && b.pass);
+    const mixedTxt = RTL ? 'لكل صف مستويات حلقته — الحلقة 3: النجاح 60%، BF ‏50–59.9%، F أقل من 50% · الحلقة 2: النجاح 50%، BF ‏40–49.9%، F أقل من 40%'
+      : 'Each class uses its own cycle — Cycle 3: pass 60%, Level 2 (BF) 50–59.9%, Level 3 (F) below 50% · Cycle 2: pass 50%, Level 2 (BF) 40–49.9%, Level 3 (F) below 40%';
+    out.push(para([tx(T.levels, { bold: true }), tx(mixed ? mixedTxt : T.levelsTxt(b), { size: 15, color: GREY })]));
     const tr = rows.map((r) => {
       const n = +r.students || 0; const pc = (k) => (n ? Math.round((+r[k] || 0) / n * 100) + '%' : '');
       const pr = +r.proficiencyPct || 0; const prio = pr < 50 ? 'High' : pr < 80 ? 'Medium' : 'Low';
       return new TableRow({ children: [
         cellOf(r.skill, { run: { bold: true } }), cellOf(String(n)), cellOf((r.average != null ? r.average + '%' : '')),
-        cellOf(`${r.proficient} (${pr}%)`, { fill: lvlFill(pr, b.pass) }), cellOf(`${r.level2} (${pc('level2')})`, { fill: +r.level2 ? 'FFEDD5' : undefined }),
+        cellOf(`${r.proficient} (${pr}%)`, { fill: lvlFill(pr, b.pass || 60) }), cellOf(`${r.level2} (${pc('level2')})`, { fill: +r.level2 ? 'FFEDD5' : undefined }),
         cellOf(`${r.level3} (${pc('level3')})`, { fill: +r.level3 ? 'FEE2E2' : undefined }), cellOf(String(r.atRisk || 0)),
-        cellOf(bar(pr), { run: { color: pr >= b.pass ? '16A34A' : 'DC2626', size: 15 } }),
+        cellOf(bar(pr), { run: { color: pr >= (b.pass || 60) ? '16A34A' : 'DC2626', size: 15 } }),
         cellOf(T.prio[prio], { run: { bold: true, color: prio === 'High' ? 'B91C1C' : prio === 'Medium' ? 'B45309' : '15803D' } }), cellOf(r.action || ''),
       ] });
     });

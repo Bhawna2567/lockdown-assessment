@@ -10723,7 +10723,7 @@ async function ccOpenAnnex() {
     <div class="row" style="align-items:center; gap:10px; margin-bottom:6px;"><h2 style="margin:0; flex:1;">📑 Annex 3 &amp; 4 — skills analysis and intervention plan</h2><button class="btn" data-ax="close">Close</button></div>
     <div class="muted" style="font-size:13px; margin-bottom:10px;">Built from students' real results. Choose your strategies, let the AI fill the sheets, edit anything, then download. Signatures are left blank.</div>
     <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
+      <label style="margin:0; flex:1 1 280px;">${opts.admin ? 'Class section (teacher)' : 'Your class section'}<select data-ax="class" style="width:100%;"><option value="">${opts.classes.length ? '— choose —' : 'No class has results yet'}</option>${opts.classes.length > 1 ? `<option value="__all">★ ${opts.admin ? 'All classes listed' : 'All my classes'} — one combined report</option>` : ''}${opts.classes.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''}</option>`).join('')}</select></label>
       <label style="margin:0;">Group rows by<select data-ax="by"><option value="skill">Skill / outcome</option><option value="focus">Question focus</option><option value="cefr">CEFR level</option></select></label>
       <div style="margin:0; min-width:230px;"><label style="margin:0 0 4px;">Annex 4 months</label><div data-ax="months"></div></div>
       <label style="margin:0;">Sheet format<select data-ax="format"><option value="school">MOE school form (PowerPoint — same as provided)</option><option value="enhanced">ClassCurio enhanced version (Word — more detail)</option><option value="both">Both formats (one ZIP file)</option></select></label>
@@ -10799,6 +10799,22 @@ async function ccOpenAnnex() {
   $('class').onchange = () => {
     // A new class: clear the previous class's tables so the window only shows this class.
     st.data = null; $('out').innerHTML = ''; $('status').textContent = '';
+    if ($('class').value === '__all') {
+      const cy0 = opts.currentYear || '';
+      const blocks = opts.classes.map((c) => {
+        const taken = c.assessments.filter((a) => a.submissions > 0).sort((x, y) => (x.year === cy0 ? 0 : 1) - (y.year === cy0 ? 0 : 1) || String(y.date).localeCompare(String(x.date)));
+        if (!taken.length) return '';
+        return `<div style="font-size:12px; font-weight:700; color:#C01C35; margin:8px 0 2px;">${esc(c.name)}${opts.admin ? ' — ' + esc(c.teacher) : ''} <a href="#" data-ax-cls-all="${esc(c.id)}" style="font-weight:400; font-size:11px;">tick all</a></div>` +
+          taken.map((a) => `<label style="display:flex; gap:8px; align-items:center; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400;"><input type="checkbox" data-ax-a="${esc(a.id)}" data-ax-cls="${esc(c.id)}" style="width:auto; margin:0;"> ${esc(a.title)} <span class="muted" style="font-size:12px;">· ${esc(a.subject)} · G${esc(a.grade)} · T${esc(a.term)}${a.date ? ' · ' + esc(a.date) : ''}${a.year && a.year !== cy0 ? ' · ' + esc(a.year) : ''} · ${a.submissions} students</span></label>`).join('');
+      }).join('');
+      $('alist').innerHTML = `<div style="font-weight:600; margin-bottom:4px;">Tick the assessments to include for each class <span class="muted" style="font-weight:400; font-size:12px;">(only ones students have taken)</span> · <a href="#" data-ax="all">tick all</a> · <a href="#" data-ax="none">clear</a></div>
+        <div style="max-height:260px; overflow:auto; border:1px solid #e5e7eb; border-radius:8px; padding:4px 10px;">${blocks}</div>`;
+      $('all').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = true; }); };
+      $('none').onclick = (e) => { e.preventDefault(); box.querySelectorAll('[data-ax-a]').forEach((x) => { x.checked = false; }); };
+      box.querySelectorAll('[data-ax-cls-all]').forEach((l) => { l.onclick = (e) => { e.preventDefault(); box.querySelectorAll(`[data-ax-cls="${CSS.escape(l.getAttribute('data-ax-cls-all'))}"]`).forEach((x) => { x.checked = true; }); }; });
+      $('bands').innerHTML = '<div style="padding:8px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; font-size:13px;">Each class uses the levels of its own cycle — <strong>Cycle 3 (Grades 9–12):</strong> pass 60%, Level 2 (BF) 50–59.9%, Level 3 (F) below 50% · <strong>Cycle 2 (Grades 5–8):</strong> pass 50%, Level 2 (BF) 40–49.9%, Level 3 (F) below 40%.</div>';
+      return;
+    }
     const c = opts.classes.find((x) => x.id === $('class').value);
     if (!c) { $('alist').innerHTML = ''; $('bands').innerHTML = ''; return; }
     const cy = opts.currentYear || '';
@@ -10833,6 +10849,29 @@ async function ccOpenAnnex() {
     if (!ids.length) { alert('Tick at least one assessment to include.'); return; }
     $('status').textContent = 'Working out each student’s score per skill…';
     try {
+      if ($('class').value === '__all') {
+        // Combined report: build each class separately (its own cycle levels), then put them together.
+        const byClass = new Map();
+        box.querySelectorAll('[data-ax-a]:checked').forEach((x) => { const c = x.getAttribute('data-ax-cls'); if (!byClass.has(c)) byClass.set(c, []); byClass.get(c).push(x.getAttribute('data-ax-a')); });
+        const parts = [];
+        let n = 0;
+        for (const [cid, aids] of byClass) {
+          n++; $('status').textContent = `Working out class ${n} of ${byClass.size}…`;
+          parts.push(await api('/api/admin/annex/build', { method: 'POST', body: { classId: cid, assessmentIds: aids, groupBy: $('by').value } }));
+        }
+        const uniq = (arr) => arr.filter((x, i, a) => x && a.indexOf(x) === i);
+        st.data = {
+          class: { id: '__all', name: opts.admin ? 'All classes' : 'All my classes' },
+          teacher: uniq(parts.map((p) => p.teacher)).join(', '),
+          subject: uniq(parts.map((p) => p.subject)).join(', '),
+          grade: uniq(parts.map((p) => p.grade)).join(', '),
+          bands: parts[0].bands, combined: true,
+          students: parts.reduce((s, p) => s + (p.students || 0), 0),
+          assessments: parts.flatMap((p) => p.assessments.map((a) => ({ id: a.id, title: `${a.title} (${p.class.name})` }))),
+          rows: parts.flatMap((p) => p.rows),
+          plan: parts.flatMap((p) => p.plan.map((x) => Object.assign({}, x, { skill: `${x.skill} — ${p.class.name}` }))),
+        };
+      } else
       st.data = await api('/api/admin/annex/build', { method: 'POST', body: { classId: $('class').value, assessmentIds: ids, groupBy: $('by').value,
         pass: $('pass') && $('pass').value, bf: $('bf') && $('bf').value, bp: $('bp') && $('bp').value } });
       st.data.plan.forEach((p) => { p.strategies = (st.strat[p.kind] || []).slice(); });
@@ -10851,7 +10890,7 @@ async function ccOpenAnnex() {
     const th4 = (t) => `<th style="background:#70ad47; color:#fff; padding:6px; font-size:12px;">${t}</th>`;
     const fmt = $('format').value;
     $('out').innerHTML = `
-      <div style="font-size:13px; margin-bottom:6px;"><strong>${esc(d.class.name)}</strong> · ${esc(d.subject)} · Grade ${esc(d.grade)} · ${d.students} students · ${d.assessments.length} assessment(s) · Proficient ≥ ${d.bands.pass}% · Level 2 (BF) ${d.bands.bf}–${d.bands.pass - 0.1}% · Level 3 (F) &lt; ${d.bands.bf}%</div>
+      <div style="font-size:13px; margin-bottom:6px;"><strong>${esc(d.class.name)}</strong> · ${esc(d.subject)} · Grade ${esc(d.grade)} · ${d.students} students · ${d.assessments.length} assessment(s) · ${d.combined ? 'each class uses the levels of its own cycle' : `Proficient ≥ ${d.bands.pass}% · Level 2 (BF) ${d.bands.bf}–${d.bands.pass - 0.1}% · Level 3 (F) &lt; ${d.bands.bf}%`}</div>
       <h3 style="margin:10px 0 6px;">Annex 3 — Skills Analysis and Student Classification</h3>
       <div style="overflow:auto;"><table style="width:100%; border-collapse:collapse;"><tr>${['Subject', 'Grade/Section', 'Skill', 'No. of Students', 'Proficient', 'Proficiency %', 'Level 2', 'Level 3', 'Suggested Action'].map(th).join('')}<th style="background:#e5e7eb; padding:6px; font-size:12px;" title="Passed, but only just">At risk (BP)</th></tr>
         ${d.rows.map((r, i) => `<tr>${[['subject'], ['section'], ['skill', 1], ['students'], ['proficient'], ['proficiencyPct'], ['level2'], ['level3'], ['action', 1]].map(([k, ta]) => `<td style="border:1px solid #e5e7eb; padding:2px; vertical-align:top;">${cell(r[k], k, i, ta)}</td>`).join('')}
@@ -10916,7 +10955,7 @@ async function ccOpenAnnex() {
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = m ? m[1] : 'annex'; document.body.appendChild(a); a.click(); a.remove();
       } catch (e) { alert(e.message); } finally { btn.disabled = false; btn.textContent = old; }
     };
-    const meta = () => ({ section: d.class.name, subject: d.subject, grade: d.grade, teacher: d.teacher, bands: d.bands, assessments: d.assessments.map((a) => a.title).join('; ') });
+    const meta = () => ({ section: d.class.name, subject: d.subject, grade: d.grade, teacher: d.teacher, bands: d.combined ? {} : d.bands, assessments: d.assessments.map((a) => a.title).join('; ') });
     if (fmt === 'school') {
       $('dl3').onclick = () => download('/api/admin/annex/annex3.pptx', { section: d.class.name, rows: d.rows, approvers: approvers(), school: school() }, $('dl3'));
       $('dl4').onclick = () => { if (!st.months.length) { alert('Tick at least one month.'); return; } download('/api/admin/annex/annex4.pptx', { section: d.class.name, months: st.months, plan: d.plan, approvers: approvers(), school: school() }, $('dl4')); };
