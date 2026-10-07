@@ -1017,6 +1017,45 @@ function startAssessment() {
   }
 }
 
+// ---------- Symbols keyboard for written answers ----------
+const CC_SYMBOLS = [
+  ['Maths', ['°', '±', '×', '÷', '=', '≠', '≈', '<', '>', '≤', '≥', '√', '∛', 'π', '∞', '%', '½', '¼', '¾', '⅓', '∠', '⊥', '∥', '△', '≅', '∼', '′', '″']],
+  ['Powers', ['²', '³', '⁴', 'ⁿ', '⁻¹', '⁰', '¹', '⁵', '⁶', '⁷', '⁸', '⁹', '⁺', '⁻', '₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']],
+  ['Greek & sets', ['θ', 'α', 'β', 'γ', 'Δ', 'δ', 'λ', 'μ', 'σ', 'Σ', 'Ω', 'ω', 'ρ', '∈', '∉', '⊂', '∪', '∩', '∅', 'ℝ', 'ℕ', 'ℤ', 'ℚ']],
+  ['Arrows & more', ['→', '←', '↔', '⇒', '⇔', '⇌', '↑', '↓', '∴', '∵', '∑', '∫', '∂', '·', '°C', '°F', 'Ω', 'µ']],
+];
+function ccSymbolsHtml(qid) {
+  const id = escapeHtml(String(qid));
+  return `<div class="cc-sym" style="margin-top:6px;">
+    <button type="button" data-sym-toggle="${id}" style="padding:5px 12px; font-size:14px; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#1a1e33; cursor:pointer;">Ω Symbols (° √ π ²)</button>
+    <div data-sym-panel="${id}" style="display:none; margin-top:6px; padding:8px; border:1px solid #cbd5e1; border-radius:10px; background:#fff;">
+      ${CC_SYMBOLS.map(([g, list]) => `<div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:2px 0;"><span style="font-size:11px; color:#64748b; width:92px;">${escapeHtml(g)}</span>${list.map((x) => `<button type="button" data-sym="${escapeHtml(x)}" data-sym-for="${id}" style="min-width:36px; padding:5px 7px; font-size:17px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; color:#1a1e33; cursor:pointer;">${escapeHtml(x)}</button>`).join('')}</div>`).join('')}
+    </div></div>`;
+}
+if (!window.__ccSymBound) {
+  window.__ccSymBound = true;
+  // mousedown preventDefault keeps the cursor in the answer box (and keeps focus in the exam window).
+  document.addEventListener('mousedown', (e) => { if (e.target.closest && e.target.closest('[data-sym],[data-sym-toggle]')) e.preventDefault(); }, true);
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest && e.target.closest('[data-sym],[data-sym-toggle]');
+    if (!t) return;
+    e.preventDefault();
+    if (t.hasAttribute('data-sym-toggle')) {
+      const p = document.querySelector(`[data-sym-panel="${CSS.escape(t.getAttribute('data-sym-toggle'))}"]`);
+      if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      return;
+    }
+    const box = document.querySelector(`[data-q="${CSS.escape(t.getAttribute('data-sym-for'))}"]`);
+    if (!box || box.disabled || box.readOnly) return;
+    const sym = t.getAttribute('data-sym');
+    const start = box.selectionStart == null ? box.value.length : box.selectionStart;
+    const end = box.selectionEnd == null ? box.value.length : box.selectionEnd;
+    box.setRangeText(sym, start, end, 'end');
+    box.focus();
+    box.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+
 function renderQuestions() {
   // Show subject + language banner at the top of the question list when set.
   const a = currentAssessment;
@@ -1034,6 +1073,9 @@ function renderQuestions() {
     `;
   }
 
+  // Symbols keyboard for written answers (°, √, π, ≤, x², H₂O …) — hidden for language subjects.
+  const _symOn = !/^(english|arabic|french|listening|ielts|toefl|islamic studies|social studies)$/i.test(String(a.subject || '').trim());
+  const symBar = (qid) => _symOn ? ccSymbolsHtml(qid) : '';
   // Build per-question HTML in a helper so we can call it from inside the
   // section-grouping loop below.
   function questionBody(q) {
@@ -1055,12 +1097,12 @@ function renderQuestions() {
         <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; background:#f8fafc; color:#1a1e33; font-size:17px;"><input type="radio" name="q-${q.id}" value="ng" /> Not Given</label>
       `;
     } else if (q.type === 'short') {
-      return `<input type="text" data-q="${q.id}" placeholder="Your answer" />`;
+      return `<input type="text" data-q="${q.id}" placeholder="Your answer" />${symBar(q.id)}`;
     } else if (q.type === 'long') {
-      return `<textarea data-q="${q.id}" rows="10" placeholder="Write your full answer here. Use complete sentences and explain your reasoning."></textarea>`;
+      return `<textarea data-q="${q.id}" rows="10" placeholder="Write your full answer here. Use complete sentences and explain your reasoning."></textarea>${symBar(q.id)}`;
     } else if (q.type === 'essay' || q.type === 'writing') {
       const rows = q.type === 'writing' ? 14 : 6;
-      return `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>`;
+      return `<textarea data-q="${q.id}" rows="${rows}" placeholder="Write your answer here. Take your time, plan your structure, and proofread before submitting."></textarea>${symBar(q.id)}`;
     }
     return '';
   }
@@ -1489,6 +1531,7 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
 
 function renderReviewQuestion(q, i) {
   const statusBadge =
+    q.adjusted ? `<span class="badge" style="background:#fef3c7; color:#92400e;">Mark given by your teacher: ${q.adjusted.to}/${q.points}</span>` :
     q.correct === true ? '<span class="badge green">Correct</span>' :
     q.correct === false ? '<span class="badge red">Incorrect</span>' :
     q.manualGrade ? `<span class="badge green">Graded: ${q.manualGrade.score}/${q.manualGrade.maxScore}</span>` :

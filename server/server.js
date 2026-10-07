@@ -3183,6 +3183,7 @@ function _ccQuestionEarned(q, result) {
     return { earned: Number(manual.score) || 0, max: Number(manual.maxScore) || pts };
   }
   const ans = (result.answers || []).find((x) => x.questionId === q.id) || {};
+  if (ans.teacherAdjusted && typeof ans.earned === 'number') return { earned: ans.earned, max: pts };
   if (q.type === 'match' && typeof ans.earned === 'number') return { earned: ans.earned, max: pts };
   if (ans.correct === true) return { earned: pts, max: pts };
   if (ans.correct === false) return { earned: 0, max: pts };
@@ -4828,6 +4829,8 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
       imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
       correct: ans.correct ?? null,
+      earned: typeof ans.earned === 'number' ? ans.earned : null,
+      adjusted: ans.teacherAdjusted ? { from: ans.teacherAdjusted.from, to: ans.teacherAdjusted.to, reason: ans.teacherAdjusted.reason || '' } : null,
       correctAnswer:
         (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || (q.type === 'short' && q.correctAnswer))
           ? q.correctAnswer
@@ -4855,7 +4858,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
 
   const _released = _ccResultsReleased(a);
   if (!_released) {
-    for (const r of review) { r.correct = null; r.correctAnswer = null; r.explanation = null; r.skill = null; }
+    for (const r of review) { r.correct = null; r.correctAnswer = null; r.explanation = null; r.skill = null; r.earned = null; r.adjusted = null; }
   }
   res.json({
     resultsReleased: _released,
@@ -4908,6 +4911,8 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
       imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
       correct: ans.correct ?? null,
+      earned: typeof ans.earned === 'number' ? ans.earned : null,
+      adjusted: ans.teacherAdjusted ? { from: ans.teacherAdjusted.from, to: ans.teacherAdjusted.to, reason: ans.teacherAdjusted.reason || '' } : null,
       correctAnswer:
         (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || (q.type === 'short' && q.correctAnswer))
           ? q.correctAnswer
@@ -5012,6 +5017,51 @@ app.post('/api/results/:resultId/grade-question', requireTeacher, (req, res) => 
   };
   writeAll('results.json', results);
   res.json({ ok: true, manualGrades: results[rIdx].manualGrades });
+});
+
+// Teacher changes the mark of an auto-marked question (e.g. the student could not type a symbol).
+// The original mark is kept in teacherAdjusted.from so the change can be seen and undone.
+app.post('/api/results/:resultId/adjust-question', requireTeacher, (req, res) => {
+  const { questionId, reason } = req.body || {};
+  const results = readAll('results.json');
+  const r = results.find((x) => x.id === req.params.resultId);
+  if (!r) return res.status(404).json({ error: 'Result not found' });
+  const a = readAll('assessments.json').find((x) => x.id === r.assessmentId);
+  if (!a) return res.status(404).json({ error: 'Assessment missing' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  const q = (a.questions || []).find((x) => x.id === questionId);
+  if (!q) return res.status(400).json({ error: 'Question not in this assessment' });
+  const pts = Number(q.points) || 1;
+  const score = Math.max(0, Math.min(pts, Number(req.body.score)));
+  if (!Number.isFinite(score)) return res.status(400).json({ error: 'Enter a mark from 0 to ' + pts });
+  const auto = q.type === 'mc' || q.type === 'tf' || q.type === 'tfng' || q.type === 'match' || (q.type === 'short' && q.correctAnswer);
+  if (!auto) {
+    r.manualGrades = r.manualGrades || {};
+    const prev = r.manualGrades[q.id] || {};
+    r.manualGrades[q.id] = Object.assign({}, prev, { score, maxScore: pts, feedback: prev.feedback || String(reason || ''), gradedAt: new Date().toISOString(), gradedBy: req.session.user.name });
+    writeAll('results.json', results);
+    return res.json({ ok: true });
+  }
+  r.answers = Array.isArray(r.answers) ? r.answers : [];
+  let ans = r.answers.find((x) => x.questionId === q.id);
+  if (!ans) { ans = { questionId: q.id, given: null, correct: false }; r.answers.push(ans); }
+  const before = typeof ans.earned === 'number' ? ans.earned : ans.correct === true ? pts : 0;
+  const original = ans.teacherAdjusted ? ans.teacherAdjusted.from : before;
+  const origCorrect = ans.teacherAdjusted ? ans.teacherAdjusted.originalCorrect : (ans.correct ?? null);
+  const origEarned = ans.teacherAdjusted ? ans.teacherAdjusted.originalEarned : (typeof ans.earned === 'number' ? ans.earned : null);
+  r.autoScore = (Number(r.autoScore) || 0) + (score - before);
+  if (score === original) {
+    // Back to the original mark: remove the adjustment.
+    ans.correct = origCorrect;
+    if (origEarned === null || origEarned === undefined) delete ans.earned; else ans.earned = origEarned;
+    delete ans.teacherAdjusted;
+  } else {
+    ans.earned = score;
+    ans.correct = score >= pts;
+    ans.teacherAdjusted = { from: original, to: score, reason: String(reason || '').slice(0, 300), by: req.session.user.name, at: new Date().toISOString(), originalCorrect: origCorrect, originalEarned: origEarned };
+  }
+  writeAll('results.json', results);
+  res.json({ ok: true, autoScore: r.autoScore });
 });
 
 // Teacher's overall narrative comment for a student's submission. Shows up
@@ -5660,7 +5710,9 @@ app.get('/api/assessments/:id/scoresheet', requireTeacher, async (req, res) => {
       const ans = (r.answers || []).find((x) => x.questionId === q.id) || {};
       const manual = (r.manualGrades || {})[q.id];
 
-      if (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng') {
+      if (ans.teacherAdjusted && typeof ans.earned === 'number') {
+        row.push(ans.earned);
+      } else if (q.type === 'mc' || q.type === 'tf' || q.type === 'tfng') {
         row.push(ans.correct === true ? q.points : 0);
       } else if (q.type === 'short' && q.correctAnswer) {
         row.push(ans.correct === true ? q.points : 0);
@@ -5989,6 +6041,7 @@ function _ccLatexToPlain(s) {
 function _ccNormShort(s) {
   return _ccLatexToPlain(String(s == null ? '' : s)).toLowerCase()
     .replace(/[−–—]/g, '-').replace(/×/g, '*').replace(/÷/g, '/')
+    .replace(/(\d)\s*(?:°|º|degrees?|deg)(?![a-z])/g, '$1')
     .replace(/\s+/g, '').replace(/[.。]+$/, '');
 }
 

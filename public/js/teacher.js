@@ -3557,7 +3557,7 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
   mountBody.innerHTML = ccSkillsBlockHtml(data.skillReport) + `
     <div class="report-card">
       <h2>Question by Question</h2>
-      ${data.review.map((q, i) => renderReviewQuestion(q, i)).join('')}
+      ${(window.__ccRcResult = data.__resultId, data.review.map((q, i) => renderReviewQuestion(q, i)).join(''))}
     </div>
   `;
 
@@ -3619,6 +3619,7 @@ function renderReportCard({ mountSummary, mountBody, data, isTeacher }) {
 // Render a single question's report row. Mirrors the student-side helper.
 function renderReviewQuestion(q, i) {
   const statusBadge =
+    q.adjusted ? `<span class="badge" style="background:#fef3c7; color:#92400e;" title="${escapeHtml(q.adjusted.reason || '')}">Mark changed by teacher: ${q.adjusted.from} → ${q.adjusted.to}/${q.points}</span>` :
     q.correct === true ? '<span class="badge green">Correct</span>' :
     q.correct === false ? '<span class="badge red">Incorrect</span>' :
     q.manualGrade ? `<span class="badge green">Graded: ${q.manualGrade.score}/${q.manualGrade.maxScore}</span>` :
@@ -3658,9 +3659,24 @@ ${escapeHtml(q.manualGrade.feedback)}
       <div><strong>Answer:</strong> ${givenDisplay}</div>
       ${correctDisplay}
       ${feedback}
+      ${q.adjusted && q.adjusted.reason ? `<div class="muted" style="font-size:12px; margin-top:4px;">Reason for the change: ${escapeHtml(q.adjusted.reason)}</div>` : ''}
+      ${window.__ccRcResult && q.questionId ? `<div style="margin-top:8px;"><button class="btn" style="padding:4px 10px; font-size:13px;" onclick="ccChangeMark('${escapeHtml(window.__ccRcResult)}','${escapeHtml(q.questionId)}',${Number(q.points) || 1},${q.earned != null ? q.earned : q.manualGrade ? Number(q.manualGrade.score) || 0 : q.correct === true ? (Number(q.points) || 1) : 0})">✏ Change mark</button></div>` : ''}
       ${ccReviewExtrasHtml(q)}
     </div>
   `;
+}
+
+// Teacher changes one question's mark (e.g. the student could not type a symbol such as °).
+async function ccChangeMark(resultId, questionId, points, current) {
+  const v = prompt(`New mark for this question (0 to ${points}). Current mark: ${current}/${points}`, String(points));
+  if (v === null) return;
+  const score = Number(String(v).trim());
+  if (!Number.isFinite(score) || score < 0 || score > points) { alert(`Please enter a number from 0 to ${points}.`); return; }
+  const reason = prompt('Reason (optional) — e.g. "Could not type the degree symbol"', '') || '';
+  try {
+    await api(`/api/results/${resultId}/adjust-question`, { method: 'POST', body: { questionId, score, reason } });
+    openReportCard(resultId);
+  } catch (e) { alert('Could not change the mark: ' + e.message); }
 }
 
 function hideAllViews() {
