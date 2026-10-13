@@ -11434,3 +11434,54 @@ async function ccFillOutcomes(btn) {
   };
   add(); setTimeout(add, 2500);
 })();
+
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ♻ Recently deleted — restore classes and assessments (kept 30 days)
+// ═══════════════════════════════════════════════════════════════════════
+async function ccOpenDeleted() {
+  document.getElementById('cc-deleted')?.remove();
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const ov = document.createElement('div'); ov.id = 'cc-deleted';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 10px;';
+  ov.innerHTML = '<div style="background:#fff; border-radius:12px; width:min(1000px,100%); padding:18px 22px; box-shadow:0 16px 48px rgba(0,0,0,.3);"><div class="muted">Loading…</div></div>';
+  document.body.appendChild(ov);
+  const box = ov.firstElementChild;
+  const when = (d) => { try { return new Date(d).toLocaleString(); } catch (e) { return d || ''; } };
+  async function load(msg) {
+    let d;
+    try { d = await api('/api/deleted'); } catch (e) { box.innerHTML = `<div class="error">${esc(e.message)}</div><button class="btn" data-x>Close</button>`; box.querySelector('[data-x]').onclick = () => ov.remove(); return; }
+    const row = (inner, btn) => `<div style="display:flex; gap:10px; align-items:center; border:1px solid #e5e7eb; border-radius:10px; padding:8px 12px; margin:6px 0;"><div style="flex:1;" dir="auto">${inner}</div>${btn}</div>`;
+    box.innerHTML = `
+      <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">♻ Recently deleted${d.admin ? ' — all teachers' : ''}</h2><button class="btn" data-x>Close</button></div>
+      <div class="muted" style="font-size:13px; margin:4px 0 8px;">Deleted classes and assessments can be restored here. Assessments are kept for 30 days after deletion. Student results are never deleted — they come back with the assessment.</div>
+      ${msg ? `<div style="padding:8px 12px; border-radius:8px; background:#ecfdf5; border:1px solid #a7f3d0; margin-bottom:8px;">${msg}</div>` : ''}
+      <h3 style="margin:12px 0 4px;">🏫 Classes (${d.classes.length})</h3>
+      ${d.classes.length ? d.classes.map((c, i) => row(`<strong>${esc(c.name)}</strong>${c.teacher ? ' — ' + esc(c.teacher) : ''}<div class="muted" style="font-size:12px;">${c.fromBackup ? 'Found in the backup of ' + esc(String(c.deletedAt).slice(0, 10)) + ' (deleted after that day)' : 'Deleted ' + esc(when(c.deletedAt))} · ${c.students} student${c.students === 1 ? '' : 's'} on the roster${c.assessmentsRemoved.length ? ' · ' + c.assessmentsRemoved.length + ' assessment' + (c.assessmentsRemoved.length === 1 ? '' : 's') + ' deleted with it' : ''}</div>`,
+        `<button class="btn primary" data-rc="${i}">♻ Restore${c.assessmentsRemoved.length || c.fromBackup ? ' class + assessments' : ' class'}</button>`)).join('') : '<div class="muted" style="font-size:13px;">No deleted classes.</div>'}
+      <h3 style="margin:14px 0 4px;">📝 Assessments (${d.assessments.length})</h3>
+      ${d.assessments.length ? d.assessments.map((a, i) => row(`<strong>${esc(a.title)}</strong>${a.teacher ? ' — ' + esc(a.teacher) : ''}<div class="muted" style="font-size:12px;">Deleted ${esc(when(a.deletedAt))}${a.subject ? ' · ' + esc(a.subject) : ''} · ${a.questions} question${a.questions === 1 ? '' : 's'}${a.className ? ' · class: ' + esc(a.className) : ''} · ${a.submissions} result${a.submissions === 1 ? '' : 's'} kept</div>`,
+        `<button class="btn primary" data-ra="${i}">♻ Restore</button>`)).join('') : '<div class="muted" style="font-size:13px;">No deleted assessments.</div>'}`;
+    box.querySelector('[data-x]').onclick = () => { ov.remove(); try { loadAssessments(); } catch (e) {} };
+    box.querySelectorAll('[data-rc]').forEach((b) => { b.onclick = async () => {
+      const c = d.classes[+b.getAttribute('data-rc')];
+      b.disabled = true; b.textContent = 'Restoring…';
+      try { const r = await api('/api/deleted/restore', { method: 'POST', body: { kind: 'class', file: c.file, withAssessments: true } }); load(`✓ Restored the class <strong>${esc(r.name)}</strong>${r.assessmentsRestored ? ' and ' + r.assessmentsRestored + ' assessment' + (r.assessmentsRestored === 1 ? '' : 's') : ''}.`); try { if (typeof loadClasses === 'function') loadClasses(); } catch (e) {} }
+      catch (e) { b.disabled = false; b.textContent = '♻ Restore'; alert(e.message); }
+    }; });
+    box.querySelectorAll('[data-ra]').forEach((b) => { b.onclick = async () => {
+      const a = d.assessments[+b.getAttribute('data-ra')];
+      if (a.classDeleted && !confirm(`The class of “${a.title}” is also deleted. Restore the class first (above) so the assessment appears under it.\n\nRestore the assessment on its own anyway?`)) return;
+      b.disabled = true; b.textContent = 'Restoring…';
+      try { const r = await api('/api/deleted/restore', { method: 'POST', body: { kind: 'assessment', file: a.file } }); load(`✓ Restored <strong>${esc(r.title)}</strong>.`); }
+      catch (e) { b.disabled = false; b.textContent = '♻ Restore'; alert(e.message); }
+    }; });
+  }
+  load();
+}
+document.addEventListener('click', (e) => {
+  const b = e.target && e.target.closest && e.target.closest('#tools-deleted, #admin-deleted');
+  if (!b) return;
+  const tm = document.getElementById('tools-menu-dropdown'); if (tm) tm.style.display = 'none';
+  ccOpenDeleted();
+});

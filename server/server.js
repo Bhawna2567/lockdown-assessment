@@ -7301,6 +7301,116 @@ function _ccRequireAdmin(req, res, next) {
     next();
   } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 }
+// ── ♻ Recently deleted (teachers see their own; admins see everyone's) ──
+const _ccDeletedClassRoot = _ccPath.join(_ccDataDir, 'deleted', 'classes');
+function _ccIsAdminUser(u) { return ADMIN_EMAILS.map((x) => String(x).toLowerCase()).includes(String((u && u.email) || '').toLowerCase()); }
+function _ccListDeletedClasses() {
+  const out = [];
+  try {
+    if (!_ccFs.existsSync(_ccDeletedClassRoot)) return out;
+    for (const day of _ccFs.readdirSync(_ccDeletedClassRoot).sort().reverse()) {
+      const dir = _ccPath.join(_ccDeletedClassRoot, day);
+      try { if (!_ccFs.statSync(dir).isDirectory()) continue; } catch (e) { continue; }
+      for (const f of _ccFs.readdirSync(dir)) {
+        if (!f.endsWith('.json')) continue;
+        try {
+          const raw = JSON.parse(_ccFs.readFileSync(_ccPath.join(dir, f), 'utf8'));
+          const c = raw.class || {};
+          out.push({ file: day + '/' + f, deletedAt: raw.deletedAt, id: c.id, name: c.name || '(no name)', teacherId: c.teacherId || null, students: (c.roster || []).length, assessmentsRemoved: raw.assessmentsRemoved || [] });
+        } catch (e) {}
+      }
+    }
+  } catch (e) { console.error('[deleted classes] list failed', e); }
+  return out;
+}
+function _ccRestoreDeletedClass(fileRel) {
+  const full = _ccPath.join(_ccDeletedClassRoot, fileRel);
+  if (!full.startsWith(_ccDeletedClassRoot)) throw new Error('bad path');
+  const raw = JSON.parse(_ccFs.readFileSync(full, 'utf8'));
+  const c = raw.class;
+  if (!c || !c.id) throw new Error('archive has no class');
+  const all = readAll('classes.json');
+  if (!all.some((x) => x.id === c.id)) { all.push(c); writeAll('classes.json', all); }
+  try { _ccFs.unlinkSync(full); } catch (e) {}
+  return { cls: c, assessmentIds: raw.assessmentsRemoved || [] };
+}
+// Classes deleted before class archiving existed: find them in the daily backups (last 30 days).
+function _ccClassesFromBackups(liveIds, archivedIds) {
+  const found = new Map();
+  try {
+    if (!_ccFs.existsSync(_ccBackupRoot)) return [];
+    for (const day of _ccFs.readdirSync(_ccBackupRoot).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().reverse()) {
+      try {
+        const list = JSON.parse(_ccFs.readFileSync(_ccPath.join(_ccBackupRoot, day, 'classes.json'), 'utf8'));
+        for (const c of list) if (c && c.id && !liveIds.has(c.id) && !archivedIds.has(c.id) && !found.has(c.id)) found.set(c.id, { c, day });
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return [...found.values()];
+}
+app.get('/api/deleted', requireTeacher, (req, res) => {
+  try {
+    const u = req.session.user, admin = _ccIsAdminUser(u);
+    const users = readAll('users.json');
+    const tName = (id) => { const t = users.find((x) => x.id === id); return t ? t.name : ''; };
+    const liveClasses = readAll('classes.json');
+    const classes = _ccListDeletedClasses().filter((c) => admin || c.teacherId === u.id);
+    const fromBackup = _ccClassesFromBackups(new Set(liveClasses.map((c) => c.id)), new Set(_ccListDeletedClasses().map((c) => c.id)))
+      .filter((x) => admin || x.c.teacherId === u.id);
+    for (const x of fromBackup) classes.push({ file: 'backup:' + x.day + ':' + x.c.id, deletedAt: x.day + 'T23:59:00Z', id: x.c.id, name: x.c.name || '(no name)', teacherId: x.c.teacherId, students: (x.c.roster || []).length, assessmentsRemoved: [], fromBackup: true });
+    const assessments = _ccListDeletedAssessments().filter((a) => admin || a.teacherId === u.id);
+    const results = readAll('results.json');
+    const className = (id) => { const l = liveClasses.find((c) => c.id === id); if (l) return l.name; const d = classes.find((c) => c.id === id); return d ? d.name + ' (deleted)' : ''; };
+    res.json({
+      admin,
+      classes: classes.map((c) => Object.assign({}, c, { teacher: admin ? tName(c.teacherId) : '' })),
+      assessments: assessments.map((a) => Object.assign({}, a, { className: className(a.classId), classDeleted: !!a.classId && !liveClasses.some((c) => c.id === a.classId), teacher: admin ? tName(a.teacherId) : '', submissions: results.filter((r) => r.assessmentId === a.id).length })),
+    });
+  } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+});
+app.post('/api/deleted/restore', requireTeacher, (req, res) => {
+  try {
+    const u = req.session.user, admin = _ccIsAdminUser(u);
+    const b = req.body || {};
+    const file = String(b.file || '');
+    if (!file) return res.status(400).json({ error: 'file required' });
+    if (b.kind === 'class' && file.startsWith('backup:')) {
+      const [, day, id] = file.split(':');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'bad file' });
+      const list = JSON.parse(_ccFs.readFileSync(_ccPath.join(_ccBackupRoot, day, 'classes.json'), 'utf8'));
+      const c = list.find((x) => x.id === id);
+      if (!c) return res.status(404).json({ error: 'Not found' });
+      if (!admin && c.teacherId !== u.id) return res.status(403).json({ error: 'Forbidden' });
+      const all = readAll('classes.json');
+      if (!all.some((x) => x.id === c.id)) { all.push(c); writeAll('classes.json', all); }
+      // Bring back this class's archived assessments too.
+      let restored = 0;
+      for (const a of _ccListDeletedAssessments()) { if (a.classId !== c.id) continue; try { _ccRestoreDeletedAssessment(a.file); restored++; } catch (e) {} }
+      return res.json({ ok: true, name: c.name, assessmentsRestored: restored });
+    }
+    if (b.kind === 'class') {
+      const c = _ccListDeletedClasses().find((x) => x.file === file);
+      if (!c) return res.status(404).json({ error: 'Not found — it may already have been restored.' });
+      if (!admin && c.teacherId !== u.id) return res.status(403).json({ error: 'Forbidden' });
+      const r = _ccRestoreDeletedClass(file);
+      let restored = 0;
+      if (b.withAssessments !== false && r.assessmentIds.length) {
+        const want = new Set(r.assessmentIds);
+        for (const a of _ccListDeletedAssessments()) {
+          if (!want.has(a.id)) continue;
+          try { _ccRestoreDeletedAssessment(a.file); restored++; want.delete(a.id); } catch (e) { /* already there */ }
+        }
+      }
+      return res.json({ ok: true, name: r.cls.name, assessmentsRestored: restored });
+    }
+    const a = _ccListDeletedAssessments().find((x) => x.file === file);
+    if (!a) return res.status(404).json({ error: 'Not found — it may already have been restored.' });
+    if (!admin && a.teacherId !== u.id) return res.status(403).json({ error: 'Forbidden' });
+    const r = _ccRestoreDeletedAssessment(file);
+    res.json({ ok: true, title: r.title });
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+
 // ── Admin endpoints — list + restore deleted assessments ──────────────────
 app.get('/api/admin/deleted-assessments', _ccRequireAdmin, (req, res) => {
   try { res.json(_ccListDeletedAssessments()); }
