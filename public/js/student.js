@@ -1023,13 +1023,17 @@ const CC_SYMBOLS = [
   ['Powers', ['²', '³', '⁴', 'ⁿ', '⁻¹', '⁰', '¹', '⁵', '⁶', '⁷', '⁸', '⁹', '⁺', '⁻', '₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']],
   ['Greek & sets', ['θ', 'α', 'β', 'γ', 'Δ', 'δ', 'λ', 'μ', 'σ', 'Σ', 'Ω', 'ω', 'ρ', '∈', '∉', '⊂', '∪', '∩', '∅', 'ℝ', 'ℕ', 'ℤ', 'ℚ']],
   ['Arrows & more', ['→', '←', '↔', '⇒', '⇔', '⇌', '↑', '↓', '∴', '∵', '∑', '∫', '∂', '·', '°C', '°F', 'Ω', 'µ']],
+  ['Chemistry', ['→', '⇌', '↑', '↓', 'Δ', '(s)', '(l)', '(g)', '(aq)', '⁺', '⁻', '²⁺', '³⁺', '²⁻', '³⁻', '₂', '₃', '₄', '₅', '₆', '·', 'e⁻', 'ΔH', '°C', 'mol', 'mol dm⁻³', 'g mol⁻¹', 'dm³', 'cm³', 'pH', '×10⁻']],
 ];
-function ccSymbolsHtml(qid) {
+function ccSymbolsHtml(qid, subject) {
   const id = escapeHtml(String(qid));
+  // Chemistry first for science subjects; the other sets follow.
+  const sci = /^(chemistry|science|biology|health science|physics)$/i.test(String(subject || '').trim());
+  const groups = sci ? CC_SYMBOLS.filter((g) => g[0] === 'Chemistry').concat(CC_SYMBOLS.filter((g) => g[0] !== 'Chemistry')) : CC_SYMBOLS.filter((g) => g[0] !== 'Chemistry');
   return `<div class="cc-sym" style="margin-top:6px;">
-    <button type="button" data-sym-toggle="${id}" style="padding:5px 12px; font-size:14px; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#1a1e33; cursor:pointer;">Ω Symbols (° √ π ²)</button>
+    <button type="button" data-sym-toggle="${id}" style="padding:5px 12px; font-size:14px; border:1px solid #cbd5e1; border-radius:8px; background:#f8fafc; color:#1a1e33; cursor:pointer;">${sci ? 'Ω Symbols (→ ⇌ ₂ ⁺ °)' : 'Ω Symbols (° √ π ²)'}</button>
     <div data-sym-panel="${id}" style="display:none; margin-top:6px; padding:8px; border:1px solid #cbd5e1; border-radius:10px; background:#fff;">
-      ${CC_SYMBOLS.map(([g, list]) => `<div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:2px 0;"><span style="font-size:11px; color:#64748b; width:92px;">${escapeHtml(g)}</span>${list.map((x) => `<button type="button" data-sym="${escapeHtml(x)}" data-sym-for="${id}" style="min-width:36px; padding:5px 7px; font-size:17px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; color:#1a1e33; cursor:pointer;">${escapeHtml(x)}</button>`).join('')}</div>`).join('')}
+      ${groups.map(([g, list]) => `<div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:2px 0;"><span style="font-size:11px; color:#64748b; width:92px;">${escapeHtml(g)}</span>${list.map((x) => `<button type="button" data-sym="${escapeHtml(x)}" data-sym-for="${id}" style="min-width:36px; padding:5px 7px; font-size:17px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; color:#1a1e33; cursor:pointer;">${escapeHtml(x)}</button>`).join('')}</div>`).join('')}
     </div></div>`;
 }
 if (!window.__ccSymBound) {
@@ -1075,7 +1079,7 @@ function renderQuestions() {
 
   // Symbols keyboard for written answers (°, √, π, ≤, x², H₂O …) — hidden for language subjects.
   const _symOn = !/^(english|arabic|french|listening|ielts|toefl|islamic studies|social studies)$/i.test(String(a.subject || '').trim());
-  const symBar = (qid) => _symOn ? ccSymbolsHtml(qid) : '';
+  const symBar = (qid) => _symOn ? ccSymbolsHtml(qid, a.subject) : '';
   // Build per-question HTML in a helper so we can call it from inside the
   // section-grouping loop below.
   function questionBody(q) {
@@ -1108,7 +1112,7 @@ function renderQuestions() {
   }
   function questionCard(q, globalIdx) {
     const imageBlock = q.imageUrl
-      ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 10px; border-radius: 8px; background: #f1f5f9;" />`
+      ? `<img src="${q.imageUrl}" alt="Question image" style="max-width: 100%; max-height: 360px; display: block; margin: 0 0 ${q.imageCredit ? '2px' : '10px'}; border-radius: 8px; background: #f1f5f9;" />${q.imageCredit ? `<div style="font-size:10px; color:#94a3b8; margin:0 0 10px;">${escapeHtml(q.imageCredit)}</div>` : ''}`
       : '';
     return `
       <div class="panel">

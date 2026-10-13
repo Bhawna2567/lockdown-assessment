@@ -2253,6 +2253,7 @@ if (els.aiGenerateBtn) {
           sectionId: q.sectionId || defaultSecId,
           imageUrl: '',
           imageDescription: q.imageDescription || '',
+          imageKind: q.imageKind || '', imageSearch: q.imageSearch || '',
           skill: q.skill || '',
           focus: q.focus || '',
           cefr: q.cefr || '', cefrScale: q.cefrScale || '',
@@ -2310,6 +2311,7 @@ if (els.aiGenerateBtn) {
         currentAudioVoices = {};                // re-detect from scratch
         renderSpeakersPanel(data.audioScript || '');
         renderQuestions();
+        try { const _ap = document.getElementById('ai-auto-pictures'); if ((!_ap || _ap.checked) && (!els.aiWantGraphics || els.aiWantGraphics.checked)) ccAutoPictures(questions); } catch (e) { console.warn('[auto pictures]', e); }
         if (data.audioScript && els.audioTtsStatus) {
           els.audioTtsStatus.textContent = 'AI wrote a listening script — pick a voice for each speaker, then Save the assessment.';
         }
@@ -2753,7 +2755,7 @@ function renderQuestions() {
     if (uploadBtn) uploadBtn.onclick = triggerUpload;
     if (replaceBtn) replaceBtn.onclick = triggerUpload;
     if (removeBtn) removeBtn.onclick = () => {
-      q.imageUrl = '';
+      q.imageUrl = ''; q.imageCredit = '';
       // Keep imageDescription so AI suggestion remains visible if applicable.
       renderQuestions();
     };
@@ -2761,6 +2763,10 @@ function renderQuestions() {
       q.imageDescription = '';
       renderQuestions();
     };
+    const bankBtn = root.querySelector('[data-act=img-bank]');
+    if (bankBtn) bankBtn.onclick = () => ccOpenImagePicker(q);
+    const creditIn = root.querySelector('[data-f=imgcredit]');
+    if (creditIn) creditIn.oninput = (e) => { q.imageCredit = e.target.value; };
     const aiImgBtn = root.querySelector('[data-act=img-ai]');
     if (aiImgBtn) aiImgBtn.onclick = async () => {
       if (!String(q.prompt || '').trim() && !String(q.imageDescription || '').trim()) {
@@ -2772,6 +2778,8 @@ function renderQuestions() {
       aiImgBtn.textContent = '✨ Drawing…';
       try {
         q.imageUrl = await ccGenerateDiagramImage(q, (msg) => { aiImgBtn.textContent = msg; });
+        q.imageCredit = '';
+        ccBankSave(q, q.imageUrl, 'diagram');
         q.imageDescription = '';
         renderQuestions();
       } catch (err) {
@@ -2789,7 +2797,7 @@ function renderQuestions() {
       }
       try {
         const dataUrl = await compressImageToDataUrl(file, 800);
-        q.imageUrl = dataUrl;
+        q.imageUrl = dataUrl; q.imageCredit = '';
         // Once they upload, the AI suggestion is fulfilled; clear it so the
         // teacher only sees the actual image preview.
         q.imageDescription = '';
@@ -2929,8 +2937,10 @@ function renderQuestion(q, idx) {
           <div>
             <button class="btn ghost" data-act="img-replace">Replace</button>
             <button class="btn ghost" data-act="img-ai" style="margin-left: 6px;">✨ Redraw with AI</button>
+            <button class="btn ghost" data-act="img-bank" style="margin-left: 6px;">🗂 Image bank &amp; photos</button>
             <button class="btn danger" data-act="img-remove" style="margin-left: 6px;">Remove</button>
             <input type="file" accept="image/*" data-img-file style="display: none;" />
+            <div style="margin-top:8px;"><input type="text" data-f="imgcredit" value="${escapeAttr(q.imageCredit || '')}" placeholder="Picture credit (filled in for library photos)" style="font-size:12px; padding:4px 8px; width:100%; min-width:260px;" /></div>
           </div>
         </div>
       </div>
@@ -2938,9 +2948,10 @@ function renderQuestion(q, idx) {
   } else if (q.imageDescription) {
     imageSection = `
       <div class="field" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 1px dashed #c4b5fd; border-radius: 8px; padding: 12px;">
-        <label>✨ AI suggests a graphic for this question</label>
+        <label>✨ AI suggests ${q.imageKind === 'photo' ? 'a photo' : 'a diagram'} for this question</label>
         <div style="font-size: 13px; color: #6b21a8; margin-bottom: 8px;">${escapeHtml(q.imageDescription)}</div>
         <button class="btn primary" data-act="img-ai">✨ Generate with AI</button>
+        <button class="btn ghost" data-act="img-bank" style="margin-left: 6px;">🗂 Image bank &amp; photos</button>
         <button class="btn ghost" data-act="img-upload" style="margin-left: 6px;">📎 Upload image</button>
         <button class="btn ghost" data-act="img-skip" style="margin-left: 6px;">Skip — text only</button>
         <input type="file" accept="image/*" data-img-file style="display: none;" />
@@ -2951,6 +2962,7 @@ function renderQuestion(q, idx) {
       <div class="field">
         <button class="btn ghost" data-act="img-upload">🖼 Add image (optional)</button>
         <button class="btn ghost" data-act="img-ai" style="margin-left: 6px;">✨ Generate diagram with AI</button>
+        <button class="btn ghost" data-act="img-bank" style="margin-left: 6px;">🗂 Image bank &amp; photos</button>
         <input type="file" accept="image/*" data-img-file style="display: none;" />
       </div>
     `;
@@ -8559,6 +8571,7 @@ async function ccGenerateDiagramImage(q, onStatus) {
     description: q.imageDescription || '',
     options: Array.isArray(q.options) ? q.options : [],
     subject: (els.subject && els.subject.value) || '',
+    style: ccIs3dSubject((els.subject && els.subject.value) || '') ? '3d' : '',
   };
   const call = async (url, payload) => {
     const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
@@ -8585,6 +8598,185 @@ async function ccGenerateDiagramImage(q, onStatus) {
   } catch (e) { /* keep the first drawing */ }
   return png;
 }
+
+// ════════════════════════════════════════════════════════════════════════
+//  🖼 Pictures: 3D-style AI diagrams, the school image bank, free-licence photos
+// ════════════════════════════════════════════════════════════════════════
+const CC_3D_SUBJECTS = /^(math|maths|mathematics|science|physics|chemistry|biology|health science|ai & technology)$/i;
+function ccIs3dSubject(subject) { return CC_3D_SUBJECTS.test(String(subject || '').trim()); }
+function ccPlainText(s) { return String(s || '').replace(/\\\(|\\\)|\\\[|\\\]/g, '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+function ccBankMeta(q) {
+  return {
+    title: ccPlainText(q.imageDescription || q.prompt).slice(0, 200),
+    subject: (els.subject && els.subject.value) || '',
+    grade: (els.grade && els.grade.value) || '',
+    lesson: ccPlainText(q.outcome || q.skill || '').slice(0, 200),
+    tags: [q.skill, q.focus].filter(Boolean),
+  };
+}
+// Save a drawn diagram to the school bank (quietly — never blocks the teacher).
+function ccBankSave(q, dataUrl, kind) {
+  if (!dataUrl || !/^data:image\//.test(dataUrl)) return;
+  api('/api/imagebank', { method: 'POST', body: Object.assign(ccBankMeta(q), { dataUrl, kind: kind || 'diagram' }) }).catch(() => {});
+}
+async function ccUrlToDataUrl(url) {
+  const r = await fetch(url, { credentials: 'include' });
+  if (!r.ok) throw new Error('Could not load the picture');
+  const blob = await r.blob();
+  return await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
+}
+
+// Re-draw the question list without pulling the cursor out of a box the teacher is typing in.
+function ccRenderWhenIdle() {
+  if (!els.builderView || els.builderView.style.display === 'none') return;
+  const a = document.activeElement;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable) && els.builderView.contains(a)) {
+    if (!a.__ccPendingRender) { a.__ccPendingRender = true; a.addEventListener('blur', () => { a.__ccPendingRender = false; setTimeout(ccRenderWhenIdle, 50); }, { once: true }); }
+    return;
+  }
+  renderQuestions();
+}
+// After the AI generates an assessment: add a picture to every question the AI flagged.
+async function ccAutoPictures(list) {
+  const todo = (list || []).filter((q) => q.imageDescription && !q.imageUrl);
+  if (!todo.length) return;
+  let box = document.getElementById('cc-autopic');
+  if (!box) {
+    box = document.createElement('div'); box.id = 'cc-autopic';
+    box.style.cssText = 'position:fixed; right:18px; bottom:18px; z-index:2147482000; background:#1e1b4b; color:#fff; padding:10px 14px; border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.3); font-size:14px; max-width:360px;';
+    document.body.appendChild(box);
+  }
+  let done = 0, failed = 0;
+  const show = () => { box.innerHTML = `🖼 Adding pictures to your questions… <strong>${done + failed} of ${todo.length}</strong><div style="font-size:12px; opacity:.8; margin-top:2px;">You can keep editing. 3D diagrams take about a minute each.</div>`; };
+  show();
+  const one = async (q) => {
+    if (!questions.includes(q) || q.imageUrl) return;
+    let url = '', credit = '';
+    if (q.imageKind === 'photo') {
+      try {
+        const r = await api('/api/images/auto', { method: 'POST', body: Object.assign(ccBankMeta(q), { prompt: ccPlainText(q.prompt), description: q.imageDescription, search: q.imageSearch || '' }) });
+        if (r && r.dataUrl) { url = r.dataUrl; credit = r.credit || ''; }
+      } catch (e) { /* fall back to a drawing */ }
+    }
+    if (!url) { url = await ccGenerateDiagramImage(q); ccBankSave(q, url, 'diagram'); }
+    if (!questions.includes(q) || q.imageUrl) return;
+    q.imageUrl = url; q.imageCredit = credit; q.imageDescription = '';
+  };
+  const queue = todo.slice();
+  const worker = async () => {
+    while (queue.length) {
+      const q = queue.shift();
+      try { await one(q); done++; } catch (e) { failed++; console.warn('[auto picture]', e); }
+      show();
+      ccRenderWhenIdle();
+    }
+  };
+  await Promise.all([worker(), worker()]);
+  box.innerHTML = `✓ Pictures added to ${done} question${done === 1 ? '' : 's'}.${failed ? ` ${failed} could not be drawn — use “✨ Generate with AI” or “🗂 Image bank & photos” on those.` : ''} <div style="font-size:12px; opacity:.85; margin-top:2px;">Please check every picture before you save.</div>`;
+  setTimeout(() => { try { box.remove(); } catch (e) {} }, failed ? 15000 : 8000);
+}
+
+// Picture picker: school image bank + free-licence photos (Wikimedia Commons).
+function ccOpenImagePicker(q) {
+  document.getElementById('cc-imgpick')?.remove();
+  const esc = (x) => escapeHtml(String(x == null ? '' : x));
+  const ov = document.createElement('div'); ov.id = 'cc-imgpick';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 10px;';
+  const words = ccPlainText(q.imageSearch || q.imageDescription || q.skill || q.prompt).split(' ').slice(0, 6).join(' ');
+  ov.innerHTML = `<div style="background:#fff; border-radius:12px; width:min(1100px,100%); padding:18px 22px; box-shadow:0 16px 48px rgba(0,0,0,.3);">
+    <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">🗂 Image bank &amp; photos</h2><button class="btn" data-ip="close">Close</button></div>
+    <div class="muted" style="font-size:13px; margin:4px 0 10px;"><strong>School bank:</strong> every diagram the AI draws and every photo a teacher picks is saved here for everyone to reuse. <strong>Free photos:</strong> real photos from Wikimedia Commons (free licences only — the credit line is added under the picture).</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+      <div style="display:flex; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;"><button class="btn" data-ip="tab-bank" style="border:0; border-radius:0;">🏫 School bank</button><button class="btn" data-ip="tab-web" style="border:0; border-radius:0;">📷 Free photos</button></div>
+      <input data-ip="q" value="${esc(words)}" placeholder="Search e.g. animal cell, titration, cone, heart" style="flex:1; min-width:220px;">
+      <label style="margin:0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-ip="mine" style="width:auto; margin:0 4px 0 0;" checked>Only ${esc((els.subject && els.subject.value) || 'this subject')}</label>
+      <button class="btn primary" data-ip="go">Search</button>
+    </div>
+    <div data-ip="status" class="muted" style="font-size:13px; margin:8px 0;"></div>
+    <div data-ip="grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px;"></div></div>`;
+  document.body.appendChild(ov);
+  const $ = (k) => ov.querySelector(`[data-ip="${k}"]`);
+  let tab = 'bank';
+  const setTab = (t) => { tab = t; $('tab-bank').className = 'btn' + (t === 'bank' ? ' primary' : ''); $('tab-web').className = 'btn' + (t === 'web' ? ' primary' : ''); $('mine').parentElement.style.display = t === 'bank' ? '' : 'none'; run(); };
+  $('close').onclick = () => ov.remove();
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  const use = async (getUrl, credit, label) => {
+    $('status').textContent = '⏳ Adding the picture…';
+    try {
+      const url = await ccShrinkDataUrl(await getUrl());
+      q.imageUrl = url; q.imageCredit = credit || ''; q.imageDescription = '';
+      ov.remove(); renderQuestions();
+    } catch (e) { $('status').textContent = '⚠ ' + e.message; }
+  };
+  const card = (img, title, sub, i) => `<div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="height:140px; background:#f8fafc; display:flex; align-items:center; justify-content:center;"><img src="${esc(img)}" loading="lazy" style="max-width:100%; max-height:140px;"></div>
+      <div style="padding:6px 8px; font-size:12px; flex:1;" dir="auto"><div style="font-weight:600;">${esc(title)}</div><div class="muted">${sub}</div></div>
+      <button class="btn primary" data-ip-use="${i}" style="margin:6px; padding:4px 8px;">Use this picture</button></div>`;
+  async function run() {
+    const term = $('q').value.trim();
+    $('grid').innerHTML = ''; $('status').textContent = '⏳ Searching…';
+    try {
+      if (tab === 'bank') {
+        const sub = $('mine').checked && els.subject ? els.subject.value : '';
+        const r = await api(`/api/imagebank?q=${encodeURIComponent(term)}&subject=${encodeURIComponent(sub)}`);
+        $('status').textContent = r.items.length ? `${r.items.length} picture${r.items.length === 1 ? '' : 's'} in the school bank${term ? ' for “' + term + '”' : ''} (${r.total} in total).` : (r.total ? 'Nothing in the school bank for this search yet — try other words or “📷 Free photos”.' : 'The school bank is empty so far — it fills up as teachers generate diagrams and pick photos.');
+        $('grid').innerHTML = r.items.map((x, i) => card(x.url, x.title, `${esc(x.subject || '')}${x.grade ? ' · G' + esc(x.grade) : ''} · ${x.kind === 'photo' ? '📷 photo' : '✏ diagram'}${x.uses ? ' · used ' + x.uses + '×' : ''}`, i)).join('');
+        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; api(`/api/imagebank/${x.id}/used`, { method: 'POST' }).catch(() => {}); use(() => ccUrlToDataUrl(x.url), x.credit); }; });
+      } else {
+        if (!term) { $('status').textContent = 'Type what the picture should show.'; return; }
+        const r = await api(`/api/images/search?q=${encodeURIComponent(term)}`);
+        $('status').textContent = r.items.length ? `${r.items.length} free-licence photo${r.items.length === 1 ? '' : 's'} from Wikimedia Commons. Check that the picture is right for your class.` : 'No free photos found — try simpler words (e.g. “mitochondria”, “conical flask”).';
+        $('grid').innerHTML = r.items.map((x, i) => card(x.thumb, x.title, esc(x.license) + ' · ' + esc(x.artist.slice(0, 40)), i)).join('');
+        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; use(async () => (await api('/api/images/fetch', { method: 'POST', body: Object.assign(ccBankMeta(q), { url: x.thumb, credit: x.credit, page: x.page, title: x.title }) })).dataUrl, x.credit); }; });
+      }
+    } catch (e) { $('status').textContent = '⚠ ' + e.message; }
+  }
+  $('go').onclick = run;
+  $('q').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); run(); } };
+  $('mine').onchange = run;
+  $('tab-bank').onclick = () => setTab('bank');
+  $('tab-web').onclick = () => setTab('web');
+  setTab(q.imageKind === 'photo' ? 'web' : 'bank');
+}
+
+// ── Ω Symbols for teachers in the builder (maths, science and chemistry) ──
+const CC_BUILDER_SYMBOLS = [
+  ['Chemistry', ['→', '⇌', '⟶', '↑', '↓', 'Δ', '(s)', '(l)', '(g)', '(aq)', '⁺', '⁻', '²⁺', '³⁺', '²⁻', '³⁻', '₂', '₃', '₄', '₅', '₆', '·', 'e⁻', 'ΔH', '°C', 'K', 'mol', 'mol dm⁻³', 'g mol⁻¹', 'dm³', 'cm³', 'pH', '×10⁻', '≡', '=']],
+  ['Maths', ['°', '±', '×', '÷', '≠', '≈', '≤', '≥', '√', '∛', 'π', '∞', '%', '½', '¼', '¾', '∠', '⊥', '∥', '△', '≅', '∼', '′', '″']],
+  ['Powers', ['²', '³', '⁴', 'ⁿ', '⁻¹', '⁰', '¹', '⁵', '⁶', '⁷', '⁸', '⁹', '₀', '₁', '₇', '₈', '₉']],
+  ['Greek & sets', ['θ', 'α', 'β', 'γ', 'δ', 'λ', 'μ', 'σ', 'Σ', 'Ω', 'ω', 'ρ', 'ε', '∈', '∉', '⊂', '∪', '∩', '∅', 'ℝ', 'ℕ', 'ℤ', 'ℚ']],
+  ['Physics & more', ['→', '←', '↔', '⇒', '⇔', '∴', '∵', '∑', '∫', '∂', 'Ω', 'µ', 'ħ', 'λ', 'ν', 'Φ', '°F', 'm s⁻¹', 'm s⁻²', 'N m⁻²', 'J kg⁻¹']],
+];
+let __ccLastBuilderField = null;
+document.addEventListener('focusin', (e) => {
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && /^(text|search|)$/i.test(t.type || ''))) && t.closest && t.closest('#builder-view')) __ccLastBuilderField = t;
+});
+function ccBuilderSymbolsInit() {
+  const anchor = document.getElementById('tag-skills-btn');
+  if (!anchor || document.getElementById('cc-bsym-btn')) return;
+  const wrap = document.createElement('span'); wrap.style.cssText = 'position:relative; display:inline-block; margin-left:10px;';
+  wrap.innerHTML = `<button type="button" class="btn" id="cc-bsym-btn" title="Insert symbols (chemistry, maths, physics) where your cursor is">Ω Symbols</button>
+    <div id="cc-bsym-panel" style="display:none; position:absolute; right:0; top:calc(100% + 4px); z-index:60; width:min(560px,90vw); background:#fff; border:1px solid #cbd5e1; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:8px;">
+      <div class="muted" style="font-size:12px; margin:0 0 6px;">Click in a question, option or answer box, then click a symbol.</div>
+      ${CC_BUILDER_SYMBOLS.map(([g, list]) => `<div style="display:flex; flex-wrap:wrap; gap:4px; align-items:center; margin:3px 0;"><span style="font-size:11px; color:#64748b; width:100px;">${escapeHtml(g)}</span>${list.map((x) => `<button type="button" data-bsym="${escapeHtml(x)}" style="min-width:34px; padding:4px 6px; font-size:15px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; cursor:pointer;">${escapeHtml(x)}</button>`).join('')}</div>`).join('')}
+    </div>`;
+  anchor.insertAdjacentElement('afterend', wrap);
+  const panel = wrap.querySelector('#cc-bsym-panel');
+  wrap.addEventListener('mousedown', (e) => { if (e.target.closest('[data-bsym],#cc-bsym-btn')) e.preventDefault(); });
+  wrap.querySelector('#cc-bsym-btn').onclick = () => { panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; };
+  document.addEventListener('click', (e) => { if (!wrap.contains(e.target)) panel.style.display = 'none'; });
+  panel.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bsym]'); if (!b) return;
+    const f = __ccLastBuilderField;
+    if (!f || !document.body.contains(f)) { alert('Click in the box where the symbol should go first.'); return; }
+    const sym = b.getAttribute('data-bsym');
+    const st = f.selectionStart == null ? f.value.length : f.selectionStart, en = f.selectionEnd == null ? f.value.length : f.selectionEnd;
+    f.setRangeText(sym, st, en, 'end'); f.focus();
+    f.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ccBuilderSymbolsInit); else ccBuilderSymbolsInit();
 
 // ── Skills report block (shared by student + teacher report cards) ─────
 function ccSkillsBlockHtml(rep) {

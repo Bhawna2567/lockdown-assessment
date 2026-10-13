@@ -1093,6 +1093,9 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         points: Number(q.points) || 1,
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
+        imageCredit: typeof q.imageCredit === 'string' ? q.imageCredit.slice(0, 300) : '',
+        imageKind: q.imageKind === 'photo' ? 'photo' : q.imageKind === 'diagram' ? 'diagram' : '',
+        imageSearch: typeof q.imageSearch === 'string' ? q.imageSearch.slice(0, 100) : '',
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
         focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
@@ -1345,6 +1348,9 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             points: Number(q.points) || 1,
             imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
             imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
+            imageCredit: typeof q.imageCredit === 'string' ? q.imageCredit.slice(0, 300) : '',
+            imageKind: q.imageKind === 'photo' ? 'photo' : q.imageKind === 'diagram' ? 'diagram' : '',
+            imageSearch: typeof q.imageSearch === 'string' ? q.imageSearch.slice(0, 100) : '',
             skill: (typeof q.skill === 'string' && q.skill.trim()) ? q.skill.slice(0, 80) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).skill || ''),
             focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).focus || ''),
             outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).outcome || ''),
@@ -3084,6 +3090,7 @@ app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
         options: q.options,
         points: q.points,
         imageUrl: q.imageUrl || '',
+        imageCredit: q.imageUrl ? (q.imageCredit || '') : '',
         outcome: a.showOutcomes ? _ccOutcomeText(a, q) : '',
         correctAnswer: q.correctAnswer,   // ← only sent in preview
       };
@@ -3984,6 +3991,12 @@ try {
   require('./annex')(app, { readAll, adminEmails: ADMIN_EMAILS, questionEarned: (q, r) => _ccQuestionEarned(q, r),
     claudeList: (o) => _ccClaudeList(Object.assign({ tier: 'bg' }, o)) });
 } catch (e) { console.error('[annex] module failed to load:', e); }
+// ── 🖼 Image bank (school bank + free-licence photos from Wikimedia Commons) ──
+try {
+  require('./imagebank')(app, { readAll, writeAll, requireTeacher,
+    isAdmin: (u) => ADMIN_EMAILS.map((x) => String(x).toLowerCase()).includes(String((u && u.email) || '').toLowerCase()),
+    claudeList: (o) => _ccClaudeList(Object.assign({ tier: 'bg' }, o)) });
+} catch (e) { console.error('[imagebank] module failed to load:', e); }
 
 // ════════════════════════════════════════════════════════════════════════
 //  Weekly difficulty plan (teachers)
@@ -4522,6 +4535,7 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
         options: _layout && _layout.perms[q.id] ? _layout.perms[q.id].map((i) => q.options[i]) : q.options,
         points: q.points,
         imageUrl: q.imageUrl || '',
+        imageCredit: q.imageUrl ? (q.imageCredit || '') : '',
         outcome: a.showOutcomes ? _ccOutcomeText(a, q) : '',
       };
       if (q.type === 'match' && Array.isArray(q.pairs)) {
@@ -6315,6 +6329,8 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
     'F. OPTIONAL imageDescription FIELD on any question',
     '   Short (<80 words) description of a graphic that would help that question. Add only when a graphic genuinely helps comprehension.',
     '   Examples by subject: Math diagrams, Physics circuits, Chemistry molecules, Biology cells, Social Studies maps, Arabic calligraphy.',
+    '   With every imageDescription also give imageKind: "diagram" when the figure carries labels, values, measurements, axes or a precise structure (geometry, graphs, circuits, forces, ray diagrams, apparatus set-ups, labelled cells/organs, molecules, equations) — it will be drawn exactly to your description; "photo" when a real photograph is what helps (a real animal, plant, mineral, organ, piece of lab equipment, natural event, food). For "photo" also give imageSearch: 2–5 plain English search words for a free photo library (e.g. "red blood cells microscope", "Bunsen burner", "volcano eruption").',
+    '   Describe diagrams precisely: every label, value and unit that must appear, and what must NOT be shown (the answer).',
     '',
     _ccMathRulesFor('generate'),
     _ccSkillRules(),
@@ -6413,7 +6429,7 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
             type: { type: 'string', enum: ['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match'] },
             prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } },
             correctAnswer: {}, points: { type: 'number' }, sectionIndex: { type: 'integer' },
-            imageDescription: { type: 'string' }, skill: { type: 'string' }, focus: { type: 'string' }, cefr: { type: 'string', enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] }, cefrScale: { type: 'string' }, explanation: { type: 'string' },
+            imageDescription: { type: 'string' }, imageKind: { type: 'string', enum: ['diagram', 'photo'] }, imageSearch: { type: 'string' }, skill: { type: 'string' }, focus: { type: 'string' }, cefr: { type: 'string', enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] }, cefrScale: { type: 'string' }, explanation: { type: 'string' },
             difficulty: { type: 'string' }, difficultyReason: { type: 'string' },
             matchVariant: { type: 'string' }, pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
           }, required: ['type', 'prompt'] } },
@@ -6506,7 +6522,9 @@ app.post('/api/assessments/ai-generate', requireTeacher, upload.array('schemeOfW
         points: Number(q.points) || (type === 'writing' ? 40 : type === 'essay' || type === 'long' ? 5 : 1),
         sectionId: outSections[sidx].id,
         imageDescription: typeof q.imageDescription === 'string' ? String(q.imageDescription).slice(0, 500) : '',
-        imageUrl: '', // populated client-side after teacher uploads
+        imageKind: q.imageDescription ? (q.imageKind === 'photo' ? 'photo' : 'diagram') : '',
+        imageSearch: typeof q.imageSearch === 'string' ? q.imageSearch.slice(0, 100) : '',
+        imageUrl: '', // populated client-side (auto pictures) or by the teacher
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
         focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
@@ -9171,6 +9189,7 @@ app.post('/api/ai/generate-diagram', requireTeacher, async (req, res) => {
     const options = Array.isArray(b.options) ? b.options.map(String).filter(Boolean).slice(0, 6) : [];
     const subject = String(b.subject || '').slice(0, 60);
     const forceSvg = !!b.forceSvg;
+    const style3d = b.style === '3d';
     const system = String.raw`You create accurate exam figures for school maths and science questions. Accuracy matters more than decoration.
 
 Choose ONE output format.
@@ -9201,7 +9220,28 @@ First write <plan>…</plan> in which you list every element and COMPUTE the exa
 Rules for BOTH formats:
 - Include every label and value the question gives, attached to the correct element.
 - NEVER reveal the answer: do not label the unknown the question asks for (use "x" or "?"), and do not draw the solution.
-- No title, caption or explanatory text.`;
+- No title, caption or explanatory text.` + (style3d ? `
+
+STYLE — polished 3D illustration (FORMAT 2 only):
+- For real objects and solids (3D shapes such as cubes, prisms, cylinders, cones, spheres and pyramids; lab apparatus and glassware; cells, organelles, organs and body systems; molecules and crystal lattices; planets, the Earth's layers; objects with forces acting on them), draw a clear 3D-looking illustration:
+  • put <linearGradient>/<radialGradient> in <defs> and shade every surface with the light coming from the top-left (lighter top-left, darker bottom-right);
+  • show depth: perspective faces for solids (hidden edges dashed), rounded highlights on spheres, ball-and-stick molecules with shaded balls (CPK colours: C black/dark grey, H white, O red, N blue, Cl green, S yellow), transparent pale-blue glassware with liquid levels;
+  • add a soft shadow under the object (a low-opacity ellipse, or an feGaussianBlur filter);
+  • use realistic but clear colours (e.g. cytoplasm pale blue, nucleus purple, chloroplasts green, oxygenated blood red, deoxygenated blood blue).
+- Labels stay flat, black, crisp and readable, with thin straight leader lines ending exactly on the part they name.
+- Graphs, number lines, bar/pie charts, tables and circuit diagrams stay flat and black — accuracy first.
+- The 3D look must never change any measurement, proportion or scientific fact.` : '') + String.raw`
+
+ATOMS, ORBITALS AND BONDING (chemistry and physics) — follow these conventions exactly:
+- Bohr / shell model: nucleus as a shaded sphere labelled with protons and neutrons (e.g. "11p, 12n") or the symbol; concentric circular shells; electrons as small dots or crosses placed evenly on each shell, with the correct number per shell from the electron configuration (e.g. Na = 2,8,1; Cl = 2,8,7). Ions: draw the full outer shell, square brackets around the ion and the charge at the top right (e.g. [Na]⁺, [Cl]⁻).
+- Dot-and-cross diagrams: one atom's electrons as dots, the other's as crosses; shared pairs in the overlap of the circles for covalent bonds; only outer shells unless the question needs inner shells; lone pairs shown as pairs.
+- Lewis structures: element symbols with valence electrons as dots in pairs, bonds as lines (single, double =, triple ≡), lone pairs on N, O, halogens; formal charges where needed.
+- Orbital shapes: s orbital = a sphere; p orbitals = two lobes (dumbbell) along x, y or z with the nucleus at the centre and the axes drawn and labelled px, py, pz; d orbitals = four-lobed clover shapes (dz² = two lobes plus a ring). Shade lobes in 3D with gradients; opposite lobes may use two colours for phase.
+- Orbital box (arrow-in-box) diagrams: one box per orbital, grouped and labelled by sub-shell (1s, 2s, 2p, 3s, 3p, 4s, 3d), arrows ↑ and ↓ for electrons following the Aufbau order, Pauli principle (max two, opposite spins) and Hund's rule (fill singly before pairing).
+- Energy-level diagrams: horizontal lines for levels, with energy increasing upwards and an axis labelled "Energy"; sub-shells staggered correctly (4s below 3d).
+- Nuclide / isotope notation: mass number top-left, atomic number bottom-left of the symbol.
+- Molecular models: ball-and-stick or space-filling with CPK colours and correct shapes and bond angles (linear 180°, trigonal planar 120°, tetrahedral 109.5°, trigonal pyramidal 107°, bent 104.5°, octahedral 90°). Wedge and dash bonds for 3D in skeletal drawings.
+- Never show an electron count, configuration or structure that the question asks the student to work out.`;
     const user = [
       subject ? 'Subject: ' + subject : '',
       'Question: ' + prompt,
@@ -9209,7 +9249,7 @@ Rules for BOTH formats:
       description ? 'Figure description: ' + description : '',
       forceSvg ? 'Use FORMAT 2 (SVG).' : 'Draw the figure a student needs to answer this question.',
     ].filter(Boolean).join('\n');
-    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content: user }] }, 'smart');
+    const text = await _ccClaudeText({ max_tokens: style3d ? 14000 : 8000, system, messages: [{ role: 'user', content: user }] }, 'smart');
     if (!forceSvg) {
       const sm = text.match(/<spec>([\s\S]*?)<\/spec>/i);
       if (sm) {
@@ -9240,9 +9280,9 @@ app.post('/api/ai/review-diagram', requireTeacher, async (req, res) => {
     const content = [
       { type: 'text', text: 'Question: ' + prompt + (options.length ? '\nOptions: ' + options.join(' | ') : '') + '\n\nThis is the figure as it will be printed:' },
       img,
-      { type: 'text', text: 'Its SVG source:\n' + svg + '\n\nCheck carefully: (1) every value and label from the question is present and attached to the correct element; (2) proportions, lengths and angles are consistent with the given measurements (right angles look square, longer sides look longer, graphs pass through the stated points); (3) scientific symbols and conventions are correct; (4) nothing is cut off, overlapping or unreadable; (5) the answer is NOT revealed.\nIf everything is correct, reply with exactly: OK\nOtherwise reply with ONLY a corrected, complete <svg>…</svg> (600×400, white background).' },
+      { type: 'text', text: 'Its SVG source:\n' + svg + '\n\nCheck carefully: (1) every value and label from the question is present and attached to the correct element; (2) proportions, lengths and angles are consistent with the given measurements (right angles look square, longer sides look longer, graphs pass through the stated points); (3) scientific symbols and conventions are correct; (4) nothing is cut off, overlapping or unreadable; (5) the answer is NOT revealed.\nIf everything is correct, reply with exactly: OK\nOtherwise reply with ONLY a corrected, complete <svg>…</svg> (600×400, white background) that keeps the same visual style (gradients, shading and colours).' },
     ];
-    const text = await _ccClaudeText({ max_tokens: 8000, system, messages: [{ role: 'user', content }] }, 'smart');
+    const text = await _ccClaudeText({ max_tokens: 14000, system, messages: [{ role: 'user', content }] }, 'smart');
     const m = text.match(/<svg[\s\S]*<\/svg>/i);
     if (m && !/^\s*OK\s*$/i.test(text)) return res.json({ svg: _ccCleanSvg(m[0]) });
     res.json({ ok: true });

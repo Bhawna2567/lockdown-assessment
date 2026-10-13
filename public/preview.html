@@ -210,6 +210,7 @@
           ${q.outcome ? `<div dir="auto" style="margin-bottom:6px; padding:6px 10px; background:#eef2ff; border-left:3px solid #6366f1; border-radius:6px; color:#3730a3; font-size:13px; font-style:italic;">📘 Learning outcome: ${esc(q.outcome)}</div>` : ''}
           <div class="q-meta">Question ${qNum} · ${esc(q.type)} · ${points} point${points === 1 ? '' : 's'}</div>
           <div class="q-prompt">${esc(q.prompt)}</div>
+          ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" alt="" style="max-width:100%; max-height:360px; display:block; margin:4px 0 ${q.imageCredit ? '2px' : '10px'}; border-radius:8px; background:#f1f5f9;">${q.imageCredit ? `<div style="font-size:10px; color:#94a3b8; margin:0 0 10px;">${esc(q.imageCredit)}</div>` : ''}` : ''}
           ${bodyHtml}
         </div>
       `;
