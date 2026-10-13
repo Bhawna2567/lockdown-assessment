@@ -3672,23 +3672,9 @@ ${escapeHtml(q.manualGrade.feedback)}
       ${correctDisplay}
       ${feedback}
       ${q.adjusted && q.adjusted.reason ? `<div class="muted" style="font-size:12px; margin-top:4px;">Reason for the change: ${escapeHtml(q.adjusted.reason)}</div>` : ''}
-      ${window.__ccRcResult && q.questionId ? `<div style="margin-top:8px;"><button class="btn" style="padding:4px 10px; font-size:13px;" onclick="ccChangeMark('${escapeHtml(window.__ccRcResult)}','${escapeHtml(q.questionId)}',${Number(q.points) || 1},${q.earned != null ? q.earned : q.manualGrade ? Number(q.manualGrade.score) || 0 : q.correct === true ? (Number(q.points) || 1) : 0})">✏ Change mark</button></div>` : ''}
       ${ccReviewExtrasHtml(q)}
     </div>
   `;
-}
-
-// Teacher changes one question's mark (e.g. the student could not type a symbol such as °).
-async function ccChangeMark(resultId, questionId, points, current) {
-  const v = prompt(`New mark for this question (0 to ${points}). Current mark: ${current}/${points}`, String(points));
-  if (v === null) return;
-  const score = Number(String(v).trim());
-  if (!Number.isFinite(score) || score < 0 || score > points) { alert(`Please enter a number from 0 to ${points}.`); return; }
-  const reason = prompt('Reason (optional) — e.g. "Could not type the degree symbol"', '') || '';
-  try {
-    await api(`/api/results/${resultId}/adjust-question`, { method: 'POST', body: { questionId, score, reason } });
-    openReportCard(resultId);
-  } catch (e) { alert('Could not change the mark: ' + e.message); }
 }
 
 function hideAllViews() {
@@ -9985,7 +9971,7 @@ async function ccOpenDiffCheck(opts) {
   let d;
   try { d = await api('/api/difficulty/check', { method: 'POST', body: ccDiffPayload() }); }
   catch (e) {
-    if (opts.gate) { ov.remove(); opts.onSave && opts.onSave(); return; }
+    if (opts.gate) { ov.remove(); alert('⚠ The difficulty mix could not be checked (' + e.message + '). The assessment will be saved — please run “⚖ Difficulty check” once the AI is available.'); opts.onSave && opts.onSave(); return; }
     box.innerHTML = `<div class="error">${esc(e.message)}</div><button class="btn" id="cc-dc-x">Close</button>`;
     box.querySelector('#cc-dc-x').onclick = () => ov.remove(); return;
   }
@@ -10022,6 +10008,7 @@ async function ccOpenDiffCheck(opts) {
       <button class="btn" id="cc-dc-close">${opts.gate ? 'Back to editing' : 'Close'}</button>
     </div>
     <div style="font-size:14px; margin-bottom:8px;"><strong>${esc(t.label)}</strong> · ${esc(t.date)} — target ${t.pct.easy}% easy · ${t.pct.medium}% medium · ${t.pct.hard}% difficult (by marks)</div>
+    ${opts.gate && !d.ok ? `<div style="padding:10px 12px; border-radius:10px; background:#7f1d1d; color:#fff; margin-bottom:10px; font-size:14px;">🚫 <strong>This assessment cannot be saved yet.</strong> The easy / medium / difficult mix must match this week’s level. Replace the questions marked below (or use “Replace with…”), then click 💾 Save again.</div>` : ''}
     <div style="padding:10px 12px; border-radius:10px; background:${d.ok ? '#ecfdf5' : '#fef2f2'}; border:1px solid ${d.ok ? '#a7f3d0' : '#fecaca'}; margin-bottom:10px;">
       ${d.ok ? '✅ <strong>The difficulty mix matches this week.</strong>'
         : `⚠ <strong>The difficulty mix does not match this week.</strong> ${need ? 'Needed: ' + esc(need) + '.' : ''} ${sugg.length ? `Replace the <strong>${sugg.length}</strong> question${sugg.length === 1 ? '' : 's'} marked below with alternatives at the right level.` : 'Change some questions to the needed level (use “Replace with…”).'}`}
@@ -10032,8 +10019,7 @@ async function ccOpenDiffCheck(opts) {
     <details ${sugg.length ? '' : 'open'} style="margin-top:10px;"><summary style="cursor:pointer; font-weight:600;">All questions (${questions.length})</summary>
       ${questions.filter((q) => !sugg.some((s) => s.id === q.id)).map((q) => qRow(q, null)).join('')}</details>
     <div class="row" style="gap:8px; margin-top:14px; justify-content:flex-end;">
-      ${opts.gate ? `<button class="btn" id="cc-dc-saveanyway">Save anyway</button>` : ''}
-      ${opts.gate && d.ok ? '' : ''}
+
       <button class="btn primary" id="cc-dc-done">${opts.gate ? (d.ok ? '💾 Save now' : 'Fix questions first') : 'Done'}</button>
     </div>
     <div class="muted" style="font-size:12px; margin-top:6px;">Labels are for teachers only — students never see them. The weekly level comes from the school plan (Easy / Medium / Difficult weeks).</div>`;
@@ -10041,7 +10027,6 @@ async function ccOpenDiffCheck(opts) {
   box.querySelector('#cc-dc-close').onclick = close;
   const done = box.querySelector('#cc-dc-done');
   done.onclick = () => { close(); if (opts.gate && d.ok && opts.onSave) opts.onSave(); };
-  const sa = box.querySelector('#cc-dc-saveanyway'); if (sa) sa.onclick = () => { close(); opts.onSave && opts.onSave(); };
   box.querySelectorAll('[data-dc-alt]').forEach((b) => { b.onclick = () => ccDiffShowAlternatives(b.getAttribute('data-dc-alt'), b.getAttribute('data-dc-to'), d.levels[b.getAttribute('data-dc-alt')]); });
   box.querySelectorAll('[data-dc-pick]').forEach((s) => { s.onchange = () => { if (s.value) ccDiffShowAlternatives(s.getAttribute('data-dc-pick'), s.value, d.levels[s.getAttribute('data-dc-pick')]); }; });
 }
