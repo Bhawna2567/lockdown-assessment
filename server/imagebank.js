@@ -52,7 +52,33 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
     writeAll(BANK, bank);
     return item;
   }
-  const pub = (x) => ({ id: x.id, title: x.title, subject: x.subject, grade: x.grade, lesson: x.lesson, tags: x.tags, kind: x.kind, credit: x.credit, by: x.by, createdAt: x.createdAt, uses: x.uses || 0, url: '/api/imagebank/' + x.id + '/image' });
+  // ── Starter pictures shipped with the app (server/imagebank-seed/) ──
+  // Copied into the school bank once; matched by file hash so nothing is added twice.
+  try {
+    const SEED = path.join(__dirname, 'imagebank-seed');
+    const list = JSON.parse(fs.readFileSync(path.join(SEED, 'seed.json'), 'utf8'));
+    const bank = readAll(BANK);
+    const have = new Set(bank.map((x) => x.hash));
+    let added = 0;
+    ensureDir();
+    for (const it of list) {
+      const src = path.join(SEED, it.file);
+      if (!fs.existsSync(src)) continue;
+      const buf = fs.readFileSync(src);
+      const hash = crypto.createHash('sha1').update(buf).digest('hex');
+      if (have.has(hash)) continue;
+      const id = 'img_seed_' + hash.slice(0, 14);
+      const file = id + '.' + extOf(it.mime);
+      fs.writeFileSync(path.join(DIR, file), buf);
+      bank.push({ id, file, hash, mime: it.mime, bytes: buf.length, title: clip(it.title, 200), subject: clip(it.subject, 60), grade: clip(it.grade, 10),
+        lesson: clip(it.lesson, 200), tags: (it.tags || []).slice(0, 12), kind: it.kind === 'photo' ? 'photo' : 'diagram', credit: clip(it.credit, 300),
+        source: clip(it.source, 200), sourceUrl: '', by: 'School slides', byId: '', seed: true, createdAt: new Date().toISOString(), uses: 0 });
+      have.add(hash); added++;
+    }
+    if (added) { writeAll(BANK, bank); console.log('[imagebank] added ' + added + ' starter pictures'); }
+  } catch (e) { if (e.code !== 'ENOENT') console.warn('[imagebank] seed:', e.message); }
+
+  const pub = (x) => ({ id: x.id, title: x.title, subject: x.subject, grade: x.grade, lesson: x.lesson, tags: x.tags, kind: x.kind, credit: x.credit, source: x.source || '', by: x.by, createdAt: x.createdAt, uses: x.uses || 0, url: '/api/imagebank/' + x.id + '/image' });
 
   // ── Search the school bank ──
   app.get('/api/imagebank', requireTeacher, (req, res) => {
@@ -62,7 +88,7 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
     let list = readAll(BANK);
     if (kind === 'photo' || kind === 'diagram') list = list.filter((x) => x.kind === kind);
     const scored = list.map((x) => {
-      const hay = words([x.title, x.lesson, (x.tags || []).join(' '), x.subject].join(' '));
+      const hay = words([x.title, x.lesson, (x.tags || []).join(' '), x.subject, x.source || ''].join(' '));
       let s = 0;
       for (const w of q) if (hay.some((h) => h === w || h.startsWith(w) || w.startsWith(h))) s += 2;
       if (subject && String(x.subject).toLowerCase() === subject) s += 1;
@@ -183,24 +209,45 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
 
   // Automatic photo for a generated question: search Commons, let the AI pick
   // the best match (or none), download it and save it in the school bank.
+  // Best school-bank matches for a question (by words in title / lesson / tags).
+  function bankMatches(text, subject, n) {
+    const q = words(text);
+    if (!q.length) return [];
+    const sub = String(subject || '').toLowerCase();
+    return readAll(BANK).filter((x) => !sub || !x.subject || String(x.subject).toLowerCase() === sub).map((x) => {
+      const hay = words([x.title, x.lesson, (x.tags || []).join(' ')].join(' '));
+      let s = 0; for (const w of q) if (hay.some((h) => h === w || (w.length > 4 && (h.startsWith(w) || w.startsWith(h))))) s++;
+      return { x, s };
+    }).filter((o) => o.s >= 2).sort((a, b) => b.s - a.s || (b.x.uses || 0) - (a.x.uses || 0)).slice(0, n).map((o) => o.x);
+  }
+
+  // Automatic picture for a generated question. Looks in the school bank first,
+  // then (for photos) Wikimedia Commons; the AI picks the best fit or "none".
   app.post('/api/images/auto', requireTeacher, async (req, res) => {
     try {
       const b = req.body || {};
+      const bankOnly = !!b.bankOnly;
       const search = clip(b.search || b.description || b.prompt, 100);
       if (!search) return res.json({ none: true });
-      let cands = await commonsSearch(search, 20);
-      if (!cands.length) {
-        const shorter = words(search).slice(0, 3).join(' ');
-        if (shorter && shorter !== search.toLowerCase()) cands = await commonsSearch(shorter, 20);
+      const bank = bankMatches([b.search, b.description, b.prompt].join(' '), b.subject, 8);
+      let web = [];
+      if (!bankOnly) {
+        web = await commonsSearch(search, 20).catch(() => []);
+        if (!web.length) {
+          const shorter = words(search).slice(0, 3).join(' ');
+          if (shorter && shorter !== search.toLowerCase()) web = await commonsSearch(shorter, 20).catch(() => []);
+        }
+        web = web.slice(0, 10);
       }
-      cands = cands.slice(0, 12);
+      const cands = bank.map((x) => ({ from: 'bank', x, label: x.title + (x.lesson ? ' (' + x.lesson + ')' : '') }))
+        .concat(web.map((w) => ({ from: 'web', w, label: w.title + (w.description ? ' — ' + w.description.slice(0, 160) : '') })));
       if (!cands.length) return res.json({ none: true });
-      let pick = cands[0];
+      let pick = bankOnly ? null : cands[0];
       if (claudeList) {
         try {
-          const list = cands.map((c, i) => `C${i + 1}: ${c.title}${c.description ? ' — ' + c.description.slice(0, 160) : ''}`).join('\n');
+          const list = cands.map((c, i) => `C${i + 1} [${c.from === 'bank' ? 'school bank' : 'photo library'}]: ${c.label}`).join('\n');
           const items = await claudeList({
-            system: 'You choose the best picture for a school exam question. Pick a clear, school-appropriate picture that shows exactly what the question needs (right object, right species/part/apparatus). Avoid maps, logos, documents, collages, people\'s faces and anything gory. If none fits, answer "none".',
+            system: 'You choose the best picture for a school exam question. Pick only a picture that shows exactly what the question needs (right object, process, species, apparatus or diagram) and that does NOT give away the answer (e.g. no labels or values the student must work out). Prefer school-bank pictures when they fit equally well. Avoid maps, logos, documents, collages, faces and anything gory. If none fits well, answer "none".',
             user: `Subject: ${clip(b.subject, 40)}\nQuestion: ${clip(b.prompt, 600)}\nPicture needed: ${clip(b.description, 300)}\n\nCandidates:\n${list}\n\nReturn exactly one item: {"pick":"C<number>" or "none","reason":"…"}`,
             maxTokens: 300, itemProps: { pick: { type: 'string' }, reason: { type: 'string' } }, required: ['pick'],
           });
@@ -208,11 +255,18 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
           if (/^none$/i.test(p)) return res.json({ none: true });
           const n = parseInt(p.replace(/\D/g, ''), 10);
           if (n >= 1 && n <= cands.length) pick = cands[n - 1];
-        } catch (e) { /* keep the top search result */ }
+        } catch (e) { if (bankOnly) return res.json({ none: true }); }
       }
-      const d = await download(pick.thumb);
-      const item = saveToBank({ buf: d.buf, mime: d.mime, title: b.description || pick.title, subject: b.subject, grade: b.grade, lesson: b.lesson, tags: words(search).slice(0, 8), kind: 'photo', credit: pick.credit, sourceUrl: pick.page, user: req.session.user });
-      res.json({ ok: true, dataUrl: toDataUrl(d), credit: pick.credit, title: pick.title, bankId: item.id });
+      if (!pick) return res.json({ none: true });
+      if (pick.from === 'bank') {
+        const x = pick.x;
+        const buf = fs.readFileSync(path.join(DIR, x.file));
+        const all = readAll(BANK); const y = all.find((i) => i.id === x.id); if (y) { y.uses = (y.uses || 0) + 1; writeAll(BANK, all); }
+        return res.json({ ok: true, dataUrl: toDataUrl({ mime: x.mime, buf }), credit: x.credit || '', title: x.title, bankId: x.id, fromBank: true });
+      }
+      const d = await download(pick.w.thumb);
+      const item = saveToBank({ buf: d.buf, mime: d.mime, title: b.description || pick.w.title, subject: b.subject, grade: b.grade, lesson: b.lesson, tags: words(search).slice(0, 8), kind: 'photo', credit: pick.w.credit, sourceUrl: pick.w.page, user: req.session.user });
+      res.json({ ok: true, dataUrl: toDataUrl(d), credit: pick.w.credit, title: pick.w.title, bankId: item.id });
     } catch (e) { res.status(502).json({ error: e.message }); }
   });
 

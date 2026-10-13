@@ -8644,6 +8644,13 @@ async function ccAutoPictures(list) {
         if (r && r.dataUrl) { url = r.dataUrl; credit = r.credit || ''; }
       } catch (e) { /* fall back to a drawing */ }
     }
+    if (!url) {
+      // A matching picture already in the school bank (e.g. from school slides)?
+      try {
+        const r = await api('/api/images/auto', { method: 'POST', body: Object.assign(ccBankMeta(q), { prompt: ccPlainText(q.prompt), description: q.imageDescription, search: q.imageSearch || '', bankOnly: true }) });
+        if (r && r.dataUrl) { url = r.dataUrl; credit = r.credit || ''; }
+      } catch (e) {}
+    }
     if (!url) { url = await ccGenerateDiagramImage(q); ccBankSave(q, url, 'diagram'); }
     if (!questions.includes(q) || q.imageUrl) return;
     q.imageUrl = url; q.imageCredit = credit; q.imageDescription = '';
@@ -8706,7 +8713,7 @@ function ccOpenImagePicker(q) {
         const sub = $('mine').checked && els.subject ? els.subject.value : '';
         const r = await api(`/api/imagebank?q=${encodeURIComponent(term)}&subject=${encodeURIComponent(sub)}`);
         $('status').textContent = r.items.length ? `${r.items.length} picture${r.items.length === 1 ? '' : 's'} in the school bank${term ? ' for “' + term + '”' : ''} (${r.total} in total).` : (r.total ? 'Nothing in the school bank for this search yet — try other words or “📷 Free photos”.' : 'The school bank is empty so far — it fills up as teachers generate diagrams and pick photos.');
-        $('grid').innerHTML = r.items.map((x, i) => card(x.url, x.title, `${esc(x.subject || '')}${x.grade ? ' · G' + esc(x.grade) : ''} · ${x.kind === 'photo' ? '📷 photo' : '✏ diagram'}${x.uses ? ' · used ' + x.uses + '×' : ''}`, i)).join('');
+        $('grid').innerHTML = r.items.map((x, i) => card(x.url, x.title, `${esc(x.subject || '')}${x.grade ? ' · G' + esc(x.grade) : ''} · ${x.kind === 'photo' ? '📷 photo' : '✏ diagram'}${x.uses ? ' · used ' + x.uses + '×' : ''}${x.lesson ? '<br>📘 ' + esc(x.lesson) : ''}`, i)).join('');
         ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; api(`/api/imagebank/${x.id}/used`, { method: 'POST' }).catch(() => {}); use(() => ccUrlToDataUrl(x.url), x.credit); }; });
       } else {
         if (!term) { $('status').textContent = 'Type what the picture should show.'; return; }
