@@ -84,18 +84,24 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
   app.get('/api/imagebank', requireTeacher, (req, res) => {
     const q = words(req.query.q);
     const subject = String(req.query.subject || '').toLowerCase();
+    const onlySubject = req.query.only === '1';
     const kind = String(req.query.kind || '');
     let list = readAll(BANK);
     if (kind === 'photo' || kind === 'diagram') list = list.filter((x) => x.kind === kind);
+    if (onlySubject && subject) list = list.filter((x) => String(x.subject || '').toLowerCase() === subject);
+    // Rank by how many search words match; pictures already used are NOT hidden.
     const scored = list.map((x) => {
       const hay = words([x.title, x.lesson, (x.tags || []).join(' '), x.subject, x.source || ''].join(' '));
       let s = 0;
-      for (const w of q) if (hay.some((h) => h === w || h.startsWith(w) || w.startsWith(h))) s += 2;
+      for (const w of q) if (hay.some((h) => h === w || (w.length > 3 && (h.startsWith(w) || w.startsWith(h))))) s += 2;
       if (subject && String(x.subject).toLowerCase() === subject) s += 1;
       return { x, s };
-    }).filter((o) => !q.length || o.s >= Math.max(2, q.length));
-    scored.sort((a, b) => b.s - a.s || String(b.x.createdAt).localeCompare(String(a.x.createdAt)));
-    res.json({ total: list.length, items: scored.slice(0, 120).map((o) => pub(o.x)) });
+    });
+    let hits = q.length ? scored.filter((o) => o.s >= 2) : scored;
+    const fallback = q.length > 0 && !hits.length;
+    if (fallback) hits = scored;
+    hits.sort((a, b) => b.s - a.s || (b.x.uses || 0) - (a.x.uses || 0) || String(b.x.createdAt).localeCompare(String(a.x.createdAt)));
+    res.json({ total: list.length, fallback, items: hits.slice(0, 200).map((o) => pub(o.x)) });
   });
 
   app.get('/api/imagebank/:id/image', requireTeacher, (req, res) => {

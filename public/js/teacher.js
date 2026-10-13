@@ -2768,6 +2768,13 @@ function renderQuestions() {
       q.imageDescription = '';
       renderQuestions();
     };
+    const cropBtn = root.querySelector('[data-act=img-crop]');
+    if (cropBtn) cropBtn.onclick = () => ccOpenCropper(q.imageUrl, { allowSave: true, onUse: async (url, cropped, save) => {
+      if (!cropped) return;
+      q.imageUrl = await ccShrinkDataUrl(url); q.imageBankId = '';
+      if (save) ccBankSave(q, url, 'diagram');
+      renderQuestions();
+    } });
     const bankBtn = root.querySelector('[data-act=img-bank]');
     if (bankBtn) bankBtn.onclick = () => ccOpenImagePicker(q);
     const creditIn = root.querySelector('[data-f=imgcredit]');
@@ -2943,6 +2950,7 @@ function renderQuestion(q, idx) {
             <button class="btn ghost" data-act="img-replace">Replace</button>
             <button class="btn ghost" data-act="img-ai" style="margin-left: 6px;">✨ Redraw with AI</button>
             <button class="btn ghost" data-act="img-bank" style="margin-left: 6px;">🗂 Image bank &amp; photos</button>
+            <button class="btn ghost" data-act="img-crop" style="margin-left: 6px;">✂ Crop</button>
             <button class="btn danger" data-act="img-remove" style="margin-left: 6px;">Remove</button>
             <input type="file" accept="image/*" data-img-file style="display: none;" />
             <div style="margin-top:8px;"><input type="text" data-f="imgcredit" value="${escapeAttr(q.imageCredit || '')}" placeholder="Picture credit (filled in for library photos)" style="font-size:12px; padding:4px 8px; width:100%; min-width:260px;" /></div>
@@ -8722,14 +8730,21 @@ function ccOpenImagePicker(q) {
   const esc = (x) => escapeHtml(String(x == null ? '' : x));
   const ov = document.createElement('div'); ov.id = 'cc-imgpick';
   ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,.55); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; overflow:auto; padding:24px 10px;';
-  const words = ccPlainText(q.imageSearch || q.imageDescription || q.skill || q.prompt).split(' ').slice(0, 6).join(' ');
+  const words = ccPlainText(q.imageSearch || q.imageDescription || q.skill || '').split(' ').slice(0, 4).join(' ');
+  const subj = (els.subject && els.subject.value) || '';
+  // Pictures already used in this assessment (so one picture can go on several questions).
+  const used = [];
+  (questions || []).forEach((x, i) => { if (x.imageUrl && !used.some((u) => u.url === x.imageUrl)) used.push({ url: x.imageUrl, credit: x.imageCredit || '', title: 'Used in Q' + (i + 1) + (x === q ? ' (this question)' : ''), bankId: x.imageBankId || '' }); });
   ov.innerHTML = `<div style="background:#fff; border-radius:12px; width:min(1100px,100%); padding:18px 22px; box-shadow:0 16px 48px rgba(0,0,0,.3);">
     <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">🗂 Image bank &amp; photos</h2><button class="btn" data-ip="close">Close</button></div>
-    <div class="muted" style="font-size:13px; margin:4px 0 10px;"><strong>School bank:</strong> every diagram the AI draws and every photo a teacher picks is saved here for everyone to reuse. <strong>Free photos:</strong> real photos from Wikimedia Commons (free licences only — the credit line is added under the picture).</div>
+    <div class="muted" style="font-size:13px; margin:4px 0 10px;">Pick a picture, then use it whole or ✂ crop it. The same picture can be used on as many questions as you like. <strong>School bank:</strong> AI diagrams, school-slide pictures and photos teachers picked. <strong>Free photos:</strong> Wikimedia Commons (free licences — the credit is added under the picture).</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-      <div style="display:flex; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;"><button class="btn" data-ip="tab-bank" style="border:0; border-radius:0;">🏫 School bank</button><button class="btn" data-ip="tab-web" style="border:0; border-radius:0;">📷 Free photos</button></div>
-      <input data-ip="q" value="${esc(words)}" placeholder="Search e.g. animal cell, titration, cone, heart" style="flex:1; min-width:220px;">
-      <label style="margin:0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-ip="mine" style="width:auto; margin:0 4px 0 0;" checked>Only ${esc((els.subject && els.subject.value) || 'this subject')}</label>
+      <div style="display:flex; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;">
+        <button class="btn" data-ip="tab-used" style="border:0; border-radius:0;">📌 In this assessment (${used.length})</button>
+        <button class="btn" data-ip="tab-bank" style="border:0; border-radius:0;">🏫 School bank</button>
+        <button class="btn" data-ip="tab-web" style="border:0; border-radius:0;">📷 Free photos</button></div>
+      <input data-ip="q" value="${esc(words)}" placeholder="Search e.g. animal cell, titration, cone, heart — or leave empty to see everything" style="flex:1; min-width:220px;">
+      <label style="margin:0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-ip="mine" style="width:auto; margin:0 4px 0 0;">Only ${esc(subj || 'this subject')}</label>
       <button class="btn primary" data-ip="go">Search</button>
     </div>
     <div data-ip="status" class="muted" style="font-size:13px; margin:8px 0;"></div>
@@ -8737,46 +8752,145 @@ function ccOpenImagePicker(q) {
   document.body.appendChild(ov);
   const $ = (k) => ov.querySelector(`[data-ip="${k}"]`);
   let tab = 'bank';
-  const setTab = (t) => { tab = t; $('tab-bank').className = 'btn' + (t === 'bank' ? ' primary' : ''); $('tab-web').className = 'btn' + (t === 'web' ? ' primary' : ''); $('mine').parentElement.style.display = t === 'bank' ? '' : 'none'; run(); };
+  const setTab = (t) => {
+    tab = t;
+    ['used', 'bank', 'web'].forEach((k) => { $('tab-' + k).className = 'btn' + (t === k ? ' primary' : ''); });
+    $('mine').parentElement.style.display = t === 'bank' ? '' : 'none';
+    $('q').style.display = $('go').style.display = t === 'used' ? 'none' : '';
+    run();
+  };
   $('close').onclick = () => ov.remove();
   ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
-  const use = async (getUrl, credit, label) => {
-    $('status').textContent = '⏳ Adding the picture…';
+  // Open the picture in the cropper; "Use" puts it on the question.
+  const use = async (getUrl, credit, meta) => {
+    $('status').textContent = '⏳ Loading the picture…';
     try {
-      const url = await ccShrinkDataUrl(await getUrl());
-      q.imageUrl = url; q.imageCredit = credit || ''; q.imageDescription = '';
-      ov.remove(); renderQuestions();
+      const src = await getUrl();
+      $('status').textContent = '';
+      ccOpenCropper(src, {
+        allowSave: !!(meta && meta.allowSave),
+        onUse: async (url, cropped, saveToBank) => {
+          q.imageUrl = await ccShrinkDataUrl(url); q.imageCredit = credit || ''; q.imageDescription = '';
+          q.imageBankId = cropped ? '' : ((meta && meta.bankId) || '');
+          if (cropped && saveToBank) ccBankSave(Object.assign({}, q, { imageDescription: (meta && meta.title ? meta.title + ' (cropped)' : '') }), url, (meta && meta.kind) || 'diagram');
+          ov.remove(); renderQuestions();
+        },
+      });
     } catch (e) { $('status').textContent = '⚠ ' + e.message; }
   };
   const card = (img, title, sub, i) => `<div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; display:flex; flex-direction:column;">
       <div style="height:140px; background:#f8fafc; display:flex; align-items:center; justify-content:center;"><img src="${esc(img)}" loading="lazy" style="max-width:100%; max-height:140px;"></div>
       <div style="padding:6px 8px; font-size:12px; flex:1;" dir="auto"><div style="font-weight:600;">${esc(title)}</div><div class="muted">${sub}</div></div>
-      <button class="btn primary" data-ip-use="${i}" style="margin:6px; padding:4px 8px;">Use this picture</button></div>`;
+      <button class="btn primary" data-ip-use="${i}" style="margin:6px; padding:4px 8px;">Use / ✂ crop</button></div>`;
   async function run() {
     const term = $('q').value.trim();
     $('grid').innerHTML = ''; $('status').textContent = '⏳ Searching…';
     try {
-      if (tab === 'bank') {
-        const sub = $('mine').checked && els.subject ? els.subject.value : '';
-        const r = await api(`/api/imagebank?q=${encodeURIComponent(term)}&subject=${encodeURIComponent(sub)}`);
-        $('status').textContent = r.items.length ? `${r.items.length} picture${r.items.length === 1 ? '' : 's'} in the school bank${term ? ' for “' + term + '”' : ''} (${r.total} in total).` : (r.total ? 'Nothing in the school bank for this search yet — try other words or “📷 Free photos”.' : 'The school bank is empty so far — it fills up as teachers generate diagrams and pick photos.');
+      if (tab === 'used') {
+        $('status').textContent = used.length ? 'Pictures already in this assessment — use one again on this question, whole or cropped.' : 'No pictures in this assessment yet.';
+        $('grid').innerHTML = used.map((x, i) => card(x.url, x.title, x.credit ? esc(x.credit.slice(0, 60)) : '', i)).join('');
+        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = used[+b.getAttribute('data-ip-use')]; use(async () => x.url, x.credit, { allowSave: true, bankId: x.bankId, title: x.title }); }; });
+      } else if (tab === 'bank') {
+        const only = $('mine').checked && subj ? '1' : '';
+        const r = await api(`/api/imagebank?q=${encodeURIComponent(term)}&subject=${encodeURIComponent(subj)}&only=${only}`);
+        $('status').textContent = !r.total ? 'The school bank is empty so far — it fills up as teachers generate diagrams and pick photos.'
+          : r.fallback ? `Nothing matched “${term}” — showing all ${r.items.length} pictures in the bank instead. Try other words.`
+          : `${r.items.length} picture${r.items.length === 1 ? '' : 's'}${term ? ' for “' + term + '”' : ''} (${r.total} in the bank).`;
         $('grid').innerHTML = r.items.map((x, i) => card(x.url, x.title, `${esc(x.subject || '')}${x.grade ? ' · G' + esc(x.grade) : ''} · ${x.kind === 'photo' ? '📷 photo' : '✏ diagram'}${x.uses ? ' · used ' + x.uses + '×' : ''}${x.lesson ? '<br>📘 ' + esc(x.lesson) : ''}`, i)).join('');
-        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; api(`/api/imagebank/${x.id}/used`, { method: 'POST' }).catch(() => {}); use(() => ccUrlToDataUrl(x.url), x.credit); }; });
+        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; api(`/api/imagebank/${x.id}/used`, { method: 'POST' }).catch(() => {}); use(() => ccUrlToDataUrl(x.url), x.credit, { allowSave: true, bankId: x.id, title: x.title, kind: x.kind }); }; });
       } else {
         if (!term) { $('status').textContent = 'Type what the picture should show.'; return; }
         const r = await api(`/api/images/search?q=${encodeURIComponent(term)}`);
         $('status').textContent = r.items.length ? `${r.items.length} free-licence photo${r.items.length === 1 ? '' : 's'} from Wikimedia Commons. Check that the picture is right for your class.` : 'No free photos found — try simpler words (e.g. “mitochondria”, “conical flask”).';
         $('grid').innerHTML = r.items.map((x, i) => card(x.thumb, x.title, esc(x.license) + ' · ' + esc(x.artist.slice(0, 40)), i)).join('');
-        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; use(async () => (await api('/api/images/fetch', { method: 'POST', body: Object.assign(ccBankMeta(q), { url: x.thumb, credit: x.credit, page: x.page, title: x.title }) })).dataUrl, x.credit); }; });
+        ov.querySelectorAll('[data-ip-use]').forEach((b) => { b.onclick = () => { const x = r.items[+b.getAttribute('data-ip-use')]; use(async () => (await api('/api/images/fetch', { method: 'POST', body: Object.assign(ccBankMeta(q), { url: x.thumb, credit: x.credit, page: x.page, title: x.title }) })).dataUrl, x.credit, { allowSave: true, title: x.title, kind: 'photo' }); }; });
       }
     } catch (e) { $('status').textContent = '⚠ ' + e.message; }
   }
   $('go').onclick = run;
   $('q').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); run(); } };
   $('mine').onchange = run;
+  $('tab-used').onclick = () => setTab('used');
   $('tab-bank').onclick = () => setTab('bank');
   $('tab-web').onclick = () => setTab('web');
   setTab(q.imageKind === 'photo' ? 'web' : 'bank');
+}
+
+// ✂ Cropper: drag a box over the picture; "Crop & use" or "Use whole picture".
+function ccOpenCropper(src, opts) {
+  opts = opts || {};
+  document.getElementById('cc-crop')?.remove();
+  const ov = document.createElement('div'); ov.id = 'cc-crop';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,.7); z-index:2147483100; display:flex; align-items:center; justify-content:center; padding:16px;';
+  ov.innerHTML = `<div style="background:#fff; border-radius:12px; padding:16px 18px; max-width:96vw; box-shadow:0 16px 48px rgba(0,0,0,.35);">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;"><h3 style="margin:0; flex:1;">✂ Crop the picture</h3><button class="btn" data-cr="cancel">Cancel</button></div>
+    <div class="muted" style="font-size:13px; margin-bottom:8px;">Drag on the picture to draw the area you want. Drag inside the box to move it, or drag a corner to resize.</div>
+    <div data-cr="stage" style="position:relative; display:inline-block; user-select:none; touch-action:none; line-height:0; background:#f1f5f9;">
+      <img data-cr="img" style="max-width:min(900px,90vw); max-height:62vh; display:block;" draggable="false">
+      <div data-cr="shade" style="position:absolute; inset:0; pointer-events:none;"></div>
+      <div data-cr="box" style="position:absolute; display:none; border:2px dashed #2563eb; box-shadow:0 0 0 9999px rgba(15,23,42,.45); cursor:move;">
+        ${['nw', 'ne', 'sw', 'se'].map((h) => `<div data-cr-h="${h}" style="position:absolute; width:14px; height:14px; background:#2563eb; border:2px solid #fff; border-radius:3px; ${h[0] === 'n' ? 'top:-8px;' : 'bottom:-8px;'} ${h[1] === 'w' ? 'left:-8px;' : 'right:-8px;'} cursor:${h === 'nw' || h === 'se' ? 'nwse' : 'nesw'}-resize;"></div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+      ${opts.allowSave ? `<label style="margin:0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-cr="save" checked style="width:auto; margin:0 4px 0 0;">Also save the cropped picture in the school bank</label>` : ''}
+      <span style="flex:1;"></span>
+      <button class="btn" data-cr="reset">Clear the box</button>
+      <button class="btn" data-cr="whole">Use the whole picture</button>
+      <button class="btn primary" data-cr="crop" disabled>✂ Crop &amp; use</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const $ = (k) => ov.querySelector(`[data-cr="${k}"]`);
+  const img = $('img'), box = $('box'), stage = $('stage');
+  let r = null;   // selection in displayed pixels {x,y,w,h}
+  const draw = () => {
+    if (!r || r.w < 4 || r.h < 4) { box.style.display = 'none'; $('crop').disabled = true; return; }
+    Object.assign(box.style, { display: 'block', left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+    $('crop').disabled = false;
+  };
+  const pt = (e) => { const b = img.getBoundingClientRect(); return { x: Math.max(0, Math.min(b.width, e.clientX - b.left)), y: Math.max(0, Math.min(b.height, e.clientY - b.top)), W: b.width, H: b.height }; };
+  let mode = null, start = null, orig = null;
+  stage.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); stage.setPointerCapture(e.pointerId);
+    const p = pt(e); start = p; orig = r ? Object.assign({}, r) : null;
+    const h = e.target.getAttribute && e.target.getAttribute('data-cr-h');
+    if (h && r) mode = h;
+    else if (r && e.target === box) mode = 'move';
+    else { mode = 'new'; r = { x: p.x, y: p.y, w: 0, h: 0 }; }
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (!mode) return;
+    const p = pt(e), dx = p.x - start.x, dy = p.y - start.y;
+    if (mode === 'new') r = { x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), w: Math.abs(dx), h: Math.abs(dy) };
+    else if (mode === 'move') r = { x: Math.max(0, Math.min(p.W - orig.w, orig.x + dx)), y: Math.max(0, Math.min(p.H - orig.h, orig.y + dy)), w: orig.w, h: orig.h };
+    else {
+      let x1 = orig.x, y1 = orig.y, x2 = orig.x + orig.w, y2 = orig.y + orig.h;
+      if (mode.includes('w')) x1 = p.x; else x2 = p.x;
+      if (mode.includes('n')) y1 = p.y; else y2 = p.y;
+      r = { x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1) };
+    }
+    draw();
+  });
+  const end = () => { mode = null; };
+  stage.addEventListener('pointerup', end); stage.addEventListener('pointercancel', end);
+  $('reset').onclick = () => { r = null; draw(); };
+  $('cancel').onclick = () => ov.remove();
+  $('whole').onclick = () => { ov.remove(); opts.onUse && opts.onUse(src, false, false); };
+  $('crop').onclick = () => {
+    if (!r) return;
+    const b = img.getBoundingClientRect();
+    const sx = img.naturalWidth / b.width, sy = img.naturalHeight / b.height;
+    const cw = Math.max(1, Math.round(r.w * sx)), ch = Math.max(1, Math.round(r.h * sy));
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cw, ch);
+    g.drawImage(img, Math.round(r.x * sx), Math.round(r.y * sy), cw, ch, 0, 0, cw, ch);
+    const isPhoto = /^data:image\/jpe?g/i.test(src);
+    const out = isPhoto ? c.toDataURL('image/jpeg', 0.88) : c.toDataURL('image/png');
+    const save = $('save') ? $('save').checked : false;
+    ov.remove(); opts.onUse && opts.onUse(out, true, save);
+  };
+  img.onerror = () => { ov.remove(); alert('Could not open this picture for cropping.'); };
+  img.src = src;
 }
 
 // ── Ω Symbols for teachers in the builder (maths, science and chemistry) ──
