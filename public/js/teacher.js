@@ -2599,6 +2599,11 @@ function renderQuestions() {
     const root = document.getElementById(`q-${q.id}`);
     if (!root) return;
     root.querySelector('[data-f=prompt]').oninput = (e) => { q.prompt = e.target.value; };
+    // When the teacher changes the question, the AI updates the options / answer key to match.
+    if (q._promptBase === undefined) q._promptBase = q.prompt || '';
+    root.querySelector('[data-f=prompt]').addEventListener('change', () => ccRefitAnswers(q));
+    { const u = root.querySelector('[data-act=refit-undo]'); if (u) u.onclick = () => { if (q._refitUndo) { Object.assign(q, q._refitUndo); q._refitUndo = null; q._refitNote = null; renderQuestions(); } }; }
+    { const x = root.querySelector('[data-act=refit-ok]'); if (x) x.onclick = () => { q._refitUndo = null; q._refitNote = null; renderQuestions(); }; }
 
     // ── Maths preview, paste-a-screenshot, tidy, clear ──────────────────
     {
@@ -2995,6 +3000,7 @@ function renderQuestion(q, idx) {
         <textarea data-f="prompt" dir="auto" placeholder="Type the question — or paste a screenshot of a question and the AI will turn it into a real question.">${escapeHtml(q.prompt || '')}</textarea>
         <div data-shot-status style="display:none; font-size:13px; color:#4338ca; margin-top:6px;"></div>
         ${q._aiCheck ? '<div style="font-size:12px; color:#92400e; background:#fef3c7; border-radius:6px; padding:6px 10px; margin-top:6px;">⚠️ Filled in by AI — please check the question and the correct answer.</div>' : ''}
+        ${q._refitNote ? `<div style="font-size:12px; color:${q._refitNote.kind === 'changed' ? '#1e3a8a' : q._refitNote.kind === 'busy' ? '#4338ca' : q._refitNote.kind === 'error' ? '#b91c1c' : '#166534'}; background:${q._refitNote.kind === 'changed' ? '#dbeafe' : q._refitNote.kind === 'error' ? '#fee2e2' : '#f0fdf4'}; border-radius:6px; padding:6px 10px; margin-top:6px;">${escapeHtml(q._refitNote.text)}${q._refitNote.kind === 'changed' ? ' <button type="button" class="btn ghost" data-act="refit-undo" style="padding:2px 8px; font-size:12px; margin-left:6px;">↩ Undo</button><button type="button" class="btn ghost" data-act="refit-ok" style="padding:2px 8px; font-size:12px; margin-left:4px;">✓ Looks right</button>' : ''}</div>` : ''}
         <div data-math-preview style="display:none; margin-top:8px; padding:10px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px;"></div>
       </div>
       <div class="field">
@@ -3675,6 +3681,47 @@ ${escapeHtml(q.manualGrade.feedback)}
       ${ccReviewExtrasHtml(q)}
     </div>
   `;
+}
+
+// ── Keep the answer options in step with an edited question ──
+function ccNormQ(s) { return String(s || '').toLowerCase().replace(/\s+/g, ' ').replace(/[.,;:!?'"’“”()]/g, '').trim(); }
+async function ccRefitAnswers(q) {
+  if (!['mc', 'tf', 'tfng', 'short', 'match'].includes(q.type)) { q._promptBase = q.prompt || ''; return; }
+  const now = q.prompt || '', before = q._promptBase || '';
+  if (!now.trim() || ccNormQ(now) === ccNormQ(before)) return;
+  // Nothing to update yet (a brand-new question with empty options).
+  const hasAnswers = q.type === 'mc' ? (q.options || []).some((o) => String(o || '').trim())
+    : q.type === 'match' ? (q.pairs || []).some((p) => (p.left || '').trim() || (p.right || '').trim())
+    : q.type === 'short' ? String(q.correctAnswer || '').trim() : true;
+  if (!hasAnswers || !before.trim()) { q._promptBase = now; return; }
+  const sentPrompt = now;
+  window.__ccRefitBusy = (window.__ccRefitBusy || 0) + 1;
+  q._refitNote = { kind: 'busy', text: '✨ Checking the answer options against your edited question…' };
+  ccRenderWhenIdle();
+  try {
+    const sec = (sections || []).find((s) => s.id === q.sectionId) || {};
+    const r = await api('/api/ai/refit-answers', { method: 'POST', body: {
+      question: { type: q.type, prompt: q.prompt, options: q.options, correctAnswer: q.correctAnswer, pairs: q.pairs },
+      oldPrompt: before, passage: sec.passage || '', subject: els.subject ? els.subject.value : '', grade: els.grade ? els.grade.value : '' } });
+    if (!questions.includes(q) || (q.prompt || '') !== sentPrompt) return;   // edited again meanwhile
+    q._promptBase = sentPrompt;
+    if (r.changed) {
+      q._refitUndo = { options: q.options ? q.options.slice() : q.options, correctAnswer: q.correctAnswer, pairs: q.pairs ? q.pairs.map((p) => Object.assign({}, p)) : q.pairs, explanation: q.explanation };
+      if (r.options) q.options = r.options;
+      if (r.correctAnswer !== undefined) q.correctAnswer = r.correctAnswer;
+      if (r.pairs) q.pairs = r.pairs.map((p, i) => Object.assign({ rightImageUrl: '' }, (q._refitUndo.pairs || [])[i] ? { rightImageUrl: (q._refitUndo.pairs[i].rightImageUrl || '') } : {}, p));
+      if (r.explanation) q.explanation = r.explanation;
+      q._refitNote = { kind: 'changed', text: '✨ The AI updated the ' + (q.type === 'mc' ? 'options and the correct answer' : q.type === 'match' ? 'matching pairs' : 'answer key') + ' to match your edited question' + (r.reason ? ' — ' + r.reason : '') + '. Please check them.' };
+    } else {
+      q._refitNote = { kind: 'ok', text: '✓ The answer options still fit your edited question.' };
+      setTimeout(() => { if (q._refitNote && q._refitNote.kind === 'ok') { q._refitNote = null; ccRenderWhenIdle(); } }, 5000);
+    }
+  } catch (e) {
+    q._refitNote = { kind: 'error', text: '⚠ Could not update the options automatically (' + e.message + '). Please check them yourself.' };
+  } finally {
+    window.__ccRefitBusy = Math.max(0, (window.__ccRefitBusy || 1) - 1);
+  }
+  ccRenderWhenIdle();
 }
 
 function hideAllViews() {
@@ -10071,7 +10118,7 @@ async function ccDiffShowAlternatives(qid, to, from) {
       const i = questions.findIndex((x) => x.id === qid);
       if (i < 0) return;
       const old = questions[i];
-      const nq = Object.assign({}, old, { id: uid(), type: a.type, prompt: a.prompt, points: a.points || old.points, skill: a.skill || old.skill || '', explanation: a.explanation || '' });
+      const nq = Object.assign({}, old, { id: uid(), type: a.type, prompt: a.prompt, points: a.points || old.points, skill: a.skill || old.skill || '', explanation: a.explanation || '', _promptBase: a.prompt, _refitNote: null, _refitUndo: null });
       if (a.type === 'mc') { nq.options = a.options; nq.correctAnswer = a.correctAnswer; }
       else if (a.type === 'match') { nq.pairs = a.pairs; }
       else nq.correctAnswer = a.correctAnswer;
@@ -10115,6 +10162,29 @@ async function ccDiffShowAlternatives(qid, to, from) {
     els.saveStatus.textContent = 'Checking the difficulty mix…';
     await ccOpenDiffCheck({ gate: true, onSave: () => { window._ccDiffSkip = true; Promise.resolve(original.call(els.saveBtn, ev)).finally(() => { window._ccDiffSkip = false; }); } });
     if (els.saveStatus.textContent === 'Checking the difficulty mix…') els.saveStatus.textContent = '';
+  };
+})();
+// Saving waits until the AI has finished updating any edited question's options.
+(function ccRefitSaveWait() {
+  if (!els.saveBtn || els.saveBtn._ccRefitWrapped) return;
+  const inner = els.saveBtn.onclick;
+  if (typeof inner !== 'function') return;
+  els.saveBtn._ccRefitWrapped = true;
+  els.saveBtn.onclick = async (ev) => {
+    if (document.activeElement && document.activeElement.matches && document.activeElement.matches('[data-f=prompt]')) document.activeElement.blur();
+    await new Promise((r) => setTimeout(r, 30));
+    if (window.__ccRefitBusy) {
+      els.saveStatus.textContent = '✨ Updating the answer options for your edited question…';
+      const t0 = Date.now();
+      while (window.__ccRefitBusy && Date.now() - t0 < 60000) await new Promise((r) => setTimeout(r, 300));
+      els.saveStatus.textContent = '';
+      renderQuestions();
+      if ((questions || []).some((q) => q._refitNote && q._refitNote.kind === 'changed')) {
+        alert('The AI updated the answer options of a question you edited. Please check them (blue note under the question), then click Save again.');
+        return;
+      }
+    }
+    return inner.call(els.saveBtn, ev);
   };
 })();
 // AI panel: assessment date → weekly level used for generation

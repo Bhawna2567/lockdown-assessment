@@ -9168,6 +9168,84 @@ app.post('/api/ai/question-from-content', requireTeacher, async (req, res) => {
   }
 });
 
+// ── Teacher edited a question → make the answer options fit the new question ──
+app.post('/api/ai/refit-answers', requireTeacher, async (req, res) => {
+  try {
+    if (!readApiKey()) return res.status(400).json({ error: 'No Anthropic API key configured in Settings.' });
+    const b = req.body || {};
+    const q = b.question || {};
+    const type = String(q.type || '');
+    if (!['mc', 'tf', 'tfng', 'short', 'match'].includes(type)) return res.json({ changed: false });
+    const prompt = String(q.prompt || '').slice(0, 3000).trim();
+    if (!prompt) return res.json({ changed: false });
+    const cur = {
+      type, prompt,
+      options: Array.isArray(q.options) ? q.options.map(String).slice(0, 8) : undefined,
+      correctAnswer: q.correctAnswer,
+      pairs: Array.isArray(q.pairs) ? q.pairs.slice(0, 15).map((p) => ({ left: String(p.left || ''), right: String(p.right || '') })) : undefined,
+    };
+    const system = [
+      'A teacher has EDITED the wording of an exam question in ClassCurio. Your job is to keep the answer options and the answer key consistent with the NEW question.',
+      'First decide: do the current options / answer key still fit the new question exactly (e.g. the teacher only fixed spelling, punctuation or wording without changing what is asked)? If yes, set "changed": false and return the current options and answer unchanged.',
+      'If the new question asks something different (new numbers, a new substance, a different concept, a different element, a negative instead of a positive, etc.), set "changed": true and rewrite what is needed:',
+      ' - "mc": keep the same number of options; write one correct option and plausible distractors based on common mistakes for THIS question; keep any option that is still valid; "correctAnswer" is the 0-based index (as a string, e.g. "2"). Never use "All of the above" unless it was there before.',
+      ' - "tf": "correctAnswer" is "true" or "false" for the new statement.',
+      ' - "tfng": "correctAnswer" is "true", "false" or "ng" for the new statement (use the passage if given).',
+      ' - "short": "correctAnswer" is the short exact answer a student would type for the new question.',
+      ' - "match": rewrite "pairs" (left → right) so each left item matches the new instruction; keep the same number of pairs.',
+      'Solve the new question yourself and check your working carefully — the answer key must be correct. Do NOT change the question text.',
+      'Write in the same language as the question. Keep the style of the original options (length, units, notation).',
+      'Also give "explanation": one or two sentences students will see after the test, explaining the correct answer, and "reason": a short note for the teacher saying what you changed (or why nothing needed changing).',
+      _ccMathRulesFor('generate'),
+      b.subject ? 'Subject: ' + String(b.subject).slice(0, 60) + (b.grade ? ', Grade ' + String(b.grade).slice(0, 4) : '') + '.' : '',
+    ].filter(Boolean).join('\n');
+    const user = JSON.stringify({
+      previousQuestion: String(b.oldPrompt || '').slice(0, 3000),
+      newQuestion: cur,
+      passage: b.passage ? String(b.passage).slice(0, 4000) : undefined,
+    });
+    const items = await _ccClaudeList({
+      system, user: 'Return exactly one item.\n' + user, maxTokens: 3000, tier: 'smart',
+      itemProps: {
+        changed: { type: 'boolean' },
+        options: { type: 'array', items: { type: 'string' } },
+        correctAnswer: { type: 'string' },
+        pairs: { type: 'array', items: { type: 'object', properties: { left: { type: 'string' }, right: { type: 'string' } } } },
+        explanation: { type: 'string' }, reason: { type: 'string' },
+      },
+      required: ['changed', 'reason'],
+    });
+    const r = (items && items[0]) || {};
+    const out = { changed: !!r.changed, reason: String(r.reason || '').slice(0, 300), explanation: String(r.explanation || '').slice(0, 1500) };
+    if (out.changed) {
+      if (type === 'mc') {
+        const opts = Array.isArray(r.options) ? r.options.map((o) => String(o).replace(/^\s*[A-H][).:]\s+/, '').trim()).filter(Boolean) : [];
+        const idx = parseInt(String(r.correctAnswer).replace(/[^0-9]/g, ''), 10);
+        if (opts.length < 2 || !(idx >= 0 && idx < opts.length)) return res.json({ changed: false, reason: 'The AI reply could not be used.' });
+        out.options = opts; out.correctAnswer = idx;
+      } else if (type === 'tf') {
+        const v = String(r.correctAnswer).toLowerCase().trim();
+        if (v !== 'true' && v !== 'false') return res.json({ changed: false, reason: 'The AI reply could not be used.' });
+        out.correctAnswer = v === 'true';
+      } else if (type === 'tfng') {
+        let v = String(r.correctAnswer).toLowerCase().trim(); if (/not ?given/.test(v)) v = 'ng';
+        if (!['true', 'false', 'ng'].includes(v)) return res.json({ changed: false, reason: 'The AI reply could not be used.' });
+        out.correctAnswer = v;
+      } else if (type === 'short') {
+        out.correctAnswer = String(r.correctAnswer || '').slice(0, 300);
+      } else if (type === 'match') {
+        const pairs = Array.isArray(r.pairs) ? r.pairs.filter((p) => p && (p.left || p.right)).map((p) => ({ left: String(p.left || ''), right: String(p.right || '') })) : [];
+        if (!pairs.length) return res.json({ changed: false, reason: 'The AI reply could not be used.' });
+        out.pairs = pairs;
+      }
+    }
+    res.json(out);
+  } catch (e) {
+    console.error('[refit-answers]', e);
+    res.status(502).json({ error: String(e.message || e) });
+  }
+});
+
 // ── AI diagram: exact spec (graphs, number lines, triangles) or SVG ───────
 function _ccCleanSvg(svg) {
   let s = String(svg || '')
