@@ -1063,7 +1063,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     title: String(title),
     description: String(description || ''),
     passage: String(passage || ''),
-    rubricStage: rubricStage === '8' ? '8' : (rubricStage === '7' ? '7' : null),
+    rubricStage: _ccNormRubricStage(rubricStage),
     term: normalizeTerm(term),
     grade: normalizeGrade(grade),
     academicYear: academicYear ? String(academicYear).slice(0, 20) : null,
@@ -1307,10 +1307,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     description: description ?? all[idx].description,
     passage: passage ?? all[idx].passage ?? '',
     rubricStage:
-      rubricStage === '8' ? '8' :
-      rubricStage === '7' ? '7' :
-      rubricStage === null || rubricStage === '' ? null :
-      (all[idx].rubricStage ?? null),
+      rubricStage === undefined ? (all[idx].rubricStage ?? null) : _ccNormRubricStage(rubricStage),
     term: term === undefined ? (all[idx].term ?? null) : normalizeTerm(term),
     grade: grade === undefined ? (all[idx].grade ?? null) : normalizeGrade(grade),
     academicYear: academicYear === undefined
@@ -4746,75 +4743,227 @@ app.post('/api/assessments/:id/submit', requireStudent, (req, res) => {
   res.json({ result: { autoScore, autoMax, id: result.id } });
 });
 
-// Background: grade every "writing" answer in this result against the
-// configured rubric stage, then persist the scores as manualGrades with
-// aiGrade: true so the teacher can see + override.
+// Valid writing-rubric stages. Anything else is treated as "no rubric".
+const _CC_RUBRIC_STAGES = new Set(['7', '8', '3-5', '5-9']);
+function _ccNormRubricStage(v) {
+  const s = v === undefined || v === null ? '' : String(v).trim();
+  return _CC_RUBRIC_STAGES.has(s) ? s : null;
+}
+
+// Grade the essay answers in ONE result with the AI rubric grader.
+//   questionIds  — only grade these questions (default: every writing/essay question)
+//   keepTeacher  — true (default): never touch a grade a teacher entered.
+//                  false: replace it, but keep the old one in previousTeacherGrade
+//                  so "Undo" can put it back.
+// Returns { graded, skipped, failed, reasons[] }.
+async function aiGradeResult(resultId, { questionIds = null, keepTeacher = true } = {}) {
+  const out = { graded: 0, skipped: 0, failed: 0, reasons: [] };
+  const all = readAll('results.json');
+  const r = all.find((x) => x.id === resultId);
+  if (!r) return out;
+  const a = readAll('assessments.json').find((x) => x.id === r.assessmentId);
+  if (!a) return out;
+
+  const wanted = questionIds ? new Set(questionIds) : null;
+  const writingQs = a.questions.filter((q) =>
+    wanted ? wanted.has(q.id) : (q.type === 'writing' || q.type === 'essay'));
+  if (!writingQs.length) return out;
+
+  // If the teacher forgot to pick a rubric, fall back to Stage 8 so the
+  // essay still gets a rubric-based grade instead of sitting in the queue.
+  const effectiveStage = _ccNormRubricStage(a.rubricStage) || '8';
+
+  for (const q of writingQs) {
+    const ans = (r.answers || []).find((x) => x.questionId === q.id);
+    const essay = ans && typeof ans.given === 'string' ? ans.given : (ans && ans.given ? String(ans.given) : '');
+    if (!essay.trim()) { out.skipped++; continue; }
+    const before = (r.manualGrades || {})[q.id];
+    if (before && !before.aiGrade && keepTeacher) { out.skipped++; continue; }
+
+    const graded = await gradeWriting({
+      rubricStage: effectiveStage,
+      prompt: q.prompt,
+      essay,
+      maxScore: q.points,
+    });
+    if (!graded.ok) {
+      out.failed++;
+      out.reasons.push(graded.reason);
+      console.log(`[grader] skipped q=${q.id} on result=${r.id}: ${graded.reason}`);
+      continue;
+    }
+    // Re-read before writing: other requests may have saved in the meantime.
+    const fresh = readAll('results.json');
+    const fIdx = fresh.findIndex((x) => x.id === resultId);
+    if (fIdx === -1) return out;
+    const mg = fresh[fIdx].manualGrades = fresh[fIdx].manualGrades || {};
+    const existing = mg[q.id];
+    if (existing && !existing.aiGrade && keepTeacher) { out.skipped++; continue; }
+    mg[q.id] = {
+      score: graded.score,
+      maxScore: graded.maxScore,
+      feedback: graded.feedback,
+      breakdown: graded.breakdown,
+      aiGrade: true,
+      rubricStage: graded.rubricStage,
+      gradedAt: new Date().toISOString(),
+      gradedBy: `ClassCurio AI (Stage ${graded.rubricStage} rubric)`,
+      ...(existing && !existing.aiGrade ? { previousTeacherGrade: existing }
+        : existing && existing.previousTeacherGrade ? { previousTeacherGrade: existing.previousTeacherGrade } : {}),
+    };
+    writeAll('results.json', fresh);
+    out.graded++;
+  }
+  return out;
+}
+
+// Background: grade every "writing"/"essay" answer in this result right
+// after the student submits. The teacher can override in the essay queue.
 function scheduleAiGrading({ resultId }) {
   setImmediate(async () => {
     try {
-      const all = readAll('results.json');
-      const idx = all.findIndex((r) => r.id === resultId);
-      if (idx === -1) return;
-      const r = all[idx];
-
-      const assessments = readAll('assessments.json');
-      const a = assessments.find((x) => x.id === r.assessmentId);
-      if (!a) return;
-
-      const writingQs = a.questions.filter((q) => q.type === 'writing' || q.type === 'essay');
-      if (!writingQs.length) return;
-
-      // Pick a rubric stage for AI grading. If the teacher set one on the
-      // assessment, use it. If they forgot, fall back to Stage 8 so the
-      // essay still gets a rubric-based grade instead of sitting in the
-      // manual queue forever. Valid stages: '7', '8', '3-5', '5-9'.
-      const validStages = new Set(['7', '8', '3-5', '5-9']);
-      let effectiveStage = a.rubricStage && validStages.has(String(a.rubricStage))
-        ? String(a.rubricStage)
-        : '8';
-
-      let touched = false;
-      for (const q of writingQs) {
-        const ans = (r.answers || []).find((x) => x.questionId === q.id);
-        const essay = ans ? String(ans.given || '') : '';
-        if (!essay.trim()) continue;
-        const graded = await gradeWriting({
-          rubricStage: effectiveStage,
-          prompt: q.prompt,
-          essay,
-          maxScore: q.points,
-        });
-        if (!graded.ok) {
-          console.log(`[grader] skipped q=${q.id} on result=${r.id}: ${graded.reason}`);
-          continue;
-        }
-        // Persist as a manualGrade flagged aiGrade so the teacher knows.
-        const fresh = readAll('results.json');
-        const fIdx = fresh.findIndex((x) => x.id === resultId);
-        if (fIdx === -1) return;
-        fresh[fIdx].manualGrades = fresh[fIdx].manualGrades || {};
-        // Don't overwrite a teacher-entered grade.
-        const existing = fresh[fIdx].manualGrades[q.id];
-        if (existing && !existing.aiGrade) continue;
-        fresh[fIdx].manualGrades[q.id] = {
-          score: graded.score,
-          maxScore: graded.maxScore,
-          feedback: graded.feedback,
-          breakdown: graded.breakdown,
-          aiGrade: true,
-          rubricStage: graded.rubricStage,
-          gradedAt: new Date().toISOString(),
-          gradedBy: `ClassCurio AI (Stage ${graded.rubricStage} rubric)`,
-        };
-        writeAll('results.json', fresh);
-        touched = true;
-      }
-      if (touched) console.log(`[grader] AI graded result ${resultId}`);
+      const o = await aiGradeResult(resultId);
+      if (o.graded) console.log(`[grader] AI graded result ${resultId}`);
     } catch (e) {
       console.error('[grader] background error', e);
     }
   });
 }
+
+// ---------- Switch an assessment to auto-grading after students took it ----------
+// Teacher forgot to pick "Essay (auto-graded)". This turns the chosen
+// questions into auto-graded essays, saves the rubric, and grades every
+// submission that is already in — one at a time, in the background.
+const _ccAutogradeJobs = new Map(); // assessmentId -> progress
+
+const _CC_CONVERTIBLE = new Set(['long', 'essay', 'writing']);
+
+app.get('/api/assessments/:id/autograde', requireTeacher, (req, res) => {
+  const a = readAll('assessments.json').find((x) => x.id === req.params.id);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  const results = readAll('results.json').filter((r) => r.assessmentId === a.id);
+  const questions = a.questions
+    .map((q, i) => ({ q, i }))
+    .filter(({ q }) => _CC_CONVERTIBLE.has(q.type))
+    .map(({ q, i }) => {
+      let answered = 0, teacherGraded = 0, aiGraded = 0;
+      for (const r of results) {
+        const ans = (r.answers || []).find((x) => x.questionId === q.id);
+        if (ans && ans.given && String(ans.given).trim()) answered++;
+        const g = (r.manualGrades || {})[q.id];
+        if (g && g.aiGrade) aiGraded++;
+        else if (g && !g.dismissed) teacherGraded++;
+      }
+      return {
+        id: q.id, number: i + 1, type: q.type, points: q.points,
+        prompt: String(q.prompt || '').slice(0, 160),
+        converted: !!q.autogradeConvertedFrom,
+        answered, teacherGraded, aiGraded,
+      };
+    });
+  res.json({
+    rubricStage: _ccNormRubricStage(a.rubricStage),
+    hasApiKey: !!readApiKey(),
+    submissions: results.length,
+    questions,
+    job: _ccAutogradeJobs.get(a.id) || null,
+  });
+});
+
+app.post('/api/assessments/:id/autograde', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((x) => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  const a = all[idx];
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+
+  const running = _ccAutogradeJobs.get(a.id);
+  if (running && running.running) return res.status(409).json({ error: 'Grading is already running for this assessment.' });
+  if (!readApiKey()) return res.status(400).json({ error: 'Auto-grading needs the AI key. Add it in Settings first.' });
+
+  const body = req.body || {};
+  const stage = _ccNormRubricStage(body.rubricStage);
+  if (!stage) return res.status(400).json({ error: 'Choose a writing rubric.' });
+  const ids = Array.isArray(body.questionIds) ? body.questionIds.map(String) : [];
+  const chosen = a.questions.filter((q) => ids.includes(q.id) && _CC_CONVERTIBLE.has(q.type));
+  if (!chosen.length) return res.status(400).json({ error: 'Tick at least one question.' });
+  const keepTeacher = body.keepTeacherGrades !== false;
+
+  // Save the switch on the assessment. Remember the old type for Undo.
+  for (const q of chosen) {
+    if (q.type !== 'writing' && !q.autogradeConvertedFrom) q.autogradeConvertedFrom = q.type;
+    q.type = 'writing';
+  }
+  a.rubricStage = stage;
+  a.autogradeSwitchedAt = new Date().toISOString();
+  writeAll('assessments.json', all);
+
+  const results = readAll('results.json').filter((r) => r.assessmentId === a.id);
+  const job = {
+    running: true, total: results.length, done: 0,
+    graded: 0, skipped: 0, failed: 0, reasons: [],
+    startedAt: new Date().toISOString(), finishedAt: null,
+  };
+  _ccAutogradeJobs.set(a.id, job);
+
+  const qIds = chosen.map((q) => q.id);
+  setImmediate(async () => {
+    for (const r of results) {
+      try {
+        const o = await aiGradeResult(r.id, { questionIds: qIds, keepTeacher });
+        job.graded += o.graded; job.skipped += o.skipped; job.failed += o.failed;
+        for (const why of o.reasons) if (!job.reasons.includes(why)) job.reasons.push(why);
+      } catch (e) {
+        job.failed++;
+        console.error('[autograde] result', r.id, e.message);
+      }
+      job.done++;
+    }
+    job.running = false;
+    job.finishedAt = new Date().toISOString();
+    console.log(`[autograde] ${a.id}: graded ${job.graded}, skipped ${job.skipped}, failed ${job.failed}`);
+  });
+
+  res.json({ ok: true, job });
+});
+
+// Undo: put the questions back to their old type, remove the AI grades
+// from the switch, and restore any teacher grades that were replaced.
+app.post('/api/assessments/:id/autograde/undo', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((x) => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  const a = all[idx];
+  if (a.teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  const job = _ccAutogradeJobs.get(a.id);
+  if (job && job.running) return res.status(409).json({ error: 'Wait for grading to finish, then undo.' });
+
+  const reverted = a.questions.filter((q) => q.autogradeConvertedFrom);
+  if (!reverted.length) return res.status(400).json({ error: 'Nothing to undo.' });
+  const qIds = new Set(reverted.map((q) => q.id));
+  for (const q of reverted) {
+    q.type = q.autogradeConvertedFrom;
+    delete q.autogradeConvertedFrom;
+  }
+  delete a.autogradeSwitchedAt;
+  writeAll('assessments.json', all);
+
+  const results = readAll('results.json');
+  let cleared = 0, restored = 0;
+  for (const r of results) {
+    if (r.assessmentId !== a.id || !r.manualGrades) continue;
+    for (const qid of qIds) {
+      const g = r.manualGrades[qid];
+      if (!g || !g.aiGrade) continue; // a grade the teacher saved stays
+      if (g.previousTeacherGrade) { r.manualGrades[qid] = g.previousTeacherGrade; restored++; }
+      else { delete r.manualGrades[qid]; cleared++; }
+    }
+  }
+  writeAll('results.json', results);
+  _ccAutogradeJobs.delete(a.id);
+  res.json({ ok: true, questions: reverted.length, cleared, restored });
+});
 
 // ---------- Results (student) — post-submission review ----------
 // Returns the student's own submission with correct answers and any teacher feedback.

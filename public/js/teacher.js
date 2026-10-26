@@ -3185,6 +3185,7 @@ async function openResults(id) {
   els.resultsView.style.display = 'block';
   els.reportCardView.style.display = 'none';
   currentResultsAssessmentId = id;
+  try { ccAutogradeSetup(id); } catch (e) { console.warn('[autograde]', e); }
   const { assessment, results } = await api(`/api/results/${id}`);
   els.resultsTitle.textContent = `Results — ${assessment.title}`;
 
@@ -11485,3 +11486,160 @@ document.addEventListener('click', (e) => {
   const tm = document.getElementById('tools-menu-dropdown'); if (tm) tm.style.display = 'none';
   ccOpenDeleted();
 });
+
+
+// ---------- Switch to auto-grading after students have taken the assessment ----------
+// Shows the "🤖 Switch to auto-grading" button on the Results page when the
+// assessment has essay / long-answer questions, and opens a dialog to pick
+// the questions and the rubric. Grading runs on the server one student at a
+// time; the dialog shows progress and refreshes the results when it is done.
+const CC_AG_STAGES = [
+  ['7', 'Stage 7 — 4 criteria (out of 12)'],
+  ['8', 'Stage 8 — 4 criteria (out of 12)'],
+  ['3-5', 'Stage 3-5 — 5 criteria (out of 40)'],
+  ['5-9', 'Stage 5-9 — 5 criteria (out of 40)'],
+];
+const CC_AG_TYPE = { long: 'Long answer (manual)', essay: 'Essay (manual grade)', writing: 'Essay (auto-graded)' };
+let ccAgPoll = null;
+
+async function ccAutogradeSetup(assessmentId) {
+  const btn = document.getElementById('autograde-btn');
+  if (!btn) return;
+  btn.style.display = 'none';
+  let info;
+  try { info = await api(`/api/assessments/${assessmentId}/autograde`); } catch { return; }
+  if (currentResultsAssessmentId !== assessmentId) return; // teacher moved on
+  if (!info.questions.length) return;
+  btn.style.display = '';
+  btn.onclick = () => ccAutogradeOpen(assessmentId);
+}
+
+function ccAgClose() {
+  if (ccAgPoll) { clearInterval(ccAgPoll); ccAgPoll = null; }
+  const ov = document.getElementById('cc-ag-overlay');
+  if (ov) ov.remove();
+}
+
+async function ccAutogradeOpen(assessmentId) {
+  ccAgClose();
+  const ov = document.createElement('div');
+  ov.id = 'cc-ag-overlay';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.45); z-index:9999; display:flex; align-items:flex-start; justify-content:center; padding:60px 16px; overflow:auto;';
+  ov.innerHTML = `<div id="cc-ag-box" class="panel" style="background:#fff; max-width:640px; width:100%; padding:20px 22px; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,.25);">
+    <div class="muted">Loading…</div></div>`;
+  ov.addEventListener('click', (e) => { if (e.target === ov) ccAgClose(); });
+  document.body.appendChild(ov);
+  const box = ov.querySelector('#cc-ag-box');
+
+  let info;
+  try { info = await api(`/api/assessments/${assessmentId}/autograde`); }
+  catch (e) { box.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; return; }
+
+  if (info.job && info.job.running) return ccAgShowProgress(box, assessmentId, info.job);
+
+  const anyConverted = info.questions.some((q) => q.converted);
+  const qRows = info.questions.map((q) => `
+    <label style="display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; margin-bottom:6px; cursor:pointer; text-transform:none; letter-spacing:normal; font-size:14px; font-weight:400; color:#1a1c2b;">
+      <input type="checkbox" class="cc-ag-q" value="${escapeAttr(q.id)}" checked style="margin-top:3px;" />
+      <span style="flex:1;">
+        <strong>Q${q.number}</strong> · ${escapeHtml(CC_AG_TYPE[q.type] || q.type)} · ${q.points} marks
+        <div class="muted" style="font-size:12px;">${escapeHtml(q.prompt)}</div>
+        <div class="muted" style="font-size:12px;">${q.answered} answered · ${q.teacherGraded} marked by you · ${q.aiGraded} AI-graded</div>
+      </span>
+    </label>`).join('');
+  const teacherMarked = info.questions.reduce((n, q) => n + q.teacherGraded, 0);
+  const stageOpts = CC_AG_STAGES.map(([v, t]) =>
+    `<option value="${v}" ${info.rubricStage === v ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+
+  box.innerHTML = `
+    <h2 style="margin:0 0 6px;">🤖 Switch to auto-grading</h2>
+    <div class="muted" style="margin-bottom:14px;">
+      ${info.submissions} student${info.submissions === 1 ? '' : 's'} already submitted. The AI will mark their essays with the rubric you choose.
+      Students' answers are not changed, and you can still change any mark in the essay queue.
+    </div>
+    ${info.hasApiKey ? '' : `<div class="error" style="margin-bottom:12px;">Auto-grading needs the AI key. Add it in <strong>Settings</strong> first.</div>`}
+    <div style="font-weight:600; margin-bottom:6px;">1. Questions to auto-grade</div>
+    ${qRows}
+    <div style="font-weight:600; margin:14px 0 6px;">2. Writing rubric</div>
+    <select id="cc-ag-stage" style="width:100%;">
+      ${info.rubricStage ? '' : '<option value="">Choose a rubric…</option>'}
+      ${stageOpts}
+    </select>
+    <div class="muted" style="font-size:12px; margin-top:4px;">The AI scales the rubric to each question's marks.</div>
+    <label style="display:flex; gap:8px; align-items:center; margin-top:14px; text-transform:none; letter-spacing:normal; font-size:14px; font-weight:400; color:#1a1c2b;">
+      <input type="checkbox" id="cc-ag-keep" checked />
+      <span>Keep the marks I have already given${teacherMarked ? ` (${teacherMarked})` : ''}</span>
+    </label>
+    <div id="cc-ag-msg" style="margin-top:10px;"></div>
+    <div class="row" style="margin-top:16px; gap:8px;">
+      ${anyConverted ? '<button class="btn" id="cc-ag-undo" title="Go back to manual marking">↩ Undo the switch</button>' : ''}
+      <div class="spacer"></div>
+      <button class="btn" id="cc-ag-cancel">Cancel</button>
+      <button class="btn primary" id="cc-ag-go" ${info.hasApiKey ? '' : 'disabled'}>Start auto-grading</button>
+    </div>`;
+
+  box.querySelector('#cc-ag-cancel').onclick = ccAgClose;
+  const msg = box.querySelector('#cc-ag-msg');
+  const keepBox = box.querySelector('#cc-ag-keep');
+  keepBox.onchange = () => {
+    msg.innerHTML = keepBox.checked ? '' :
+      '<div class="error" style="font-size:13px;">The AI will replace the marks you gave. Undo will bring them back.</div>';
+  };
+  const undo = box.querySelector('#cc-ag-undo');
+  if (undo) undo.onclick = async () => {
+    if (!confirm('Undo the switch?\n\nThe questions go back to manual marking, the AI marks from the switch are removed, and any marks of yours that the AI replaced come back. Marks you saved after the switch are kept.')) return;
+    try {
+      const o = await api(`/api/assessments/${assessmentId}/autograde/undo`, { method: 'POST' });
+      ccAgClose();
+      alert(`Undone. ${o.questions} question(s) back to manual marking; ${o.cleared} AI mark(s) removed${o.restored ? `, ${o.restored} of your marks restored` : ''}.`);
+      openResults(assessmentId);
+    } catch (e) { msg.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; }
+  };
+  box.querySelector('#cc-ag-go').onclick = async () => {
+    const questionIds = [...box.querySelectorAll('.cc-ag-q:checked')].map((c) => c.value);
+    const rubricStage = box.querySelector('#cc-ag-stage').value;
+    if (!questionIds.length) { msg.innerHTML = '<div class="error">Tick at least one question.</div>'; return; }
+    if (!rubricStage) { msg.innerHTML = '<div class="error">Choose a writing rubric.</div>'; return; }
+    try {
+      const { job } = await api(`/api/assessments/${assessmentId}/autograde`, {
+        method: 'POST', body: { questionIds, rubricStage, keepTeacherGrades: keepBox.checked },
+      });
+      ccAgShowProgress(box, assessmentId, job);
+    } catch (e) { msg.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; }
+  };
+}
+
+function ccAgShowProgress(box, assessmentId, job) {
+  const draw = (j) => {
+    const pct = j.total ? Math.round((j.done / j.total) * 100) : 100;
+    const why = (j.reasons || []).includes('no-api-key') ? ' The AI key is missing or not working — check Settings.' : '';
+    box.innerHTML = `
+      <h2 style="margin:0 0 10px;">🤖 ${j.running ? 'Auto-grading…' : 'Auto-grading finished'}</h2>
+      <div style="background:#e5e7eb; border-radius:6px; height:12px; overflow:hidden;">
+        <div style="background:#2563eb; height:100%; width:${pct}%; transition:width .4s;"></div>
+      </div>
+      <div style="margin-top:8px;">${j.running ? `Grading ${Math.min(j.done + 1, j.total)} of ${j.total} students…` : `Checked ${j.total} student${j.total === 1 ? '' : 's'}.`}</div>
+      <div class="muted" style="font-size:13px; margin-top:4px;">
+        ${j.graded} essay${j.graded === 1 ? '' : 's'} graded · ${j.skipped} skipped (blank or already marked by you)${j.failed ? ` · <span style="color:#b91c1c;">${j.failed} could not be graded.${why}</span>` : ''}
+      </div>
+      <div class="muted" style="font-size:13px; margin-top:10px;">
+        ${j.running ? 'You can close this window — grading carries on. Open it again from the button to see progress.'
+                    : 'The AI marks are in the essay queue, where you can check or change them. Students see them in their review.'}
+      </div>
+      <div class="row" style="margin-top:16px;"><div class="spacer"></div>
+        <button class="btn primary" id="cc-ag-done">${j.running ? 'Close' : 'Done'}</button></div>`;
+    box.querySelector('#cc-ag-done').onclick = () => { ccAgClose(); if (!j.running) openResults(assessmentId); };
+  };
+  draw(job);
+  if (ccAgPoll) clearInterval(ccAgPoll);
+  if (!job.running) return;
+  ccAgPoll = setInterval(async () => {
+    if (!document.getElementById('cc-ag-overlay')) { clearInterval(ccAgPoll); ccAgPoll = null; return; }
+    try {
+      const info = await api(`/api/assessments/${assessmentId}/autograde`);
+      if (!info.job) return;
+      draw(info.job);
+      if (!info.job.running) { clearInterval(ccAgPoll); ccAgPoll = null; }
+    } catch {}
+  }, 2000);
+}
