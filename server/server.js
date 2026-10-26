@@ -4653,6 +4653,30 @@ app.post('/api/outcomes/resolve', requireTeacher, async (req, res) => {
   }
 });
 
+// ---------- Change Online / On-site while students are waiting ----------
+// A teacher who picked "Online" by mistake can switch to "On-site" (or back)
+// at any time. Students still on the "I accept" rules page pick up the change
+// within a few seconds, so they are no longer asked for their camera.
+app.post('/api/assessments/:id/delivery-mode', requireTeacher, (req, res) => {
+  const all = readAll('assessments.json');
+  const idx = all.findIndex((x) => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Not found' });
+  if (all[idx].teacherId !== req.session.user.id) return res.status(403).json({ error: 'Forbidden' });
+  const mode = String(req.body && req.body.mode || '').toLowerCase();
+  if (mode !== 'onsite' && mode !== 'online') return res.status(400).json({ error: 'Choose online or onsite.' });
+  all[idx].deliveryMode = mode;
+  all[idx].deliveryModeChangedAt = new Date().toISOString();
+  writeAll('assessments.json', all);
+  res.json({ ok: true, deliveryMode: mode });
+});
+
+// Students on the rules page check this every few seconds.
+app.get('/api/assessments/:id/delivery-mode', requireStudent, (req, res) => {
+  const a = readAll('assessments.json').find((x) => x.id === req.params.id && x.published);
+  if (!a) return res.status(404).json({ error: 'Not found' });
+  res.json({ deliveryMode: normalizeDeliveryMode(a.deliveryMode) });
+});
+
 app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
   const all = readAll('assessments.json');
   const a = all.find((x) => x.id === req.params.id && x.published);

@@ -1903,6 +1903,7 @@ function renderList() {
         <div class="card-actions" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; margin-top: 10px;">
           ${a.published ? `<button class="btn primary" data-act="share" data-id="${a.id}" title="Copy the link your students will use to take this assessment">🔗 Share with students</button>` : ''}
           <button class="btn" data-act="results" data-id="${a.id}">Results</button>
+          ${a.published ? `<button class="btn" data-cc-mode="${a.id}" title="Change between Online (camera required) and On-site (no camera). Students still on the rules page update within seconds.">${a.deliveryMode === 'onsite' ? '🌐 Switch to Online' : '🏫 Switch to On-site'}</button>` : ''}
           <button class="btn cc-admin-only" data-cc-spec="${a.id}" title="Admin: download the specification table (جدول المواصفات) as Excel">📋 Spec table</button>
           <button class="btn" data-act="print" data-id="${a.id}" title="Print or save as PDF">📄 PDF</button>
           <button class="btn" data-act="share-teacher" data-id="${a.id}" title="Copy a link another teacher can use to preview, print, or duplicate this assessment">🤝 Share with teacher</button>
@@ -1920,6 +1921,30 @@ function renderList() {
   els.assessments.querySelectorAll('button[data-act]').forEach((btn) => {
     btn.onclick = () => handleAction(btn.dataset.act, btn.dataset.id);
   });
+  els.assessments.querySelectorAll('button[data-cc-mode]').forEach((btn) => {
+    btn.onclick = () => ccSwitchDeliveryMode(btn.dataset.ccMode, btn);
+  });
+}
+
+// Switch a published assessment between Online and On-site. Students who are
+// still on the "I accept" rules page pick up the change within a few seconds.
+async function ccSwitchDeliveryMode(id, btn) {
+  const a = allAssessments.find((x) => x.id === id);
+  if (!a) return;
+  const to = a.deliveryMode === 'onsite' ? 'online' : 'onsite';
+  const msg = to === 'onsite'
+    ? `Switch "${a.title}" to ON-SITE?\n\nStudents will not need their cameras. Students still on the rules ("I accept") page will update within a few seconds. Students who have already started keep the mode they started with.`
+    : `Switch "${a.title}" to ONLINE?\n\nStudents will need to turn on their cameras. Students still on the rules ("I accept") page will update within a few seconds. Students who have already started keep the mode they started with.`;
+  if (!confirm(msg)) return;
+  if (btn) btn.disabled = true;
+  try {
+    const r = await api(`/api/assessments/${id}/delivery-mode`, { method: 'POST', body: { mode: to } });
+    a.deliveryMode = r.deliveryMode;
+    render();
+  } catch (e) {
+    alert(e.message);
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ---------- Calendar view ----------

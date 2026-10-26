@@ -757,6 +757,15 @@ async function openConsent(id) {
   els.consentDesc.textContent = currentAssessment.description || '';
   els.consentDuration.textContent = `${currentAssessment.durationMinutes} minutes · ${currentAssessment.questions.length} questions`;
 
+  applyConsentMode();
+  await runEnvironmentCheck();
+  startConsentModeWatch();
+}
+
+// Shows the rules and the camera / pre-flight gates for the assessment's
+// current mode. Called when the page opens and again if the teacher
+// switches between Online and On-site while the student is on this page.
+function applyConsentMode() {
   // Render the bilingual violation rules popup.
   renderConsentRules(currentAssessment);
 
@@ -778,8 +787,48 @@ async function openConsent(id) {
     els.consentStart.style.opacity = '1';
     els.consentStart.style.cursor = 'pointer';
   }
+}
 
-  await runEnvironmentCheck();
+// While the student is on the rules page, check every few seconds whether
+// the teacher changed Online <-> On-site. If so, redraw the page for the new
+// mode (and switch the camera off when it is no longer needed).
+let consentModeTimer = null;
+function stopConsentModeWatch() {
+  if (consentModeTimer) { clearInterval(consentModeTimer); consentModeTimer = null; }
+}
+function startConsentModeWatch() {
+  stopConsentModeWatch();
+  const id = currentAssessment && currentAssessment.id;
+  if (!id) return;
+  consentModeTimer = setInterval(async () => {
+    if (!currentAssessment || currentAssessment.id !== id || els.consentView.style.display !== 'block') {
+      stopConsentModeWatch();
+      return;
+    }
+    let mode;
+    try { mode = (await api(`/api/assessments/${id}/delivery-mode`)).deliveryMode; } catch { return; }
+    if (!mode || mode === currentAssessment.deliveryMode) return;
+    if (!currentAssessment || currentAssessment.id !== id || els.consentView.style.display !== 'block') return;
+    currentAssessment.deliveryMode = mode;
+    if (mode === 'onsite') { try { stopWebcam(); } catch {} }
+    applyConsentMode();
+    showConsentModeNotice(mode);
+  }, 5000);
+}
+function showConsentModeNotice(mode) {
+  let n = document.getElementById('consent-mode-notice');
+  if (!n) {
+    n = document.createElement('div');
+    n.id = 'consent-mode-notice';
+    els.consentView.insertBefore(n, els.consentView.firstChild);
+  }
+  n.style.cssText = 'margin: 0 0 14px; padding: 14px 18px; border-radius: 10px; font-size: 16px; line-height: 1.5;' +
+    (mode === 'onsite'
+      ? 'background:#dbeafe; color:#1e3a8a; border:2px solid #60a5fa;'
+      : 'background:#fef3c7; color:#92400e; border:2px solid #f59e0b;');
+  n.innerHTML = mode === 'onsite'
+    ? '<strong>🏫 Your teacher changed this to an on-site assessment.</strong> You do not need your camera. Read the rules below, then start when you are ready.<div dir="rtl" style="margin-top:6px;">غيّرت معلمتك هذا التقييم إلى تقييم داخل المدرسة. لا تحتاجين إلى الكاميرا. اقرئي القواعد أدناه ثم ابدئي عندما تكونين مستعدة.</div>'
+    : '<strong>🌐 Your teacher changed this to an online assessment.</strong> Please turn on your camera below before you start.<div dir="rtl" style="margin-top:6px;">غيّرت معلمتك هذا التقييم إلى تقييم عبر الإنترنت. يرجى تشغيل الكاميرا أدناه قبل البدء.</div>';
 }
 
 // VM / environment gate. Disabled in v1 MVP (FEATURES.vmDetection).
@@ -911,6 +960,18 @@ if (els.cameraGrantBtn) {
 
 els.consentStart.onclick = async () => {
   if (envBlocked) return;
+  // Pick up a last-second Online/On-site change by the teacher.
+  try {
+    const { deliveryMode } = await api(`/api/assessments/${currentAssessment.id}/delivery-mode`);
+    if (deliveryMode && deliveryMode !== currentAssessment.deliveryMode) {
+      currentAssessment.deliveryMode = deliveryMode;
+      if (deliveryMode === 'onsite') { try { stopWebcam(); } catch {} }
+      applyConsentMode();
+      showConsentModeNotice(deliveryMode);
+      if (deliveryMode === 'online') return; // she must turn on the camera first
+    }
+  } catch {}
+  stopConsentModeWatch();
   // Camera is mandatory for ONLINE assessments only. On-site exams (teacher
   // supervising in the classroom) skip the webcam requirement entirely.
   const isOnsite = currentAssessment && currentAssessment.deliveryMode === 'onsite';
