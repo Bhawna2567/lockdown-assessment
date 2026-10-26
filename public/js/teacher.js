@@ -789,8 +789,11 @@ function renderClassesList() {
               const moveBtn = s.email
                 ? `<button class="btn" data-roster-move-email="${escapeAttr(s.email)}" data-class-id="${id}" style="margin-left: 6px;">Move/Copy</button>`
                 : '';
+              const loginBtn = s.email
+                ? `<button class="btn" data-roster-login="${escapeAttr(s.email)}" data-class-id="${id}" style="margin-left: 6px;" title="See the student's login ID or reset a forgotten password">🔑 Login help</button>`
+                : '';
               const actions = matched
-                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + editBtn + moveBtn + deleteBtn
+                ? `<button class="btn primary" data-roster-progress="${matched.studentId}">View progress</button>` + loginBtn + editBtn + moveBtn + deleteBtn
                 : `<span class="muted" style="font-size: 12px;">No assessments yet</span>` + editBtn + moveBtn + (s.email
                     ? ` <button class="btn danger" data-roster-delete-email="${escapeAttr(s.email)}" data-class-id="${id}" data-roster-name="${escapeAttr(s.name || s.email || '')}">Remove</button>`
                     : '');
@@ -928,6 +931,9 @@ function renderClassesList() {
           closeClassesPanel();
           openStudentProgress(b.dataset.rosterProgress);
         };
+      });
+      view.querySelectorAll('[data-roster-login]').forEach((b) => {
+        b.onclick = () => ccLoginHelp(b.dataset.classId, b.dataset.rosterLogin);
       });
       // Delete a student account (the student has an account record).
       view.querySelectorAll('[data-roster-delete]').forEach((b) => {
@@ -11643,3 +11649,167 @@ function ccAgShowProgress(box, assessmentId, job) {
     } catch {}
   }, 2000);
 }
+
+
+// ---------- Student login help ----------
+// Shows a student's login ID (email) and account status, and lets the
+// teacher reset a forgotten password to a temporary one. Passwords are
+// stored as one-way hashes, so the current password can never be shown.
+function ccLhClose() { const ov = document.getElementById('cc-lh-overlay'); if (ov) ov.remove(); }
+
+function ccLhWhen(iso) {
+  if (!iso) return 'never';
+  try { return new Date(iso).toLocaleString(); } catch { return iso; }
+}
+
+async function ccLoginHelp(classId, email) {
+  ccLhClose();
+  const ov = document.createElement('div');
+  ov.id = 'cc-lh-overlay';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.45); z-index:9999; display:flex; align-items:flex-start; justify-content:center; padding:60px 16px; overflow:auto;';
+  ov.innerHTML = `<div id="cc-lh-box" class="panel" style="background:#fff; max-width:520px; width:100%; padding:20px 22px; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,.25);"><div class="muted">Loading…</div></div>`;
+  ov.addEventListener('click', (e) => { if (e.target === ov) ccLhClose(); });
+  document.body.appendChild(ov);
+  const box = ov.querySelector('#cc-lh-box');
+
+  let st;
+  try {
+    const { students } = await api(`/api/classes/${classId}/logins`);
+    st = students.find((x) => String(x.email).toLowerCase() === String(email).toLowerCase());
+  } catch (e) { box.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; return; }
+  if (!st) { box.innerHTML = `<div class="error">Student not found on this class list.</div>`; return; }
+
+  const status = !st.hasAccount
+    ? '<span class="badge" style="background:#fef3c7; color:#92400e;">No account yet</span>'
+    : st.blocked ? '<span class="badge red">Suspended</span>'
+    : st.locked ? '<span class="badge red">Locked — too many wrong passwords</span>'
+    : st.usingTempPassword ? '<span class="badge" style="background:#e0e7ff; color:#3730a3;">Still on a temporary password</span>'
+    : '<span class="badge green">Using her own password</span>';
+  const row = (k, v) => `<tr><td class="muted" style="padding:6px 10px 6px 0; white-space:nowrap; vertical-align:top;">${k}</td><td style="padding:6px 0;">${v}</td></tr>`;
+
+  box.innerHTML = `
+    <h2 style="margin:0 0 4px;">🔑 Login help</h2>
+    <div class="muted" style="margin-bottom:12px;">${escapeHtml(st.name || st.email)}</div>
+    <table style="width:100%; border-collapse:collapse; font-size:14px;">
+      ${row('Login ID (email)', `<strong style="font-size:16px;" id="cc-lh-id">${escapeHtml(st.email)}</strong> <button class="btn" id="cc-lh-copy-id" style="margin-left:6px; padding:2px 8px; font-size:12px;">Copy</button>`)}
+      ${st.studentNumber ? row('Student number', escapeHtml(st.studentNumber)) : ''}
+      ${row('Account', status)}
+      ${st.hasAccount ? row('Last sign-in', escapeHtml(ccLhWhen(st.lastLoginAt))) : ''}
+      ${st.passwordResetAt ? row('Last password reset', escapeHtml(ccLhWhen(st.passwordResetAt))) : ''}
+    </table>
+    <div class="muted" style="font-size:13px; margin-top:12px;">
+      For safety, passwords are stored in a scrambled form that no one can read — not even the teacher or admin.
+      If she has forgotten her password, give her a new temporary one. She will choose her own password when she signs in.
+    </div>
+    <div id="cc-lh-result" style="margin-top:12px;"></div>
+    <div class="row" style="margin-top:16px; gap:8px;">
+      <div class="spacer"></div>
+      <button class="btn" id="cc-lh-close">Close</button>
+      ${st.hasAccount && !st.blocked ? '<button class="btn primary" id="cc-lh-reset">Reset password</button>' : ''}
+    </div>`;
+
+  box.querySelector('#cc-lh-close').onclick = ccLhClose;
+  box.querySelector('#cc-lh-copy-id').onclick = (e) => {
+    try { navigator.clipboard.writeText(st.email); e.target.textContent = 'Copied'; } catch {}
+  };
+  const resetBtn = box.querySelector('#cc-lh-reset');
+  if (resetBtn) resetBtn.onclick = async () => {
+    if (!confirm(`Reset the password for ${st.name || st.email}?\n\nHer old password will stop working. You will see a new temporary password to give her.`)) return;
+    resetBtn.disabled = true;
+    const out = box.querySelector('#cc-lh-result');
+    try {
+      const r = await api(`/api/classes/${classId}/logins/reset`, { method: 'POST', body: { email: st.email } });
+      out.innerHTML = `
+        <div style="background:#ecfdf5; border:2px solid #10b981; border-radius:10px; padding:12px 14px;">
+          <div style="font-weight:600; margin-bottom:6px;">New temporary password</div>
+          <div style="font-family:ui-monospace,Menlo,Consolas,monospace; font-size:22px; letter-spacing:1px;" id="cc-lh-pw">${escapeHtml(r.tempPassword)}</div>
+          <div class="muted" style="font-size:12px; margin-top:6px;">Login ID: ${escapeHtml(r.email)} · Shown only now — write it down or copy it before closing.</div>
+          <div class="row" style="gap:6px; margin-top:8px;">
+            <button class="btn" id="cc-lh-copy-pw">Copy password</button>
+            <button class="btn" id="cc-lh-print">🖨 Print slip</button>
+          </div>
+        </div>`;
+      resetBtn.remove();
+      out.querySelector('#cc-lh-copy-pw').onclick = (e) => {
+        try { navigator.clipboard.writeText(r.tempPassword); e.target.textContent = 'Copied'; } catch {}
+      };
+      out.querySelector('#cc-lh-print').onclick = () => {
+        const w = window.open('', '_blank', 'width=480,height=360');
+        if (!w) return;
+        w.document.write(`<html><head><title>Login slip</title></head><body style="font-family:Arial,sans-serif; padding:24px;">
+          <h2 style="margin:0 0 12px;">ClassCurio login</h2>
+          <p><strong>Name:</strong> ${escapeHtml(r.name || '')}</p>
+          <p><strong>Login ID:</strong> ${escapeHtml(r.email)}</p>
+          <p><strong>Temporary password:</strong> <span style="font-family:monospace; font-size:20px;">${escapeHtml(r.tempPassword)}</span></p>
+          <p style="color:#555;">You will be asked to choose your own password when you sign in.</p>
+          <script>window.print();<\/script></body></html>`);
+        w.document.close();
+      };
+    } catch (e) {
+      resetBtn.disabled = false;
+      out.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`;
+    }
+  };
+}
+
+
+// ---------- Forgot-password requests from students ----------
+// A student who forgot her password asks from the sign-in page. Her teacher
+// sees the request here and approves it with one click; the new temporary
+// password then appears on the student's sign-in page (and here too).
+const ccPwreqApproved = []; // shown until the teacher closes them
+
+async function ccPwreqRefresh() {
+  const host = document.getElementById('pwreq-banner');
+  if (!host) return;
+  let list = [];
+  try { list = (await api('/api/password-requests')).requests || []; } catch { return; }
+  if (!list.length && !ccPwreqApproved.length) { host.style.display = 'none'; host.innerHTML = ''; return; }
+  const ago = (iso) => {
+    const m = Math.max(0, Math.round((Date.now() - Date.parse(iso)) / 60000));
+    return m < 1 ? 'just now' : m === 1 ? '1 min ago' : `${m} min ago`;
+  };
+  host.style.display = 'block';
+  host.innerHTML = `
+    <div class="panel" style="background:#fff7ed; border:2px solid #f59e0b; padding:12px 16px; margin-bottom:14px;">
+      ${list.length ? `<div style="font-weight:600; color:#92400e; margin-bottom:6px;">🔑 Password request${list.length === 1 ? '' : 's'} (${list.length})</div>
+      <div class="muted" style="font-size:12px; margin-bottom:8px;">Approve only if the student is with you or you are sure it is her. Her new password will appear on her sign-in page.</div>` : ''}
+      ${list.map((r) => `
+        <div class="row" style="gap:8px; align-items:center; padding:6px 0; border-top:1px solid #fde68a;">
+          <div style="flex:1;"><strong>${escapeHtml(r.name || r.email)}</strong>
+            <span class="muted" style="font-size:12px;">${escapeHtml(r.email)} · ${escapeHtml(r.classes.join(', '))} · ${ago(r.createdAt)}</span></div>
+          <button class="btn primary" data-pwreq-approve="${escapeAttr(r.id)}">Approve</button>
+          <button class="btn" data-pwreq-decline="${escapeAttr(r.id)}">Decline</button>
+        </div>`).join('')}
+      ${ccPwreqApproved.map((a, i) => `
+        <div class="row" style="gap:8px; align-items:center; padding:8px 10px; margin-top:6px; background:#ecfdf5; border:1px solid #10b981; border-radius:8px;">
+          <div style="flex:1;">✓ <strong>${escapeHtml(a.name || a.email)}</strong> — new password:
+            <span style="font-family:ui-monospace,Menlo,Consolas,monospace; font-size:16px; font-weight:700; margin-left:4px;">${escapeHtml(a.tempPassword)}</span>
+            <div class="muted" style="font-size:12px;">It is also on her sign-in page. She will choose her own password when she signs in.</div></div>
+          <button class="btn" data-pwreq-close="${i}">Close</button>
+        </div>`).join('')}
+    </div>`;
+  host.querySelectorAll('[data-pwreq-approve]').forEach((b) => {
+    b.onclick = async () => {
+      b.disabled = true;
+      try {
+        const r = await api(`/api/password-requests/${b.dataset.pwreqApprove}/approve`, { method: 'POST' });
+        ccPwreqApproved.push(r);
+      } catch (e) { alert(e.message); }
+      ccPwreqRefresh();
+    };
+  });
+  host.querySelectorAll('[data-pwreq-decline]').forEach((b) => {
+    b.onclick = async () => {
+      if (!confirm('Decline this password request?')) return;
+      try { await api(`/api/password-requests/${b.dataset.pwreqDecline}/decline`, { method: 'POST' }); }
+      catch (e) { alert(e.message); }
+      ccPwreqRefresh();
+    };
+  });
+  host.querySelectorAll('[data-pwreq-close]').forEach((b) => {
+    b.onclick = () => { ccPwreqApproved.splice(Number(b.dataset.pwreqClose), 1); ccPwreqRefresh(); };
+  });
+}
+ccPwreqRefresh();
+setInterval(() => { if (!document.hidden) ccPwreqRefresh(); }, 20000);

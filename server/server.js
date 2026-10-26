@@ -344,44 +344,174 @@ function ensureDefaultClass(teacherId) {
   return [defaultClass];
 }
 
-// Self-serve password reset. The requester types their email; if it
-// matches a real user we generate a fresh temp password, hash it, and
-// return the plaintext to the caller for them to use (same model as
-// pre-register). Email infrastructure isn't required.
-app.post('/api/auth/forgot-password', _ccForgotLimiter, async (req, res) => {
+// Forgot password — student asks, teacher approves.
+// A student types her email on the sign-in page. That creates a request her
+// teacher(s) see on their dashboard. When a teacher clicks Approve, the
+// student's sign-in page (which keeps checking with a secret token only that
+// browser holds) shows the new temporary password. Nobody gets a password
+// just by typing an email. Teacher and admin accounts are not reset here —
+// they ask the admin.
+const _CC_PWREQ_TTL_MS = 60 * 60 * 1000;     // a request waits up to 1 hour
+const _CC_PWREQ_PICKUP_MS = 30 * 60 * 1000;  // approved password can be collected for 30 min
+const _CC_PWREQ_PER_EMAIL_HOUR = 3;
+
+function _ccPwreqLoad() {
+  const now = Date.now();
+  const all = readAll('password-requests.json');
+  let changed = false;
+  for (const r of all) {
+    if (r.status === 'pending' && now - Date.parse(r.createdAt) > _CC_PWREQ_TTL_MS) { r.status = 'expired'; changed = true; }
+    if (r.tempPassword && (r.pickedUpAt || now - Date.parse(r.decidedAt || r.createdAt) > _CC_PWREQ_PICKUP_MS)) {
+      delete r.tempPassword; changed = true; // never keep a plain password around
+    }
+  }
+  // Keep the file small: drop finished requests older than 30 days.
+  const keep = all.filter((r) => r.status === 'pending' || now - Date.parse(r.createdAt) < 30 * 86400000);
+  if (changed || keep.length !== all.length) writeAll('password-requests.json', keep);
+  return keep;
+}
+
+// Classes (of any teacher) whose roster lists this email.
+function _ccClassesForEmail(email) {
+  const e = String(email || '').toLowerCase();
+  return readAll('classes.json').filter((c) =>
+    (c.roster || []).some((r) => String(r.email || '').toLowerCase() === e));
+}
+
+app.post('/api/auth/forgot-password', _ccForgotLimiter, (req, res) => {
   const email = String(req.body && req.body.email || '').trim().toLowerCase();
   if (!email || !email.includes('@')) {
     return res.status(400).json({ error: 'Enter a valid email address.' });
   }
+  const crypto = require('crypto');
+  const pollToken = crypto.randomBytes(24).toString('hex');
   const users = readAll('users.json');
-  const idx = users.findIndex((u) => String(u.email || '').toLowerCase() === email);
-  if (idx === -1) {
-    // Don't leak whether the email exists — but DO tell the caller the
-    // reset has been "sent" so they don't keep trying.
-    return res.json({
-      ok: true,
-      sent: false,
-      message: 'If an account exists for that email, a reset has been issued. Contact your school admin if you cannot sign in.',
-    });
+  const u = users.find((x) => String(x.email || '').toLowerCase() === email);
+  const all = _ccPwreqLoad();
+  const recent = all.filter((r) => r.email === email && Date.now() - Date.parse(r.createdAt) < 3600000);
+  if (recent.length >= _CC_PWREQ_PER_EMAIL_HOUR) {
+    return res.status(429).json({ error: 'Too many requests for this email. Ask your teacher to help you from her Login help page.' });
   }
-  try {
-    const tempPassword = generateTempPassword(10);
-    users[idx].passwordHash = await bcrypt.hash(tempPassword, 10);
-    users[idx].mustChangePassword = true;
-    users[idx].passwordResetAt = new Date().toISOString();
-    writeAll('users.json', users);
-    return res.json({
-      ok: true,
-      sent: true,
-      tempPassword,
-      email: users[idx].email,
-      name: users[idx].name,
-      role: users[idx].role,
-    });
-  } catch (e) {
-    return res.status(500).json({ error: 'Reset failed: ' + e.message });
+
+  // Same answer whether or not the email exists, so the page can't be used
+  // to find out who has an account. Non-students get a request that no
+  // teacher will ever see; it simply expires.
+  const ok = u && u.role === 'student' && !u.blocked && _ccClassesForEmail(email).length > 0;
+  const reqRec = {
+    id: uuidv4(),
+    email,
+    studentId: ok ? u.id : null,
+    name: ok ? u.name : null,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    pollTokenHash: crypto.createHash('sha256').update(pollToken).digest('hex'),
+    visible: !!ok,
+  };
+  if (ok) {
+    // One open request per student: replace an older pending one.
+    for (const r of all) if (r.studentId === u.id && r.status === 'pending') r.status = 'replaced';
   }
+  all.push(reqRec);
+  writeAll('password-requests.json', all);
+  res.json({
+    ok: true,
+    requestId: reqRec.id,
+    pollToken,
+    message: 'Request sent. Ask your teacher to approve it. Keep this page open — your new password will appear here.',
+  });
 });
+
+// The sign-in page checks here every few seconds.
+app.post('/api/auth/forgot-password/status', (req, res) => {
+  const { requestId, pollToken } = req.body || {};
+  if (!requestId || !pollToken) return res.status(400).json({ error: 'Missing request' });
+  const hash = require('crypto').createHash('sha256').update(String(pollToken)).digest('hex');
+  const all = _ccPwreqLoad();
+  const r = all.find((x) => x.id === requestId && x.pollTokenHash === hash);
+  if (!r) return res.json({ status: 'expired' });
+  if (r.status === 'approved' && r.tempPassword) {
+    const tempPassword = r.tempPassword;
+    delete r.tempPassword;
+    r.pickedUpAt = new Date().toISOString();
+    writeAll('password-requests.json', all);
+    return res.json({ status: 'approved', tempPassword, email: r.email });
+  }
+  if (r.status === 'approved') return res.json({ status: 'collected' });
+  res.json({ status: r.status === 'replaced' ? 'expired' : r.status });
+});
+
+// Teacher: pending requests from students on her class lists (admins see all).
+function _ccPwreqForTeacher(req) {
+  const mine = readAll('classes.json').filter((c) => c.teacherId === req.session.user.id);
+  const isAdmin = _ccIsAdminReq(req);
+  return (r) => {
+    if (!r.visible) return [];
+    const hits = mine.filter((c) => (c.roster || []).some((x) => String(x.email || '').toLowerCase() === r.email));
+    if (hits.length) return hits.map((c) => c.name);
+    return isAdmin ? _ccClassesForEmail(r.email).map((c) => c.name) : [];
+  };
+}
+
+app.get('/api/password-requests', requireTeacher, (req, res) => {
+  const classesOf = _ccPwreqForTeacher(req);
+  const out = [];
+  for (const r of _ccPwreqLoad()) {
+    if (r.status !== 'pending') continue;
+    const cls = classesOf(r);
+    if (!cls.length) continue;
+    out.push({ id: r.id, name: r.name, email: r.email, classes: cls, createdAt: r.createdAt });
+  }
+  out.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  res.json({ requests: out });
+});
+
+app.post('/api/password-requests/:id/approve', requireTeacher, async (req, res) => {
+  const all = _ccPwreqLoad();
+  const r = all.find((x) => x.id === req.params.id);
+  if (!r || !r.visible) return res.status(404).json({ error: 'Request not found.' });
+  if (!_ccPwreqForTeacher(req)(r).length) return res.status(403).json({ error: 'This student is not on your class lists.' });
+  if (r.status !== 'pending') return res.status(409).json({ error: `This request was already ${r.status}.` });
+  const users = readAll('users.json');
+  const u = users.find((x) => x.id === r.studentId);
+  if (!u || u.role !== 'student' || u.blocked) return res.status(400).json({ error: 'This student account cannot be reset.' });
+
+  const tempPassword = generateTempPassword(10);
+  u.passwordHash = await bcrypt.hash(tempPassword, 10);
+  u.mustChangePassword = true;
+  u.passwordResetAt = new Date().toISOString();
+  u.passwordResetBy = req.session.user.email;
+  delete u.failedAttempts;
+  delete u.lockedUntil;
+  writeAll('users.json', users);
+
+  r.status = 'approved';
+  r.decidedAt = u.passwordResetAt;
+  r.decidedBy = req.session.user.email;
+  r.tempPassword = tempPassword; // removed as soon as the student collects it, or after 30 min
+  writeAll('password-requests.json', all);
+  try {
+    const log = readAll('password-resets.json');
+    log.push({ studentId: u.id, studentEmail: u.email, by: req.session.user.email, via: 'forgot-password-approval', at: r.decidedAt });
+    if (log.length > 20000) log.splice(0, log.length - 20000);
+    writeAll('password-resets.json', log);
+  } catch {}
+  // The teacher also sees it, in case the student closed her page.
+  res.json({ ok: true, name: u.name, email: u.email, tempPassword });
+});
+
+app.post('/api/password-requests/:id/decline', requireTeacher, (req, res) => {
+  const all = _ccPwreqLoad();
+  const r = all.find((x) => x.id === req.params.id);
+  if (!r || !r.visible) return res.status(404).json({ error: 'Request not found.' });
+  if (!_ccPwreqForTeacher(req)(r).length) return res.status(403).json({ error: 'This student is not on your class lists.' });
+  if (r.status !== 'pending') return res.status(409).json({ error: `This request was already ${r.status}.` });
+  r.status = 'declined';
+  r.decidedAt = new Date().toISOString();
+  r.decidedBy = req.session.user.email;
+  writeAll('password-requests.json', all);
+  res.json({ ok: true });
+});
+
 
 app.get('/api/classes', requireTeacher, (req, res) => {
   const list = ensureDefaultClass(req.session.user.id);
@@ -645,6 +775,80 @@ app.post('/api/auth/change-password', async (req, res) => {
   writeAll('users.json', users);
   res.json({ ok: true });
 });
+
+// ---------- Student login help (teacher) ----------
+// Passwords are stored only as one-way hashes, so nobody — not the teacher,
+// not the admin — can read a student's password. Instead the teacher can see
+// each student's login ID (email) and account status, and reset a forgotten
+// password to a new temporary one. The student must choose their own
+// password the next time they sign in. Only students on the teacher's own
+// class roster can be looked up or reset.
+function _ccClassForTeacher(req, res) {
+  const cls = readAll('classes.json').find((c) => c.id === req.params.id);
+  if (!cls) { res.status(404).json({ error: 'Class not found' }); return null; }
+  if (cls.teacherId !== req.session.user.id) { res.status(403).json({ error: 'Forbidden' }); return null; }
+  return cls;
+}
+
+app.get('/api/classes/:id/logins', requireTeacher, (req, res) => {
+  const cls = _ccClassForTeacher(req, res);
+  if (!cls) return;
+  const users = readAll('users.json');
+  const byEmail = new Map(users.map((u) => [String(u.email || '').toLowerCase(), u]));
+  const lastLogin = new Map();
+  for (const l of readAll('logins.json')) {
+    if (l && l.userId && (!lastLogin.has(l.userId) || l.at > lastLogin.get(l.userId))) lastLogin.set(l.userId, l.at);
+  }
+  const now = Date.now();
+  const students = (cls.roster || []).map((r) => {
+    const email = String(r.email || '').toLowerCase();
+    const u = email ? byEmail.get(email) : null;
+    const isStudent = u && u.role === 'student';
+    return {
+      name: r.name || (u && u.name) || '',
+      email: r.email || '',
+      studentNumber: r.studentNumber || (isStudent && u.studentNumber) || '',
+      hasAccount: !!isStudent,
+      usingTempPassword: !!(isStudent && u.mustChangePassword),
+      locked: !!(isStudent && u.lockedUntil && Date.parse(u.lockedUntil) > now),
+      blocked: !!(isStudent && u.blocked),
+      lastLoginAt: isStudent ? (lastLogin.get(u.id) || null) : null,
+      passwordResetAt: isStudent ? (u.passwordResetAt || null) : null,
+    };
+  });
+  res.json({ className: cls.name, students });
+});
+
+app.post('/api/classes/:id/logins/reset', requireTeacher, async (req, res) => {
+  const cls = _ccClassForTeacher(req, res);
+  if (!cls) return;
+  const email = String(req.body && req.body.email || '').trim().toLowerCase();
+  const onRoster = (cls.roster || []).some((r) => String(r.email || '').toLowerCase() === email);
+  if (!email || !onRoster) return res.status(400).json({ error: 'That student is not on this class list.' });
+  const users = readAll('users.json');
+  const u = users.find((x) => String(x.email || '').toLowerCase() === email);
+  if (!u) return res.status(404).json({ error: 'This student has no account yet. Use "🔑 Pre-register students" on the class to make one.' });
+  if (u.role !== 'student') return res.status(403).json({ error: 'Only student passwords can be reset here.' });
+  if (u.blocked) return res.status(403).json({ error: 'This account is suspended. Ask the school admin.' });
+
+  const tempPassword = generateTempPassword(10);
+  u.passwordHash = await bcrypt.hash(tempPassword, 10);
+  u.mustChangePassword = true;
+  u.passwordResetAt = new Date().toISOString();
+  u.passwordResetBy = req.session.user.email;
+  delete u.failedAttempts;
+  delete u.lockedUntil;
+  writeAll('users.json', users);
+  try {
+    const log = readAll('password-resets.json');
+    log.push({ studentId: u.id, studentEmail: u.email, by: req.session.user.email, classId: cls.id, at: u.passwordResetAt });
+    if (log.length > 20000) log.splice(0, log.length - 20000);
+    writeAll('password-resets.json', log);
+  } catch {}
+  // The temporary password is returned once and never stored in plain text.
+  res.json({ ok: true, email: u.email, name: u.name, tempPassword });
+});
+
 
 // Parse a class roster file (CSV / TXT / PDF / DOCX) and return the extracted
 // {email, name} pairs WITHOUT saving. The frontend then shows the preview and
