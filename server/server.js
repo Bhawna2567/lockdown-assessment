@@ -1274,6 +1274,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     scheduledDate: scheduledDate ? String(scheduledDate).slice(0, 10) : null,
     durationMinutes: Number(durationMinutes) || 30,
     published: Boolean(published),
+    publishedAt: published ? new Date().toISOString() : null,
     audioFile: null,
     audioScript: audioScript ? String(audioScript).slice(0, 12000) : '',
     skill: skill ? String(skill).slice(0, 120) : null,
@@ -1522,6 +1523,9 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
       : (scheduledDate ? String(scheduledDate).slice(0, 10) : null),
     durationMinutes: durationMinutes ?? all[idx].durationMinutes,
     published: published ?? all[idx].published,
+    // Remember when it was first published (used by the Class Averages list).
+    publishedAt: all[idx].publishedAt
+      || ((published ?? all[idx].published) ? new Date().toISOString() : null),
     audioFile: all[idx].audioFile || null,
     skill: req.body.skill === undefined ? (all[idx].skill || null) : (req.body.skill ? String(req.body.skill).slice(0, 120) : null),
     audioScript: audioScript === undefined
@@ -8893,22 +8897,74 @@ console.log('[ai-mark-writing v2] endpoints ready.');
 // ── Class Averages Excel export ──────────────────────────────────────
 const _ccExcelJS = require('exceljs');
 
-// List published assessments for a class (teacher's own).
+// School terms (UAE): Term 1 mid-Aug–Dec, Term 2 Jan–Mar, Term 3 Apr–mid-Aug.
+// The academic year runs Aug → Jul, e.g. "2026-2027".
+function _ccTermOf(d) {
+  const t = d instanceof Date ? d : new Date(d);
+  if (isNaN(t)) return null;
+  const m = t.getMonth(), day = t.getDate(), y = t.getFullYear();
+  const startYear = (m > 7 || (m === 7 && day >= 15)) ? y : y - 1;
+  let term;
+  if (m >= 8 || (m === 7 && day >= 15)) term = '1';
+  else if (m <= 2) term = '2';
+  else term = '3';
+  return { term, academicYear: `${startYear}-${startYear + 1}` };
+}
+function _ccSameYear(a, b) {
+  // Accept "2026-2027", "2026/27", "2026-27".
+  const norm = (v) => { const m = String(v || '').match(/(20\d\d)/); return m ? m[1] : ''; };
+  return norm(a) && norm(a) === norm(b);
+}
+
+// List assessments for a class (teacher's own), with the date each was
+// published and whether it belongs to the current term. The Class Averages
+// window shows only current-term assessments unless the teacher asks for more.
 app.get('/api/teacher/classes/:cid/assessments', (req, res) => {
   try {
     if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
     const uid = req.session.user.id;
     const all = _ccMpReadJson('assessments.json', []);
-    const list = all
-      .filter(a => a && a.classId === req.params.cid && (!a.teacherId || a.teacherId === uid))
-      .map(a => ({
-        id: a.id,
-        title: a.title || '(untitled)',
-        subject: a.subject || '',
-        published: a.published || a.status === 'published',
-        createdAt: a.createdAt || null,
-      }))
-      .sort((a, b) => String(a.title).localeCompare(String(b.title)));
+    const mine = all.filter(a => a && a.classId === req.params.cid && (!a.teacherId || a.teacherId === uid));
+    const ids = new Set(mine.map(a => a.id));
+    const firstTaken = {}, taken = {};
+    for (const r of _ccMpReadJson('results.json', [])) {
+      if (!r || !ids.has(r.assessmentId) || !r.submittedAt) continue;
+      taken[r.assessmentId] = (taken[r.assessmentId] || 0) + 1;
+      if (!firstTaken[r.assessmentId] || r.submittedAt < firstTaken[r.assessmentId]) firstTaken[r.assessmentId] = r.submittedAt;
+    }
+    const now = _ccTermOf(new Date());
+    const list = mine
+      .map(a => {
+        const published = !!(a.published || a.status === 'published');
+        // Best date we have: when it was published; for older assessments,
+        // the first submission, then the scheduled date, then when it was made.
+        let date = a.publishedAt || null, dateKind = 'published';
+        if (!date && firstTaken[a.id]) { date = firstTaken[a.id]; dateKind = 'first-taken'; }
+        if (!date && a.scheduledDate) { date = a.scheduledDate; dateKind = 'scheduled'; }
+        if (!date && a.createdAt) { date = a.createdAt; dateKind = 'created'; }
+        const byDate = date ? _ccTermOf(date) : null;
+        // The teacher's own Term / Year settings win over the date.
+        const term = a.term || (byDate && byDate.term) || null;
+        const year = a.academicYear || (byDate && byDate.academicYear) || null;
+        const inCurrentTerm = !!(now && term === now.term && year && _ccSameYear(year, now.academicYear));
+        return {
+          id: a.id,
+          title: a.title || '(untitled)',
+          subject: a.subject || '',
+          published,
+          createdAt: a.createdAt || null,
+          date, dateKind,
+          term, academicYear: year,
+          submissions: taken[a.id] || 0,
+          inCurrentTerm,
+        };
+      })
+      // Drafts nobody has taken don't belong on a scores sheet.
+      .filter(a => a.published || a.submissions > 0)
+      .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+    // Old clients expect a bare array; the Class Averages window asks for the
+    // richer shape with ?withTerm=1.
+    if (req.query.withTerm) return res.json({ currentTerm: now, assessments: list });
     res.json(list);
   } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 });

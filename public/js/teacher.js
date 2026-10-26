@@ -7996,7 +7996,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     listWrap.textContent = 'Pick a class first.';
     const listAll = el('label', { style: 'display:block; margin-top:8px; font-size:13px; color:#374151;' });
     const listAllCb = el('input', { type: 'checkbox' });
-    listAll.appendChild(listAllCb); listAll.appendChild(document.createTextNode(' Select all'));
+    listAll.appendChild(listAllCb); listAll.appendChild(document.createTextNode(' Select all in the current term'));
 
     const status = el('div', { style: 'margin-top:16px; padding:12px; background:#F3F4F6; border-radius:6px; color:#374151; font-size:13px; display:none;' });
 
@@ -8009,24 +8009,65 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       if (!clsSel.value) { listWrap.textContent = 'Pick a class first.'; currentAssessments = []; return; }
       status.style.display = 'block'; status.textContent = 'Loading assessments…';
       try {
-        currentAssessments = await fetchJson('/api/teacher/classes/' + encodeURIComponent(clsSel.value) + '/assessments');
+        const data = await fetchJson('/api/teacher/classes/' + encodeURIComponent(clsSel.value) + '/assessments?withTerm=1');
+        currentAssessments = data.assessments || [];
+        const cur = data.currentTerm;
+        const nowList = currentAssessments.filter(function (a) { return a.inCurrentTerm; });
+        const oldList = currentAssessments.filter(function (a) { return !a.inCurrentTerm; });
         listWrap.innerHTML = '';
-        if (!currentAssessments.length) { listWrap.textContent = 'No assessments found for this class.'; status.style.display = 'none'; return; }
-        currentAssessments.forEach(function (a) {
-          const row = el('label', { style: 'display:flex; align-items:center; gap:8px; padding:6px; border-radius:4px; cursor:pointer;' });
+        listAllCb.checked = false;
+
+        const fmt = function (iso) {
+          if (!iso) return '';
+          const d = new Date(iso);
+          return isNaN(d) ? String(iso) : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        };
+        const dateWord = { 'published': 'Published', 'first-taken': 'First taken', 'scheduled': 'Scheduled', 'created': 'Created' };
+        const addRow = function (host, a, older) {
+          const row = el('label', { style: 'display:flex; align-items:center; gap:8px; padding:6px; border-radius:4px; cursor:pointer;' + (older ? ' opacity:.75;' : '') });
           const cb = el('input', { type: 'checkbox', 'data-aid': a.id });
+          if (older) cb.setAttribute('data-older', '1');
           cb.style.cursor = 'pointer';
-          const title = el('span', {}, a.title + (a.published ? ' ✅' : ''));
-          row.appendChild(cb); row.appendChild(title);
-          listWrap.appendChild(row);
-        });
+          const text = el('span', { style: 'flex:1;' }, a.title + (a.published ? '' : ' (draft)'));
+          const when = el('span', { style: 'font-size:12px; color:#6B7280; white-space:nowrap;' },
+            (a.date ? (dateWord[a.dateKind] || 'Date') + ' ' + fmt(a.date) : 'No date') +
+            (older && a.term ? ' · Term ' + a.term + (a.academicYear ? ' ' + a.academicYear : '') : '') +
+            ' · ' + a.submissions + ' submitted');
+          row.appendChild(cb); row.appendChild(text); row.appendChild(when);
+          host.appendChild(row);
+        };
+
+        const head = el('div', { style: 'font-weight:600; color:#3730A3; margin:2px 4px 6px;' },
+          cur ? ('Term ' + cur.term + ' · ' + cur.academicYear + ' (current term)') : 'Current term');
+        listWrap.appendChild(head);
+        if (nowList.length) nowList.forEach(function (a) { addRow(listWrap, a, false); });
+        else listWrap.appendChild(el('div', { style: 'padding:6px; color:#6B7280;' }, 'No assessments in the current term for this class yet.'));
+
+        if (oldList.length) {
+          const older = el('div', { style: 'display:none; margin-top:8px; border-top:1px dashed #D1D5DB; padding-top:6px;' });
+          older.appendChild(el('div', { style: 'font-weight:600; color:#6B7280; margin:2px 4px 6px;' }, 'Earlier terms'));
+          oldList.forEach(function (a) { addRow(older, a, true); });
+          const toggle = el('button', { type: 'button', style: 'margin-top:8px; background:none; border:none; color:#4338CA; cursor:pointer; padding:4px; font-size:13px; text-decoration:underline;' },
+            'Show ' + oldList.length + ' assessment' + (oldList.length === 1 ? '' : 's') + ' from earlier terms');
+          toggle.onclick = function () {
+            const open = older.style.display !== 'none';
+            older.style.display = open ? 'none' : 'block';
+            toggle.textContent = open
+              ? 'Show ' + oldList.length + ' assessment' + (oldList.length === 1 ? '' : 's') + ' from earlier terms'
+              : 'Hide earlier terms';
+            if (open) older.querySelectorAll('input[type=checkbox]').forEach(function (cb) { cb.checked = false; });
+          };
+          listWrap.appendChild(toggle);
+          listWrap.appendChild(older);
+        }
         status.style.display = 'none';
       } catch (e) {
         status.textContent = 'Failed: ' + e.message;
       }
     };
     listAllCb.onchange = function () {
-      listWrap.querySelectorAll('input[type=checkbox]').forEach(function(cb){ cb.checked = listAllCb.checked; });
+      // "Select all" ticks the current term only — earlier terms are ticked one by one.
+      listWrap.querySelectorAll('input[type=checkbox]:not([data-older])').forEach(function(cb){ cb.checked = listAllCb.checked; });
     };
 
     genBtn.onclick = async function () {
