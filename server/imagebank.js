@@ -72,7 +72,7 @@ module.exports = function imageBank(app, { readAll, writeAll, requireTeacher, is
       fs.writeFileSync(path.join(DIR, file), buf);
       bank.push({ id, file, hash, mime: it.mime, bytes: buf.length, title: clip(it.title, 200), subject: clip(it.subject, 60), grade: clip(it.grade, 10),
         lesson: clip(it.lesson, 200), tags: (it.tags || []).slice(0, 12), kind: it.kind === 'photo' ? 'photo' : 'diagram', credit: clip(it.credit, 300),
-        source: clip(it.source, 200), sourceUrl: '', by: 'School slides', byId: '', seed: true, createdAt: new Date().toISOString(), uses: 0 });
+        source: clip(it.source, 200), sourceUrl: '', by: clip(it.by, 60) || 'School slides', byId: '', seed: true, createdAt: new Date().toISOString(), uses: 0 });
       have.add(hash); added++;
     }
     if (added) { writeAll(BANK, bank); console.log('[imagebank] added ' + added + ' starter pictures'); }

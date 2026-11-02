@@ -1206,6 +1206,15 @@ function normalizeSections(incoming) {
 // Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
 // 'long' = long-answer text (manually graded). Anything else is rejected.
 const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
+// Pictures as MCQ answer choices: one entry per option ('' = no picture).
+function _ccOptImgs(q) {
+  if (!q || normalizeQuestionType(q.type) !== 'mc' || !Array.isArray(q.optionImages)) return [];
+  const n = Array.isArray(q.options) ? q.options.length : 0;
+  const out = q.optionImages.slice(0, n).map((u) =>
+    (typeof u === 'string' && /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(u) && u.length < 800000) ? u : '');
+  return out.some(Boolean) ? out : [];
+}
+
 function normalizeQuestionType(t) {
   return QUESTION_TYPES.has(t) ? t : 'short';
 }
@@ -1294,6 +1303,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         type, // 'mc' | 'tf' | 'tfng' | 'short' | 'long' | 'essay' | 'writing'
         prompt: q.prompt,
         options: q.options || [], // for mc
+        optionImages: _ccOptImgs(q),
         correctAnswer: null,
         points: Number(q.points) || 1,
         imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
@@ -1549,6 +1559,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             type,
             prompt: q.prompt,
             options: q.options || [],
+            optionImages: _ccOptImgs(q),
             correctAnswer: null,
             points: Number(q.points) || 1,
             imageUrl: typeof q.imageUrl === 'string' && q.imageUrl.length < 1500000 ? q.imageUrl : '',
@@ -3141,7 +3152,11 @@ app.get('/api/assessments/:id/export.docx', requireTeacher, async (req, res) => 
         }),
       ];
       if (q.type === 'mc') {
-        for (const o of (q.options || [])) blocks.push(optionRow(String(o || '')));
+        (q.options || []).forEach((o, oi) => {
+          const pic = _ccDocxPicture(docx, (q.optionImages || [])[oi], 150);
+          blocks.push(optionRow(String.fromCharCode(65 + oi) + '. ' + String(o || '')));
+          if (pic) blocks.push(new Paragraph({ indent: { left: 900 }, spacing: { after: 60 }, children: [pic] }));
+        });
       } else if (q.type === 'tf') {
         blocks.push(optionRow('True'));
         blocks.push(optionRow('False'));
@@ -3293,6 +3308,7 @@ app.get('/api/assessments/:id/preview', requireTeacher, (req, res) => {
         type: q.type,
         prompt: q.prompt,
         options: q.options,
+        optionImages: q.optionImages || [],
         points: q.points,
         imageUrl: q.imageUrl || '',
         imageCredit: q.imageUrl ? (q.imageCredit || '') : '',
@@ -3962,6 +3978,34 @@ app.post('/api/admin/difficulty/backfill', requireTeacher, async (req, res) => {
 const _ccTagJobs = new Map();   // aid -> { state, done, total, tagged, error, startedAt }
 function _ccTagStatus(aid) { return _ccTagJobs.get(aid) || { state: 'idle' }; }
 
+// A data: URL picture as a Word ImageRun, scaled to the given width (px).
+function _ccImgSize(buf) {
+  try {
+    if (buf[0] === 0x89 && buf[1] === 0x50) return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+    if (buf[0] === 0xff && buf[1] === 0xd8) {
+      let i = 2;
+      while (i < buf.length) {
+        if (buf[i] !== 0xff) { i++; continue; }
+        const m = buf[i + 1], len = buf.readUInt16BE(i + 2);
+        if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) return { h: buf.readUInt16BE(i + 5), w: buf.readUInt16BE(i + 7) };
+        i += 2 + len;
+      }
+    }
+    if (buf.slice(0, 4).toString() === 'RIFF' && buf.slice(12, 16).toString() === 'VP8 ') return { w: buf.readUInt16LE(26) & 0x3fff, h: buf.readUInt16LE(28) & 0x3fff };
+  } catch {}
+  return null;
+}
+function _ccDocxPicture(docx, url, width) {
+  try {
+    const m = String(url || '').match(/^data:image\/(png|jpe?g|gif);base64,(.+)$/i);
+    if (!m || !docx.ImageRun) return null;
+    const buf = Buffer.from(m[2], 'base64');
+    const sz = _ccImgSize(buf) || { w: 4, h: 3 };
+    const w = Math.min(width, sz.w || width);
+    return new docx.ImageRun({ data: buf, type: m[1].toLowerCase() === 'png' ? 'png' : m[1].toLowerCase() === 'gif' ? 'gif' : 'jpg', transformation: { width: w, height: Math.round(w * (sz.h || 3) / (sz.w || 4)) } });
+  } catch { return null; }
+}
+
 // Turn a question image (data: URL, web URL or /uploads path) into an AI image block.
 function _ccImageBlock(url) {
   try {
@@ -4027,7 +4071,7 @@ async function _ccTagMissingSkills(aid) {
             id: q.id, type: q.type, sectionId: q.sectionId || undefined,
             prompt: String(q.prompt || '').slice(0, 2500) || (img ? `[see image for question ${q.id}]` : (q.imageDescription ? `[picture: ${q.imageDescription}]` : '[no text — use the section instructions/passage]')),
             imageDescription: q.imageDescription || undefined,
-            options: Array.isArray(q.options) && q.options.length ? q.options : undefined, correctAnswer: q.correctAnswer,
+            options: Array.isArray(q.options) && q.options.length ? q.options.map((o, oi) => String(o || '') || ((q.optionImages || [])[oi] ? '[picture]' : '')) : undefined, correctAnswer: q.correctAnswer,
             pairs: Array.isArray(q.pairs) ? q.pairs.map((p) => ({ left: p.left, right: p.right || (p.rightImageUrl ? '[picture]' : '') })) : undefined,
             points: q.points,
           });
@@ -4762,6 +4806,9 @@ app.get('/api/assessments/:id/take', requireStudent, (req, res) => {
         type: q.type,
         prompt: q.prompt,
         options: _layout && _layout.perms[q.id] ? _layout.perms[q.id].map((i) => q.options[i]) : q.options,
+        optionImages: Array.isArray(q.optionImages) && q.optionImages.length
+          ? (_layout && _layout.perms[q.id] ? _layout.perms[q.id].map((i) => q.optionImages[i] || '') : q.optionImages)
+          : [],
         points: q.points,
         imageUrl: q.imageUrl || '',
         imageCredit: q.imageUrl ? (q.imageCredit || '') : '',
@@ -5220,6 +5267,7 @@ app.get('/api/results/student/:resultId', requireStudent, (req, res) => {
       type: q.type,
       prompt: q.prompt,
       options: q.options || [],
+      optionImages: q.optionImages || [],
       points: q.points,
       imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
@@ -5302,6 +5350,7 @@ app.get('/api/results/teacher/:resultId', requireTeacher, (req, res) => {
       type: q.type,
       prompt: q.prompt,
       options: q.options || [],
+      optionImages: q.optionImages || [],
       points: q.points,
       imageUrl: q.imageUrl || '',
       given: ans.given ?? null,
@@ -5731,6 +5780,7 @@ function buildStudentSubmissions({ teacherId, studentId, term, academicYear }) {
         type: q.type,
         prompt: q.prompt,
         options: q.options || [],
+        optionImages: q.optionImages || [],
         points: q.points,
         given: ans.given ?? null,
         correct: ans.correct ?? null,

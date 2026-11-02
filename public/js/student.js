@@ -1145,6 +1145,16 @@ function renderQuestions() {
   // section-grouping loop below.
   function questionBody(q) {
     if (q.type === 'mc') {
+      const pics = Array.isArray(q.optionImages) ? q.optionImages : [];
+      if (pics.some(Boolean)) {
+        // Picture answers: a grid of cards, each with a letter, the picture and an optional caption.
+        return `<div class="cc-pic-options" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:12px;">${q.options.map((opt, oi) => `
+          <label class="cc-pic-option" style="display:flex; flex-direction:column; align-items:center; gap:6px; padding:10px; border:2px solid #cbd5e1; border-radius:10px; cursor:pointer; background:#f8fafc; color:#1a1e33; font-size:16px; text-transform:none; letter-spacing:normal; font-weight:400;">
+            <span style="align-self:flex-start; font-weight:700;"><input type="radio" name="q-${q.id}" value="${oi}" /> ${String.fromCharCode(65 + oi)}</span>
+            ${pics[oi] ? `<img src="${escapeHtml(pics[oi])}" alt="Option ${String.fromCharCode(65 + oi)}" style="max-width:100%; max-height:180px; object-fit:contain; background:#fff; border-radius:6px;" draggable="false" />` : ''}
+            ${opt ? `<span style="text-align:center; line-height:1.4;">${escapeHtml(opt)}</span>` : ''}
+          </label>`).join('')}</div>`;
+      }
       return q.options.map((opt, oi) => `
         <label style="display:block; padding:12px 14px; border:1px solid #cbd5e1; border-radius:8px; margin-bottom:8px; cursor:pointer; background:#f8fafc; color:#1a1e33; font-size:17px; line-height:1.55;">
           <input type="radio" name="q-${q.id}" value="${oi}" /> ${escapeHtml(opt)}
@@ -1606,7 +1616,7 @@ function renderReviewQuestion(q, i) {
 
   let givenDisplay = '<em>(no answer)</em>';
   if (q.given !== null && q.given !== undefined) {
-    if (q.type === 'mc') givenDisplay = escapeHtml(String(q.options[q.given] ?? q.given));
+    if (q.type === 'mc') givenDisplay = ccStudentOptionHtml(q, q.given);
     else if (q.type === 'tf') givenDisplay = q.given ? 'True' : 'False';
     else if (q.type === 'tfng') givenDisplay = tfngLabel(q.given);
     else givenDisplay = escapeHtml(String(q.given));
@@ -1620,7 +1630,7 @@ function renderReviewQuestion(q, i) {
     else if (q.type === 'tfng') text = tfngLabel(q.correctAnswer);
     else text = String(q.correctAnswer);
     correctDisplay = `<div class="success" style="margin-top: 6px;">
-      <strong>Correct answer:</strong> ${escapeHtml(text)}
+      <strong>Correct answer:</strong> ${q.type === 'mc' ? ccStudentOptionHtml(q, q.correctAnswer) : escapeHtml(text)}
     </div>`;
   }
 
@@ -2983,3 +2993,13 @@ function ccReviewExtrasHtml(q) {
   return h;
 }
 
+
+
+// One MCQ answer choice for the review page: letter, picture (if any), words.
+function ccStudentOptionHtml(q, i) {
+  const pic = (q.optionImages || [])[i] || '';
+  const txt = (q.options || [])[i];
+  if (i == null || Number.isNaN(Number(i))) return escapeHtml(String(i));
+  const letter = String.fromCharCode(65 + Number(i));
+  return `${letter}${pic || txt ? '. ' : ''}${pic ? `<img src="${escapeHtml(pic)}" alt="Option ${letter}" style="height:70px; max-width:150px; object-fit:contain; vertical-align:middle; border:1px solid #e5e7eb; border-radius:6px; background:#fff; margin-right:6px;">` : ''}${escapeHtml(String(txt ?? ''))}`;
+}

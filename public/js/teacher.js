@@ -1778,6 +1778,7 @@ async function runImport(file) {
       // Keep imported pictures, but shrink very large ones so saving works.
       await Promise.all(questions.map(async (q) => {
         if (q.imageUrl) q.imageUrl = await ccShrinkDataUrl(q.imageUrl);
+        if (Array.isArray(q.optionImages)) q.optionImages = await Promise.all(q.optionImages.map((u) => (u ? ccShrinkDataUrl(u, 500, 200000) : '')));
         if (Array.isArray(q.pairs)) {
           for (const p of q.pairs) if (p.rightImageUrl) p.rightImageUrl = await ccShrinkDataUrl(p.rightImageUrl);
         }
@@ -2758,12 +2759,21 @@ function renderQuestions() {
         const rm = root.querySelector(`[data-rmop="${oi}"]`);
         if (rm) rm.onclick = () => {
           q.options.splice(oi, 1);
+          if (Array.isArray(q.optionImages)) q.optionImages.splice(oi, 1);
           if (q.correctAnswer >= q.options.length) q.correctAnswer = 0;
+          renderQuestions();
+        };
+        const pick = root.querySelector(`[data-opimg="${oi}"]`);
+        if (pick) pick.onclick = () => ccPickOptionImage(q, oi);
+        const rmPic = root.querySelector(`[data-opimg-rm="${oi}"]`);
+        if (rmPic) rmPic.onclick = () => {
+          if (Array.isArray(q.optionImages)) q.optionImages[oi] = '';
           renderQuestions();
         };
       });
       root.querySelector('[data-act=addopt]').onclick = () => {
         q.options.push('');
+        if (Array.isArray(q.optionImages)) q.optionImages.push('');
         renderQuestions();
       };
     }
@@ -2919,13 +2929,20 @@ function renderQuestion(q, idx) {
     body = `
       <div class="field">
         <label>Options (check the correct one)</label>
-        ${q.options.map((opt, oi) => `
-          <div class="row" style="margin-bottom: 6px;">
+        <div class="muted" style="font-size:12px; margin:-2px 0 6px;">Each answer can be words, a picture, or both — use 🖼 to add a picture to an option.</div>
+        ${q.options.map((opt, oi) => {
+          const pic = (q.optionImages || [])[oi] || '';
+          return `
+          <div class="row" style="margin-bottom: 6px; align-items:center; gap:6px;">
             <input type="radio" name="correct-${q.id}" data-correct="${oi}" ${q.correctAnswer === oi ? 'checked' : ''} />
-            <input type="text" dir="auto" data-oi="${oi}" value="${escapeAttr(opt)}" placeholder="Option ${oi + 1}" />
-            ${q.options.length > 2 ? `<button class="btn ghost" data-rmop="${oi}">✕</button>` : ''}
-          </div>
-        `).join('')}
+            <strong style="width:16px;">${String.fromCharCode(65 + oi)}</strong>
+            ${pic ? `<img src="${escapeAttr(pic)}" alt="Picture for option ${String.fromCharCode(65 + oi)}" style="height:56px; max-width:110px; object-fit:contain; border:1px solid #cbd5e1; border-radius:6px; background:#fff;" />` : ''}
+            <input type="text" dir="auto" data-oi="${oi}" value="${escapeAttr(opt)}" placeholder="${pic ? 'Caption (optional)' : 'Option ' + (oi + 1)}" style="flex:1;" />
+            <button class="btn" data-opimg="${oi}" title="${pic ? 'Change the picture' : 'Add a picture to this option'}" style="padding:4px 8px;">🖼${pic ? ' Change' : ''}</button>
+            ${pic ? `<button class="btn ghost" data-opimg-rm="${oi}" title="Remove the picture" style="padding:4px 8px;">✕ Picture</button>` : ''}
+            ${q.options.length > 2 ? `<button class="btn ghost" data-rmop="${oi}" title="Remove this option">✕</button>` : ''}
+          </div>`;
+        }).join('')}
         <button class="btn" data-act="addopt">+ Add option</button>
       </div>
     `;
@@ -3687,7 +3704,7 @@ function renderReviewQuestion(q, i) {
 
   let givenDisplay = '<em>(no answer)</em>';
   if (q.given !== null && q.given !== undefined) {
-    if (q.type === 'mc') givenDisplay = escapeHtml(String(q.options[q.given] ?? q.given));
+    if (q.type === 'mc') givenDisplay = ccOptionHtml(q, q.given);
     else if (q.type === 'tf') givenDisplay = q.given ? 'True' : 'False';
     else if (q.type === 'tfng') givenDisplay = tfngLabel(q.given);
     else givenDisplay = escapeHtml(String(q.given));
@@ -3700,7 +3717,7 @@ function renderReviewQuestion(q, i) {
     else if (q.type === 'tf') text = q.correctAnswer ? 'True' : 'False';
     else if (q.type === 'tfng') text = tfngLabel(q.correctAnswer);
     else text = String(q.correctAnswer);
-    correctDisplay = `<div class="success" style="margin-top: 6px;"><strong>Correct answer:</strong> ${escapeHtml(text)}</div>`;
+    correctDisplay = `<div class="success" style="margin-top: 6px;"><strong>Correct answer:</strong> ${q.type === 'mc' ? ccOptionHtml(q, q.correctAnswer) : escapeHtml(text)}</div>`;
   }
 
   const feedback = q.manualGrade && q.manualGrade.feedback
@@ -3730,6 +3747,7 @@ async function ccRefitAnswers(q) {
   const now = q.prompt || '', before = q._promptBase || '';
   if (!now.trim() || ccNormQ(now) === ccNormQ(before)) return;
   // Nothing to update yet (a brand-new question with empty options).
+  if (q.type === 'mc' && (q.optionImages || []).some(Boolean)) { q._promptBase = q.prompt || ''; return; }   // picture answers: the AI can't redraw them
   const hasAnswers = q.type === 'mc' ? (q.options || []).some((o) => String(o || '').trim())
     : q.type === 'match' ? (q.pairs || []).some((p) => (p.left || '').trim() || (p.right || '').trim())
     : q.type === 'short' ? String(q.correctAnswer || '').trim() : true;
@@ -4036,9 +4054,18 @@ els.resultsBack.onclick = () => {
   loadAssessments();
 };
 
+// One MCQ answer choice as HTML: its letter, picture (if any) and words.
+function ccOptionHtml(q, i, h) {
+  const pic = (q.optionImages || [])[i] || '';
+  const txt = (q.options || [])[i];
+  if (i == null || i === '' || Number.isNaN(Number(i))) return escapeHtml(String(i));
+  const letter = String.fromCharCode(65 + Number(i));
+  return `${letter}${pic || txt ? '. ' : ''}${pic ? `<img src="${escapeAttr(pic)}" alt="Option ${letter}" style="height:${h || 60}px; max-width:${(h || 60) * 2}px; object-fit:contain; vertical-align:middle; border:1px solid #e5e7eb; border-radius:6px; background:#fff; margin-right:6px;">` : ''}${escapeHtml(String(txt ?? ''))}`;
+}
+
 function renderAnswer(q, given) {
   if (given == null) return '<em>(no answer)</em>';
-  if (q.type === 'mc') return escapeHtml(String(q.options[given] ?? given));
+  if (q.type === 'mc') return ccOptionHtml(q, given);
   if (q.type === 'tf') return given ? 'True' : 'False';
   return escapeHtml(String(given));
 }
@@ -4502,7 +4529,12 @@ async function printAssessmentPDF(assessmentId, setNo) {
     </style>
   `;
   function answerLine(q) {
-    if (q.type === 'mc') return (q.options || []).map((o) => `<div class="opt">${escapeHtml(String(o || ''))}</div>`).join('');
+    if (q.type === 'mc') {
+      if ((q.optionImages || []).some(Boolean)) {
+        return `<div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:4px;">${(q.options || []).map((o, k) => `<div style="border:1px solid #cbd5e1; border-radius:6px; padding:6px; text-align:center; min-width:120px;"><div style="font-weight:700;">○ ${String.fromCharCode(65 + k)}</div>${(q.optionImages || [])[k] ? `<img src="${escapeAttr(q.optionImages[k])}" style="max-height:110px; max-width:170px;">` : ''}${o ? `<div style="font-size:13px;">${escapeHtml(String(o))}</div>` : ''}</div>`).join('')}</div>`;
+      }
+      return (q.options || []).map((o) => `<div class="opt">${escapeHtml(String(o || ''))}</div>`).join('');
+    }
     if (q.type === 'tf') return `<div class="opt">True</div><div class="opt">False</div>`;
     if (q.type === 'tfng') return `<div class="opt">True</div><div class="opt">False</div><div class="opt">Not Given</div>`;
     if (q.type === 'short') return `<div class="write-lines"></div>`;
@@ -4512,7 +4544,7 @@ async function printAssessmentPDF(assessmentId, setNo) {
     return '';
   }
   function correctLine(q, i) {
-    if (q.type === 'mc') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String((q.options || [])[q.correctAnswer] || ''))}</div>`;
+    if (q.type === 'mc') return `<div class="key-row"><strong>Q${i+1}:</strong> ${String.fromCharCode(65 + Number(q.correctAnswer || 0))}${(q.options || [])[q.correctAnswer] ? ' — ' + escapeHtml(String(q.options[q.correctAnswer])) : ''}${(q.optionImages || [])[q.correctAnswer] ? ' (picture)' : ''}</div>`;
     if (q.type === 'tf') return `<div class="key-row"><strong>Q${i+1}:</strong> ${q.correctAnswer ? 'True' : 'False'}</div>`;
     if (q.type === 'tfng') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String(q.correctAnswer || ''))}</div>`;
     if (q.type === 'short') return `<div class="key-row"><strong>Q${i+1}:</strong> ${escapeHtml(String(q.correctAnswer || '(open-ended)'))}</div>`;
@@ -8798,7 +8830,7 @@ async function ccAutoPictures(list) {
 }
 
 // Picture picker: school image bank + free-licence photos (Wikimedia Commons).
-function ccOpenImagePicker(q) {
+function ccOpenImagePicker(q, pickOpts) {
   document.getElementById('cc-imgpick')?.remove();
   const esc = (x) => escapeHtml(String(x == null ? '' : x));
   const ov = document.createElement('div'); ov.id = 'cc-imgpick';
@@ -8809,7 +8841,7 @@ function ccOpenImagePicker(q) {
   const used = [];
   (questions || []).forEach((x, i) => { if (x.imageUrl && !used.some((u) => u.url === x.imageUrl)) used.push({ url: x.imageUrl, credit: x.imageCredit || '', title: 'Used in Q' + (i + 1) + (x === q ? ' (this question)' : ''), bankId: x.imageBankId || '' }); });
   ov.innerHTML = `<div style="background:#fff; border-radius:12px; width:min(1100px,100%); padding:18px 22px; box-shadow:0 16px 48px rgba(0,0,0,.3);">
-    <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">🗂 Image bank &amp; photos</h2><button class="btn" data-ip="close">Close</button></div>
+    <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">🗂 Image bank &amp; photos${pickOpts && pickOpts.label ? ' — ' + esc(pickOpts.label) : ''}</h2><button class="btn" data-ip="close">Close</button></div>
     <div class="muted" style="font-size:13px; margin:4px 0 10px;">Pick a picture, then use it whole or ✂ crop it. The same picture can be used on as many questions as you like. <strong>School bank:</strong> AI diagrams, school-slide pictures and photos teachers picked. <strong>Free photos:</strong> Wikimedia Commons (free licences — the credit is added under the picture).</div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
       <div style="display:flex; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden;">
@@ -8843,6 +8875,12 @@ function ccOpenImagePicker(q) {
       ccOpenCropper(src, {
         allowSave: !!(meta && meta.allowSave),
         onUse: async (url, cropped, saveToBank) => {
+          if (pickOpts && typeof pickOpts.onPick === 'function') {
+            await pickOpts.onPick(url, credit || '');
+            if (cropped && saveToBank) ccBankSave(Object.assign({}, q, { imageDescription: (meta && meta.title ? meta.title + ' (cropped)' : '') }), url, (meta && meta.kind) || 'diagram');
+            ov.remove(); renderQuestions();
+            return;
+          }
           q.imageUrl = await ccShrinkDataUrl(url); q.imageCredit = credit || ''; q.imageDescription = '';
           q.imageBankId = cropped ? '' : ((meta && meta.bankId) || '');
           if (cropped && saveToBank) ccBankSave(Object.assign({}, q, { imageDescription: (meta && meta.title ? meta.title + ' (cropped)' : '') }), url, (meta && meta.kind) || 'diagram');
@@ -9146,6 +9184,8 @@ function ccMakeSet(a, setNo) {
     const perm = ident.map((i) => (free.includes(i) ? mixed[k++] : i));
     const orig = q.options.slice();
     q.options = perm.map((i) => orig[i]);
+    if (Array.isArray(q.optionImages) && q.optionImages.length) { const oi = q.optionImages.slice(); q.optionImages = perm.map((i) => oi[i] || ''); }
+    q._perm = perm;
     q.correctAnswer = perm.indexOf(Number(q.correctAnswer));
   }
   return out;
@@ -9401,8 +9441,9 @@ function ccShuffleSampleOverlay(a, heading) {
       if ((q.sectionId || '') !== lastSec) { lastSec = q.sectionId || ''; const st = secTitle.get(lastSec); if (st) head = `<h3 style="margin:16px 0 6px;" dir="auto">${esc(st)}</h3>`; }
       const orig = (a.questions || []).find((o) => o.id === q.id) || {};
       const opts = (q.type === 'mc' && Array.isArray(q.options)) ? `<ol style="list-style:none; padding-left:4px; margin:6px 0 0;">${q.options.map((o, k) => {
-        const was = (orig.options || []).indexOf(o);
-        return `<li dir="auto" style="margin:2px 0; ${k === Number(q.correctAnswer) ? 'color:#047857; font-weight:600;' : ''}">${LET[k]}. ${esc(o)}${was >= 0 && was !== k ? ` <span class="muted" style="font-size:11px; font-weight:400;">(was ${LET[was]})</span>` : ''}</li>`;
+        const was = Array.isArray(q._perm) ? q._perm[k] : (orig.options || []).indexOf(o);
+        const pic = (q.optionImages || [])[k];
+        return `<li dir="auto" style="margin:2px 0; ${k === Number(q.correctAnswer) ? 'color:#047857; font-weight:600;' : ''}">${LET[k]}. ${pic ? `<img src="${esc(pic)}" style="height:44px; vertical-align:middle; margin-right:4px;">` : ''}${esc(o)}${was >= 0 && was !== k ? ` <span class="muted" style="font-size:11px; font-weight:400;">(was ${LET[was]})</span>` : ''}</li>`;
       }).join('')}</ol>` : '';
       const n0 = origNo.get(q.id);
       return `${head}<div style="padding:8px 0; border-bottom:1px solid #f1f5f9;">
@@ -11879,3 +11920,44 @@ async function ccPwreqRefresh() {
 }
 ccPwreqRefresh();
 setInterval(() => { if (!document.hidden) ccPwreqRefresh(); }, 20000);
+
+
+// ── Pictures as MCQ answer choices ────────────────────────────────────
+// 🖼 on an option: upload a picture from the computer, or pick one from the
+// image bank / free photos (with cropping). Stored in q.optionImages[i].
+function ccPickOptionImage(q, oi) {
+  document.getElementById('cc-opimg')?.remove();
+  const letter = String.fromCharCode(65 + oi);
+  const ov = document.createElement('div'); ov.id = 'cc-opimg';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(11,16,32,.45); z-index:2147482900; display:flex; align-items:flex-start; justify-content:center; padding:80px 12px;';
+  ov.innerHTML = `<div class="panel" style="background:#fff; max-width:420px; width:100%; padding:18px 20px; border-radius:12px; box-shadow:0 16px 48px rgba(0,0,0,.3);">
+    <h3 style="margin:0 0 6px;">🖼 Picture for option ${letter}</h3>
+    <div class="muted" style="font-size:13px; margin-bottom:12px;">Students will choose the correct picture. You can still type a caption under it, or leave the words empty.</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="btn primary" data-oip="bank">🗂 Image bank &amp; photos</button>
+      <label class="btn" style="text-align:center; margin:0; text-transform:none; letter-spacing:0;">💻 Upload from my computer<input type="file" accept="image/*" data-oip="file" style="display:none;"></label>
+      <button class="btn" data-oip="cancel">Cancel</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+  const setPic = async (url) => {
+    const small = await ccShrinkDataUrl(url, 500, 200000);
+    if (!Array.isArray(q.optionImages)) q.optionImages = [];
+    while (q.optionImages.length < q.options.length) q.optionImages.push('');
+    q.optionImages[oi] = small;
+  };
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  ov.querySelector('[data-oip="cancel"]').onclick = () => ov.remove();
+  ov.querySelector('[data-oip="bank"]').onclick = () => {
+    ov.remove();
+    ccOpenImagePicker(q, { label: 'option ' + letter, onPick: (url) => setPic(url) });
+  };
+  ov.querySelector('[data-oip="file"]').onchange = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    try {
+      const url = await compressImageToDataUrl(f, 600);
+      ov.remove();
+      ccOpenCropper(url, { onUse: async (u) => { await setPic(u); renderQuestions(); } });
+    } catch (err) { alert('Could not read that picture: ' + err.message); }
+  };
+}

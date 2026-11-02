@@ -1413,3 +1413,6 @@ body.cc-builder-open #builder-save-row { display: flex !important; }
 }
 .cc-tools-btn:active { transform: translateY(0); }
 .cc-tools-btn strong { font-weight: 800; }
+
+/* Picture answer choices (MCQ) — highlight the chosen card */
+.cc-pic-option:has(input:checked) { border-color: #2563eb !important; background: #eff6ff !important; box-shadow: 0 0 0 3px rgba(37,99,235,.2); }
