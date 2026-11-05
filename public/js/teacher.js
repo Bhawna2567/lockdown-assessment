@@ -12005,24 +12005,34 @@ async function ccShowRubric(id) {
   if (!sel) return;
   const $ = (id) => document.getElementById(id);
   let classes = [];
-  const fill = async () => {
+  const setSel = document.getElementById('spec-set');
+  const sizeSel = document.getElementById('spec-size');
+  const fill = async (fresh) => {
+    if (fresh) window.ccSpecData = null;
     const d = await ccSpecLoad();
+    const sets = d.sets || [];
+    const keep = setSel.value;
+    setSel.innerHTML = sets.map((x) => `<option value="${escapeAttr(x.id)}">${escapeHtml(x.label)}${x.id === d.current ? ' (current)' : ''}</option>`).join('');
+    setSel.value = sets.some((x) => x.id === keep) ? keep : (d.current || (sets[0] && sets[0].id) || '');
+    document.getElementById('spec-set-wrap').style.display = sets.length > 1 ? '' : 'none';
     classes = [];
-    (d.blueprints || []).forEach((b) => (b.classes || []).forEach((c) => classes.push({ key: b.id + '|' + c.grade + '|' + c.stream, b, c })));
+    (d.blueprints || []).filter((b) => b.set === setSel.value).forEach((b) => (b.classes || []).forEach((c) => classes.push({ key: b.id + '|' + c.grade + '|' + c.stream, b, c })));
     classes.sort((x, y) => Number(x.c.grade) - Number(y.c.grade) || String(x.c.stream).localeCompare(String(y.c.stream)));
     sel.innerHTML = '<option value="">— Choose your class —</option>' + [1, 2, 3].map((cy) => {
       const list = classes.filter((x) => x.b.cycle === cy);
-      return list.length ? `<optgroup label="Cycle ${cy}">${list.map((x) => `<option value="${escapeAttr(x.key)}">Grade ${escapeHtml(x.c.grade)} ${escapeHtml(x.c.stream)} — ${escapeHtml(x.b.gradeLevelGoal || '')}</option>`).join('')}</optgroup>` : '';
+      return list.length ? `<optgroup label="Cycle ${cy}">${list.map((x) => `<option value="${escapeAttr(x.key)}">Grade ${escapeHtml(x.c.grade)} ${escapeHtml(x.c.stream)}${x.b.gradeLevelGoal ? ' — ' + escapeHtml(x.b.gradeLevelGoal) : ''}</option>`).join('')}</optgroup>` : '';
     }).join('');
     render();
   };
   const cur = () => classes.find((x) => x.key === sel.value) || null;
+  const SIZE_F = { full: 1, half: 0.5, quarter: 0.25 };
+  const countFor = (p) => { const f = SIZE_F[sizeSel.value] || 1; const n = Number(p.items) || 0; return f === 1 ? n : Math.max(2, Math.min(n, Math.round(n * f))); };
   const total = () => {
     const x = cur(); if (!x) return;
     let t = 0;
     document.querySelectorAll('[data-spec-part]:checked').forEach((cb) => {
       const p = x.b.parts.find((pp) => pp.id === cb.value);
-      if (p && p.skill !== 'writing') t += Number(p.marks) || 0;
+      if (p && p.skill !== 'writing') t += sizeSel.value === 'full' ? (Number(p.marks) || 0) : countFor(p) * (Number(p.marksEach) || 0);
     });
     if (document.querySelector('[data-spec-part][data-skill="writing"]:checked')) {
       const keys = new Set();
@@ -12030,14 +12040,14 @@ async function ccShowRubric(id) {
       const r = document.querySelector('input[name="spec-w12"]:checked'); if (r && document.querySelector('[data-spec-w="1.2"]:checked')) { keys.delete('1.2'); keys.add(r.value); }
       x.b.writing.filter((w) => keys.has(w.key)).forEach((w) => { t += Number(w.marks) || 0; });
     }
-    $('spec-total').textContent = `Total: ${t} marks${t === x.b.totalMarks ? ' (full paper)' : ''}`;
+    $('spec-total').textContent = `Total: ${t} marks${t === x.b.totalMarks && sizeSel.value === 'full' ? ' (full paper)' : ''}`;
   };
   function render() {
     const x = cur();
     $('spec-info').innerHTML = x ? `<strong>${escapeHtml(x.b.setLabel)}</strong> · ${escapeHtml(x.b.title)}` : '';
     if (!x) { $('spec-parts').innerHTML = ''; $('spec-writing').innerHTML = ''; $('spec-total').textContent = ''; return; }
     $('spec-parts').innerHTML = `<div style="font-weight:600; font-size:13px; margin-bottom:4px;">Parts (untick to make a shorter paper)</div>` +
-      x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing' : (p.items || '?') + ' Q'} · ${p.marks} marks)</span></label>`).join('');
+      x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing · ' + p.marks + ' marks' : countFor(p) + ' Q · ' + (sizeSel.value === 'full' ? p.marks : countFor(p) * (Number(p.marksEach) || 0)) + ' marks'})</span></label>`).join('');
     const ws = x.b.writing || [];
     const main = ws.filter((w) => !w.alternativeTo);
     const alt = ws.find((w) => w.alternativeTo);
@@ -12050,7 +12060,9 @@ async function ccShowRubric(id) {
     total();
   }
   sel.onchange = render;
-  document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('#new-btn')) fill(); });
+  setSel.onchange = () => fill();
+  sizeSel.onchange = render;
+  document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('#new-btn')) fill(true); });
   fill();
 
   $('spec-generate-btn').onclick = async () => {
@@ -12067,7 +12079,7 @@ async function ccShowRubric(id) {
     const start = `🧠 Writing the paper part by part and checking it against the specification… this takes 1–3 minutes.`;
     $('spec-status').textContent = start;
     try {
-      const body = JSON.stringify({ grade: x.c.grade, stream: x.c.stream, parts, writing: wantsWriting ? writing : [], topic: ($('spec-topic').value || '').trim() });
+      const body = JSON.stringify({ set: x.b.set, size: sizeSel.value, grade: x.c.grade, stream: x.c.stream, parts, writing: wantsWriting ? writing : [], topic: ($('spec-topic').value || '').trim() });
       const job = await ccFetchJobJson('/api/specs/' + encodeURIComponent(x.b.id) + '/generate', body, (sec) => { $('spec-status').textContent = start + ` (${sec}s)`; });
       const data = job.data || {};
       if (!job.ok || !data.ok) throw new Error(data.error || 'Generation failed');
@@ -12127,7 +12139,7 @@ function ccOpenSpecPaper(data) {
 async function ccSpecCheckNow() {
   const st = window.ccSpecState;
   if (!st) return null;
-  return api('/api/specs/' + encodeURIComponent(st.id) + '/check', { method: 'POST', body: { sections, questions, parts: st.parts, writing: st.writing } });
+  return api('/api/specs/' + encodeURIComponent(st.id) + '/check', { method: 'POST', body: { set: st.set, sections, questions, parts: st.parts, writing: st.writing, counts: st.counts } });
 }
 async function ccSpecBanner(chk, notes) {
   let el = document.getElementById('cc-spec-banner');
@@ -12140,12 +12152,12 @@ async function ccSpecBanner(chk, notes) {
     if (panel && qs) panel.insertBefore(el, qs); else return;
   }
   await ccSpecLoad();
-  const b = ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id);
+  const b = ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id && (!st.set || x.set === st.set)) || ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id);
   if (!chk) { try { chk = await ccSpecCheckNow(); } catch (e) { chk = null; } }
   const ok = chk && chk.ok;
   el.style.cssText = `margin:0 0 12px; padding:10px 14px; border-radius:10px; font-size:13px; border:2px solid ${ok ? '#10b981' : '#f59e0b'}; background:${ok ? '#ecfdf5' : '#fffbeb'};`;
   el.innerHTML = `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-      <strong>📋 MOE test specification:</strong> ${escapeHtml(b ? `${b.setLabel} · Grade ${st.grade} ${st.stream} · ${b.gradeLevelGoal}` : st.id)}
+      <strong>📋 MOE test specification:</strong> ${escapeHtml(b ? `${b.setLabel} · Grade ${st.grade} ${st.stream} · ${b.gradeLevelGoal}${st.size === 'half' ? ' · half-length quiz' : st.size === 'quarter' ? ' · short quiz' : ''}` : st.id)}
       <span style="flex:1;"></span>
       <button class="btn" id="cc-spec-recheck" style="padding:3px 10px;">↻ Check again</button>
     </div>
@@ -12193,3 +12205,132 @@ async function ccSpecBanner(chk, notes) {
   new MutationObserver(() => { if (bv.style.display !== 'none') setTimeout(() => ccSpecBanner(), 300); }).observe(bv, { attributes: true, attributeFilter: ['style'] });
 })();
 ccSpecLoad();
+
+// ── Admin: 📋 Test specifications & rubrics ─────────────────────────────
+// Upload a new specification (or rubric) PDF → the AI reads it → review the
+// plans and any warnings → "Make current". Teachers only ever see approved
+// sets; assessments keep the set they were written from.
+async function ccOpenSpecAdmin() {
+  document.getElementById('cc-spec-admin')?.remove();
+  const ov = document.createElement('div'); ov.id = 'cc-spec-admin';
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:2147483000; overflow:auto; padding:24px 12px;';
+  ov.innerHTML = `<div style="background:#fff; max-width:1050px; margin:auto; border-radius:12px; padding:18px 22px;"><div class="muted">Loading…</div></div>`;
+  ov.addEventListener('click', (e) => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  const box = ov.firstElementChild;
+  let d;
+  try { d = await api('/api/specs/admin/sets'); } catch (e) { box.innerHTML = `<div class="error">${escapeHtml(e.message)}</div>`; return; }
+  const badge = (st, cur) => cur ? '<span class="badge green">Current — teachers use this</span>'
+    : st === 'active' ? '<span class="badge" style="background:#e0f2fe; color:#075985;">Approved</span>'
+    : st === 'draft' ? '<span class="badge" style="background:#fef3c7; color:#92400e;">Draft — check, then approve</span>'
+    : '<span class="badge">Retired</span>';
+  const setCard = (s) => {
+    const warn = s.blueprints.reduce((n, b) => n + b.warnings.length, 0);
+    return `<div style="border:1px solid #e5e7eb; border-radius:10px; padding:12px 14px; margin-bottom:10px;">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><strong style="font-size:15px;">${escapeHtml(s.label)}</strong> ${badge(s.status, s.id === d.current)} ${s.builtIn ? '<span class="muted" style="font-size:12px;">built in</span>' : `<span class="muted" style="font-size:12px;">uploaded ${escapeHtml((s.createdAt || '').slice(0, 10))} by ${escapeHtml(s.by)} · ${escapeHtml(s.source)}</span>`}
+        <span style="flex:1;"></span>
+        ${s.id !== d.current && s.status !== 'retired' ? `<button class="btn primary" data-sa="activate" data-id="${escapeAttr(s.id)}">${s.status === 'draft' ? '✓ Approve & make current' : 'Make current'}</button>` : ''}
+        ${s.status === 'retired' ? `<button class="btn" data-sa="activate" data-id="${escapeAttr(s.id)}">Bring back</button>` : ''}
+        ${!s.builtIn ? `<button class="btn" data-sa="edit" data-id="${escapeAttr(s.id)}">✎ Review / edit</button>` : ''}
+        ${s.status === 'active' ? `<button class="btn" data-sa="retire" data-id="${escapeAttr(s.id)}">Retire</button>` : ''}
+        ${!s.builtIn && s.status !== 'active' ? `<button class="btn danger" data-sa="delete" data-id="${escapeAttr(s.id)}">Delete</button>` : ''}</div>
+      <div class="muted" style="font-size:12px; margin:4px 0 6px;">${s.blueprints.length} grade specification${s.blueprints.length === 1 ? '' : 's'}${warn ? ` · <span style="color:#b45309;">⚠ ${warn} thing${warn === 1 ? '' : 's'} to check</span>` : ' · all marks add up'}</div>
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">${s.blueprints.map((b) => `<tr style="border-top:1px solid #f1f5f9;">
+        <td style="padding:4px 6px; white-space:nowrap;"><strong>${escapeHtml(b.gradeLevelGoal || 'Grade ' + (b.classes || []).map((c) => c.grade).join('/'))}</strong></td>
+        <td style="padding:4px 6px;">${escapeHtml((b.classes || []).map((c) => 'G' + c.grade + ' ' + c.stream).join(', '))}</td>
+        <td style="padding:4px 6px;">${escapeHtml((b.parts || []).map((p) => (p.title || p.id).split(':')[0] + ' ' + (p.marks || '?')).join(' · '))}</td>
+        <td style="padding:4px 6px;">${escapeHtml((b.writing || []).filter((w) => !w.alternativeTo).map((w) => (w.id !== '1' ? w.id + ' ' : '') + w.name + ' ' + w.marks).join(' · '))}</td>
+        <td style="padding:4px 6px; color:#b45309;">${b.warnings.map(escapeHtml).join('<br>')}</td></tr>`).join('')}</table></div>`;
+  };
+  box.innerHTML = `
+    <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">📋 Test specifications &amp; writing rubrics</h2><button class="btn" data-sa="close">Close</button></div>
+    <div class="muted" style="font-size:13px; margin:4px 0 12px;">When a new specification arrives (e.g. End of Term 3), upload the PDF here. The AI reads every grade's tables into a plan. Check the plans and any ⚠ warnings, then press <strong>Approve &amp; make current</strong>. Teachers then generate papers from it. Assessments already made keep the specification they were written from.</div>
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+      <div style="font-weight:600; margin-bottom:6px;">⬆ Upload a PDF</div>
+      <div class="row" style="gap:10px; flex-wrap:wrap; align-items:flex-end;">
+        <div class="field" style="margin:0;"><label>What is it?</label><select data-up="kind"><option value="specs">Test specification (all grades of a cycle)</option><option value="rubric">One writing rubric</option></select></div>
+        <div class="field" style="margin:0; flex:1; min-width:200px;" data-up-specs><label>Name teachers will see</label><input data-up="label" placeholder="e.g. End of Term 3 · 2026-2027"></div>
+        <div class="field" style="margin:0; width:120px;" data-up-specs><label>Year</label><input data-up="year" placeholder="2026-2027"></div>
+        <div class="field" style="margin:0; width:90px;" data-up-specs><label>Term</label><select data-up="term"><option>1</option><option>2</option><option selected>3</option></select></div>
+        <div class="field" style="margin:0;"><label>PDF</label><input type="file" accept="application/pdf" data-up="file"></div>
+        <button class="btn primary" data-sa="upload">Read the PDF</button></div>
+      <div data-up="status" class="muted" style="font-size:13px; margin-top:6px;">Each cycle's specification is a separate PDF — upload them one at a time and give them the same name to keep them together, or one name per cycle. Reading takes 2–5 minutes.</div>
+    </div>
+    <h3 style="margin:6px 0;">Specifications</h3>
+    ${d.sets.map(setCard).join('')}
+    <h3 style="margin:14px 0 6px;">Writing rubrics</h3>
+    <div class="muted" style="font-size:12px; margin-bottom:6px;">${d.rubrics.length} rubrics in use. An approved uploaded rubric replaces the built-in one for the same classes.</div>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">${d.rubrics.map((r) => `<tr style="border-top:1px solid #f1f5f9;"><td style="padding:3px 6px;"><a href="#" data-rub="${escapeAttr(r.id)}">${escapeHtml(r.title)}</a></td><td style="padding:3px 6px;">${r.kind === 'main-idea' ? 'Main idea' : 'Writing'} · /${r.totalMax}</td><td style="padding:3px 6px;">${r.builtIn ? 'built in' : 'uploaded'}</td></tr>`).join('')}</table>
+    ${d.rubricUploads.length ? `<h4 style="margin:12px 0 4px;">Uploaded rubrics</h4>` + d.rubricUploads.map((r) => `<div style="display:flex; gap:8px; align-items:center; font-size:13px; padding:4px 0; border-top:1px solid #f1f5f9;">
+      <span style="flex:1;">${escapeHtml(r.title)} · ${escapeHtml((r.classes || []).map((c) => 'G' + c.grade + ' ' + c.stream).join(', '))} · /${r.totalMax} ${badge(r.status, false)} ${r.warnings.length ? `<span style="color:#b45309;">⚠ ${r.warnings.map(escapeHtml).join(' ')}</span>` : ''}</span>
+      ${r.status !== 'active' ? `<button class="btn primary" data-ra="activate" data-id="${escapeAttr(r.id)}">Approve</button>` : `<button class="btn" data-ra="retire" data-id="${escapeAttr(r.id)}">Retire</button>`}
+      ${r.status !== 'active' ? `<button class="btn danger" data-ra="delete" data-id="${escapeAttr(r.id)}">Delete</button>` : ''}</div>`).join('') : ''}`;
+  const q = (k) => box.querySelector(`[data-up="${k}"]`);
+  q('kind').onchange = () => box.querySelectorAll('[data-up-specs]').forEach((el) => { el.style.display = q('kind').value === 'rubric' ? 'none' : ''; });
+  box.querySelectorAll('[data-rub]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); ccShowRubric(a.getAttribute('data-rub')); }; });
+  box.querySelectorAll('[data-ra]').forEach((b) => { b.onclick = async () => {
+    const act = b.getAttribute('data-ra');
+    if (act === 'delete' && !confirm('Delete this uploaded rubric?')) return;
+    try { await api(`/api/specs/admin/rubrics/${encodeURIComponent(b.getAttribute('data-id'))}/${act}`, { method: 'POST' }); window.ccSpecData = null; ccOpenSpecAdmin(); } catch (e) { alert(e.message); }
+  }; });
+  box.querySelectorAll('[data-sa]').forEach((b) => { b.onclick = async () => {
+    const act = b.getAttribute('data-sa'), id = b.getAttribute('data-id');
+    if (act === 'close') return ov.remove();
+    if (act === 'upload') {
+      const f = q('file').files[0];
+      if (!f) { q('status').textContent = '⚠ Choose a PDF first.'; return; }
+      const fd = new FormData();
+      fd.append('file', f); fd.append('kind', q('kind').value); fd.append('label', q('label').value.trim()); fd.append('academicYear', q('year').value.trim()); fd.append('term', q('term').value);
+      b.disabled = true;
+      const msg = '🧠 Reading the PDF… this takes 2–5 minutes. You can leave this window open.';
+      q('status').textContent = msg;
+      try {
+        const job = await ccFetchJob('/api/specs/admin/upload', fd, (sec) => { q('status').textContent = msg + ` (${sec}s)`; });
+        const r = job.data || {};
+        if (!job.ok || !r.ok) throw new Error(r.error || 'Upload failed');
+        window.ccSpecData = null;
+        ccOpenSpecAdmin();
+      } catch (e) { q('status').textContent = '❌ ' + e.message; b.disabled = false; }
+      return;
+    }
+    if (act === 'edit') return ccEditSpecSet(id);
+    if (act === 'delete' && !confirm('Delete this uploaded specification?')) return;
+    if (act === 'retire' && !confirm('Retire this specification? Teachers will no longer be able to choose it. Assessments already made from it keep it.')) return;
+    try {
+      await api(`/api/specs/admin/sets/${encodeURIComponent(id)}${act === 'delete' ? '' : '/' + act}`, { method: act === 'delete' ? 'DELETE' : 'POST' });
+      window.ccSpecData = null; ccOpenSpecAdmin();
+    } catch (e) { alert(e.message); }
+  }; });
+}
+// Review / edit an uploaded set: name, year, term and the plans (as text).
+async function ccEditSpecSet(id) {
+  let s;
+  try { s = (await api('/api/specs/admin/sets/' + encodeURIComponent(id))).set; } catch (e) { alert(e.message); return; }
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:2147483100; overflow:auto; padding:24px 12px;';
+  ov.innerHTML = `<div style="background:#fff; max-width:1000px; margin:auto; border-radius:12px; padding:18px 22px;">
+    <div style="display:flex; gap:10px; align-items:center;"><h2 style="margin:0; flex:1;">✎ ${escapeHtml(s.label)}</h2><button class="btn" data-e="close">Close</button></div>
+    <div class="row" style="gap:10px; margin:10px 0;">
+      <div class="field" style="flex:1; margin:0;"><label>Name</label><input data-e="label" value="${escapeAttr(s.label)}"></div>
+      <div class="field" style="width:130px; margin:0;"><label>Year</label><input data-e="year" value="${escapeAttr(s.academicYear || '')}"></div>
+      <div class="field" style="width:90px; margin:0;"><label>Term</label><input data-e="term" value="${escapeAttr(s.term || '')}"></div></div>
+    <div class="muted" style="font-size:12px;">The plans the AI read from the PDF, as text. Compare them with the PDF and correct any number or word that is wrong (keep the format — quotes and commas).</div>
+    <textarea data-e="json" spellcheck="false" style="width:100%; height:420px; font-family:ui-monospace,Menlo,monospace; font-size:12px; margin-top:6px;">${escapeHtml(JSON.stringify(s.blueprints, null, 1))}</textarea>
+    <div data-e="msg" style="font-size:13px; margin-top:6px;"></div>
+    <div class="row" style="gap:8px; margin-top:8px;"><div class="spacer"></div><button class="btn primary" data-e="save">Save</button></div></div>`;
+  document.body.appendChild(ov);
+  const g = (k) => ov.querySelector(`[data-e="${k}"]`);
+  g('close').onclick = () => ov.remove();
+  g('save').onclick = async () => {
+    let bps;
+    try { bps = JSON.parse(g('json').value); if (!Array.isArray(bps)) throw new Error('The text must be a list [ … ].'); }
+    catch (e) { g('msg').innerHTML = `<span style="color:#b91c1c;">⚠ The text is not valid: ${escapeHtml(e.message)}</span>`; return; }
+    try {
+      const r = await api('/api/specs/admin/sets/' + encodeURIComponent(id), { method: 'PUT', body: { label: g('label').value.trim(), academicYear: g('year').value.trim(), term: g('term').value.trim(), blueprints: bps } });
+      const w = (r.warnings || []).filter((x) => x.warnings.length);
+      g('msg').innerHTML = w.length ? `<span style="color:#b45309;">Saved. Still to check: ${w.map((x) => escapeHtml(x.id + ': ' + x.warnings.join(' '))).join(' · ')}</span>` : '<span style="color:#047857;">✓ Saved — all marks add up.</span>';
+      ccOpenSpecAdmin();
+    } catch (e) { g('msg').innerHTML = `<span style="color:#b91c1c;">${escapeHtml(e.message)}</span>`; }
+  };
+}
+(function () { const b = document.getElementById('admin-specs'); if (b) b.onclick = () => { const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none'; ccOpenSpecAdmin(); }; })();

@@ -136,6 +136,8 @@ function rescaleEssaysTo40() {
     if (!r.manualGrades) continue;
     for (const [, g] of Object.entries(r.manualGrades)) {
       if (!g || !g.aiGrade) continue;
+      // MOE grade rubrics (Task 1.1 /15, Task 1.2 /25 …) keep the question's own marks.
+      if (/^[a-z]/i.test(String(g.rubricStage || '')) && !/^stage/i.test(String(g.rubricStage))) continue;
       const oldMax = Number(g.maxScore) || 0;
       if (oldMax === TARGET || oldMax <= 0) continue;
       const oldScore = Number(g.score) || 0;
@@ -1219,7 +1221,9 @@ function _ccSpecAssessmentField(spec) {
   if (!spec || typeof spec !== 'object' || typeof spec.id !== 'string') return null;
   const ids = (a) => (Array.isArray(a) ? a.map(String).filter((x) => /^[0-9A-Za-z.-]{1,20}$/.test(x)).slice(0, 12) : []);
   return { id: spec.id.slice(0, 40), set: String(spec.set || '').slice(0, 40), parts: ids(spec.parts), writing: ids(spec.writing),
-    grade: String(spec.grade || '').slice(0, 4), stream: String(spec.stream || '').slice(0, 20), matches: spec.matches === false ? false : spec.matches === true ? true : undefined };
+    grade: String(spec.grade || '').slice(0, 4), stream: String(spec.stream || '').slice(0, 20), matches: spec.matches === false ? false : spec.matches === true ? true : undefined,
+    size: ['full', 'half', 'quarter'].includes(spec.size) ? spec.size : undefined,
+    counts: spec.counts && typeof spec.counts === 'object' ? Object.fromEntries(Object.entries(spec.counts).filter(([k, v]) => /^P[0-9A-Z]{1,4}$/.test(k) && Number.isInteger(v) && v > 0 && v <= 50).slice(0, 12)) : undefined };
 }
 
 // Pictures as MCQ answer choices: one entry per option ('' = no picture).
@@ -4269,7 +4273,8 @@ try {
 // ── 📋 MOE test specifications + grade writing rubrics (English EOT) ──
 let _ccSpecs = null;
 try {
-  _ccSpecs = require('./specs')(app, { requireTeacher, readApiKey, claudeFetch: (b, t) => _ccClaudeFetch(b, t), asyncJob: _ccAsyncJob, uuid: uuidv4 });
+  _ccSpecs = require('./specs')(app, { requireTeacher, readApiKey, claudeFetch: (b, t) => _ccClaudeFetch(b, t), asyncJob: _ccAsyncJob, uuid: uuidv4,
+    readAll, writeAll, upload, isAdminReq: (req) => ADMIN_EMAILS.map((x) => String(x).toLowerCase()).includes(String((req.session && req.session.user && req.session.user.email) || '').toLowerCase()) });
 } catch (e) { console.error('[specs] module failed to load:', e); }
 
 // ════════════════════════════════════════════════════════════════════════
