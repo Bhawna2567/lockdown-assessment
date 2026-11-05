@@ -4197,7 +4197,9 @@ function renderQueueItem(item) {
   const aiBadge = ai
     ? `<span class="badge green">AI: ${ai.score}/${ai.maxScore} (${/^[0-9-]+$/.test(String(ai.rubricStage || '')) ? 'Stage ' + ai.rubricStage : escapeHtml(ccRubricTitle(ai.rubricStage || '?'))})</span>`
     : '';
-  const aiBreakdown = ai && ai.breakdown
+  const aiBreakdown = item.rubricId
+    ? `<div data-rubric-host class="cc-rq"><div class="muted">Loading the rubric…</div></div>`
+    : ai && ai.breakdown
     ? `<div style="padding: 10px; background: #eef5ff; border-radius: 6px; margin-bottom: 10px;">
          <div style="margin-bottom: 6px;"><strong>AI rubric breakdown</strong> (review and override below if needed):</div>
          ${Object.values(ai.breakdown).map((b) => `
@@ -4251,6 +4253,7 @@ function wireQueueItem(item) {
   const rowId = `queue-${item.resultId}-${item.questionId}`;
   const root = document.getElementById(rowId);
   if (!root) return;
+  if (item.rubricId) ccRubricMarker(item, root);
   root.querySelector('[data-act="save"]').onclick = async () => {
     const score = Number(root.querySelector('[data-f=score]').value);
     const feedback = root.querySelector('[data-f=feedback]').value;
@@ -4269,6 +4272,7 @@ function wireQueueItem(item) {
           score,
           maxScore: item.questionPoints,
           feedback,
+          breakdown: root._ccBreakdown ? root._ccBreakdown() : undefined,
         },
       });
       root.style.opacity = '0.4';
@@ -12459,3 +12463,76 @@ async function ccEditSpecSet(id) {
   setInterval(update, 800);
   document.addEventListener('input', update); document.addEventListener('change', update);
 })();
+
+
+// ── Mark an MOE-rubric task criterion by criterion ──────────────────────
+// Each criterion gets a dropdown pre-filled with the AI's band; the band
+// descriptor shows under it. The total adds itself up (scaled to the
+// question's marks) and the teacher's choices are saved as the breakdown.
+const _ccRubricCache = {};
+async function ccRubricMarker(item, root) {
+  const host = root.querySelector('[data-rubric-host]');
+  if (!host) return;
+  let r;
+  try { r = _ccRubricCache[item.rubricId] || (_ccRubricCache[item.rubricId] = (await api('/api/specs/rubrics/' + encodeURIComponent(item.rubricId))).rubric); }
+  catch (e) { host.innerHTML = `<div class="muted">Could not load the rubric (${escapeHtml(e.message)}). You can still type the total below.</div>`; return; }
+  const pts = Number(item.questionPoints) || r.totalMax;
+  const factor = pts / (r.totalMax || pts);
+  const ai = (item.aiGrade && item.aiGrade.breakdown) || {};
+  const bandFor = (c, v) => {
+    const b = c.bands || {};
+    if (b[String(v)] !== undefined) return b[String(v)];
+    const k = Object.keys(b).find((key) => { const m = key.split('-').map(Number); return m.length === 2 && v >= m[0] && v <= m[1]; });
+    return k ? b[k] : (v === 0 ? (r.zeroRule || 'No credit for this criterion.') : '');
+  };
+  const rows = r.criteria.map((c) => {
+    const a = ai[c.id];
+    const aiRaw = a && Number.isFinite(Number(a.score)) ? Math.round(Number(a.score) / factor) : null;
+    const max = c.max || r.scoreMax;
+    const start = aiRaw == null ? '' : Math.max(0, Math.min(max, aiRaw));
+    return `<div class="cc-rq-row">
+      <div class="cc-rq-name">${escapeHtml(c.name)}${aiRaw != null ? `<span class="cc-rq-ai">AI: ${aiRaw}/${max}</span>` : ''}</div>
+      <select data-crit="${escapeAttr(c.id)}" data-max="${max}">
+        <option value="" ${start === '' ? 'selected' : ''}>—</option>
+        ${Array.from({ length: max + 1 }, (_, i) => max - i).map((v) => `<option value="${v}" ${start === v ? 'selected' : ''}>${v}</option>`).join('')}
+      </select>
+      <div class="cc-rq-band" data-band="${escapeAttr(c.id)}"></div>
+      ${a && a.comment ? `<div class="cc-rq-comment">AI: ${escapeHtml(a.comment)}</div>` : ''}
+    </div>`;
+  }).join('');
+  host.innerHTML = `<div class="cc-rq-head"><strong>${escapeHtml(r.title)}</strong> <span class="muted">· ${r.criteria.length} × ${r.scoreMax} = ${r.totalMax}${factor !== 1 ? ` → scaled to ${pts} marks` : ''}</span>
+      <span style="flex:1;"></span><a href="#" data-rq-view>View full rubric</a></div>
+    ${rows}
+    <label class="cc-rq-zero"><input type="checkbox" data-rq-zero /> Whole script scores 0 (no response, unrelated to the task, or copied)</label>`;
+  const scoreIn = root.querySelector('[data-f=score]');
+  const sels = Array.from(host.querySelectorAll('select[data-crit]'));
+  const update = () => {
+    const zero = host.querySelector('[data-rq-zero]').checked;
+    sels.forEach((sel) => {
+      sel.disabled = zero;
+      const c = r.criteria.find((x) => x.id === sel.getAttribute('data-crit'));
+      const v = zero ? 0 : (sel.value === '' ? null : Number(sel.value));
+      host.querySelector(`[data-band="${sel.getAttribute('data-crit')}"]`).textContent = v == null ? '' : bandFor(c, v);
+    });
+    if (sels.every((sel) => sel.value !== '') || zero) {
+      const raw = zero ? 0 : sels.reduce((t, sel) => t + Number(sel.value), 0);
+      scoreIn.value = String(Math.round(raw * factor * 2) / 2);
+    }
+  };
+  sels.forEach((sel) => { sel.onchange = update; });
+  host.querySelector('[data-rq-zero]').onchange = update;
+  host.querySelector('[data-rq-view]').onclick = (e) => { e.preventDefault(); ccShowRubric(item.rubricId); };
+  scoreIn.readOnly = true; scoreIn.title = 'Adds up from the criteria above';
+  update();
+  root._ccBreakdown = () => {
+    const zero = host.querySelector('[data-rq-zero]').checked;
+    const out = {};
+    for (const sel of sels) {
+      if (sel.value === '' && !zero) return undefined;
+      const c = r.criteria.find((x) => x.id === sel.getAttribute('data-crit'));
+      const raw = zero ? 0 : Number(sel.value);
+      out[c.id] = { name: c.name, score: Math.round(raw * factor * 10) / 10, max: Math.round((c.max || r.scoreMax) * factor * 10) / 10, comment: zero ? 'Whole script scored 0.' : 'Teacher: ' + bandFor(c, raw) };
+    }
+    return out;
+  };
+}

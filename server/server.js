@@ -5486,13 +5486,26 @@ app.post('/api/results/:resultId/grade-question', requireTeacher, (req, res) => 
   if (!q) return res.status(400).json({ error: 'Question not in this assessment' });
 
   results[rIdx].manualGrades = results[rIdx].manualGrades || {};
-  results[rIdx].manualGrades[questionId] = {
-    score: Number(score) || 0,
+  const prev = results[rIdx].manualGrades[questionId];
+  const g = {
+    score: Math.max(0, Math.min(Number(q.points) || 100, Number(score) || 0)),
     maxScore: Number(maxScore) || q.points,
     feedback: String(feedback || ''),
     gradedAt: new Date().toISOString(),
     gradedBy: req.session.user.name,
   };
+  // Marked criterion by criterion with the MOE rubric: keep the teacher's breakdown.
+  const bd = req.body && req.body.breakdown;
+  if (bd && typeof bd === 'object' && q.rubricId) {
+    const clean = {};
+    for (const [k, v] of Object.entries(bd).slice(0, 10)) {
+      if (!/^[a-z_]{2,40}$/.test(k) || !v || typeof v !== 'object') continue;
+      clean[k] = { name: String(v.name || k).slice(0, 60), score: Math.max(0, Number(v.score) || 0), max: Math.max(0, Number(v.max) || 0), comment: String(v.comment || '').slice(0, 400) };
+    }
+    if (Object.keys(clean).length) { g.breakdown = clean; g.rubricStage = q.rubricId; }
+  }
+  if (prev && prev.aiGrade) g.aiOriginal = { score: prev.score, maxScore: prev.maxScore };
+  results[rIdx].manualGrades[questionId] = g;
   writeAll('results.json', results);
   res.json({ ok: true, manualGrades: results[rIdx].manualGrades });
 });
@@ -5740,6 +5753,7 @@ app.get('/api/essay-queue', requireTeacher, (req, res) => {
         questionType: q.type,
         questionPrompt: q.prompt,
         questionPoints: q.points,
+        rubricId: q.rubricId || '',
         studentAnswer: ans ? ans.given : null,
         aiGrade: grade && grade.aiGrade ? {
           score: grade.score,
