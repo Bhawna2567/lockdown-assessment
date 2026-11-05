@@ -1,0 +1,4875 @@
+[
+ {
+  "id": "c1-g3",
+  "cycle": 1,
+  "title": "Academic Year 2026-2027: End of Term 1 Exam: Grade 3 – Test Specifications",
+  "gradeLevelGoal": null,
+  "classes": [
+   {
+    "grade": "3",
+    "stream": "General"
+   }
+  ],
+  "stage": null,
+  "cefr": "A1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "Paper-based",
+  "languageDomains": "Literacy Readiness, Reading and Writing",
+  "parts": [
+   {
+    "id": "P1A",
+    "title": "Part 1A: Vocabulary",
+    "level": "Working toward Mastery",
+    "skill": "vocabulary",
+    "taskType": "Matching (word–image)",
+    "instructions": "Match the word to the correct picture. Write the letter in the box. There is one example. There are two pictures that you do not need.",
+    "themes": [
+     {
+      "theme": "What we Wear",
+      "highFrequencyWords": [
+       "sea",
+       "mother",
+       "tea",
+       "each"
+      ],
+      "vocabulary": [
+       "uniform",
+       "clothes",
+       "trousers",
+       "jacket"
+      ]
+     },
+     {
+      "theme": "Back to School",
+      "highFrequencyWords": [
+       "park",
+       "garden",
+       "mouse",
+       "dark",
+       "around",
+       "round"
+      ],
+      "vocabulary": [
+       "difficult",
+       "favourite",
+       "subject",
+       "easy",
+       "boring"
+      ]
+     },
+     {
+      "theme": "Transport Networks",
+      "highFrequencyWords": [
+       "friends",
+       "different",
+       "jumped",
+       "stopped",
+       "laughed"
+      ],
+      "vocabulary": [
+       "helicopter",
+       "motorbike",
+       "metro",
+       "passenger",
+       "driver",
+       "plane"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Recognise, read, and spell grade appropriate high frequency words accurately in varied contexts, including homophones and words with irregular spelling patterns."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 10,
+     "format": "matching",
+     "options": 13,
+     "marksEach": 2,
+     "totalMarks": 20
+    },
+    "outcomes": [
+     {
+      "code": "3.LR.HFW.1",
+      "count": 10,
+      "skill": null,
+      "text": "Read and spell grade-level high-frequency words, including homophones."
+     }
+    ],
+    "constructLimits": [
+     "10 words (5 HFWs, 5 vocab), 13 pictures, 2 of which are distractors, 1 is the example",
+     "2 marks each (total: 20)",
+     "1 example"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P1B",
+    "title": "Part 1B: Vocabulary",
+    "level": "Working at Mastery",
+    "skill": "vocabulary",
+    "taskType": "Sentence Cloze",
+    "instructions": "Complete the sentences using words from the Word Bank. There are 2 words you do not need. There is one example.",
+    "themes": [
+     {
+      "theme": "The World Around Us | My Body, My Health",
+      "highFrequencyWords": [
+       "any",
+       "many",
+       "every",
+       "everyone",
+       "baby",
+       "suddenly",
+       "pulled"
+      ],
+      "vocabulary": [
+       "head",
+       "stomach",
+       "back",
+       "tooth",
+       "ear",
+       "shoulder",
+       "hurt",
+       "sick",
+       "better",
+       "feel",
+       "pain",
+       "painful"
+      ]
+     }
+    ],
+    "grammar": [
+     "Adverbs of frequency (always, sometimes, never)",
+     "Subject Pronouns (I, he, she, we)",
+     "Object Pronouns (me, him, her, us)",
+     "Demonstratives (this/these)",
+     "Adjectives (adjective + noun)",
+     "Prepositions of Movement (over, through, across, under, from, to)",
+     "Coordinating Conjunctions (so, but, and)",
+     "Imperatives (with frequency adverbs)"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "The student can independently apply context clues to determine the meaning of high frequency and irregular words while reading."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 8,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "3.R.VD.4",
+      "count": 5,
+      "skill": null,
+      "text": "Use new vocabulary words in speaking and writing tasks."
+     }
+    ],
+    "constructLimits": [
+     "5 sentences",
+     "5 gaps (3 vocab, 2 grammar)",
+     "Word Bank with 8 words, 5 correct answers, 2 distractors, 1 example",
+     "2 marks each (total: 10)",
+     "1 example"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Reading",
+    "level": "Working at Mastery",
+    "skill": "reading",
+    "taskType": "Sentence Cloze",
+    "instructions": "Read the text. Complete the sentences by choosing the correct words from the Word Bank. There are two words you do not need. There is one example.",
+    "themes": [
+     {
+      "theme": "The World Around Us | Kind Hearts, Kind Words",
+      "highFrequencyWords": [
+       "he's",
+       "we’re",
+       "even",
+       "began",
+       "before",
+       "because",
+       "girls",
+       "birds",
+       "first"
+      ],
+      "vocabulary": [
+       "kind",
+       "helpful",
+       "friendly",
+       "sorry",
+       "talk",
+       "laugh",
+       "smile"
+      ]
+     }
+    ],
+    "grammar": [
+     "Subject Pronouns (I, he, she, we)",
+     "Object Pronouns (me, him, her, us)",
+     "Adverbs of frequency (always, sometimes, never)"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Demonstrate comprehension of grade-level texts by identifying key ideas, summarising information, making inferences, and supporting answers with evidence."
+    ],
+    "skillsAssessed": [
+     "Reading Comprehension"
+    ],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "80",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 8,
+     "marksEach": 3,
+     "totalMarks": 15
+    },
+    "outcomes": [
+     {
+      "code": "3.R.RC.1",
+      "count": 5,
+      "skill": "Reading Comprehension",
+      "text": "Answer literal and inferential questions using text details."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 80 words (10% either way)",
+     "1 word bank with 5 correct answers, 2 distractors and 1 example",
+     "5 sentences about the text, each with one gap (3 marks each, total: 15)",
+     "1 example"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3",
+    "title": "Part 3: Reading",
+    "level": "Mastery with Greater Depth",
+    "skill": "reading",
+    "taskType": "Multiple-Choice Questions",
+    "instructions": "Read the text and answer the questions. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "The World Around Us | Transportation Networks",
+      "highFrequencyWords": [
+       "find",
+       "laughed",
+       "again",
+       "friends",
+       "different",
+       "door",
+       "jumped",
+       "stopped"
+      ],
+      "vocabulary": [
+       "train",
+       "plane",
+       "boat",
+       "taxi",
+       "helicopter",
+       "motorbike",
+       "bus",
+       "car",
+       "metro",
+       "station",
+       "travel",
+       "passenger",
+       "driver"
+      ]
+     }
+    ],
+    "grammar": [
+     "Preposition of Movement (over, through, across, under, from, to)",
+     "Coordinating Conjunctions (so, but, and)",
+     "Prepositions of Place (on, in, next to, under, between)"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Demonstrate comprehension of grade-level texts by identifying key ideas, summarising information, making inferences, and supporting answers with evidence."
+    ],
+    "skillsAssessed": [
+     "Reading Comprehension",
+     "Vocabulary Development"
+    ],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "80-100",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 15
+    },
+    "outcomes": [
+     {
+      "code": "3.R.RC.1",
+      "count": 4,
+      "skill": "Reading Comprehension",
+      "text": "Answer literal and inferential questions using text details."
+     },
+     {
+      "code": "3.R.VD.1",
+      "count": 1,
+      "skill": "Vocabulary Development",
+      "text": "Identify the meaning of new words using sentence clues and word parts (prefixes, suffixes)."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 80-100 words (10% either way)",
+     "5 questions with 3 options (3 marks each, total: 15)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "Working at Mastery",
+    "skill": "writing",
+    "taskType": "Guided Constructed Response",
+    "instructions": "Main prompt (Write about ______). Use the pictures and the words to help you. Write 4-5 complete sentences.",
+    "themeNote": "Writing task will be based around one of these themes:",
+    "themes": [
+     {
+      "theme": "The World Around Us | Our Home",
+      "highFrequencyWords": [
+       "love",
+       "something",
+       "coming",
+       "fly",
+       "why",
+       "new",
+       "use",
+       "there",
+       "where",
+       "boy"
+      ],
+      "vocabulary": [
+       "apartment",
+       "balcony",
+       "garden",
+       "bedroom",
+       "dining room",
+       "living room",
+       "kitchen",
+       "bathroom",
+       "upstairs",
+       "downstairs"
+      ],
+      "grammar": [
+       "Prepositions of Place (on, in, next to, under, between)",
+       "There is, there are"
+      ],
+      "functionalLanguage": [
+       "FL.6 Describing places"
+      ],
+      "functionalLanguageExamples": [
+       "There is a living room and a kitchen.",
+       "My bedroom is next to the bathroom.",
+       "There are two plants on the balcony."
+      ]
+     },
+     {
+      "theme": "The World Around Us | Daily Routines",
+      "highFrequencyWords": [
+       "going",
+       "most",
+       "over",
+       "cold",
+       "told",
+       "gave",
+       "take",
+       "place"
+      ],
+      "vocabulary": [
+       "routine",
+       "wake up",
+       "eat breakfast",
+       "brush teeth",
+       "take a shower",
+       "get dressed",
+       "go to school",
+       "do homework",
+       "go to bed"
+      ],
+      "grammar": [
+       "Adverbs of frequency (always, sometimes, never)",
+       "Adjectives ('be' + adjective)",
+       "Articles (zero)",
+       "Subject Pronouns (I, he, she, we)"
+      ],
+      "functionalLanguage": [
+       "FL.9 Describing habits, routines, tasks and jobs",
+       "FL.6 Describing places",
+       "FL.13 Describing processes"
+      ]
+     }
+    ],
+    "grammar": [
+     "Prepositions of Place (on, in, next to, under, between)",
+     "There is, there are",
+     "Adverbs of frequency (always, sometimes, never)",
+     "Adjectives ('be' + adjective)",
+     "Articles (zero)",
+     "Subject Pronouns (I, he, she, we)"
+    ],
+    "functionalLanguage": [
+     "FL.6 Describing places",
+     "FL.9 Describing habits, routines, tasks and jobs",
+     "FL.13 Describing processes"
+    ],
+    "achievementObjectives": [
+     "Apply punctuation and capitalisation rules accurately in writing, including quotation marks, apostrophes for contractions, and commas in complex lists.",
+     "Use phonics knowledge, spelling patterns, and reference tools to spell grade level words correctly in writing across contexts and content areas.",
+     "Construct grammatically correct sentences and connected ideas to convey information or personal experiences."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 1,
+     "format": "writing",
+     "options": null,
+     "marksEach": 40,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "3.W.SWU.1",
+      "count": 1,
+      "skill": "Spelling & Word Use",
+      "text": "Spell grade-level sight words correctly."
+     },
+     {
+      "code": "3.W.WPD.1",
+      "count": 1,
+      "skill": "Writing Production",
+      "text": "Write grammatically correct simple and compound sentences using varied subjects and verb forms."
+     },
+     {
+      "code": "3.LR.HP.2",
+      "count": 1,
+      "skill": "Handwriting & Presentation",
+      "text": "Produce legible handwriting with consistent letter size, shape, and slant."
+     }
+    ],
+    "constructLimits": [
+     "1 image",
+     "1 word bank with 5 words",
+     "Response length: 4-5 complete sentences.",
+     "40 marks, based on rubric"
+    ],
+    "writingTasks": [
+     {
+      "id": "1",
+      "name": "Guided Constructed Response",
+      "genre": "description",
+      "instructions": "Main prompt (Write about ______). Use the pictures and the words to help you. Write 4-5 complete sentences.",
+      "promptBullets": 1,
+      "sourceText": null,
+      "image": true,
+      "wordBank": "1 word bank with 5 words",
+      "minWords": null,
+      "length": "4-5 complete sentences",
+      "marks": 40,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ],
+  "notes": [
+   "Part marks: 1A 20 + 1B 10 + 2 15 + 3 15 = 60 (matches Reading: 60); Part 4 = 40 (matches Writing: 40). totalMarks 100 is the sum; the spec prints only 'Reading: 60 / Writing: 40', not a single total.",
+   "Part 1A 'options' = 13 pictures (10 answers + 2 distractors + 1 example). Part 1B / Part 2 'options' = 8-word word bank (5 answers + 2 distractors + 1 example).",
+   "Part 1B is a vocabulary part but 2 of its 5 gaps target grammar.",
+   "Part 4 genre 'description' is inferred from the functional language (FL.6 Describing places / FL.9 Describing habits, routines); the spec itself only says 'Guided Constructed Response'. Theme-level grammar/functional language for Part 4 is kept per theme in themes[]."
+  ]
+ },
+ {
+  "id": "c1-g4",
+  "cycle": 1,
+  "title": "Academic Year 2026-2027: End of Term 1 Exam: Grade 4 – Test Specifications",
+  "gradeLevelGoal": null,
+  "classes": [
+   {
+    "grade": "4",
+    "stream": "General"
+   }
+  ],
+  "stage": null,
+  "cefr": "A1-A2",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "Paper-based",
+  "languageDomains": "Literacy Readiness, Reading and Writing",
+  "parts": [
+   {
+    "id": "P1A",
+    "title": "Part 1A: Vocabulary",
+    "level": "Working toward Mastery",
+    "skill": "vocabulary",
+    "taskType": "Matching (sentence–word)",
+    "instructions": "Match the sentence to the correct word. There are 3 words you do not need. There is one example.",
+    "themes": [
+     {
+      "theme": "People and Places | Classroom Rules and Values, Community Matters",
+      "highFrequencyWords": [
+       "love",
+       "some",
+       "here",
+       "there",
+       "friend",
+       "your",
+       "animals",
+       "children",
+       "help",
+       "with",
+       "care"
+      ],
+      "vocabulary": [
+       "rule",
+       "respect",
+       "kind",
+       "share",
+       "follow",
+       "helpful",
+       "hospital",
+       "fire station",
+       "museum",
+       "mosque",
+       "police station",
+       "library"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Read, spell, and use high frequency and academic vocabulary words fluently in diverse contexts, including formal and creative writing tasks."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 6,
+     "format": "matching",
+     "options": 10,
+     "marksEach": 2,
+     "totalMarks": 12
+    },
+    "outcomes": [
+     {
+      "code": "4.LR.HFW.2",
+      "count": 6,
+      "skill": "High Frequency Words",
+      "text": "Apply high frequency words correctly across different contexts and text types."
+     }
+    ],
+    "constructLimits": [
+     "6 sentences, 10 words (HFWS & vocab), 6 of which are the answers, 3 are distractors, 1 is an example",
+     "2 marks each (Total: 12)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P1B",
+    "title": "Part 1B: Vocabulary",
+    "level": "Working at Mastery",
+    "skill": "vocabulary",
+    "taskType": "Sentence Cloze",
+    "instructions": "Complete the sentences using words from the Word Bank. There are 3 words you do not need. There is one example.",
+    "themes": [
+     {
+      "theme": "People and Places | School Life, Places in our Community",
+      "highFrequencyWords": [
+       "be",
+       "he",
+       "she",
+       "today",
+       "go",
+       "so",
+       "do",
+       "made",
+       "make",
+       "like",
+       "time",
+       "my"
+      ],
+      "vocabulary": [
+       "subject",
+       "English",
+       "Arabic",
+       "maths",
+       "science",
+       "art",
+       "music",
+       "social studies",
+       "Islamic Studies",
+       "building",
+       "park",
+       "road",
+       "shop",
+       "traffic",
+       "supermarket",
+       "bank",
+       "post office",
+       "neighbourhood",
+       "neighbour",
+       "street"
+      ]
+     }
+    ],
+    "grammar": [
+     "Coordinating conjunctions (and)",
+     "Subordinating conjunctions (because)",
+     "Wh-questions (What's your favourite subject? Why do you like it?)",
+     "Prepositions of Place (near, in front of, next to, behind, inside, outside, between)",
+     "Verb Forms (go to + place + to + verb)",
+     "Past Simple vs Present Simple"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Expand vocabulary knowledge by using context clues, word parts, and reference tools to determine, clarify, and apply the meaning of unfamiliar words.",
+     "Use advanced phonics and syllabication strategies to decode and spell unfamiliar multisyllabic words independently."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 6,
+     "format": "gapfill-mc",
+     "options": 10,
+     "marksEach": 2,
+     "totalMarks": 12
+    },
+    "outcomes": [
+     {
+      "code": "4.R.VD.4",
+      "count": 1,
+      "skill": "Vocabulary Development",
+      "text": "Use new vocabulary accurately in a range of oral and written tasks."
+     },
+     {
+      "code": "4.LR.P.4",
+      "count": 1,
+      "skill": "Phonics",
+      "text": "Use pattern recognition to decode and spell new vocabulary."
+     }
+    ],
+    "constructLimits": [
+     "6 sentences",
+     "6 gaps (3 vocab, 3 grammar)",
+     "Word Bank with 10 words, 6 correct answers, 3 distractors, 1 example",
+     "2 marks each (total 12)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Reading",
+    "level": "Working at Mastery",
+    "skill": "reading",
+    "taskType": "Multiple-Choice Questions",
+    "instructions": "Read the text and answer the questions. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "People and Places | Community Matters",
+      "highFrequencyWords": [
+       "from",
+       "help",
+       "animals",
+       "back",
+       "will",
+       "this",
+       "that",
+       "then",
+       "them",
+       "with",
+       "went",
+       "just",
+       "children"
+      ],
+      "vocabulary": [
+       "hospital",
+       "mosque",
+       "market",
+       "school",
+       "park",
+       "fire station",
+       "museum",
+       "library"
+      ]
+     }
+    ],
+    "grammar": [
+     "Verb Forms (go to + place + to + verb)",
+     "Prepositions of Place (near, in front of, next to, behind, inside, outside, between)"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Demonstrate comprehension of increasingly complex texts by summarising key ideas, analysing details, making inferences, and justifying answers with evidence."
+    ],
+    "skillsAssessed": [
+     "Reading Comprehension"
+    ],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "110-130",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 6,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 18
+    },
+    "outcomes": [
+     {
+      "code": "4.R.RC.1",
+      "count": 6,
+      "skill": "Reading Comprehension",
+      "text": "Answer literal, inferential, and evaluative questions using text evidence."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 110-130 words (10% either way)",
+     "6 questions with three options",
+     "3 marks each",
+     "Total: 18"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3",
+    "title": "Part 3: Reading",
+    "level": "Mastery with Greater Depth",
+    "skill": "reading",
+    "taskType": "Multiple-Choice Questions",
+    "instructions": "Read the text and answer the questions. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "People and Places | City Life, Country Life",
+      "highFrequencyWords": [
+       "down",
+       "now",
+       "look",
+       "looked",
+       "asked",
+       "could",
+       "saw",
+       "all"
+      ],
+      "vocabulary": [
+       "city",
+       "countryside",
+       "farm",
+       "village",
+       "animals",
+       "busy",
+       "quiet",
+       "noisy",
+       "peaceful"
+      ]
+     }
+    ],
+    "grammar": [
+     "Subordinating Conjunctions (because)",
+     "Coordinating Conjunctions (and, but, or, so)",
+     "Past Simple Regular (used, designed, worked)",
+     "Past Simple Irregular (made, built)"
+    ],
+    "functionalLanguage": [],
+    "achievementObjectives": [
+     "Demonstrate comprehension of grade-level texts by identifying key ideas, summarising information, making inferences, and supporting answers with evidence."
+    ],
+    "skillsAssessed": [
+     "Reading Comprehension",
+     "Grammar"
+    ],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "110-130",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 6,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 18
+    },
+    "outcomes": [
+     {
+      "code": "4.R.RC.1",
+      "count": 4,
+      "skill": "Reading Comprehension",
+      "text": "Answer literal, inferential and evaluative questions using text evidence."
+     },
+     {
+      "code": "4.R.RC.2",
+      "count": 2,
+      "skill": "Reading Comprehension",
+      "text": "Summarise key ideas, themes and supporting details from a text."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 110-130 words (10% either way)",
+     "6 questions with three options",
+     "3 marks each",
+     "Total: 18"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "Working at Mastery",
+    "skill": "writing",
+    "taskType": "Guided Constructed Response",
+    "instructions": "Main prompt (Write about ______). Use the pictures and the words to help you. Write 6-7 complete sentences.",
+    "themeNote": "Writing task will be based around one of these themes:",
+    "themes": [
+     {
+      "theme": "People and Places | World of Work",
+      "highFrequencyWords": [
+       "Mr",
+       "Mrs",
+       "their",
+       "little",
+       "what",
+       "called"
+      ],
+      "vocabulary": [
+       "computer programmer",
+       "dentist",
+       "pilot",
+       "doctor",
+       "teacher",
+       "job",
+       "office",
+       "clinic",
+       "airport",
+       "patients"
+      ],
+      "grammar": [
+       "Verb Forms (want/hope + to + base form)"
+      ],
+      "functionalLanguage": [
+       "FL.36 Describing hopes and plans"
+      ]
+     },
+     {
+      "theme": "People and Places | Making Connections, Community Matters",
+      "highFrequencyWords": [
+       "the",
+       "of",
+       "said",
+       "house",
+       "our",
+       "once",
+       "one"
+      ],
+      "vocabulary": [
+       "friend",
+       "classmate",
+       "neighbour",
+       "community",
+       "team",
+       "together",
+       "help",
+       "care",
+       "communication"
+      ],
+      "grammar": [
+       "Noun Phrases (noun + noun; adjective + noun)"
+      ],
+      "functionalLanguage": [
+       "FL.9 Describing habits, routines, tasks and jobs",
+       "FL.2 Greetings, making introductions, saying goodbye"
+      ]
+     }
+    ],
+    "grammar": [
+     "Verb Forms (want/hope + to + base form)",
+     "Noun Phrases (noun + noun; adjective + noun)"
+    ],
+    "functionalLanguage": [
+     "FL.36 Describing hopes and plans",
+     "FL.9 Describing habits, routines, tasks and jobs",
+     "FL.2 Greetings, making introductions, saying goodbye"
+    ],
+    "achievementObjectives": [
+     "Uses knowledge of common word parts to spell multisyllabic words accurately in writing.",
+     "Writes grammatically correct simple and compound sentences with varied beginnings to create engaging, well-structured text.",
+     "Formats texts with appropriate headings, spacing and layout for range of writing purposes.",
+     "Writes organised texts with a clear beginning, a developed middle and an appropriate ending."
+    ],
+    "skillsAssessed": [],
+    "text": null,
+    "items": {
+     "count": 1,
+     "format": "writing",
+     "options": null,
+     "marksEach": 40,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "4.W.SWU.1",
+      "count": 1,
+      "skill": "Spelling & Word Use",
+      "text": "Spell multisyllabic words using knowledge of common prefixes, roots, and suffixes."
+     },
+     {
+      "code": "4.W.WPD.2",
+      "count": 1,
+      "skill": "Writing Production",
+      "text": "Use simple and compound sentences with consistent subject-verb agreement and varied sentence openers."
+     },
+     {
+      "code": "4.W.WPD.1",
+      "count": 1,
+      "skill": "Writing Production",
+      "text": "Compose structured texts with clear beginning, middle, and end."
+     },
+     {
+      "code": "4.LR.HP.1",
+      "count": 1,
+      "skill": "Handwriting & Presentation",
+      "text": "Format texts appropriately for different purposes with consistent layout."
+     }
+    ],
+    "constructLimits": [
+     "1 image",
+     "1 word bank with 5 words",
+     "40 marks, based on rubric"
+    ],
+    "writingTasks": [
+     {
+      "id": "1",
+      "name": "Guided Constructed Response",
+      "genre": "other",
+      "instructions": "Main prompt (Write about ______). Use the pictures and the words to help you. Write 6-7 complete sentences.",
+      "promptBullets": 1,
+      "sourceText": null,
+      "image": true,
+      "wordBank": "1 word bank with 5 words",
+      "minWords": null,
+      "length": "6-7 complete sentences",
+      "marks": 40,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ],
+  "notes": [
+   "Part marks: 1A 12 + 1B 12 + 2 18 + 3 18 = 60 (matches Reading: 60); Part 4 = 40 (matches Writing: 40). totalMarks 100 is the sum; the spec prints only 'Reading: 60 / Writing: 40', not a single total.",
+   "Part 1A 'options' = 10-word list (6 answers + 3 distractors + 1 example); Part 1B 'options' = 10-word word bank. Part 1A says '6 sentences' and '1 is an example' without saying whether the example sentence is one of the 6; 6 scored items x 2 = 12 matches the printed total.",
+   "Part 1B: the two SSLOs (4.R.VD.4, 4.LR.P.4) have no item counts printed (count set to 1). 6 gaps = 3 vocab + 3 grammar.",
+   "Part 3 'Skills Assessed' lists Grammar, but both SSLOs are Reading Comprehension (4.R.RC.1 x4, 4.R.RC.2 x2).",
+   "Part 4: the response length (6-7 complete sentences) appears only in the task description, not in Construct Limits (unlike Grade 3). Genre set to 'other' because the two themes point to different FL functions (hopes and plans vs habits/greetings)."
+  ]
+ },
+ {
+  "id": "c2-g5glg",
+  "cycle": 2,
+  "title": "Academic Year 2026-2027: End-of-Term 1 Exam Test Specifications: Grade 5GLG - Grade 5 General– Stage 1 – A1.2-A2.1",
+  "gradeLevelGoal": "Grade 5 GLG",
+  "classes": [
+   {
+    "grade": "5",
+    "stream": "General"
+   }
+  ],
+  "stage": "1",
+  "cefr": "A1.2-A2.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Matching (word–image)",
+    "instructions": "Look at the word. Match the word to the correct picture. Choose A or B.",
+    "themes": [
+     {
+      "theme": "Exciting Adventures",
+      "vocabulary": [
+       "stranded",
+       "lost",
+       "canyon",
+       "river",
+       "decision",
+       "solution",
+       "frightened"
+      ]
+     },
+     {
+      "theme": "Curious Creatures and Extraordinary Places",
+      "vocabulary": [
+       "rainforest",
+       "desert",
+       "mountain",
+       "beach",
+       "tiger",
+       "camel"
+      ]
+     },
+     {
+      "theme": "What Happens if … ?",
+      "vocabulary": [
+       "sandstorm",
+       "heatwave",
+       "flood",
+       "storm",
+       "temperature",
+       "weather",
+       "heavy rain",
+       "strong wind"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "matching",
+     "options": 2,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.01.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply basic reading strategies, including adjusting reading pace, rereading and correcting errors and using visuals, context, first language, dictionaries, glossaries and digital tools, culture, experiences, key features of text and text format and appearance to understand simple written to multimodal texts."
+     }
+    ],
+    "constructLimits": [
+     "5 words, 10 images (1 correct answer and 1 distractor for each word)",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Curious Creatures and Extraordinary Places | Describing People and Things, Describing Places, Amazing Animals and Places",
+      "vocabulary": [
+       "amphibian",
+       "gills",
+       "regrow",
+       "survive",
+       "salt",
+       "reflect",
+       "protect",
+       "scientist",
+       "rainforest",
+       "desert",
+       "beach",
+       "whale",
+       "special",
+       "amazing",
+       "see-through"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.14.1. Past time (past simple (including verb ‘to be’))",
+     "G.14.3. Past time (Past continuous)",
+     "G.4.1. Clauses and phrases: defining relative clauses",
+     "G.5.1. Zero conditional"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "80",
+     "tolerance": "10% either way",
+     "cefr": "A1.2 - A2.1"
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.01.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply basic reading strategies, including adjusting reading pace, rereading and correcting errors and using visuals, context, first language, dictionaries, glossaries and digital tools, culture, experiences, key features of text and text format and appearance to understand simple written to multimodal texts."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text (A1.2 - A2.1) of 80 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text. Choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Exciting Adventures | Lost in the Hajar Mountains, A Kayaking Adventure",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "120-150",
+     "tolerance": "10% either way",
+     "cefr": "A1.2 - A2.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.01.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words for a concrete action or object using contextual and morphological cues when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text (A1.2 - A2.1) of 120-150 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "What Happens if …? | Amazing Weather Around the World",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "120-150",
+     "tolerance": "10% either way (Max: 165)",
+     "cefr": "A2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.01.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words for a concrete action or object using contextual and morphological cues when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.3.1",
+      "count": 2,
+      "skill": "Connections",
+      "text": "Make simple personal connections between ideas, events or characters and own experience, background knowledge, other familiar texts or the world around them when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     },
+     {
+      "code": "ENG.01.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar topics that are clearly structured and use simple language, especially if they have visual support."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text (A2.2) of 120-150 words (10% either way) (Max: 165)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Constructed Writing Response",
+    "instructions": "Write about ______. You can use the picture or write about your own ______. Answer these questions: • Prompt 1 • Prompt 2 • Prompt 3. Write at least 60 words in complete sentences.",
+    "themes": [
+     {
+      "theme": "Exciting Adventures | Adventure Story Writing",
+      "vocabulary": []
+     },
+     {
+      "theme": "What Happens if …? | Weather Watchers and Problem Solvers, The Weather Watch Team",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.31 Describing past experiences and events",
+     "FL.5 Describing people",
+     "FL.6 Describing places",
+     "FL.16 Expressing opinion",
+     "FL.35 Making predictions and hypothesising"
+    ],
+    "text": null,
+    "items": {
+     "count": 1,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.01.WR.S.2.2",
+      "count": 1,
+      "skill": "Spelling",
+      "text": "Spell a wide range of familiar and unfamiliar words using phonological and morphological knowledge, spelling generalisations, regular spelling patterns and a limited range of irregular spellings, including less common vowel and consonant patterns."
+     },
+     {
+      "code": "ENG.01.WR.S.3.1",
+      "count": 1,
+      "skill": "Punctuation",
+      "text": "Write sentences using capital letters, full stops, question marks and commas correctly, and apostrophes, quotation marks and hyphens with emerging control."
+     },
+     {
+      "code": "ENG.01.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce short, simple written or multimodal texts on familiar topics using short, simple and some linked sentences, and giving simple reasons with ‘because’, although there may be frequent inaccuracies and limitations in vocabulary or structure."
+     },
+     {
+      "code": "ENG.01.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express simple ideas and information on familiar topics, giving simple reasons with ‘because’, and using a limited range of familiar phrases and expressions in short, simple written or multimodal texts with developing coherence, although there may be frequent inaccuracies and limitations in vocabulary or structure."
+     }
+    ],
+    "constructLimits": [
+     "Image(s) and one question with three prompts to elicit an adventure story or an informational text.",
+     "Word count: 60 words",
+     "40 marks (based on rubric)"
+    ],
+    "writingTasks": [
+     {
+      "id": "1",
+      "name": "Adventure story or informational text",
+      "genre": "other",
+      "instructions": "Write about ______. You can use the picture or write about your own ______. Answer these questions: • Prompt 1 • Prompt 2 • Prompt 3. Write at least 60 words in complete sentences.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": true,
+      "wordBank": null,
+      "minWords": 60,
+      "length": "at least 60 words in complete sentences",
+      "marks": 40,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-g6glg",
+  "cycle": 2,
+  "title": "Academic Year 2026-2027: End-of-Term 1 Exam Test Specifications: Grade 6 GLG - Grade 5 Advanced / 6 General – Stage 2 – A2.1",
+  "gradeLevelGoal": "Grade 6 GLG",
+  "classes": [
+   {
+    "grade": "5",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "6",
+    "stream": "General"
+   }
+  ],
+  "stage": "2",
+  "cefr": "A2.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Sentence Cloze",
+    "instructions": "Choose the correct word to complete the sentence. Choose A or B.",
+    "themes": [
+     {
+      "theme": "Leisure and Free Time",
+      "vocabulary": [
+       "costume",
+       "attraction",
+       "performance",
+       "entrance",
+       "hobby",
+       "colorful",
+       "dessert"
+      ]
+     },
+     {
+      "theme": "Animals",
+      "vocabulary": [
+       "carnivore",
+       "herbivore",
+       "habitat",
+       "enclosure"
+      ]
+     },
+     {
+      "theme": "Our Solar System",
+      "vocabulary": [
+       "telescope",
+       "compass",
+       "crater",
+       "asteroid",
+       "science"
+      ]
+     },
+     {
+      "theme": "Exploring",
+      "vocabulary": [
+       "explorer",
+       "expedition",
+       "journey",
+       "route",
+       "discover",
+       "survive"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 2,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.02.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a range of basic reading strategies, including, using visuals, context, first language, culture, experiences, developing oral language, text format and appearance, numbers, dates and proper nouns to understand simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "5 sentences with one gap",
+     "2 options per sentence (A or B): 1 correct answer and 1 distractor",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Animals | How to train animals",
+      "vocabulary": [
+       "beekeeper",
+       "falconer",
+       "honeycomb",
+       "lure",
+       "nectar",
+       "pollinate",
+       "talons",
+       "wax",
+       "command",
+       "guide",
+       "service animal",
+       "support",
+       "independence",
+       "obstacle",
+       "behaviour",
+       "train"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.17.2 Wh-questions",
+     "G14.1 Past time (past simple (including verb ‘to be’))",
+     "G.4.3 Clauses and Phrases: Imperatives",
+     "G8.1 Modals (Must / Must not)",
+     "G14.2 Past Time (used to/would)",
+     "G.11.1 Phrasal Verbs (non-separable)",
+     "G.6.2 Conjunctions (subordinating)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "100",
+     "tolerance": "10% either way",
+     "cefr": "A2.1"
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.02.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a range of basic reading strategies, including, using visuals, context, first language, culture, experiences, developing oral language, text format and appearance, numbers, dates and proper nouns to understand simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text (A2.1) of 100 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Exploring | Famous modern explorers, How exploring has changed, What are some difficulties explorers face",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "150-170",
+     "tolerance": "10% either way – Max: 187",
+     "cefr": "A2.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.02.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words for a concrete action or object and unknown expressions from their position in a text when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text (A2.1) of 150-170 words (10% either way – Max: 187)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text. Choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Our Solar System | Planets and Space Science, Asteroids and Space Events",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "150-170",
+     "tolerance": "10% either way – Max: 187",
+     "cefr": "A2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.02.RV.CS.5.1",
+      "count": 4,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words for a concrete action or object and unknown expressions from their position in a text when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make simple connections between ideas, events, characters or themes and own experience, background knowledge, other familiar texts or the world around them to help understand the topic or structure of new content when reading simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.02.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text (A2.2) of 150-170 words (10% either way – Max: 187)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Constructed Writing Response",
+    "instructions": "Write about _______. - Prompt 1 - Prompt 2 - Prompt 3. Write at least 80 words in complete sentences.",
+    "themes": [
+     {
+      "theme": "Exploring | Mountain Climbing and Survival, Difficulties explorers face (desert / ocean / mountain)",
+      "vocabulary": []
+     },
+     {
+      "theme": "Leisure and Free Time | How did you spend your time? (Entertainment and Attractions)",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.27 Describing advantages and disadvantages",
+     "FL.16 Expressing opinion",
+     "FL.31 Describing past experiences and events"
+    ],
+    "text": null,
+    "items": {
+     "count": 1,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.02.WR.S.2.2",
+      "count": 1,
+      "skill": "Spelling",
+      "text": "Spell a wide range of words using regular spelling patterns and an increasing range of words with irregular spellings."
+     },
+     {
+      "code": "ENG.02.WR.S.3.1",
+      "count": 1,
+      "skill": "Punctuation",
+      "text": "Write sentences using capital letters, full stops, commas and question marks correctly, and apostrophes and other punctuation with increasing control."
+     },
+     {
+      "code": "ENG.02.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce short, simple written or multimodal texts on familiar topics, expressing simple comparisons and justifications where appropriate in a simple list of points and linked sentences, although there may be inaccuracies and some limitations in vocabulary or structure."
+     },
+     {
+      "code": "ENG.02.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express simple ideas, information and opinions on familiar topics using an increasing range of familiar phrases and expressions in short, simple written or multimodal texts with developing coherence, although there may be inaccuracies and some limitations in vocabulary or structure."
+     }
+    ],
+    "constructLimits": [
+     "One question with three prompts to elicit a personal narrative.",
+     "Word count: 80 words",
+     "40 marks (based on rubric)"
+    ],
+    "writingTasks": [
+     {
+      "id": "1",
+      "name": "Personal narrative",
+      "genre": "story",
+      "instructions": "Write about _______. - Prompt 1 - Prompt 2 - Prompt 3. Write at least 80 words in complete sentences.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 80,
+      "length": "at least 80 words in complete sentences",
+      "marks": 40,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-g7glg",
+  "cycle": 2,
+  "title": "Academic Year 2026-2027: End-of-Term 1 Exam Test Specifications: Grade 7 GLG - Grade 6 Advanced / 7 General – Stage 3 - A2.1-A2.2",
+  "gradeLevelGoal": "Grade 7 GLG",
+  "classes": [
+   {
+    "grade": "6",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "7",
+    "stream": "General"
+   }
+  ],
+  "stage": "3",
+  "cefr": "A2.1-A2.2",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Food for Life",
+      "vocabulary": [
+       "healthy",
+       "fresh",
+       "producer",
+       "consumer",
+       "predator",
+       "prey",
+       "plastic"
+      ]
+     },
+     {
+      "theme": "How Things Work",
+      "vocabulary": [
+       "evaporation",
+       "condensation",
+       "filter",
+       "supply",
+       "engineer"
+      ]
+     },
+     {
+      "theme": "It’s a Small World",
+      "vocabulary": [
+       "advantage",
+       "drawback",
+       "communicate",
+       "translate"
+      ]
+     },
+     {
+      "theme": "Patterns",
+      "vocabulary": [
+       "pattern",
+       "sequence",
+       "sum",
+       "number",
+       "hexagon",
+       "square"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.03.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply an increasing range of reading strategies, including, using context, first language, culture, experiences, developing oral language skills, text format and appearance, known words, and rereading and reading on to understand and interpret simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "5 sentences with one gap",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "It’s a Small World | Where does your food come from?",
+      "vocabulary": [
+       "cocoa",
+       "tea",
+       "rice",
+       "dates",
+       "crop",
+       "grow",
+       "produce",
+       "country",
+       "chocolate",
+       "port"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.7.5 Determiners (quantifiers)",
+     "G.9.3 Nouns (countable_uncountable)",
+     "G.4.1 Clauses and phrases (defining relative clauses)",
+     "G.4.2 Clauses and phrases (non-defining relative clauses)",
+     "G.5.1 Conditionals (Zero)",
+     "G.2.2 Adverbs (sequencing)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "120",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.03.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply an increasing range of reading strategies, including, using context, first language, culture, experiences, developing oral language skills, text format and appearance, known words, and rereading and reading on to understand and interpret simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 120 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Food for Life | How does a food web work?, How are things connected in a food chain?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "170-200",
+     "tolerance": "10% either way",
+     "cefr": "A2.1-A2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.03.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context when reading simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text (A2.1-A2.2) of 170-200 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Patterns | What are some important features of Islamic Art?, What is a pattern?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "170-200",
+     "tolerance": "10% either way",
+     "cefr": "B1.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.03.RV.CS.5.1",
+      "count": 4,
+      "skill": "Details",
+      "text": "Read and identify some details in simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context when reading simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make simple connections between ideas, events, characters or themes and own experience, background knowledge, other familiar texts or the world around them to support understanding of new texts when reading simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     },
+     {
+      "code": "ENG.03.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple written or multimodal texts on familiar and concrete topics that are clearly structured and use simple language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.1) of 170-200 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Constructed Writing Response",
+    "instructions": "Look at the four pictures of ________. Describe what happened at each stage and _______. Use sequencing words and phrases. Write at least 100 words in complete sentences.",
+    "themes": [
+     {
+      "theme": "It’s a Small World | What can visitors see and do in the UAE?",
+      "vocabulary": []
+     },
+     {
+      "theme": "Food for Life | How can food improve your health?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.13 Describing processes",
+     "FL.7 Describing objects"
+    ],
+    "text": null,
+    "items": {
+     "count": 1,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.03.WR.S.2.2",
+      "count": 1,
+      "skill": "Spelling",
+      "text": "Spell a wide range of words using regular and irregular spellings with increasing accuracy."
+     },
+     {
+      "code": "ENG.03.WR.S.3.1",
+      "count": 1,
+      "skill": "Punctuation",
+      "text": "Write sentences using a wide range of punctuation with a high level of control."
+     },
+     {
+      "code": "ENG.03.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce simple written or multimodal texts on familiar and concrete topics, expressing simple comparisons and justifications where appropriate in a simple list of points and linked sentences with an increasing ability to convey meaning, although there may be inaccuracies and repetition of vocabulary and structures."
+     },
+     {
+      "code": "ENG.03.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express simple ideas, information, opinions, feelings and emotions on familiar and concrete topics using an increasing range of familiar phrases and expressions in simple written or multimodal texts with developing coherence, although there may be inaccuracies and repetition of vocabulary and structures."
+     }
+    ],
+    "constructLimits": [
+     "4 labelled (2-3 words) images showing a process or sequence related to the theme.",
+     "One question asking students to interpret the visual information and describe each stage using sequencing words and phrases.",
+     "Word count: 100 words",
+     "40 marks (based on rubric)"
+    ],
+    "writingTasks": [
+     {
+      "id": "1",
+      "name": "Process description (picture sequence)",
+      "genre": "description",
+      "instructions": "Look at the four pictures of ________. Describe what happened at each stage and _______. Use sequencing words and phrases. Write at least 100 words in complete sentences.",
+      "promptBullets": 0,
+      "sourceText": null,
+      "image": true,
+      "wordBank": null,
+      "minWords": 100,
+      "length": "at least 100 words in complete sentences",
+      "marks": 40,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c2-g8glg",
+  "cycle": 2,
+  "title": "Academic Year 2026-2027: End-of-Term 1 Exam Test Specifications: Grade 8 GLG - Grade 7 Advanced / 8 General – Stage 4 - A2.2-B1.1",
+  "gradeLevelGoal": "Grade 8 GLG",
+  "classes": [
+   {
+    "grade": "7",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "8",
+    "stream": "General"
+   }
+  ],
+  "stage": "4",
+  "cefr": "A2.2-B1.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "The Ocean",
+      "vocabulary": [
+       "pollution",
+       "toxins",
+       "predator",
+       "carnivore",
+       "creature",
+       "bacteria"
+      ]
+     },
+     {
+      "theme": "Space",
+      "vocabulary": [
+       "climate",
+       "weather",
+       "gravity",
+       "oxygen",
+       "mission",
+       "experiment"
+      ]
+     },
+     {
+      "theme": "Scientific Wonders",
+      "vocabulary": [
+       "canyon",
+       "volcano",
+       "arteries",
+       "veins",
+       "trench",
+       "reef",
+       "erosion"
+      ]
+     },
+     {
+      "theme": "Who am I?",
+      "vocabulary": [
+       "identity",
+       "personality",
+       "qualities",
+       "skills",
+       "respect",
+       "trust"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.04.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, developing oral language skills, text format and appearance, the main message and known words, adjusting reading rate, skimming, scanning, rereading and reading on to understand and interpret simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "5 sentences with a gap",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "The Ocean | How do humans affect the health of the oceans?, What should we do to clean up the oceans?",
+      "vocabulary": [
+       "plastic",
+       "chemicals",
+       "fish",
+       "ocean",
+       "garbage",
+       "toxins",
+       "river",
+       "rain",
+       "animals",
+       "technology",
+       "trash",
+       "floats",
+       "harbor",
+       "installed",
+       "huge",
+       "pollution",
+       "current",
+       "machine"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.8.1 Modals (present)",
+     "G.5.3 Conditionals (Second)",
+     "G.10.1. Passives (present simple passive)",
+     "G.9.8 Nouns (noun phrases)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "130",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.04.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, developing oral language skills, text format and appearance, the main message and known words, adjusting reading rate, skimming, scanning, rereading and reading on to understand and interpret simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text of 130 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Who am I? | How can we define identity? , What are you like?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "200-230",
+     "tolerance": "10% either way",
+     "cefr": "A2.2 – B1.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.04.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context when reading simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (A2.2 – B1.1) of 200-230 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Scientific Wonders | What do you know about the wonders of the natural world?, What can Science tell us about our world?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "200-230",
+     "tolerance": "10% either way",
+     "cefr": "B1.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.04.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context when reading simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.4.2",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Make basic inferences or predictions about text content, line of argumentation and sequence of events in a narrative, using text features and basic connectors when reading simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make logical connections between ideas, events, characters or themes and own experience, background knowledge, other familiar texts or the world around them and give simple reasons for these connections when reading simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.04.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.2) of 200-230 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Constructed Writing Response",
+    "instructions": "1.1 Read the text. Write the main ideas of the text in your own words. Write 3-4 sentences. 1.2 Write about _______. ▪ Prompt 1 ▪ Prompt 2 ▪ Prompt 3. Write at least 110 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "Space | What would you take on a space journey?",
+      "vocabulary": []
+     },
+     {
+      "theme": "Who Am I | How can I be a good friend?, What are you like?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.16 Expressing opinion",
+     "FL.6 Describing places",
+     "FL.24 Asking for and giving advice"
+    ],
+    "text": null,
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.04.WR.S.2.2",
+      "count": 1,
+      "skill": "Spelling",
+      "text": "Spell many challenging words with accuracy."
+     },
+     {
+      "code": "ENG.04.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce simple and some extended written or multimodal texts on familiar and concrete topics, expressing comparisons and justifications where appropriate with an increasing ability to convey meaning, although there may be some inaccuracies and repetition of vocabulary and structures."
+     },
+     {
+      "code": "ENG.04.WR.P.4.1",
+      "count": 1,
+      "skill": "Text Structure",
+      "text": "Produce simple and some extended written or multimodal texts on familiar and concrete topics with paragraphs that may contain a topic sentence and some supporting details where appropriate, although there may be some inaccuracies and repetition of vocabulary and structures."
+     },
+     {
+      "code": "ENG.04.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express simple ideas, information, opinions, feelings, emotions and personal perspectives on familiar and concrete topics using a wide range of phrases and expressions in simple and some extended written or multimodal texts, although there may be some inaccuracies and repetition of vocabulary and structures."
+     },
+     {
+      "code": "ENG.04.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in Writing",
+      "text": "Summarise and describe the main points and information in simple written, spoken or multimodal texts on familiar and concrete topics using a wide range of phrases and expressions in writing, although there may be some inaccuracies and repetition of vocabulary and structures."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text (A2.2–B1.1) of 150 words (10% either way) related to the theme.",
+     "One question asking for the main ideas of the text, using their own words.",
+     "1.2 (25 marks) A main prompt, with 3 sub-prompts",
+     "Word count: 110 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the text. Write the main ideas of the text in your own words. Write 3-4 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text related to the theme",
+       "words": "150",
+       "tolerance": "10% either way",
+       "cefr": "A2.2–B1.1"
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "3-4 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Extended writing (main prompt with 3 sub-prompts)",
+      "genre": "other",
+      "instructions": "Write about _______. ▪ Prompt 1 ▪ Prompt 2 ▪ Prompt 3. Write at least 110 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 110,
+      "length": "at least 110 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ],
+  "notes": "Part 3B learning outcome for overall meaning is printed as '04.RV.CS.1.1' (missing 'ENG.' prefix); normalised to ENG.04.RV.CS.1.1. In Part 3B the only sub-heading printed is 'Connections', placed above ENG.04.RV.CS.4.2; skill labels for 3B outcomes were assigned by code (CS.5.1 Details, CS.4.1/4.2 Inference, CS.3.1 Connections, CS.1.1 Overall Meaning). Part 3B text is B1.2 as printed (above the A2.2-B1.1 stage level). Part 2 text has no CEFR level printed."
+ },
+ {
+  "id": "c2-g9glg",
+  "cycle": 2,
+  "title": "Academic Year 2026-2027: End-of-Term 1 Exam Test Specifications: Grade 9 GLG - Grade 8 Advanced – Stage 5 - B1.1",
+  "gradeLevelGoal": "Grade 9 GLG",
+  "classes": [
+   {
+    "grade": "8",
+    "stream": "Advanced"
+   }
+  ],
+  "stage": "5",
+  "cefr": "B1.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Choose the correct words to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Ecosystems",
+      "vocabulary": [
+       "flora",
+       "fauna",
+       "conservation",
+       "biodiversity",
+       "adaptation",
+       "survive",
+       "climate",
+       "environment"
+      ]
+     },
+     {
+      "theme": "Innovation and Technology",
+      "vocabulary": [
+       "renewable",
+       "sustainable",
+       "electric",
+       "hybrid",
+       "invention",
+       "technology"
+      ]
+     },
+     {
+      "theme": "The Brain",
+      "vocabulary": [
+       "attention",
+       "rehearsal",
+       "retrieval",
+       "psychologist",
+       "melatonin",
+       "hormone",
+       "isolation"
+      ]
+     },
+     {
+      "theme": "Visual Arts",
+      "vocabulary": [
+       "perspective",
+       "focus",
+       "foreground",
+       "background"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": null,
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, headings and connectors, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "5 sentences with a gap",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Innovation and Technology | What cars will we be driving in the future?",
+      "vocabulary": [
+       "engine",
+       "airbag",
+       "seat belt",
+       "hybrid",
+       "electric",
+       "battery",
+       "horsepower",
+       "touchscreen",
+       "warranty",
+       "SUV"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.15.4 Future Time (future continuous)",
+     "G.19.2 Verb forms",
+     "G.1.5 Adjectives (followed by prepositions and infinitives)",
+     "G.10.1 Passives (present simple passive)",
+     "G.13.3 Present Time (present perfect simple)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "150",
+     "tolerance": "10% either way",
+     "cefr": "B1.1"
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, headings and connectors, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.1) of 150 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Ecosystems| What has happened to coral reefs in the Arabian Sea?, How have animals adapted to different ecosystems?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "230-250",
+     "tolerance": "10% either way",
+     "cefr": "B1.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.CS.2.1",
+      "count": 3,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text (B1.1) of 230-250 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Visual Arts | How are CGI movies made?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "230-250",
+     "tolerance": "10% either way",
+     "cefr": "B1.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.4.2",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Make inferences or predictions about text content, line of argumentation and sequence of events in a narrative, using text features and basic connectors when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make logical connections between ideas, events or themes and own experience, background knowledge, other familiar texts or the world around them and give clear reasons for these connections when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.2) of 230-250 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Constructed Writing Response",
+    "instructions": "1.1 Read the text. Write the main ideas of the text in your own words. Write at least 3-4 sentences. 1.2 Write an essay giving your opinion on ________. ▪ Prompt 1 ▪ Prompt 2 ▪ Prompt 3. Write at least 120 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "The Brain | How does the brain store information?, What is the best way to review?",
+      "vocabulary": []
+     },
+     {
+      "theme": "Innovation and Technology | Why is renewable energy the best energy for the future?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.24 Asking for and giving advice",
+     "FL.13 Describing processes",
+     "FL.16 Expressing opinion"
+    ],
+    "text": null,
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in writing",
+      "text": "Summarise the main points and information in simple, extended written, spoken or multimodal texts on familiar and some unfamiliar concrete topics using simple and a limited range of complex language and expressions in writing, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce simple and some extended written or multimodal texts on familiar and some unfamiliar concrete topics, expressing some detail with comparisons and justifications where appropriate with an increasing ability to convey meaning, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on familiar and some unfamiliar concrete topics, giving some simple reasons and explanations using simple and a limited range of complex language and expressions in simple and some extended written or multimodal texts, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.P.4.1",
+      "count": 1,
+      "skill": "Text structure",
+      "text": "Produce simple and some extended written or multimodal texts on familiar and some unfamiliar concrete topics that show awareness of the conventional features of text organisation and structure appropriate to the task and contain paragraphs with topic sentences and some supporting details, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text (B.1.1) of 150 words related to theme. One question asking for the main ideas of the text, using their own words.",
+     "1.2 (25 marks) One question with three prompts to elicit a text asking them for their opinion and experience on the topic.",
+     "Word count: 120 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the text. Write the main ideas of the text in your own words. Write at least 3-4 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text related to theme",
+       "words": "150",
+       "tolerance": null,
+       "cefr": "B1.1"
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "at least 3-4 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Opinion essay",
+      "genre": "opinion-essay",
+      "instructions": "Write an essay giving your opinion on ________. ▪ Prompt 1 ▪ Prompt 2 ▪ Prompt 3. Write at least 120 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 120,
+      "length": "at least 120 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ],
+  "notes": "Writing 1.1 source text CEFR printed as 'B.1.1' (normalised to B1.1); no word-count tolerance printed for it. Part 3B text is B1.2 as printed (above the B1.1 stage level)."
+ },
+ {
+  "id": "c3-g9glg",
+  "cycle": 3,
+  "title": "Grade 9GLG - Grade 9 General– Stage 5 – B1.1",
+  "gradeLevelGoal": "Grade 9 GLG",
+  "classes": [
+   {
+    "grade": "9",
+    "stream": "General"
+   }
+  ],
+  "stage": "5",
+  "cefr": "B1.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Living together, learning together",
+      "vocabulary": [
+       "urban",
+       "residential",
+       "commercial",
+       "industrial",
+       "convenient",
+       "comfortable",
+       "route",
+       "destination",
+       "professor",
+       "tutor",
+       "facilities",
+       "services"
+      ]
+     },
+     {
+      "theme": "Shop till you drop!",
+      "vocabulary": [
+       "browse",
+       "search",
+       "exchange",
+       "refund",
+       "receipt",
+       "credit card",
+       "profit",
+       "fee",
+       "brand",
+       "quality",
+       "survey",
+       "prediction"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "150",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.S.2.1",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, headings and connectors, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 text of 150 words (10% either way) with 5 gaps focusing on the target vocabulary.",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Living together, learning together | Getting there, Talking about places in a city",
+      "vocabulary": [
+       "block",
+       "bus station",
+       "car park",
+       "directions",
+       "hotel",
+       "Internet",
+       "road",
+       "shopping mall",
+       "situation",
+       "strangers",
+       "street map",
+       "traffic lights",
+       "apartment",
+       "business area",
+       "central",
+       "commercial",
+       "convenient",
+       "industrial",
+       "neighborhood",
+       "peaceful",
+       "residential",
+       "suburban",
+       "traffic",
+       "transportation"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.19.2 Verb forms (verb + to + infinitive / verb + infinitive / verb + -ing)",
+     "G.15.2 Future Time (going to)",
+     "G.6.1 Conjunctions (coordinating)",
+     "G.2.5 Adverbs (adverbial linkers)",
+     "G.17.4 Questions (indirect questions)",
+     "G.12.1 Prepositions (place)",
+     "G.12.4 Prepositions (dependent)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "transactional",
+     "words": "150",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.S.2.1",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, headings and connectors, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 transactional text of 150 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Shop till you drop! | Returns and Refunds",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "descriptive",
+     "words": "230-250",
+     "tolerance": "10% either way",
+     "cefr": "B1.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 descriptive text (B1.1) of 230-250 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Living together, learning together | Success in college",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "230-250",
+     "tolerance": "10% either way",
+     "cefr": "B1.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.RV.CS.5.1",
+      "count": 4,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make logical connections between ideas, events or themes and own experience, background knowledge, other familiar texts or the world around them and give clear reasons for these connections when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     },
+     {
+      "code": "ENG.05.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly expressed and structured."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.2) of 230-250 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Guided constructed response",
+    "instructions": "1.1 Read the email. Write the main ideas of the email in your own words. Write 2-3 sentences. 1.2 Read the email again. Now write a reply to the sender in which you: • prompt 1 • prompt 2 • prompt 3. Write at least 130 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "Living Together, Learning Together | An email from college",
+      "vocabulary": []
+     },
+     {
+      "theme": "Shop till you drop! | Online shopping",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.44. Writing emails and letters"
+    ],
+    "text": {
+     "count": 1,
+     "type": "email",
+     "words": "160",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.05.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce simple and some extended written or multimodal texts on familiar and some unfamiliar concrete topics, expressing some detail with comparisons and justifications where appropriate with an increasing ability to convey meaning, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.P.3.1",
+      "count": 1,
+      "skill": "Recounts",
+      "text": "Recount detailed stories, past experiences and events that are sequenced, expressing feelings and reasons for those feelings in response to the event or experience using simple and a limited range of complex language and expressions in simple and some extended written or multimodal texts, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on familiar and some unfamiliar concrete topics, giving some simple reasons and explanations using simple and a limited range of complex language and expressions in simple and some extended written or multimodal texts, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.05.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in writing",
+      "text": "Summarise the main points and information in simple, extended written, spoken or multimodal texts on familiar and some unfamiliar concrete topics using simple and a limited range of complex language and expressions in writing, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text of 160 words (10% either way) related to theme (an email). One question asking for the main ideas of the text, using their own words.",
+     "1.2 (25 marks) One question with three prompts asking them to reply to the email, sharing personal experiences and opinions with reasons.",
+     "Word count: 130 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the email. Write the main ideas of the email in your own words. Write 2-3 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "email",
+       "words": "160",
+       "tolerance": "10% either way"
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "2-3 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Email reply",
+      "genre": "email",
+      "instructions": "Read the email again. Now write a reply to the sender in which you: • prompt 1 • prompt 2 • prompt 3. Write at least 130 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": {
+       "type": "email",
+       "words": "160",
+       "tolerance": "10% either way"
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": 130,
+      "length": "at least 130 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-g10glg",
+  "cycle": 3,
+  "title": "Grade 10 GLG - Grade 9 Advanced/10 General – Stage 6 – B1.2",
+  "gradeLevelGoal": "Grade 10 GLG",
+  "classes": [
+   {
+    "grade": "9",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "10",
+    "stream": "General"
+   }
+  ],
+  "stage": "6",
+  "cefr": "B1.2",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Meeting New People, Learning New Things",
+      "vocabulary": [
+       "roommate",
+       "colleague",
+       "privacy",
+       "community",
+       "deadline",
+       "schedule",
+       "authority",
+       "regulation",
+       "manage",
+       "cope"
+      ]
+     },
+     {
+      "theme": "Come Rain or Shine",
+      "vocabulary": [
+       "humidity",
+       "temperature",
+       "climate",
+       "season",
+       "absorb",
+       "reflect",
+       "hazardous",
+       "severe",
+       "ability",
+       "skill",
+       "rescue",
+       "safety",
+       "textile",
+       "fabric"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "160",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.06.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message and overall organisation, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 text of 160 words (10% either way) with 5 gaps focusing on the target vocabulary.",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Come Rain or Shine | Writing a Description of Wild Weather",
+      "vocabulary": [
+       "cumulus cloud",
+       "thunderstorm",
+       "warning",
+       "severe",
+       "hazardous",
+       "impact",
+       "gale-force",
+       "weather phenomena",
+       "protection",
+       "damage"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.14.3 Past Time (past continuous)",
+     "G.4.1 Clauses and phrases : defining relative clauses",
+     "G.19.2 Verb forms (verb + to + infinitive; verb + infinitive; verb + ‘-ing’)",
+     "G.17.4 Questions (indirect questions)",
+     "G.8.1 Modals (present): Expressing ability",
+     "G.2.5 Adverbs (adverbial linkers)",
+     "G.1.2 Adjectives (comparatives) For comparing data and making evaluations"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "160",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.06.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message and overall organisation, adjusting reading rate, skimming, scanning and reading on to understand and interpret simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text of 160 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Meeting New People, Learning New Things | Sharing Things",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "250-270",
+     "tolerance": "10% either way",
+     "cefr": "B1.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.06.RV.CS.2.1",
+      "count": 4,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.5.1",
+      "count": 2,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.2) of 250-270 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Come Rain or Shine | Feeling Under the Weather?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "250-270",
+     "tolerance": "10% either way",
+     "cefr": "B2.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.06.RV.CS.5.1",
+      "count": 4,
+      "skill": "Details",
+      "text": "Read and identify details in simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Make logical connections between ideas, perspectives or themes and own experience, background knowledge, other familiar texts or the wider world and explain how the connections influence meaning when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.4.2",
+      "count": 1,
+      "skill": "Predictions",
+      "text": "Make inferences or predictions about text content, line of argumentation, and the meaning of sections of text, using whole text comprehension, and text features and organisation when reading simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.06.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of simple, extended written or multimodal texts on familiar and some unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B2.1) of 250-270 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Guided constructed response",
+    "instructions": "1.1 Read the text. Write the main ideas in your own words. Write 3-4 sentences. 1.2 Write about whether you think _______. Include: • prompt 1 • prompt 2 • prompt 3. Write at least 150 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "Talking About Seasons",
+      "vocabulary": []
+     },
+     {
+      "theme": "Ready for a Shared-Living Experience?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.31 Describing past experiences and events",
+     "FL.16 Expressing opinion",
+     "FL.20 Expressing necessity and obligation"
+    ],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "170",
+     "tolerance": null,
+     "cefr": null
+    },
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.06.WR.S.6.1",
+      "count": 1,
+      "skill": null,
+      "text": "Summarise and paraphrase information and arguments in simple, extended written, spoken or multimodal texts on familiar and some unfamiliar concrete topics, giving details where needed using simple and an increasing range of complex language and expressions in writing."
+     },
+     {
+      "code": "ENG.06.WR.P.3.1",
+      "count": 1,
+      "skill": null,
+      "text": "Recount detailed stories, past experiences and events that are clearly sequenced, and clearly express feelings and reasons for those feelings in response to the event or experience using simple and an increasing range of complex language and expressions in simple and extended written or multimodal texts."
+     },
+     {
+      "code": "ENG.06.WR.P.1.1",
+      "count": 1,
+      "skill": null,
+      "text": "Produce simple, extended and detailed written or multimodal texts on familiar and some unfamiliar concrete topics, expressing comparisons and justifications where appropriate, where meaning is generally clear, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.06.WR.P.4.1",
+      "count": 1,
+      "skill": null,
+      "text": "Produce simple and extended written or multimodal texts on familiar and some unfamiliar concrete topics that show increasing awareness of the conventional features of text organisation and structure appropriate to the task and contain paragraphs with topic sentences and some supporting details, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     },
+     {
+      "code": "ENG.06.WR.P.2.1",
+      "count": 1,
+      "skill": null,
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on familiar and some unfamiliar concrete topics, giving simple reasons and explanations using simple and an increasing range of complex language and expressions in simple and extended written or multimodal texts, although there may be some inaccuracies, especially with more complex language, and repetition of language and structures."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text of 170 words related to theme. One question asking for the main ideas of the text, using their own words.",
+     "1.2 (25 marks) One question with three prompts to elicit an argumentative text.",
+     "Word count: 150 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the text. Write the main ideas in your own words. Write 3-4 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text related to theme",
+       "words": "170",
+       "tolerance": null
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "3-4 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Argumentative text (opinion)",
+      "genre": "opinion-essay",
+      "instructions": "Write about whether you think _______. Include: • prompt 1 • prompt 2 • prompt 3. Write at least 150 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 150,
+      "length": "at least 150 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-g11glg",
+  "cycle": 3,
+  "title": "Grade 11 GLG - Grade 10 Advanced/11 General – Stage 7 - B1.2-B2.1",
+  "gradeLevelGoal": "Grade 11 GLG",
+  "classes": [
+   {
+    "grade": "10",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "11",
+    "stream": "General"
+   }
+  ],
+  "stage": "7",
+  "cefr": "B1.2-B2.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / Paper-based",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "A Picture of Health",
+      "vocabulary": [
+       "symptoms",
+       "prescription",
+       "fraudulent",
+       "dishonest",
+       "syndrome",
+       "remedy",
+       "nervous",
+       "stress",
+       "toothache",
+       "upset stomach"
+      ]
+     },
+     {
+      "theme": "Infotainment",
+      "vocabulary": [
+       "connectivity",
+       "productivity",
+       "slogan",
+       "commercial",
+       "memorable",
+       "informative",
+       "witness",
+       "investigation",
+       "injuries",
+       "scene"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "160",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.07.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, overall organisation, structure and word choices, adjusting reading rate, skimming, scanning and reading on to understand and interpret extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 text of 160 words (10% either way) with 5 gaps focusing on the target vocabulary.",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Infotainment | News Report: An Airplane Crash",
+      "vocabulary": [
+       "injuries",
+       "witness",
+       "scene",
+       "suffered",
+       "investigation",
+       "fortunately"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.10.1 Passives (present simple passive)",
+     "G.13.4 Present time (present perfect continuous)",
+     "G.4.5 Clauses and phrases (participle clauses)",
+     "G.7.4 Determiners (demonstratives)",
+     "G.6.2 Conjunctions (subordinating)",
+     "G.17.3 Questions (question tags)",
+     "G.2.8 Adverbs (degree)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "narrative",
+     "words": "160",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.07.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, first language, culture, experiences, the main message, overall organisation, structure and word choices, adjusting reading rate, skimming, scanning and reading on to understand and interpret extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 narrative text of 160 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "A Picture of Health | Longevity, Medical advice and the Internet",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "270-300",
+     "tolerance": "10% either way",
+     "cefr": "B1.2 – 2.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.07.RV.CS.2.1",
+      "count": 3,
+      "skill": "Specific Information",
+      "text": "Read and identify specific information in extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B1.2 – 2.1) of 270-300 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer 3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Infotainment | Commercials, Visual Media and language",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "270-300",
+     "tolerance": "10% either way",
+     "cefr": "B2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.07.RV.CS.5.1",
+      "count": 4,
+      "skill": "Details",
+      "text": "Read and identify details in extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.4.1",
+      "count": 1,
+      "skill": "Inference",
+      "text": "Infer the meaning of unknown words and expressions from the context and knowledge of word parts (prefixes, suffixes, etc.) when reading extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.4.2",
+      "count": 1,
+      "skill": null,
+      "text": "Make inferences or predictions about text content, line of argumentation, and the meaning of sections of text, using whole text comprehension, and text features and organisation when reading extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Interpret and explain connections that may require some inference between ideas, perspectives or themes and own experience, background knowledge, other texts or the wider world when reading extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     },
+     {
+      "code": "ENG.07.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of extended written or multimodal texts on familiar and unfamiliar concrete topics that are clearly structured and may use some nonstandard language or expressions."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B2.2) of 270-300 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Guided constructed response",
+    "instructions": "1.1 Read the text. Write the main ideas in your own words. Write 3-4 sentences. 1.2 Main writing prompt. Write an opinion essay in which you _____: • prompt 1 • prompt 2 • prompt 3. Write at least 170 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "A picture of Health | Health Clubs, Talking about Stress",
+      "vocabulary": []
+     },
+     {
+      "theme": "Infotainment | Screens Everywhere!",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.24 Asking for and giving advice",
+     "FL.26 Comparing and contrasting"
+    ],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "170",
+     "tolerance": null,
+     "cefr": null
+    },
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.07.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce extended and detailed written or multimodal texts on familiar and unfamiliar concrete topics, expressing comparisons and justifications where appropriate, where meaning is generally clear, although there may be some inaccuracies, especially with more complex language, and some repetition of language and structures."
+     },
+     {
+      "code": "ENG.07.WR.P.4.1",
+      "count": 1,
+      "skill": "Text structure",
+      "text": "Produce extended written or multimodal texts on familiar and unfamiliar concrete topics that generally follow conventional text-type features appropriate to the task, contain paragraphs with topic sentences and supporting details, and show a developing awareness of audience, although there may be some inaccuracies, especially with more complex language, and some repetition of language and structures."
+     },
+     {
+      "code": "ENG.07.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on familiar and unfamiliar concrete topics, giving reasons and explanations using simple and a wide range of complex language and expressions in extended written or multimodal texts, although there may be some inaccuracies, especially with more complex language, and some repetition of language and structures."
+     },
+     {
+      "code": "ENG.07.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in writing",
+      "text": "Summarise, paraphrase, collate and describe information and arguments from different sources of extended written, spoken or multimodal texts on familiar and unfamiliar concrete topics, giving details where needed using simple and a wide range of complex language and expressions in writing, although there may be some inaccuracies, especially with more complex language, and some repetition of language and structures."
+     }
+    ],
+    "constructLimits": [
+     "1.1 One text of 170 words related to theme. One question asking for the main ideas of the text, using their own words. 15 marks (based on rubric)",
+     "1.2 One prompt about the text with three prompts to elicit an opinion essay.",
+     "Word count: 170 words",
+     "25 marks (based on rubric)"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the text. Write the main ideas in your own words. Write 3-4 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text related to theme",
+       "words": "170",
+       "tolerance": null
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "3-4 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Opinion essay",
+      "genre": "opinion-essay",
+      "instructions": "Main writing prompt. Write an opinion essay in which you _____: • prompt 1 • prompt 2 • prompt 3. Write at least 170 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": {
+       "type": "text related to theme",
+       "words": "170",
+       "tolerance": null
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": 170,
+      "length": "at least 170 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-g12glg",
+  "cycle": 3,
+  "title": "Grade 12 GLG - Grade 11 Advanced/12 General/12 Applied – Stage 8 – B2.1",
+  "gradeLevelGoal": "Grade 12 GLG",
+  "classes": [
+   {
+    "grade": "11",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "12",
+    "stream": "General"
+   },
+   {
+    "grade": "12",
+    "stream": "Applied"
+   }
+  ],
+  "stage": "8",
+  "cefr": "B2.1",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "G11 Adv: SwiftAssess / Paper-based; G12 Gen/App: SwiftAssess / SwiftAssess",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Choose the correct words to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Money Talks",
+      "vocabulary": [
+       "broke",
+       "income",
+       "make ends meet",
+       "raise capital",
+       "student loan",
+       "scholarship",
+       "put aside",
+       "withdrawal",
+       "take risks",
+       "risk-taker",
+       "influence",
+       "persuade"
+      ]
+     },
+     {
+      "theme": "Nail That Job!",
+      "vocabulary": [
+       "career",
+       "occupation",
+       "labor",
+       "internship",
+       "adaptability",
+       "communication",
+       "experience",
+       "shortlisted",
+       "background",
+       "flexible",
+       "rigid"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "170",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.08.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, own culture and experiences, the main message, overall organisation, structure, key points and word choices, adjusting reading rate, skimming, scanning and reading on to understand, interpret and analyse extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 text of 170 words (10% either way) with 5 gaps focusing on the target vocabulary.",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Nail that Job! | Career trends in a changing world",
+      "vocabulary": [
+       "job security",
+       "outsourcing",
+       "workforce",
+       "telecommuting",
+       "flexible / rigid",
+       "globalization",
+       "upgrade (skills)",
+       "drawback"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.19.2 Verb forms (verb + to + infinitive; verb + infinitive; verb + ‘-ing’)",
+     "G.10.3 Passives (present continuous passive)",
+     "G.4.2 Clauses and phrases: non-defining relative clauses",
+     "G.18 Reported speech",
+     "G.2.8 Adverbs (degree)",
+     "G.6.2 Conjunctions (subordinating)",
+     "G.10.1 Passives (present simple passive)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "170",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.08.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, own culture and experiences, the main message, overall organisation, structure, key points and word choices, adjusting reading rate, skimming, scanning and reading on to understand, interpret and analyse extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text of 170 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Money Talks | Consumerism and the human brain, Does money talk?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "300-330",
+     "tolerance": "10% either way",
+     "cefr": "B2.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.08.RV.CS.2.1",
+      "count": 2,
+      "skill": null,
+      "text": "Read and identify specific information in extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.5.1",
+      "count": 3,
+      "skill": null,
+      "text": "Read and identify details in extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.6.1",
+      "count": 1,
+      "skill": null,
+      "text": "Read and identify the main points of extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.4.1",
+      "count": 1,
+      "skill": null,
+      "text": "Infer meaning and make predictions using a variety of strategies, including using contextual clues, whole text knowledge, text features and organisation, etc. when reading extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.1.1",
+      "count": 1,
+      "skill": null,
+      "text": "Read and identify the overall meaning of extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B2.1) of 300-330 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Nail that job | A Man's or a Woman's Job?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "300-330",
+     "tolerance": "10% either way",
+     "cefr": "B2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.08.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.7.1",
+      "count": 1,
+      "skill": "Mood, tone and attitude",
+      "text": "Identify and analyse mood, tone or attitude when reading extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer meaning and make predictions using a variety of strategies, including using contextual clues, whole text knowledge, text features and organisation, etc. when reading extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.3.1",
+      "count": 1,
+      "skill": null,
+      "text": "Interpret and analyse explicit and implicit connections between ideas, perspectives or themes and own experience, background knowledge, other texts or the wider world to support conclusions when reading extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     },
+     {
+      "code": "ENG.08.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of extended written or multimodal texts on concrete and some abstract topics that may use some nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (B2.2) of 300-330 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Guided constructed response",
+    "instructions": "1.1 Read the text. Write the main ideas in your own words. Write 4-5 sentences. 1.2 Main writing prompt. Write an opinion essay in which you: • prompt 1 • prompt 2 • prompt 3. Write at least 200 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "Nail that job | Essential Skills for Your Future Career",
+      "vocabulary": []
+     },
+     {
+      "theme": "Money Talks | The effects of advertising (see Week 4)",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.46 Developing an evidence-based argument",
+     "FL.16 Expressing opinion",
+     "FL.24 Asking for and giving advice"
+    ],
+    "text": {
+     "count": 1,
+     "type": "text that states facts and presents arguments",
+     "words": "180",
+     "tolerance": null,
+     "cefr": null
+    },
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.08.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce clear, extended and detailed written or multimodal texts on concrete and some abstract topics, expressing comparisons and justifications where appropriate, where meaning is clear, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
+     },
+     {
+      "code": "ENG.08.WR.P.4.1",
+      "count": 1,
+      "skill": "Text Structure",
+      "text": "Produce extended, structured written or multimodal texts on concrete and some abstract topics that follow conventional text-type features appropriate to the task, contain paragraphs with topic sentences and supporting details, and show an increasing awareness of audience, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
+     },
+     {
+      "code": "ENG.08.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on concrete and some abstract topics, giving detailed reasons and explanations using simple and complex language and expressions in extended written or multimodal texts, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
+     },
+     {
+      "code": "ENG.08.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in writing",
+      "text": "Summarise, paraphrase and synthesise information and arguments from a variety of sources of extended written, spoken or multimodal texts on concrete and some abstract topics, giving details where needed using simple and complex language and expressions in writing, although there may be some repetition of language and structures, and some inaccuracies with more complex language."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text of 180 words related to theme that states facts and presents arguments. One question asking what the main ideas of the text are.",
+     "1.2 (25 marks) One sentence introducing the topic.",
+     "One question asking them to write an opinion essay with 3 prompts.",
+     "Word count: 200 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea",
+      "genre": "main-idea",
+      "instructions": "Read the text. Write the main ideas in your own words. Write 4-5 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text related to theme that states facts and presents arguments",
+       "words": "180",
+       "tolerance": null
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "4-5 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Opinion essay",
+      "genre": "opinion-essay",
+      "instructions": "Main writing prompt. Write an opinion essay in which you: • prompt 1 • prompt 2 • prompt 3. Write at least 200 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 200,
+      "length": "at least 200 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "c3-g12adv",
+  "cycle": 3,
+  "title": "Beyond Grade 12 GLG - Grade 12 Advanced – Stage 9 – B2.2",
+  "gradeLevelGoal": "Beyond Grade 12 GLG",
+  "classes": [
+   {
+    "grade": "12",
+    "stream": "Advanced"
+   }
+  ],
+  "stage": "9",
+  "cefr": "B2.2",
+  "totalMarks": 100,
+  "readingMarks": 60,
+  "writingMarks": 40,
+  "platform": "SwiftAssess / SwiftAssess",
+  "languageDomains": "Reading & Viewing and Writing & Representing",
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Vocabulary",
+    "level": "Towards Grade Level Goal",
+    "skill": "vocabulary",
+    "taskType": "Multiple-Choice Gap Fill",
+    "instructions": "Choose the correct words to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Pushing Boundaries",
+      "vocabulary": [
+       "privacy",
+       "freedom",
+       "automation",
+       "cost-effective",
+       "interruptions",
+       "distractions",
+       "voyage",
+       "destination",
+       "heritable",
+       "significant",
+       "consequence",
+       "database"
+      ]
+     },
+     {
+      "theme": "Rise to the Challenge!",
+      "vocabulary": [
+       "megacity",
+       "urbanisation",
+       "congestion",
+       "pollution",
+       "infrastructure",
+       "innovative",
+       "kinaesthetic",
+       "auditory",
+       "insulation",
+       "drainage",
+       "biodiversity",
+       "vegetation"
+      ]
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": null,
+     "words": "180",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.09.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, own culture and experiences, the main message, overall organisation, structure, key points, and word and language choices, adjusting reading rate, skimming, scanning and reading on to understand, interpret, evaluate and critically analyse extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 text of 180 words (10% either way) with 5 gaps focusing on the target vocabulary.",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Grammar",
+    "level": "At Grade Level Goal",
+    "skill": "grammar",
+    "taskType": "Multiple-Choice Gap-Fill",
+    "instructions": "Read the text and choose the correct word(s) to complete the sentences. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Rise to the Challege!| My roof is alive!",
+      "vocabulary": [
+       "living roof",
+       "rooftop",
+       "vegetation",
+       "insulation",
+       "drainage",
+       "absorb",
+       "urban heat",
+       "biodiversity",
+       "habitat",
+       "sustainable"
+      ]
+     }
+    ],
+    "grammar": [
+     "G.5.1 Conditionals (Zero)",
+     "G.1.2 Adjectives (comparatives)",
+     "G.2.9 Adverbs (quantity)",
+     "G.10.1 Passives (present simple passive)",
+     "G.17.4 Indirect questions",
+     "G.2.5 Adverbial linkers",
+     "G.2.2 Adverbs (sequencing)"
+    ],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "180",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 5,
+     "format": "gapfill-mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 10
+    },
+    "outcomes": [
+     {
+      "code": "ENG.09.RV.S.3.3",
+      "count": 5,
+      "skill": "Reading Strategies",
+      "text": "Apply a wide range of reading strategies, including, using context, own culture and experiences, the main message, overall organisation, structure, key points, and word and language choices, adjusting reading rate, skimming, scanning and reading on to understand, interpret, evaluate and critically analyse extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text of 180 words (10% either way) with 5 gaps",
+     "3 options, one of which is the correct answer",
+     "2 marks each (total: 10)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3A",
+    "title": "Part 3A: Reading",
+    "level": "At Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answers. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Pushing Boundaries | Personality: Nature or Nurture?",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "argumentative",
+     "words": "330-350",
+     "tolerance": "10% either way",
+     "cefr": "B2.2"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 3,
+     "totalMarks": 24
+    },
+    "outcomes": [
+     {
+      "code": "ENG.09.RV.CS.2.1",
+      "count": 1,
+      "skill": null,
+      "text": "Read and identify specific information in extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.5.1",
+      "count": 4,
+      "skill": null,
+      "text": "Read and identify details in extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.6.1",
+      "count": 1,
+      "skill": null,
+      "text": "Read and identify the main points of extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.4.1",
+      "count": 1,
+      "skill": null,
+      "text": "Infer meaning and make predictions using a variety of strategies, including using contextual clues, whole text knowledge, text features and organisation, etc. when reading extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.1.1",
+      "count": 1,
+      "skill": null,
+      "text": "Read and identify the overall meaning of extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 argumentative text (B2.2) of 330-350 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (3 marks each, total: 24)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3B",
+    "title": "Part 3B: Reading",
+    "level": "Beyond Grade Level Goal",
+    "skill": "reading",
+    "taskType": "Multiple-Choice",
+    "instructions": "Read the text and choose the correct answer. Choose A, B or C.",
+    "themes": [
+     {
+      "theme": "Rise to the Challenge! | Megacities and Small Towns",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [],
+    "text": {
+     "count": 1,
+     "type": "expository",
+     "words": "330-350",
+     "tolerance": "10% either way",
+     "cefr": "C1.1"
+    },
+    "items": {
+     "count": 8,
+     "format": "mc",
+     "options": 3,
+     "marksEach": 2,
+     "totalMarks": 16
+    },
+    "outcomes": [
+     {
+      "code": "ENG.09.RV.CS.5.1",
+      "count": 3,
+      "skill": "Details",
+      "text": "Read and identify details in extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.4.1",
+      "count": 2,
+      "skill": "Inference",
+      "text": "Infer meaning and make predictions using a variety of strategies, including using contextual clues, whole text knowledge, text features and organisation, etc. when reading extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.7.1",
+      "count": 1,
+      "skill": "Mood and Tone",
+      "text": "Analyse and evaluate mood, tone or attitude, whether implicit or explicit, when reading extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.3.1",
+      "count": 1,
+      "skill": "Connections",
+      "text": "Analyse and evaluate explicit and implicit connections between ideas, themes or perspectives and own experience, background knowledge, other texts or the wider world to support interpretation when reading extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     },
+     {
+      "code": "ENG.09.RV.CS.1.1",
+      "count": 1,
+      "skill": "Overall Meaning",
+      "text": "Read and identify the overall meaning of extended and some complex written or multimodal texts on concrete and some abstract topics that may use nonstandard language."
+     }
+    ],
+    "constructLimits": [
+     "1 expository text (C1.1) of 330-350 words (10% either way)",
+     "8 questions with 3 options, one of which is the correct answer (2 marks each, total: 16)"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level Goal",
+    "skill": "writing",
+    "taskType": "Guided constructed response",
+    "instructions": "1.1 Read the text. Compare and contrast the two points of view presented. Summarize the main ideas in your own words. Write 4-5 sentences. 1.2 Write an essay about _____ in which you compare _______. • prompt 1 • prompt 2 • prompt 3. Write at least 220 words in paragraphs.",
+    "themes": [
+     {
+      "theme": "Rise to the Challenge | Smart Homes",
+      "vocabulary": []
+     },
+     {
+      "theme": "Rise to the Challenge | Comparing Places: A Critical Response",
+      "vocabulary": []
+     }
+    ],
+    "grammar": [],
+    "functionalLanguage": [
+     "FL.26 Comparing and contrasting"
+    ],
+    "text": {
+     "count": 1,
+     "type": "text presenting two different points of view, each in a separate paragraph",
+     "words": "200",
+     "tolerance": "10% either way",
+     "cefr": null
+    },
+    "items": {
+     "count": 2,
+     "format": "writing",
+     "options": null,
+     "marksEach": null,
+     "totalMarks": 40
+    },
+    "outcomes": [
+     {
+      "code": "ENG.09.WR.S.6.1",
+      "count": 1,
+      "skill": "Processing text in Writing",
+      "text": "Summarise, paraphrase, synthesise, compare, contrast and explain information and arguments from a variety of sources of extended and some complex texts on concrete and some abstract topics, giving details where needed using simple and complex language and expressions in writing, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
+     },
+     {
+      "code": "ENG.09.WR.P.1.1",
+      "count": 1,
+      "skill": "Fluency in text production",
+      "text": "Produce clear, extended and detailed written or multimodal texts on concrete and some abstract topics, expressing comparisons, justifications and conditions where appropriate, where meaning is clear, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
+     },
+     {
+      "code": "ENG.09.WR.P.2.1",
+      "count": 1,
+      "skill": "Presentation and development of ideas",
+      "text": "Express ideas, information, opinions, feelings, emotions and personal perspectives on concrete and some abstract topics, giving detailed reasons and explanations at some length using simple and complex language and expressions in extended written or multimodal texts, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
+     },
+     {
+      "code": "ENG.09.WR.P.4.1",
+      "count": 1,
+      "skill": "Text structure",
+      "text": "Produce extended, structured written or multimodal texts on concrete and some abstract topics that clearly follow conventional text-type features appropriate to the task, contain paragraphs with topic sentences and supporting details, and show a clear awareness of audience, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
+     },
+     {
+      "code": "ENG.09.WR.S.5.1",
+      "count": 1,
+      "skill": "Coherence and cohesion",
+      "text": "Use a wide range of cohesive devices, and referencing or substitution to connect ideas clearly in extended, structured written or multimodal texts on concrete and some abstract topics, ensuring coherence throughout, although there may be repetition of language and structures at times, and more complex language may result in occasional inaccuracies."
+     }
+    ],
+    "constructLimits": [
+     "1.1 (15 marks) One text of 200 words (10% either way) related to the theme, presenting two different points of view, each in a separate paragraph. One question asking what the two points of view presented in the text are, in their own words (the main ideas of the text).",
+     "1.2 (25 marks) One question asking them to write a comparative essay based on ideas similar, but not identical, to the text",
+     "Three prompts comparing the points of view, explaining which point of view they agree with (giving reasons) and supporting their choices",
+     "Word count: 220 words",
+     "40 marks total"
+    ],
+    "writingTasks": [
+     {
+      "id": "1.1",
+      "name": "Main idea (compare and contrast two points of view)",
+      "genre": "main-idea",
+      "instructions": "Read the text. Compare and contrast the two points of view presented. Summarize the main ideas in your own words. Write 4-5 sentences.",
+      "promptBullets": 0,
+      "sourceText": {
+       "type": "text presenting two different points of view, each in a separate paragraph",
+       "words": "200",
+       "tolerance": "10% either way"
+      },
+      "image": false,
+      "wordBank": null,
+      "minWords": null,
+      "length": "4-5 sentences",
+      "marks": 15,
+      "rubric": "main-idea"
+     },
+     {
+      "id": "1.2",
+      "name": "Comparative essay",
+      "genre": "other",
+      "instructions": "Write an essay about _____ in which you compare _______. • prompt 1 • prompt 2 • prompt 3. Write at least 220 words in paragraphs.",
+      "promptBullets": 3,
+      "sourceText": null,
+      "image": false,
+      "wordBank": null,
+      "minWords": 220,
+      "length": "at least 220 words in paragraphs",
+      "marks": 25,
+      "rubric": "writing"
+     }
+    ]
+   }
+  ]
+ }
+]

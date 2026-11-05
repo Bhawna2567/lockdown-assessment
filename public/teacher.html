@@ -297,6 +297,29 @@
         <button id="template-back" class="btn">&larr; Back</button>
         <h1 style="margin:0;">Start a new assessment</h1>
       </div>
+      <div class="panel" id="spec-panel" style="background: linear-gradient(135deg, #e0f2fe, #ecfdf5); border: 2px solid #7dd3fc;">
+        <h2 style="margin-top: 0;">📋 English paper from the MOE test specification <span class="badge" style="background:#0369a1; color:#fff; font-size:11px;">NEW</span></h2>
+        <p class="muted">The AI writes the paper exactly as the official End-of-Term test specification sets it out for your class: the same parts, number of questions, marks, text lengths, themes, vocabulary and learning outcomes. Writing tasks are marked with your grade's MOE rubric. Every part is checked against the specification before it reaches you.</p>
+        <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="field" style="flex:1; min-width:240px; margin:0;">
+            <label>Class</label>
+            <select id="spec-class"><option value="">Loading…</option></select>
+          </div>
+          <div class="field" style="flex:2; min-width:260px; margin:0;">
+            <label>Topic (optional — must fit the themes)</label>
+            <input type="text" id="spec-topic" placeholder="e.g. online shopping, a trip to the museum" />
+          </div>
+        </div>
+        <div id="spec-info" class="muted" style="font-size:13px; margin-top:8px;"></div>
+        <div id="spec-parts" style="margin-top:8px;"></div>
+        <div id="spec-writing" style="margin-top:8px;"></div>
+        <div class="row" style="margin-top:10px; gap:10px; align-items:center;">
+          <button id="spec-generate-btn" class="btn primary">📋 Generate from the specification</button>
+          <span id="spec-total" class="muted" style="font-size:13px;"></span>
+        </div>
+        <div id="spec-status" class="muted" style="font-size:13px; margin-top:6px;"></div>
+      </div>
+
       <div class="panel" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 2px solid #c4b5fd;">
         <h2 style="margin-top: 0;">✨ AI-generated assessment <span class="badge" style="background: #4f46e5; color: white; font-size: 11px;">NEW</span></h2>
         <p class="muted">Tell the AI what you want — like ChatGPT. Optionally upload your scheme of work and the AI will base the questions on it. You review and edit before publishing.</p>
@@ -885,6 +908,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1796000000"></script>
+  <script src="/js/teacher.js?v=1797000000"></script>
 </body>
 </html>

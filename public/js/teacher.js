@@ -1897,6 +1897,7 @@ function renderList() {
             <div class="card-title">${escapeHtml(a.title)}
               <span class="badge ${a.published ? 'green' : ''}">${a.published ? 'Published' : 'Draft'}</span>
               ${a.shuffle === true ? '<span class="badge" style="background:#ede9fe; color:#5b21b6;" title="Every student gets a different order of questions and answer options">🔀 Shuffled for each student</span>' : ''}
+              ${a.spec && a.spec.id ? `<span class="badge" style="background:${a.spec.matches === false ? '#fef3c7; color:#92400e' : '#e0f2fe; color:#075985'};" title="Written from the MOE test specification">📋 MOE specification${a.spec.matches === false ? ' (changed)' : ''}</span>` : ''}
             </div>
             <div class="muted">${meta}</div>
           </div>
@@ -2407,6 +2408,7 @@ function openBuilder(a, presets) {
   //   1. Editing an existing assessment → use saved data.
   //   2. New from template with seed → expand the seed into real sections/questions.
   //   3. Otherwise → empty assessment with one default section.
+  window.ccSpecState = a && a.spec && a.spec.id ? JSON.parse(JSON.stringify(a.spec)) : null;
   if (a) {
     questions = JSON.parse(JSON.stringify(a.questions));
     sections = Array.isArray(a.sections) && a.sections.length
@@ -2980,7 +2982,8 @@ function renderQuestion(q, idx) {
   } else if (q.type === 'essay') {
     body = `<div class="muted">Essay questions are graded manually by the teacher in the Results view.</div>`;
   } else if (q.type === 'writing') {
-    body = `<div class="muted">Auto-graded essays use the writing rubric you select at the top of this builder. Stage 7/8 = 4 criteria × 3 marks (12 total). Stage 3-5 / 5-9 = 5 criteria × 0–8 marks (40 total). You can review and override the AI grade in the essay queue.</div>`;
+    if (q.rubricId) body = `<div class="muted">📋 Marked with the <strong>${escapeHtml(ccRubricTitle(q.rubricId))}</strong>${q.specTask ? ' — Task ' + escapeHtml(q.specTask) : ''} (${q.points} marks). The AI marks it with this rubric; you can review and change the mark in the essay queue. <button class="btn ghost" style="padding:2px 8px; font-size:12px;" onclick="ccShowRubric('${escapeAttr(q.rubricId)}')">View rubric</button></div>`;
+    else body = `<div class="muted">Auto-graded essays use the writing rubric you select at the top of this builder. Stage 7/8 = 4 criteria × 3 marks (12 total). Stage 3-5 / 5-9 = 5 criteria × 0–8 marks (40 total). You can review and override the AI grade in the essay queue.</div>`;
   }
   // Per-question image section. Three states:
   //  1. Image already uploaded → show preview + remove button
@@ -3186,6 +3189,7 @@ els.saveBtn.onclick = async () => {
       published: els.published.value === 'true',
       sections,
       questions,
+      spec: window.ccSpecState ? window.ccSpecState : null,
     };
     if (!payload.title) throw new Error('Title is required');
     if (!payload.questions.length) throw new Error('Add at least one question');
@@ -4144,7 +4148,7 @@ function renderQueueItem(item) {
 
   const ai = item.aiGrade;
   const aiBadge = ai
-    ? `<span class="badge green">AI: ${ai.score}/${ai.maxScore} (Stage ${ai.rubricStage || '?'})</span>`
+    ? `<span class="badge green">AI: ${ai.score}/${ai.maxScore} (${/^[0-9-]+$/.test(String(ai.rubricStage || '')) ? 'Stage ' + ai.rubricStage : escapeHtml(ccRubricTitle(ai.rubricStage || '?'))})</span>`
     : '';
   const aiBreakdown = ai && ai.breakdown
     ? `<div style="padding: 10px; background: #eef5ff; border-radius: 6px; margin-bottom: 10px;">
@@ -10386,7 +10390,7 @@ async function ccDiffShowAlternatives(qid, to, from) {
   if (typeof original !== 'function') return;
   els.saveBtn._ccDiffWrapped = true;
   els.saveBtn.onclick = async (ev) => {
-    if (window._ccDiffSkip || !questions || questions.length < 3) return original.call(els.saveBtn, ev);
+    if (window._ccDiffSkip || window.ccSpecState || !questions || questions.length < 3) return original.call(els.saveBtn, ev);
     els.saveStatus.textContent = 'Checking the difficulty mix…';
     await ccOpenDiffCheck({ gate: true, onSave: () => { window._ccDiffSkip = true; Promise.resolve(original.call(els.saveBtn, ev)).finally(() => { window._ccDiffSkip = false; }); } });
     if (els.saveStatus.textContent === 'Checking the difficulty mix…') els.saveStatus.textContent = '';
@@ -11961,3 +11965,231 @@ function ccPickOptionImage(q, oi) {
     } catch (err) { alert('Could not read that picture: ' + err.message); }
   };
 }
+
+// ════════════════════════════════════════════════════════════════════════
+// 📋 English papers from the MOE test specification
+// The teacher picks her class; the server writes every part exactly as the
+// specification sets it out and checks it. Writing tasks carry the grade's
+// MOE rubric. Papers made this way are checked again when they are saved.
+// ════════════════════════════════════════════════════════════════════════
+window.ccSpecData = null;
+async function ccSpecLoad() {
+  if (window.ccSpecData) return window.ccSpecData;
+  try { window.ccSpecData = await api('/api/specs'); } catch (e) { window.ccSpecData = { blueprints: [], rubrics: [] }; }
+  return window.ccSpecData;
+}
+function ccRubricTitle(id) {
+  const r = ((window.ccSpecData || {}).rubrics || []).find((x) => x.id === id);
+  return r ? `${r.title} (${r.totalMax})` : id;
+}
+async function ccShowRubric(id) {
+  try {
+    const { rubric: r } = await api('/api/specs/rubrics/' + encodeURIComponent(id));
+    const bands = r.bandLabels || [];
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:2147483000; overflow:auto; padding:30px 12px;';
+    ov.innerHTML = `<div style="background:#fff; max-width:1100px; margin:auto; border-radius:12px; padding:18px 20px;">
+      <div style="display:flex; align-items:center; gap:10px;"><h2 style="margin:0; flex:1;">${escapeHtml(r.title)} <span class="muted" style="font-size:14px;">(${r.criteria.length} × ${r.scoreMax} = ${r.totalMax})</span></h2><button class="btn" data-x>Close</button></div>
+      <div style="overflow:auto; margin-top:10px;"><table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead><tr><th style="border:1px solid #cbd5e1; padding:6px; background:#f1f5f9;">Band</th>${r.criteria.map((c) => `<th style="border:1px solid #cbd5e1; padding:6px; background:#f1f5f9;">${escapeHtml(c.name)}</th>`).join('')}</tr></thead>
+        <tbody>${bands.filter((b) => b !== '0').map((b) => `<tr><td style="border:1px solid #cbd5e1; padding:6px; font-weight:700; text-align:center;">${escapeHtml(b)}</td>${r.criteria.map((c) => `<td style="border:1px solid #cbd5e1; padding:6px; vertical-align:top;">${escapeHtml((c.bands || {})[b] || '')}</td>`).join('')}</tr>`).join('')}
+        ${r.zeroRule ? `<tr><td style="border:1px solid #cbd5e1; padding:6px; font-weight:700; text-align:center;">0</td><td colspan="${r.criteria.length}" style="border:1px solid #cbd5e1; padding:6px;">${escapeHtml(r.zeroRule)}</td></tr>` : ''}</tbody></table></div></div>`;
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.hasAttribute('data-x')) ov.remove(); });
+    document.body.appendChild(ov);
+  } catch (e) { alert('Could not open the rubric: ' + e.message); }
+}
+
+// ── The panel on "Start a new assessment" ──
+(function ccSpecPanel() {
+  const sel = document.getElementById('spec-class');
+  if (!sel) return;
+  const $ = (id) => document.getElementById(id);
+  let classes = [];
+  const fill = async () => {
+    const d = await ccSpecLoad();
+    classes = [];
+    (d.blueprints || []).forEach((b) => (b.classes || []).forEach((c) => classes.push({ key: b.id + '|' + c.grade + '|' + c.stream, b, c })));
+    classes.sort((x, y) => Number(x.c.grade) - Number(y.c.grade) || String(x.c.stream).localeCompare(String(y.c.stream)));
+    sel.innerHTML = '<option value="">— Choose your class —</option>' + [1, 2, 3].map((cy) => {
+      const list = classes.filter((x) => x.b.cycle === cy);
+      return list.length ? `<optgroup label="Cycle ${cy}">${list.map((x) => `<option value="${escapeAttr(x.key)}">Grade ${escapeHtml(x.c.grade)} ${escapeHtml(x.c.stream)} — ${escapeHtml(x.b.gradeLevelGoal || '')}</option>`).join('')}</optgroup>` : '';
+    }).join('');
+    render();
+  };
+  const cur = () => classes.find((x) => x.key === sel.value) || null;
+  const total = () => {
+    const x = cur(); if (!x) return;
+    let t = 0;
+    document.querySelectorAll('[data-spec-part]:checked').forEach((cb) => {
+      const p = x.b.parts.find((pp) => pp.id === cb.value);
+      if (p && p.skill !== 'writing') t += Number(p.marks) || 0;
+    });
+    if (document.querySelector('[data-spec-part][data-skill="writing"]:checked')) {
+      const keys = new Set();
+      document.querySelectorAll('[data-spec-w]:checked').forEach((cb) => keys.add(cb.value));
+      const r = document.querySelector('input[name="spec-w12"]:checked'); if (r && document.querySelector('[data-spec-w="1.2"]:checked')) { keys.delete('1.2'); keys.add(r.value); }
+      x.b.writing.filter((w) => keys.has(w.key)).forEach((w) => { t += Number(w.marks) || 0; });
+    }
+    $('spec-total').textContent = `Total: ${t} marks${t === x.b.totalMarks ? ' (full paper)' : ''}`;
+  };
+  function render() {
+    const x = cur();
+    $('spec-info').innerHTML = x ? `<strong>${escapeHtml(x.b.setLabel)}</strong> · ${escapeHtml(x.b.title)}` : '';
+    if (!x) { $('spec-parts').innerHTML = ''; $('spec-writing').innerHTML = ''; $('spec-total').textContent = ''; return; }
+    $('spec-parts').innerHTML = `<div style="font-weight:600; font-size:13px; margin-bottom:4px;">Parts (untick to make a shorter paper)</div>` +
+      x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing' : (p.items || '?') + ' Q'} · ${p.marks} marks)</span></label>`).join('');
+    const ws = x.b.writing || [];
+    const main = ws.filter((w) => !w.alternativeTo);
+    const alt = ws.find((w) => w.alternativeTo);
+    $('spec-writing').innerHTML = ws.length ? `<div style="font-weight:600; font-size:13px; margin-bottom:4px;">Writing tasks</div>` + main.map((w) => `
+      <label style="display:flex; gap:6px; align-items:flex-start; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-w value="${escapeAttr(w.key)}" checked style="width:auto; margin:2px 0 0;">
+        <span><strong>${main.length > 1 ? 'Task ' + escapeHtml(w.id) + ' – ' : ''}${escapeHtml(w.name)}</strong> · ${w.marks} marks · ${escapeHtml(w.length || '')} · <a href="#" data-spec-rub="${escapeAttr(w.rubric)}">${w.rubric === 'main-idea' ? 'Main-idea rubric' : 'Writing rubric'}</a>
+        ${alt && w.id === alt.alternativeTo ? `<div style="margin-top:3px;">Task 1.2 type: <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(w.key)}" checked style="width:auto;"> ${escapeHtml(w.name)} (as in the specification)</label> &nbsp; <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(alt.key)}" style="width:auto;"> ${escapeHtml(alt.name)}</label></div>` : ''}</span></label>`).join('') : '';
+    document.querySelectorAll('[data-spec-part], [data-spec-w], input[name="spec-w12"]').forEach((el) => { el.onchange = () => { $('spec-writing').style.display = document.querySelector('[data-spec-part][data-skill="writing"]:checked') ? '' : 'none'; total(); }; });
+    document.querySelectorAll('[data-spec-rub]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); const r = (window.ccSpecData.rubrics || []).find((rr) => rr.kind === a.getAttribute('data-spec-rub') && rr.classes.some((c) => c.grade === x.c.grade && c.stream === x.c.stream)); if (r) ccShowRubric(r.id); }; });
+    total();
+  }
+  sel.onchange = render;
+  document.addEventListener('click', (e) => { if (e.target && e.target.closest && e.target.closest('#new-btn')) fill(); });
+  fill();
+
+  $('spec-generate-btn').onclick = async () => {
+    const x = cur();
+    if (!x) { $('spec-status').textContent = '⚠ Choose your class first.'; return; }
+    const parts = Array.from(document.querySelectorAll('[data-spec-part]:checked')).map((cb) => cb.value);
+    if (!parts.length) { $('spec-status').textContent = '⚠ Tick at least one part.'; return; }
+    let writing = Array.from(document.querySelectorAll('[data-spec-w]:checked')).map((cb) => cb.value);
+    const r12 = document.querySelector('input[name="spec-w12"]:checked');
+    if (r12 && writing.includes('1.2')) writing = writing.map((k) => (k === '1.2' ? r12.value : k));
+    const wantsWriting = !!document.querySelector('[data-spec-part][data-skill="writing"]:checked');
+    if (wantsWriting && !writing.length) { $('spec-status').textContent = '⚠ Tick at least one writing task, or untick the writing part.'; return; }
+    const btn = $('spec-generate-btn'); btn.disabled = true; btn.style.opacity = '0.6';
+    const start = `🧠 Writing the paper part by part and checking it against the specification… this takes 1–3 minutes.`;
+    $('spec-status').textContent = start;
+    try {
+      const body = JSON.stringify({ grade: x.c.grade, stream: x.c.stream, parts, writing: wantsWriting ? writing : [], topic: ($('spec-topic').value || '').trim() });
+      const job = await ccFetchJobJson('/api/specs/' + encodeURIComponent(x.b.id) + '/generate', body, (sec) => { $('spec-status').textContent = start + ` (${sec}s)`; });
+      const data = job.data || {};
+      if (!job.ok || !data.ok) throw new Error(data.error || 'Generation failed');
+      $('spec-status').textContent = `✓ ${data.questions.length} questions written${data.check && data.check.ok ? ' and matched to the specification' : ''}. Opening the builder…`;
+      setTimeout(() => {
+        btn.disabled = false; btn.style.opacity = '1'; $('spec-status').textContent = '';
+        ccOpenSpecPaper(data);
+      }, 500);
+    } catch (e) {
+      $('spec-status').textContent = '❌ ' + (e.message || 'Generation failed');
+      btn.disabled = false; btn.style.opacity = '1';
+    }
+  };
+})();
+
+// Same as ccFetchJob, but sends JSON.
+async function ccFetchJobJson(url, json, onTick) {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const res = await fetch(url, { method: 'POST', body: json, headers: { 'X-CC-Async': '1', 'Content-Type': 'application/json' }, credentials: 'include' });
+  const data = await res.json().catch(() => ({}));
+  if (res.status !== 202 || !data.jobId) return { ok: res.ok, status: res.status, data };
+  const started = Date.now(); let fails = 0;
+  while (Date.now() - started < 10 * 60 * 1000) {
+    await sleep(3000);
+    try {
+      const r = await fetch('/api/jobs/' + encodeURIComponent(data.jobId), { credentials: 'include' });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw Object.assign(new Error(j.error || ('HTTP ' + r.status)), { hard: r.status === 404 || r.status === 403 });
+      fails = 0;
+      if (typeof onTick === 'function') onTick(j.seconds || Math.round((Date.now() - started) / 1000));
+      if (j.state === 'done') { const st = j.status || 200; return { ok: st < 400, status: st, data: j.result || {} }; }
+    } catch (e) { if (e.hard) throw e; if (++fails > 20) throw new Error('Lost connection to the server while waiting — please try again.'); }
+  }
+  throw new Error('This is taking too long — please try again.');
+}
+
+// Open the builder with a paper written from the specification.
+function ccOpenSpecPaper(data) {
+  closeTemplatePicker();
+  openBuilder(null, { subject: 'English' });
+  if (els.title) els.title.value = data.title || '';
+  if (els.description) els.description.value = data.description || '';
+  if (els.subject) els.subject.value = 'English';
+  if (els.assessmentLanguage) els.assessmentLanguage.value = 'English';
+  if (els.grade && data.spec && data.spec.grade) els.grade.value = String(data.spec.grade);
+  if (els.term && data.spec && data.spec.term) els.term.value = String(data.spec.term);
+  if (els.academicYear && data.spec && data.spec.academicYear && !els.academicYear.value) els.academicYear.value = data.spec.academicYear;
+  sections = (data.sections || []).map((s, i) => ({ id: s.id, title: s.title || '', instructions: s.instructions || '', passage: s.passage || '', order: i, specPart: s.specPart }));
+  questions = (data.questions || []).map((q) => Object.assign({ id: uid() }, q));
+  window.ccSpecState = Object.assign({}, data.spec, { matches: data.check ? !!data.check.ok : undefined });
+  renderQuestions();
+  try { if (questions.some((q) => q.imageDescription)) ccAutoPictures(questions); } catch (e) {}
+  ccSpecBanner(data.check, data.notes);
+}
+
+// ── Builder banner: which specification, and does the paper still match? ──
+async function ccSpecCheckNow() {
+  const st = window.ccSpecState;
+  if (!st) return null;
+  return api('/api/specs/' + encodeURIComponent(st.id) + '/check', { method: 'POST', body: { sections, questions, parts: st.parts, writing: st.writing } });
+}
+async function ccSpecBanner(chk, notes) {
+  let el = document.getElementById('cc-spec-banner');
+  const st = window.ccSpecState;
+  if (!st) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'cc-spec-banner';
+    const panel = document.getElementById('builder-questions-panel');
+    const qs = document.getElementById('questions');
+    if (panel && qs) panel.insertBefore(el, qs); else return;
+  }
+  await ccSpecLoad();
+  const b = ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id);
+  if (!chk) { try { chk = await ccSpecCheckNow(); } catch (e) { chk = null; } }
+  const ok = chk && chk.ok;
+  el.style.cssText = `margin:0 0 12px; padding:10px 14px; border-radius:10px; font-size:13px; border:2px solid ${ok ? '#10b981' : '#f59e0b'}; background:${ok ? '#ecfdf5' : '#fffbeb'};`;
+  el.innerHTML = `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <strong>📋 MOE test specification:</strong> ${escapeHtml(b ? `${b.setLabel} · Grade ${st.grade} ${st.stream} · ${b.gradeLevelGoal}` : st.id)}
+      <span style="flex:1;"></span>
+      <button class="btn" id="cc-spec-recheck" style="padding:3px 10px;">↻ Check again</button>
+    </div>
+    <div style="margin-top:4px;">${!chk ? 'Could not check the paper right now.' : ok ? `✅ This paper matches the specification (${chk.total} marks).` : `⚠ <strong>${chk.issues.length} thing${chk.issues.length === 1 ? '' : 's'} do${chk.issues.length === 1 ? 'es' : ''} not match the specification:</strong><ul style="margin:4px 0 0 18px; padding:0;">${chk.issues.slice(0, 12).map((i) => `<li>${escapeHtml(i.msg)}</li>`).join('')}</ul>`}</div>
+    ${notes && notes.length && !ok ? `<div class="muted" style="margin-top:4px;">The AI tried three times on these parts. You can fix them by hand, or generate the paper again.</div>` : ''}`;
+  el.querySelector('#cc-spec-recheck').onclick = () => ccSpecBanner();
+}
+
+// ── Saving a specification paper: check it first ──
+(function ccSpecSaveGate() {
+  if (!els.saveBtn || els.saveBtn._ccSpecWrapped) return;
+  const inner = els.saveBtn.onclick;
+  if (typeof inner !== 'function') return;
+  els.saveBtn._ccSpecWrapped = true;
+  els.saveBtn.onclick = async (ev) => {
+    const st = window.ccSpecState;
+    if (!st || window._ccSpecSkip) return inner.call(els.saveBtn, ev);
+    els.saveStatus.textContent = 'Checking against the test specification…';
+    let chk = null;
+    try { chk = await ccSpecCheckNow(); } catch (e) { chk = null; }
+    els.saveStatus.textContent = '';
+    if (!chk || chk.ok) { st.matches = chk ? true : st.matches; return inner.call(els.saveBtn, ev); }
+    ccSpecBanner(chk);
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,.5); z-index:2147483000; display:flex; align-items:flex-start; justify-content:center; padding:60px 12px; overflow:auto;';
+    ov.innerHTML = `<div style="background:#fff; max-width:560px; width:100%; border-radius:12px; padding:18px 20px;">
+      <h2 style="margin:0 0 6px;">⚠ The paper no longer matches the specification</h2>
+      <ul style="margin:6px 0 0 18px; padding:0; font-size:14px;">${chk.issues.slice(0, 15).map((i) => `<li>${escapeHtml(i.msg)}</li>`).join('')}</ul>
+      <div class="muted" style="font-size:13px; margin-top:10px;">You can go back and fix it, or save it anyway — it will then be marked “changed from the specification” in your list.</div>
+      <div class="row" style="margin-top:14px; gap:8px;"><div class="spacer"></div>
+        <button class="btn" data-a="back">Go back and fix</button>
+        <button class="btn primary" data-a="save">Save anyway</button></div></div>`;
+    document.body.appendChild(ov);
+    ov.querySelector('[data-a="back"]').onclick = () => ov.remove();
+    ov.querySelector('[data-a="save"]').onclick = () => {
+      ov.remove(); st.matches = false; window._ccSpecSkip = true;
+      Promise.resolve(inner.call(els.saveBtn, ev)).finally(() => { window._ccSpecSkip = false; });
+    };
+  };
+})();
+// Show the banner when an existing specification paper is opened.
+(function ccSpecBannerOnOpen() {
+  const bv = document.getElementById('builder-view');
+  if (!bv || !window.MutationObserver) return;
+  new MutationObserver(() => { if (bv.style.display !== 'none') setTimeout(() => ccSpecBanner(), 300); }).observe(bv, { attributes: true, attributeFilter: ['style'] });
+})();
+ccSpecLoad();

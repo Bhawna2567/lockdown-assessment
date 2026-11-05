@@ -1197,6 +1197,7 @@ function normalizeSections(incoming) {
     const instructions = String(s.instructions || '').slice(0, 4000);
     const passage = String(s.passage || '').slice(0, 12000);
     const sec = { id, title, instructions, passage, order: order++ };
+    if (typeof s.specPart === 'string' && /^P[0-9A-Z]{1,4}$/.test(s.specPart)) sec.specPart = s.specPart;
     out.push(sec);
     byId.set(id, sec);
   }
@@ -1206,6 +1207,21 @@ function normalizeSections(incoming) {
 // Allowed question types. 'tfng' = True / False / Not Given (IELTS-style).
 // 'long' = long-answer text (manually graded). Anything else is rejected.
 const QUESTION_TYPES = new Set(['mc', 'tf', 'tfng', 'short', 'long', 'essay', 'writing', 'match']);
+// Test-specification links on a question (part, writing task, grade rubric).
+function _ccSpecQFields(q) {
+  const o = {};
+  if (q && typeof q.specPart === 'string' && /^P[0-9A-Z]{1,4}$/.test(q.specPart)) o.specPart = q.specPart;
+  if (q && typeof q.specTask === 'string' && /^[0-9.]{1,6}$/.test(q.specTask)) o.specTask = q.specTask;
+  if (q && typeof q.rubricId === 'string' && /^[a-z0-9-]{2,60}$/.test(q.rubricId)) o.rubricId = q.rubricId;
+  return o;
+}
+function _ccSpecAssessmentField(spec) {
+  if (!spec || typeof spec !== 'object' || typeof spec.id !== 'string') return null;
+  const ids = (a) => (Array.isArray(a) ? a.map(String).filter((x) => /^[0-9A-Za-z.-]{1,20}$/.test(x)).slice(0, 12) : []);
+  return { id: spec.id.slice(0, 40), set: String(spec.set || '').slice(0, 40), parts: ids(spec.parts), writing: ids(spec.writing),
+    grade: String(spec.grade || '').slice(0, 4), stream: String(spec.stream || '').slice(0, 20), matches: spec.matches === false ? false : spec.matches === true ? true : undefined };
+}
+
 // Pictures as MCQ answer choices: one entry per option ('' = no picture).
 function _ccOptImgs(q) {
   if (!q || normalizeQuestionType(q.type) !== 'mc' || !Array.isArray(q.optionImages)) return [];
@@ -1314,6 +1330,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
         skill: typeof q.skill === 'string' ? q.skill.slice(0, 80) : '',
         focus: typeof q.focus === 'string' ? q.focus.slice(0, 60) : '', outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : '', cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
         explanation: typeof q.explanation === 'string' ? q.explanation.slice(0, 1500) : '',
+        ..._ccSpecQFields(q),
       };
       if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
       else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -1328,6 +1345,7 @@ app.post('/api/assessments', requireTeacher, (req, res) => {
     createdAt: new Date().toISOString(),
   };
   assessment.shuffle = !(req.body && req.body.shuffle === false);
+  { const _sp = _ccSpecAssessmentField(req.body && req.body.spec); if (_sp) assessment.spec = _sp; }
   assessment.showOutcomes = !!(req.body && req.body.showOutcomes);
   assessment.resultsReleased = false;
   const all = readAll('assessments.json');
@@ -1572,6 +1590,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
             outcome: typeof q.outcome === 'string' ? q.outcome.slice(0, 300) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).outcome || ''),
             cefr: /^(A1|A2|B1|B2|C1|C2)$/.test(String(q.cefr || '')) ? String(q.cefr) : '', cefrScale: typeof q.cefrScale === 'string' ? q.cefrScale.slice(0, 80) : '',
             explanation: (typeof q.explanation === 'string' && q.explanation.trim()) ? q.explanation.slice(0, 1500) : (((all[idx].questions || []).find((o) => o.id === q.id) || {}).explanation || ''),
+            ..._ccSpecQFields(q),
           };
           if (type === 'mc') out.correctAnswer = q.correctAnswer ?? 0;
           else if (type === 'tf') out.correctAnswer = q.correctAnswer === true;
@@ -1587,6 +1606,7 @@ app.put('/api/assessments/:id', requireTeacher, (req, res) => {
     updatedAt: new Date().toISOString(),
   };
   if (req.body && req.body.shuffle !== undefined) updated.shuffle = !!req.body.shuffle;
+  if (req.body && req.body.spec !== undefined) { const _sp = _ccSpecAssessmentField(req.body.spec); if (_sp) updated.spec = _sp; else delete updated.spec; }
   if (req.body && req.body.showOutcomes !== undefined) updated.showOutcomes = !!req.body.showOutcomes;
   all[idx] = updated;
   writeAll('assessments.json', all);
@@ -4246,6 +4266,11 @@ try {
     isAdmin: (u) => ADMIN_EMAILS.map((x) => String(x).toLowerCase()).includes(String((u && u.email) || '').toLowerCase()),
     claudeList: (o) => _ccClaudeList(Object.assign({ tier: 'bg' }, o)) });
 } catch (e) { console.error('[imagebank] module failed to load:', e); }
+// ── 📋 MOE test specifications + grade writing rubrics (English EOT) ──
+let _ccSpecs = null;
+try {
+  _ccSpecs = require('./specs')(app, { requireTeacher, readApiKey, claudeFetch: (b, t) => _ccClaudeFetch(b, t), asyncJob: _ccAsyncJob, uuid: uuidv4 });
+} catch (e) { console.error('[specs] module failed to load:', e); }
 
 // ════════════════════════════════════════════════════════════════════════
 //  Weekly difficulty plan (teachers)
@@ -5059,8 +5084,12 @@ async function aiGradeResult(resultId, { questionIds = null, keepTeacher = true 
     const before = (r.manualGrades || {})[q.id];
     if (before && !before.aiGrade && keepTeacher) { out.skipped++; continue; }
 
+    const _specRub = q.rubricId && _ccSpecs ? _ccSpecs.getRubric(q.rubricId) : null;
+    const _sec = (a.sections || []).find((x) => x.id === q.sectionId);
     const graded = await gradeWriting({
       rubricStage: effectiveStage,
+      rubric: _specRub,
+      context: _sec && _sec.passage ? _sec.passage : '',
       prompt: q.prompt,
       essay,
       maxScore: q.points,
@@ -5086,7 +5115,7 @@ async function aiGradeResult(resultId, { questionIds = null, keepTeacher = true 
       aiGrade: true,
       rubricStage: graded.rubricStage,
       gradedAt: new Date().toISOString(),
-      gradedBy: `ClassCurio AI (Stage ${graded.rubricStage} rubric)`,
+      gradedBy: _specRub ? `ClassCurio AI (${_specRub.title})` : `ClassCurio AI (Stage ${graded.rubricStage} rubric)`,
       ...(existing && !existing.aiGrade ? { previousTeacherGrade: existing }
         : existing && existing.previousTeacherGrade ? { previousTeacherGrade: existing.previousTeacherGrade } : {}),
     };

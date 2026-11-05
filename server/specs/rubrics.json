@@ -1,0 +1,1349 @@
+[
+ {
+  "id": "g3g-writing",
+  "title": "Grade 3 Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "3",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 8,
+  "bandLabels": [
+   "7-8",
+   "5-6",
+   "3-4",
+   "1-2",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 8,
+    "bands": {
+     "7-8": "Writes 4–5 clear, relevant sentences, demonstrating the ability to fully address the task, with only one or two minor omissions.",
+     "5-6": "Writes 3 sentences, demonstrating the ability to address the task using short, simple sentences, with a few minor omissions.",
+     "3-4": "Writes 2 sentences, showing some ability to address the task using short, simple sentences, with some omissions.",
+     "1-2": "Shows little ability to address the task relevantly and little to no ability to write short, simple sentences, producing one sentence or only words and phrases."
+    }
+   },
+   {
+    "id": "use_of_vocabulary",
+    "name": "Use of Vocabulary",
+    "max": 8,
+    "bands": {
+     "7-8": "Consistently uses accurate high-frequency words relevant to the task.",
+     "5-6": "Uses relevant high-frequency words related to the task in most of the response, with a few omissions.",
+     "3-4": "Uses some relevant high-frequency words related to the task, with some omissions.",
+     "1-2": "Uses little or no vocabulary related to the task and shows insufficient vocabulary to answer the prompt."
+    }
+   },
+   {
+    "id": "punctuation",
+    "name": "Punctuation",
+    "max": 8,
+    "bands": {
+     "7-8": "Includes appropriate spacing, capitalisation and full stops throughout, with no more than one minor slip.",
+     "5-6": "Includes appropriate spacing, capitalisation and full stops in most of the response, with the occasional omission or error that does not obscure meaning.",
+     "3-4": "Includes appropriate spacing, capitalisation and full stops in some of the response, with some omissions or errors that may disrupt ease of reading.",
+     "1-2": "Includes little or no appropriate spacing, capitalisation and full stops. Frequent errors or missing punctuation make reading a strain."
+    }
+   },
+   {
+    "id": "spelling",
+    "name": "Spelling",
+    "max": 8,
+    "bands": {
+     "7-8": "Demonstrates generally accurate spelling, with minor errors that do not obscure meaning.",
+     "5-6": "Demonstrates some examples of accurate spelling of topic-specific words but makes some errors. Generally, these do not obscure meaning.",
+     "3-4": "Demonstrates occasional examples of accurate spelling of topic-specific words, but also makes consistent errors that may obscure meaning.",
+     "1-2": "Demonstrates almost no control over spelling, making much of the response difficult to read."
+    }
+   },
+   {
+    "id": "handwriting",
+    "name": "Handwriting",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses clear and accurate handwriting throughout, with words and letters consistently formed accurately.",
+     "5-6": "Uses mostly clear and accurate handwriting throughout, with the occasional error that does not impede reading.",
+     "3-4": "Uses handwriting that is generally readable, but some slips or more frequent errors make some words a strain to read.",
+     "1-2": "Uses consistently inaccurate handwriting throughout. Errors in letter and word formation make much of the response very difficult to read."
+    }
+   }
+  ],
+  "zeroRule": "Absent without excuse; clear evidence of cheating; nothing of meaning communicated.",
+  "totalMax": 40
+ },
+ {
+  "id": "g4g-writing",
+  "title": "Grade 4 Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "4",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 8,
+  "bandLabels": [
+   "7-8",
+   "5-6",
+   "3-4",
+   "1-2",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 8,
+    "bands": {
+     "7-8": "Writes 6–7 clear, relevant sentences, demonstrating the ability to fully address the task, with only one or two minor omissions.",
+     "5-6": "Writes 4–5 sentences, demonstrating the ability to address the task using mostly clear sentences, with a few minor omissions.",
+     "3-4": "Writes 2–3 sentences, showing some ability to address the task using simple sentences, with some omissions.",
+     "1-2": "Shows little ability to address the task relevantly and little to no ability to write clear sentences, producing one sentence or only words and phrases."
+    }
+   },
+   {
+    "id": "use_of_vocabulary",
+    "name": "Use of Vocabulary",
+    "max": 8,
+    "bands": {
+     "7-8": "Consistently uses accurate high-frequency words relevant to the task.",
+     "5-6": "Uses relevant high-frequency words related to the task in most of the response, with a few omissions.",
+     "3-4": "Uses some relevant high-frequency words related to the task, with some omissions.",
+     "1-2": "Uses little or no vocabulary related to the task and shows insufficient vocabulary to answer the prompt."
+    }
+   },
+   {
+    "id": "punctuation",
+    "name": "Punctuation",
+    "max": 8,
+    "bands": {
+     "7-8": "Includes appropriate spacing, capitalisation and full stops throughout, with no more than one minor slip.",
+     "5-6": "Includes appropriate spacing, capitalisation and full stops in most of the response, with the occasional omission or error that does not obscure meaning.",
+     "3-4": "Includes appropriate spacing, capitalisation and full stops in some of the response, with some omissions or errors that may disrupt ease of reading.",
+     "1-2": "Includes little or no appropriate spacing, capitalisation and full stops. Frequent errors or missing punctuation make reading a strain."
+    }
+   },
+   {
+    "id": "spelling",
+    "name": "Spelling",
+    "max": 8,
+    "bands": {
+     "7-8": "Demonstrates generally accurate spelling, with minor errors that do not obscure meaning.",
+     "5-6": "Demonstrates some examples of accurate spelling of topic-specific words but makes some errors. Generally, these do not obscure meaning.",
+     "3-4": "Demonstrates occasional examples of accurate spelling of topic-specific words, but also makes consistent errors that may obscure meaning.",
+     "1-2": "Demonstrates almost no control over spelling, making much of the response difficult to read."
+    }
+   },
+   {
+    "id": "handwriting",
+    "name": "Handwriting",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses clear and accurate handwriting throughout, with words and letters consistently formed accurately.",
+     "5-6": "Uses mostly clear and accurate handwriting throughout, with the occasional error that does not impede reading.",
+     "3-4": "Uses handwriting that is generally readable, but some slips or more frequent errors make some words a strain to read.",
+     "1-2": "Uses consistently inaccurate handwriting throughout. Errors in letter and word formation make much of the response very difficult to read."
+    }
+   }
+  ],
+  "zeroRule": "Absent without excuse; clear evidence of cheating; nothing of meaning communicated.",
+  "totalMax": 40
+ },
+ {
+  "id": "g5a-g6g-writing",
+  "title": "Grade 5 Advanced / 6 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "5",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "6",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 8,
+  "bandLabels": [
+   "7-8",
+   "5-6",
+   "3-4",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 8,
+    "bands": {
+     "7-8": "Addresses all parts of the task with relevant ideas, information and opinions. Supports ideas with simple justifications or comparisons where the task calls for them.",
+     "5-6": "Addresses most parts of the task with relevant ideas and information. Attempts a justification, comparison or opinion where the task calls for one, though it may be unclear or undeveloped.",
+     "3-4": "Addresses part of the task, with limited ideas and information. Justifications, comparisons or opinions, where called for, are missing or unclear.",
+     "2": "Gives a very limited response to the task; only a few relevant ideas can be identified.",
+     "1": "Gives isolated words or phrases related to the task; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 8,
+    "bands": {
+     "7-8": "Presents ideas in a logical order that the reader can follow easily, grouping related points together. Links sentences with a range of simple connectors (e.g. and, but, because, so, also, first, then).",
+     "5-6": "Presents ideas in a generally logical order, with occasional jumps. Links sentences with simple connectors, though some links are repetitive or incorrect.",
+     "3-4": "Some ideas can be followed, but their order or connections are often unclear. Sentences are mostly isolated or listed without links.",
+     "2": "Shows little order or connection between ideas.",
+     "1": "Shows no discernible order; writes isolated words or phrases."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses simple and linked sentences with good control of basic structures (e.g. word order, subject–verb agreement, familiar tenses, comparative forms). Some errors occur but do not obscure meaning.",
+     "5-6": "Uses mostly simple sentences with some linked sentences; basic structures are generally controlled. Errors are noticeable and may occasionally obscure meaning.",
+     "3-4": "Many sentences are incomplete or inaccurate, and errors obscure meaning in parts of the response.",
+     "2": "Attempts simple sentences with little control of basic structures; errors obscure much of the meaning.",
+     "1": "Writes mainly isolated words or fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses a range of familiar words, phrases and expressions appropriately to express ideas and opinions. Some limitations are acceptable.",
+     "5-6": "Uses familiar words and phrases adequately to communicate the main ideas. Repetition or inaccurate choices occasionally cause confusion.",
+     "3-4": "Uses a limited range of basic, repetitive words and phrases. Some choices make the intended meaning unclear.",
+     "2": "Uses very few relevant words and phrases; intended meaning is often unclear.",
+     "1": "Uses too few appropriate words to communicate an idea."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 8,
+    "bands": {
+     "7-8": "Spells a wide range of words correctly, including regular patterns and many common irregular words. Uses capital letters, full stops, commas and question marks correctly in almost all sentences, and uses apostrophes and other punctuation with increasing control.",
+     "5-6": "Spells most words correctly, with some errors in irregular words or less common patterns. Uses capital letters, full stops and question marks correctly in most sentences, with some errors in commas or apostrophes.",
+     "3-4": "Spells some words correctly, with frequent errors in regular patterns. Uses capital letters and full stops inconsistently, and some sentence boundaries are unmarked.",
+     "2": "Spells only a few words correctly, and some misspelt words cannot be recognised. Uses capital letters or full stops correctly only occasionally.",
+     "1": "Spells almost no words correctly, and most words cannot be recognised. Uses no punctuation or uses it with no pattern."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 40
+ },
+ {
+  "id": "g5g-writing",
+  "title": "Grade 5 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "5",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 8,
+  "bandLabels": [
+   "7-8",
+   "5-6",
+   "3-4",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task completion",
+    "max": 8,
+    "bands": {
+     "7-8": "Addresses all parts of the task with relevant, simple ideas and information. Gives a simple reason using ‘because’ where the task calls for one.",
+     "5-6": "Addresses most parts of the task with relevant ideas and information. Attempts a simple reason using ‘because’ where the task calls for one, though it may be unclear.",
+     "3-4": "Addresses part of the task, with limited ideas and information. A reason, where called for, is missing or unclear.",
+     "2": "Gives a very limited response to the task; only a few relevant ideas can be identified.",
+     "1": "Gives isolated words or phrases related to the task; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 8,
+    "bands": {
+     "7-8": "Presents ideas in a sensible order that the reader can follow easily. Links some sentences with simple connectors (e.g. and, but, because, so, then).",
+     "5-6": "Presents ideas in a generally sensible order, with occasional jumps. Links some sentences, though linking is repetitive or sometimes incorrect.",
+     "3-4": "Some ideas can be followed, but their order or connections are often unclear. Sentences are mostly isolated.",
+     "2": "Shows little order or connection between ideas.",
+     "1": "Shows no discernible order; writes isolated words or phrases."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses short, simple sentences and some linked sentences with good control of basic structures (e.g. word order, subject–verb agreement, familiar tenses). Most simple sentences are accurate; errors occur mainly in less familiar structures and do not obscure meaning.",
+     "5-6": "Uses mostly short, simple sentences, with basic structures generally controlled. Errors are noticeable, including in simple sentences, and occasionally obscure meaning.",
+     "3-4": "Many sentences are incomplete or inaccurate, and errors obscure meaning in parts of the response.",
+     "2": "Attempts simple sentences with little control of basic structures; errors obscure much of the meaning.",
+     "1": "Writes mainly isolated words or fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses familiar words, phrases and expressions appropriately to express the ideas. Some repetition and limitations are acceptable.",
+     "5-6": "Uses enough familiar words and phrases to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "3-4": "Uses a limited range of familiar words and phrases. Some choices make the intended meaning unclear.",
+     "2": "Uses very few relevant words and phrases; intended meaning is often unclear.",
+     "1": "Uses too few appropriate words to communicate an idea."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 8,
+    "bands": {
+     "7-8": "Spells familiar words correctly and attempts less familiar words plausibly, applying regular spelling patterns. Uses capital letters, full stops, question marks and commas correctly in most sentences, with emerging control of apostrophes, quotation marks and hyphens where used.",
+     "5-6": "Spells most familiar words correctly, with some errors in common patterns or irregular words. Uses capital letters and full stops correctly in most sentences, with some errors or omissions in other punctuation.",
+     "3-4": "Spells some familiar words correctly, with frequent errors in common words and patterns. Uses capital letters and full stops inconsistently, and some sentence boundaries are unmarked.",
+     "2": "Spells only a few familiar words correctly, and some misspelt words cannot be recognised. Uses capital letters or full stops correctly only occasionally.",
+     "1": "Spells almost no words correctly, and most words cannot be recognised. Uses no punctuation or uses it with no pattern."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 40
+ },
+ {
+  "id": "g6a-g7g-writing",
+  "title": "Grade 6 Advanced / 7 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "6",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "7",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 8,
+  "bandLabels": [
+   "7-8",
+   "5-6",
+   "3-4",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 8,
+    "bands": {
+     "7-8": "Addresses all parts of the task with relevant ideas, information, opinions or feelings. Supports points with simple justifications or comparisons where the task calls for them. In recounts, includes the key details of the story, experience or event.",
+     "5-6": "Addresses most parts of the task with relevant ideas and information. Justifications, comparisons or key details are included where called for, but may be limited or undeveloped.",
+     "3-4": "Addresses part of the task, with limited ideas and information. Justifications, comparisons or key details, where called for, are mostly missing or unclear.",
+     "2": "Gives a very limited response to the task; only a few relevant ideas can be identified.",
+     "1": "Gives isolated words or phrases related to the task; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 8,
+    "bands": {
+     "7-8": "Presents ideas in a logical order, with related points grouped together (e.g. in simple paragraphs). Links ideas with a range of connectors, including sequencing words in recounts (e.g. first, then, after that, finally). The response reads as a connected whole.",
+     "5-6": "Presents ideas in a generally logical order, with occasional jumps. Links sentences with simple connectors, though some links are repetitive or incorrect.",
+     "3-4": "Some ideas can be followed, but their order or connections are often unclear. Sentences are mostly isolated or listed without links.",
+     "2": "Shows little order or connection between ideas.",
+     "1": "Shows no discernible order; writes isolated words or phrases."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses simple and linked sentences with good control of familiar structures (e.g. past tenses for recounting events, comparative forms where the task calls for comparisons). Some errors and repetition of structures occur but do not obscure meaning.",
+     "5-6": "Uses simple sentences and some linked sentences, with familiar structures generally controlled. Errors are noticeable and may occasionally obscure meaning.",
+     "3-4": "Many sentences are incomplete or inaccurate, and errors obscure meaning in parts of the response.",
+     "2": "Attempts simple sentences with little control of basic structures; errors obscure much of the meaning.",
+     "1": "Writes mainly isolated words or fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 8,
+    "bands": {
+     "7-8": "Uses a range of familiar words, phrases and expressions appropriately to express ideas, opinions and feelings and to describe events. Some repetition is acceptable.",
+     "5-6": "Uses familiar words and phrases adequately to communicate the main ideas. Repetition or inaccurate choices occasionally cause confusion.",
+     "3-4": "Uses a limited range of basic, repetitive words and phrases. Some choices make the intended meaning unclear.",
+     "2": "Uses very few relevant words and phrases; intended meaning is often unclear.",
+     "1": "Uses too few appropriate words to communicate an idea."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 8,
+    "bands": {
+     "7-8": "Spells a wide range of words correctly, including most common irregular words; errors are occasional. Uses a wide range of punctuation (e.g. capital letters, full stops, commas, question and exclamation marks, apostrophes, quotation marks) with a high level of control.",
+     "5-6": "Spells most words correctly, with some errors in irregular words. Uses capital letters, full stops, commas and question marks correctly in most sentences, with some errors in other punctuation.",
+     "3-4": "Spells some words correctly, with frequent errors in regular patterns. Uses capital letters and full stops inconsistently, and some sentence boundaries are unmarked.",
+     "2": "Spells only a few words correctly, and some misspelt words cannot be recognised. Uses capital letters or full stops correctly only occasionally.",
+     "1": "Spells almost no words correctly, and most words cannot be recognised. Uses no punctuation, or uses it with no pattern."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 40
+ },
+ {
+  "id": "g7a-g8g-writing",
+  "title": "Grade 7 Advanced / 8 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "7",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "8",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt with relevant, well-developed ideas, information and opinions, including feelings or personal perspectives where appropriate. Supports points with justifications, comparisons or examples where the task calls for them.",
+     "4": "Addresses all parts of the prompt with relevant ideas, but one part is less developed than the others. Supports most points with justifications, comparisons or examples.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but simple, and support for points is limited.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organises the response into paragraphs, most with a clear topic sentence and supporting details. Ideas flow logically, linked with a range of connectors within and between paragraphs, with a simple opening and closing.",
+     "4": "Organises the response into paragraphs; some have a topic sentence and supporting details. Ideas are logically ordered and linked, though some connectors are repetitive.",
+     "3": "Groups ideas into at least one paragraph or clear sections, but topic sentences are missing or unclear. Ideas are generally ordered; linking is basic or sometimes incorrect.",
+     "2": "Writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and some complex sentences (e.g. with because, when, if, who, which) with good control. Some errors and repetition of structures occur but do not affect meaning.",
+     "4": "Uses mainly simple and compound sentences, with some complex sentences attempted; structures are generally controlled. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses mainly simple and compound sentences, with basic structures generally controlled. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of phrases and expressions, including some less common and topic-specific words, appropriately to express ideas, opinions and perspectives. Some repetition is acceptable.",
+     "4": "Uses a range of phrases and expressions appropriate to the topic, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells most words correctly, including many challenging words; errors are occasional. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, exclamation marks) with a high level of control.",
+     "4": "Spells common words correctly and some challenging words correctly. Uses a range of punctuation correctly in most sentences, with occasional errors.",
+     "3": "Spells most common words correctly; challenging words are often misspelt. Uses capital letters, full stops, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelt words are hard to recognise. Uses capital letters and full stops inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognised. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25
+ },
+ {
+  "id": "g7a-g8g-main-idea",
+  "title": "Grade 7 Advanced / 8 General Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "7",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "8",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and in own words, and includes the main supporting points where the task asks for them. Clearly distinguishes the main idea from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words. May include an unnecessary minor detail or rely on some copied phrases, but the meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea, or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea, or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of phrases and expressions to express the main idea in own words. Grammar and spelling are generally accurate; some errors and repetition occur but do not affect meaning.",
+     "4": "Uses a range of phrases and expressions, with some repetition. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organisation and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly. Any supporting points are logically ordered and linked (e.g. because, for example, also), and the response is easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganised; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15
+ },
+ {
+  "id": "g8a-g9g-writing",
+  "title": "Grade 08 Advanced / 09 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "8",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "9",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt with relevant, detailed ideas, information and opinions, including feelings or personal perspectives where appropriate. Supports points with reasons, explanations, justifications or comparisons where the task calls for them.",
+     "4": "Addresses all parts of the prompt with relevant ideas, but one part is less developed than the others. Supports most points with reasons, explanations or comparisons.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but simple, and reasons or explanations are limited.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organizes the response into paragraphs with clear topic sentences and supporting details. Shows awareness of the conventional features of the text type (e.g. an opening and closing, a greeting and sign-off in an email). Ideas are linked with a range of connectors within and between paragraphs.",
+     "4": "Organizes the response into paragraphs, most with a topic sentence and supporting details. Uses some features of the text type. Ideas are logically ordered and linked, though some connectors are repetitive.",
+     "3": "Organizes ideas into paragraphs, but topic sentences are missing or unclear in some. Features of the text type are limited. Linking is basic or sometimes incorrect.",
+     "2": "Groups ideas into at most one paragraph, or writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and a limited range of complex sentences (e.g. with because, when, if, although, who, which) with good control. Errors occur mainly in more complex structures and do not affect meaning.",
+     "4": "Uses simple and compound sentences with some complex sentences; structures are generally controlled. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses mainly simple and compound sentences; complex sentences are rarely attempted or often inaccurate. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of phrases and expressions, including some less common and topic-specific words, appropriately to express ideas, opinions and perspectives. Some repetition is acceptable.",
+     "4": "Uses a range of phrases and expressions appropriate to the topic, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells most words correctly, including many challenging words; errors are occasional. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, exclamation marks) with a high level of control.",
+     "4": "Spells common words correctly and some challenging words correctly. Uses a range of punctuation correctly in most sentences, with occasional errors.",
+     "3": "Spells most common words correctly; challenging words are often misspelled. Uses capital letters, periods, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelled words are hard to recognize. Uses capital letters and periods inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognized. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25
+ },
+ {
+  "id": "g8a-g9g-main-idea",
+  "title": "Grade 08 Advanced / 09 General Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "8",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "9",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and in own words and summarizes the main supporting points where the task asks for them. Clearly distinguishes the main points from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words. May include an unnecessary minor detail, omit a supporting point, or rely on some copied phrases, but the meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element of the main idea is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and some complex language (e.g. sentences with because, which, although) to express the main idea in own words. Grammar and spelling are generally accurate; errors occur mainly in more complex language and do not affect meaning.",
+     "4": "Uses mainly simple language, with some complex structures attempted and some repetition. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organization and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly. Supporting points are presented in a logical order and linked with a range of connectors (e.g. because, also, however, for example), and the response is easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganized; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15
+ },
+ {
+  "id": "g9a-g10g-writing",
+  "title": "Grade 9 Advanced / 10 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "9",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "10",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt with relevant, detailed ideas, information and opinions, including feelings or personal perspectives where appropriate. Supports points with reasons and explanations, and with justifications or comparisons, where the task calls for them. In a story or experience, clearly expresses feelings and the reasons for them where the task calls for them.",
+     "4": "Addresses all parts of the prompt with relevant ideas, but one part is less developed than the others. Supports most points with reasons, explanations or comparisons.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but simple, and reasons or explanations are limited.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organizes the response into paragraphs with clear topic sentences and supporting details. Shows increasing awareness of the conventional features of the text type (e.g. an introduction and conclusion in an essay, a greeting and sign-off in an email). Ideas are logically ordered, with events clearly sequenced in a story, and linked with a range of connectors within and between paragraphs.",
+     "4": "Organizes the response into paragraphs, most with a topic sentence and supporting details. Uses some features of the text type. Ideas are logically ordered and linked, though some connectors are repetitive.",
+     "3": "Organizes ideas into paragraphs, but topic sentences are missing or unclear in some. Features of the text type are limited. Linking is basic or sometimes incorrect.",
+     "2": "Groups ideas into at most one paragraph, or writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and an increasing range of complex sentences (e.g. relative clauses, conditionals, passive forms, reported speech) with good control. Errors occur mainly in more complex structures and do not affect meaning.",
+     "4": "Uses simple and compound sentences with a limited range of complex sentences; structures are generally controlled. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses mainly simple and compound sentences; complex sentences are rarely attempted or often inaccurate. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of phrases and expressions, including less common and topic-specific words, appropriately to express ideas, opinions, feelings and perspectives. Some repetition is acceptable.",
+     "4": "Uses a range of phrases and expressions appropriate to the topic, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells most words correctly, including many challenging words; errors are occasional. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, exclamation marks) with a high level of control.",
+     "4": "Spells common words correctly and some challenging words correctly. Uses a range of punctuation correctly in most sentences, with occasional errors.",
+     "3": "Spells most common words correctly; challenging words are often misspelled. Uses capital letters, periods, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelled words are hard to recognize. Uses capital letters and periods inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognized. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25
+ },
+ {
+  "id": "g9a-g10g-main-idea",
+  "title": "Grade 9 Advanced / 10 General Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "9",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "10",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and paraphrases it in own words. Summarizes the main supporting points and arguments, giving details where needed, where the task asks for them. Clearly distinguishes the main points from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words. May include an unnecessary minor detail, omit a supporting point, or rely on some copied phrases, but the meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element of the main idea is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and an increasing range of complex language (e.g. relative clauses, conditionals, passive forms) to express the main idea in own words. Grammar and spelling are generally accurate; errors occur mainly in more complex language and do not affect meaning.",
+     "4": "Uses simple and some complex language, with some repetition. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organization and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly. Supporting points are presented in a logical order and linked with a range of connectors (e.g. because, also, however, for example), and the response is easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganized; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15
+ },
+ {
+  "id": "g10a-g11g-writing",
+  "title": "Grade 10 Advanced / 11 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "10",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "11",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt with relevant, extended and detailed ideas, information and opinions, including feelings or personal perspectives where appropriate. Develops points with reasons and explanations, and with justifications or comparisons, where the task calls for them. In a story or experience, clearly expresses feelings and the reasons for them where the task calls for them.",
+     "4": "Addresses all parts of the prompt with relevant ideas, but one part is less developed than the others. Supports most points with reasons and explanations, though some are brief.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but simple, and reasons or explanations are limited.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organizes the response into paragraphs with clear topic sentences and supporting details. Generally follows the conventional features of the text type (e.g. an introduction and conclusion in an essay, a greeting and sign-off in an email) and shows a developing awareness of audience (e.g. a suitable tone and level of formality). Ideas are logically ordered and linked with a range of connectors within and between paragraphs.",
+     "4": "Organizes the response into paragraphs, most with a topic sentence and supporting details. Uses some features of the text type and shows some awareness of audience, though the tone or level of formality is not always suitable. Ideas are logically ordered and linked, though some connectors are repetitive.",
+     "3": "Organizes ideas into paragraphs, but topic sentences are missing or unclear in some. Features of the text type are limited, and there is little awareness of audience. Linking is basic or sometimes incorrect.",
+     "2": "Groups ideas into at most one paragraph, or writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and a wide range of complex sentences (e.g. relative clauses, conditionals, passive forms, reported speech, participle clauses) with good control. Errors occur mainly in more complex structures and do not affect meaning.",
+     "4": "Uses simple, compound and an increasing range of complex sentences; structures are generally controlled. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses mainly simple and compound sentences with some complex sentences, which are often inaccurate. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of vocabulary, including less common and topic-specific words and expressions, accurately and appropriately to express ideas, opinions, feelings and perspectives. Some repetition is acceptable.",
+     "4": "Uses a range of vocabulary appropriate to the topic, including some less common words, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells most words correctly, including many challenging words; errors are occasional. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, exclamation marks) with a high level of control.",
+     "4": "Spells common words correctly and some challenging words correctly. Uses a range of punctuation correctly in most sentences, with occasional errors.",
+     "3": "Spells most common words correctly; challenging words are often misspelled. Uses capital letters, periods, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelled words are hard to recognize. Uses capital letters and periods inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognized. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25
+ },
+ {
+  "id": "g10a-g11g-main-idea",
+  "title": "Grade 10 Advanced / 11 General Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "10",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "11",
+    "stream": "General"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and paraphrases it in own words. Summarizes and briefly describes the main supporting points and arguments, giving details where needed, where the task asks for them. Clearly distinguishes the main points from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words. May include an unnecessary minor detail, omit a supporting point, or rely on some copied phrases, but the meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element of the main idea is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses simple and a wide range of complex language (e.g. relative clauses, conditionals, passive forms, participle phrases) to express the main idea in own words. Grammar and spelling are generally accurate; errors occur mainly in more complex language and do not affect meaning.",
+     "4": "Uses simple and an increasing range of complex language, with some repetition. Errors are noticeable but rarely affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organization and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly. Supporting points are presented in a logical order and linked with a range of connectors (e.g. because, also, however, for example), and the response is easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganized; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15
+ },
+ {
+  "id": "g11a-g12g-writing",
+  "title": "Grade 11 Advanced / 12 General Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "11",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "12",
+    "stream": "General"
+   },
+   {
+    "grade": "12",
+    "stream": "Applied"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt with relevant, clear and detailed ideas, information and opinions, including feelings or personal perspectives where appropriate, on concrete and abstract aspects of the topic as the task requires. Develops points with detailed reasons and explanations, and with justifications or comparisons, where the task calls for them. In a story or experience, clearly expresses feelings and the reasons for them where the task calls for them.",
+     "4": "Addresses all parts of the prompt with relevant ideas, but one part is less developed than the others. Supports most points with reasons and explanations, though some lack detail.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but simple, and reasons or explanations are limited.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organizes the response into well-developed paragraphs with clear topic sentences and supporting details. Follows the conventional features of the text type (e.g. an introduction and conclusion in an essay, a greeting and sign-off in an email) and shows an increasing awareness of audience through a suitable tone and level of formality. Ideas are logically ordered and linked with a range of connectors within and between paragraphs, so the response reads as a connected whole.",
+     "4": "Organizes the response into paragraphs with topic sentences and supporting details. Generally, follows the features of the text type and shows a developing awareness of audience, though the tone or level of formality is not always consistent. Ideas are logically ordered and linked, though some connectors are repetitive.",
+     "3": "Organizes ideas into paragraphs, but topic sentences are missing or unclear in some. Features of the text type are limited, and there is little awareness of audience. Linking is basic or sometimes incorrect.",
+     "2": "Groups ideas into at most one paragraph or writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses a range of simple and complex sentences (e.g. relative clauses, conditionals, passive forms, reported speech, participle clauses) flexibly and with good control, so meaning is clear throughout. Errors are occasional, occur in more complex structures and do not affect meaning.",
+     "4": "Uses simple and a wide range of complex sentences with generally good control. Errors in more complex structures are noticeable but rarely affect meaning.",
+     "3": "Uses mainly simple and compound sentences with some complex sentences, which are often inaccurate. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of vocabulary, including less common, topic-specific and some abstract words and expressions, precisely and appropriately to express ideas, opinions and perspectives. Some repetition is acceptable.",
+     "4": "Uses a wide range of vocabulary appropriate to the topic, including less common words, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells almost all words correctly, including challenging words; occasional errors occur mainly in less common words. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, colons) accurately to make meaning clear.",
+     "4": "Spells common words and most challenging words correctly. Uses a range of punctuation correctly in most sentences, with occasional errors.",
+     "3": "Spells most common words correctly; challenging words are often misspelled. Uses capital letters, periods, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelled words are hard to recognize. Uses capital letters and periods inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognized. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25,
+  "notes": "12 Applied uses the Grade 12 GLG specification, so it shares this rubric."
+ },
+ {
+  "id": "g11a-g12g-main-idea",
+  "title": "Grade 11 Advanced / 12 General Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "11",
+    "stream": "Advanced"
+   },
+   {
+    "grade": "12",
+    "stream": "General"
+   },
+   {
+    "grade": "12",
+    "stream": "Applied"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and paraphrases it in own words, synthesizing ideas from different parts of the text rather than retelling it in order. Summarizes the main supporting points and arguments, giving details where needed, where the task asks for them. Clearly distinguishes the main points from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words, but may follow the order of the text rather than combining ideas, include an unnecessary minor detail, omit a supporting point, or rely on some copied phrases. The meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element of the main idea is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses a range of simple and complex language flexibly to express the main idea clearly and concisely in own words. Errors are occasional, occur in more complex language and do not affect meaning.",
+     "4": "Uses simple and a wide range of complex language, with some repetition. Errors occur mainly in more complex language and rarely affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organization and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly. Supporting points are presented in a logical order as a connected whole and linked with a range of connectors (e.g. because, also, however, as a result), and the response is clear and easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganized; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15,
+  "notes": "12 Applied uses the Grade 12 GLG specification, so it shares this rubric."
+ },
+ {
+  "id": "g12a-writing",
+  "title": "Grade 12 Advanced Writing Rubric",
+  "kind": "writing",
+  "classes": [
+   {
+    "grade": "12",
+    "stream": "Advanced"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Addresses all parts of the prompt fully, with relevant, clear and detailed ideas, information and opinions, including feelings or personal perspectives where appropriate, on concrete and abstract aspects of the topic as the task requires. Develops points at length with detailed reasons and explanations, with clear emphasis on the most significant points, and with comparisons, justifications or conditions where the task calls for them. In a story or experience, describes the personal significance of the events where the task calls for it.",
+     "4": "Addresses all parts of the prompt with relevant, detailed ideas, but one part is less developed than the others, or the most significant points are not clearly emphasized. Supports most points with detailed reasons and explanations.",
+     "3": "Addresses most parts of the prompt: one part is missing or only mentioned. Ideas are relevant but general, and reasons or explanations are limited or lack detail.",
+     "2": "Addresses only part of the prompt; more than one part is missing or undeveloped. Points have little or no support.",
+     "1": "Gives a few ideas loosely related to the prompt; ideas can hardly be identified."
+    }
+   },
+   {
+    "id": "structure",
+    "name": "Structure",
+    "max": 5,
+    "bands": {
+     "5": "Organizes the response into well-developed paragraphs with clear topic sentences and supporting details. Clearly follows the conventional features of the text type (e.g. an introduction and conclusion in an essay, a greeting and sign-off in an email) and shows a clear awareness of audience through a consistent tone and level of formality suited to the reader and purpose. Ideas flow logically and are linked with a wide range of connectors within and between paragraphs.",
+     "4": "Organizes the response into paragraphs with clear topic sentences and supporting details. Follows the features of the text type and shows awareness of audience, though the tone or level of formality is not always consistent. Ideas are logically ordered and linked with a range of connectors, though some are repetitive.",
+     "3": "Organizes ideas into paragraphs, but topic sentences or supporting details are weak in some. Features of the text type are only partly followed, and awareness of audience is limited. Linking is basic or sometimes incorrect.",
+     "2": "Groups ideas into at most one paragraph or writes connected sentences with little or no paragraphing. The order of ideas is unclear in places.",
+     "1": "Shows little order or connection; writes isolated sentences, phrases or words."
+    }
+   },
+   {
+    "id": "grammar",
+    "name": "Grammar",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of simple and complex sentences (e.g. relative clauses, a range of conditionals, passive forms, reported speech, participle clauses) flexibly and accurately, so meaning is clear throughout. Repetition of structures occurs only at times; occasional errors occur only in more complex structures and do not affect meaning.",
+     "4": "Uses a range of simple and complex sentences flexibly and with good control. Some errors occur in more complex structures but rarely affect meaning.",
+     "3": "Uses simple and compound sentences with a limited range of complex sentences, which are often inaccurate. Errors sometimes affect meaning.",
+     "2": "Uses simple sentences with limited control; frequent errors often affect meaning.",
+     "1": "Writes mainly fragments, with little evidence of complete sentences."
+    }
+   },
+   {
+    "id": "vocabulary",
+    "name": "Vocabulary",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of vocabulary, including less common, topic-specific and abstract words and expressions, precisely and flexibly to express ideas, opinions and perspectives and to emphasize significant points. Repetition occurs only at times.",
+     "4": "Uses a wide range of vocabulary, including less common and topic-specific words, appropriately, with some repetition or occasional inaccurate choices that do not affect meaning.",
+     "3": "Uses mostly common vocabulary that is adequate to communicate the main ideas. Repetition or inaccurate choices sometimes cause confusion.",
+     "2": "Uses limited, repetitive vocabulary that is not sufficient for some parts of the prompt. Word choices often make meaning unclear.",
+     "1": "Uses too few appropriate words to communicate ideas."
+    }
+   },
+   {
+    "id": "spelling_punctuation",
+    "name": "Spelling and Punctuation",
+    "max": 5,
+    "bands": {
+     "5": "Spells almost all words correctly, including challenging words; errors are rare. Uses a wide range of punctuation (e.g. commas in longer sentences, apostrophes, quotation marks, colons) accurately to make meaning clear.",
+     "4": "Spells most words correctly, including most challenging words, with occasional errors. Uses a range of punctuation correctly in most sentences.",
+     "3": "Spells most common words correctly; challenging words are often misspelled. Uses capital letters, periods, commas and question marks correctly in most sentences, with errors in other punctuation.",
+     "2": "Spells some common words correctly, with frequent errors; some misspelled words are hard to recognize. Uses capital letters and periods inconsistently.",
+     "1": "Spells almost no words correctly, and most words cannot be recognized. Uses little or no punctuation."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 25
+ },
+ {
+  "id": "g12a-main-idea",
+  "title": "Grade 12 Advanced Main Idea Writing Rubric",
+  "kind": "main-idea",
+  "classes": [
+   {
+    "grade": "12",
+    "stream": "Advanced"
+   }
+  ],
+  "scoreMin": 0,
+  "scoreMax": 5,
+  "bandLabels": [
+   "5",
+   "4",
+   "3",
+   "2",
+   "1",
+   "0"
+  ],
+  "criteria": [
+   {
+    "id": "task_completion",
+    "name": "Task Completion",
+    "max": 5,
+    "bands": {
+     "5": "Identifies the main idea of the text accurately and explains it clearly in own words, synthesizing ideas from different parts of the text rather than retelling it in order. Summarizes the main supporting points and arguments, giving details where needed, where the task asks for them, and compares or contrasts viewpoints where the text presents more than one. Clearly distinguishes the main points from minor details.",
+     "4": "Identifies the main idea accurately, mostly in own words, but may follow the order of the text rather than combining ideas, include an unnecessary minor detail, omit a supporting point, or rely on some copied phrases. The meaning is accurate.",
+     "3": "Identifies the main idea only partly: an important element of the main idea is missing, or minor details are given the same weight as the main idea. Relies noticeably on copied wording.",
+     "2": "Gives only a small part of the main idea, or presents a detail from the text as the main idea. Relies mostly on copied wording.",
+     "1": "Gives a point that is connected to the text but is not its main idea, or shows no understanding of the text."
+    }
+   },
+   {
+    "id": "language_use",
+    "name": "Language Use",
+    "max": 5,
+    "bands": {
+     "5": "Uses a wide range of simple and complex language flexibly and precisely to express the main idea clearly and concisely in own words. Errors are few, occur only in more complex language and do not affect meaning.",
+     "4": "Uses a range of simple and complex language with some flexibility and some repetition. Errors occur mainly in more complex language and do not affect meaning.",
+     "3": "Uses basic language with frequent repetition. Errors sometimes affect meaning.",
+     "2": "Uses very limited language. Frequent errors in grammar, vocabulary and spelling interfere with meaning.",
+     "1": "Uses isolated words or fragments; errors block meaning."
+    }
+   },
+   {
+    "id": "organization_clarity",
+    "name": "Organization and Clarity",
+    "max": 5,
+    "bands": {
+     "5": "States the main idea clearly and directly, giving emphasis to the most significant points. Supporting points are presented in a logical order as a connected whole and linked with a wide range of connectors, and the response is clear, concise and easy to follow.",
+     "4": "States the main idea clearly. Supporting points are mostly logically ordered, though some links are basic or missing.",
+     "3": "The response can be followed, but the main idea is not stated directly, or points are loosely connected.",
+     "2": "The main point is difficult to find; ideas are poorly sequenced or unconnected.",
+     "1": "Disorganized; meaning is very difficult to follow."
+    }
+   }
+  ],
+  "zeroRule": "No response. Response unrelated to the task. Response wholly copied from the question paper, a source text or any other outside source, including AI tools. (Applies to the whole script: 0 in all criteria.)",
+  "totalMax": 15
+ }
+]

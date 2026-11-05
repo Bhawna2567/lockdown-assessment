@@ -24,7 +24,7 @@ function readApiKey() {
   return '';
 }
 
-function buildPrompt(rubric, prompt, essay) {
+function buildPrompt(rubric, prompt, essay, context) {
   // Generate the JSON shape dynamically from whatever criteria + score range
   // the chosen rubric defines. Old rubrics (Stage 7/8): 4 criteria × 1-3.
   // New rubrics (Stage 3-5, 5-9): 5 criteria × 0-8.
@@ -41,7 +41,19 @@ function buildPrompt(rubric, prompt, essay) {
   // been observed returning the minimum score on every criterion regardless
   // of essay quality — see the issue log.
   const isShortScale = (rubric.scoreMin == null); // Stage 7/8 (1-3 scale)
-  const examples = isShortScale
+  const top = rubric.scoreMax || 5;
+  const examples = rubric.native ? (rubric.kind === 'main-idea'
+    ? [
+        `EXAMPLE A — An answer that copies a sentence from the text or gives one minor detail scores 1-2 per criterion.`,
+        `EXAMPLE B — An answer that gives the main idea mostly in own words but follows the order of the text or misses a supporting point scores about 3-4 per criterion.`,
+        `EXAMPLE C — An answer that states the main idea clearly and concisely in own words, combining ideas from the whole text at the required length, scores ${top} per criterion.`,
+      ]
+    : [
+        `EXAMPLE A — A few words or one sentence barely related to the prompt scores 1 per criterion (0 if unrelated or copied).`,
+        `EXAMPLE B — A response that covers most of the prompt with simple language, below the expected length, scores about the middle band per criterion.`,
+        `EXAMPLE C — A complete, well-organised response at or above the expected length that covers every bullet prompt with accurate, varied language scores the top band (${top}) per criterion.`,
+      ])
+    : isShortScale
     ? [
         `EXAMPLE A — A 5-word answer like "I like my friends very much" should score around 1 per criterion (about 4/12 total) — barely touches the prompt.`,
         `EXAMPLE B — A 150-word paragraph that addresses the prompt, has a clear opening and closing, uses varied vocabulary, with only minor grammar slips, should score 2 per criterion (about 8/12 total).`,
@@ -55,7 +67,9 @@ function buildPrompt(rubric, prompt, essay) {
 
   // The HARD rule that fixes "everyone gets 4" — short essays must get LOW
   // scores explicitly. We tell Claude up front.
-  const shortRule = isShortScale
+  const shortRule = rubric.native
+    ? `CRITICAL: Score each criterion strictly by its band descriptors. ${rubric.zeroRule ? 'Whole-script zero rule: ' + rubric.zeroRule : ''} Do NOT default to the minimum for an honest attempt.`
+    : isShortScale
     ? `CRITICAL: Essays under 20 words MUST score 1 on every criterion. Essays that are completely off-topic or empty MUST score 1 on every criterion. Do NOT default to the minimum for an honest attempt; only give 1 when the work truly fails the descriptor.`
     : `CRITICAL: Essays under 20 words MUST score 0-1 on every criterion. Essays that are completely off-topic or empty MUST score 0 on every criterion. Do NOT default to the minimum for an honest attempt; reserve 0-2 scores for genuinely failing work.`;
 
@@ -71,6 +85,7 @@ function buildPrompt(rubric, prompt, essay) {
     ``,
     shortRule,
     ``,
+    ...(context ? [`=== TEXT THE STUDENT READ FIRST ===`, String(context).slice(0, 6000), ``] : []),
     `=== ASSIGNMENT PROMPT ===`,
     prompt || '(no specific prompt — score on overall writing quality)',
     ``,
@@ -155,12 +170,20 @@ function _ccFlag(status, text) {
   return out;
 }
 
-async function gradeWriting({ rubricStage, prompt, essay, maxScore = 40 }) {
+// MOE grade rubrics (server/specs/rubrics.json) → the shape this grader uses.
+function fromSpecRubric(r) {
+  return {
+    stage: r.id, title: r.title, totalMax: r.totalMax, scoreMin: 0, scoreMax: r.scoreMax, native: true, kind: r.kind, zeroRule: r.zeroRule || '',
+    criteria: (r.criteria || []).map((c) => ({ id: c.id, name: c.name, max: c.max || r.scoreMax, bands: c.bands || {} })),
+  };
+}
+
+async function gradeWriting({ rubricStage, rubric: specRubric, context, prompt, essay, maxScore = 40 }) {
   const apiKey = readApiKey();
   if (!apiKey) {
     return { ok: false, reason: 'no-api-key' };
   }
-  const rubric = getRubric(rubricStage);
+  const rubric = specRubric ? fromSpecRubric(specRubric) : getRubric(rubricStage);
   if (!rubric) {
     return { ok: false, reason: 'no-rubric', detail: `Unknown rubric stage "${rubricStage}"` };
   }
@@ -169,7 +192,7 @@ async function gradeWriting({ rubricStage, prompt, essay, maxScore = 40 }) {
     return { ok: false, reason: 'empty-essay' };
   }
 
-  const userPrompt = buildPrompt(rubric, prompt, text);
+  const userPrompt = buildPrompt(rubric, prompt, text, context);
 
   let raw;
   try {
@@ -191,7 +214,7 @@ async function gradeWriting({ rubricStage, prompt, essay, maxScore = 40 }) {
   // short essays, force them into the bottom band server-side. Prevents the
   // "every student gets 4" symptom on one-word submissions.
   const wordCount = String(text || '').trim().split(/\s+/).filter(Boolean).length;
-  const veryShort = wordCount < 20;
+  const veryShort = wordCount < (rubric.native && rubric.kind === 'main-idea' ? 8 : 20);
 
   // Build a tolerant index of the parsed.criteria object: keys are normalised
   // to lower-case-no-punctuation so 'Content', 'content', 'content_score',
@@ -275,7 +298,8 @@ async function gradeWriting({ rubricStage, prompt, essay, maxScore = 40 }) {
   // stage the teacher chose. Stage 3-5 / 5-9 already use totalMax=40
   // (so this is a no-op). Stage 7 / 8 use totalMax=12 internally — we
   // scale linearly so a 9/12 raw becomes 30/40.
-  const TARGET_MAX = 40;
+  // MOE grade rubrics are scaled to the question's own marks (15 / 25 / 40).
+  const TARGET_MAX = rubric.native ? (Number(maxScore) > 0 ? Number(maxScore) : rubric.totalMax) : 40;
   const scaledScore = rubric.totalMax > 0
     ? Math.round((total * TARGET_MAX / rubric.totalMax) * 10) / 10
     : 0;
