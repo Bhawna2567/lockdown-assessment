@@ -56,7 +56,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1796000000" />
+  <link rel="stylesheet" href="/css/styles.css?v=1800000000" />
   <style id="cc-dashboard-closes-builder">
     /* Loaded after styles.css and more specific, so it always wins:
      * on the dashboard, the builder's questions + Save row never show. */
@@ -294,52 +294,61 @@
 
     <!-- TEMPLATE PICKER: shown when user clicks "+ New assessment" -->
     <div id="template-picker" style="display:none;">
-      <div class="row" style="margin-bottom: 12px;">
-        <button id="template-back" class="btn">&larr; Back</button>
-        <h1 style="margin:0;">Start a new assessment</h1>
-      </div>
-      <div class="panel" id="spec-panel" style="background: linear-gradient(135deg, #e0f2fe, #ecfdf5); border: 2px solid #7dd3fc;">
-        <h2 style="margin-top: 0;">📋 English paper from the MOE test specification <span class="badge" style="background:#0369a1; color:#fff; font-size:11px;">NEW</span></h2>
-        <p class="muted">The AI writes the paper exactly as the official End-of-Term test specification sets it out for your class: the same parts, number of questions, marks, text lengths, themes, vocabulary and learning outcomes. Writing tasks are marked with your grade's MOE rubric. Every part is checked against the specification before it reaches you.</p>
-        <div class="row" style="gap:12px; flex-wrap:wrap; align-items:flex-end;">
-          <div class="field" id="spec-set-wrap" style="flex:1; min-width:200px; margin:0; display:none;">
-            <label>Specification</label>
-            <select id="spec-set"></select>
-          </div>
-          <div class="field" style="flex:1; min-width:240px; margin:0;">
-            <label>Class</label>
-            <select id="spec-class"><option value="">Loading…</option></select>
-          </div>
-          <div class="field" style="flex:1; min-width:200px; margin:0;">
-            <label>Paper length</label>
-            <select id="spec-size">
-              <option value="full">Full paper (as in the specification)</option>
-              <option value="half">Half-length quiz (about half the questions)</option>
-              <option value="quarter">Short quiz (about a quarter of the questions)</option>
-            </select>
-          </div>
-          <div class="field" style="flex:2; min-width:260px; margin:0;">
-            <label>Topic (optional — must fit the themes)</label>
-            <input type="text" id="spec-topic" placeholder="e.g. online shopping, a trip to the museum" />
-          </div>
+      <div class="np-head">
+        <button id="template-back" class="btn ghost">&larr; Back</button>
+        <div>
+          <h1 class="np-title">New assessment</h1>
+          <p class="np-sub" id="np-sub">How do you want to start?</p>
         </div>
-        <div id="spec-info" class="muted" style="font-size:13px; margin-top:8px;"></div>
+      </div>
+
+      <div id="np-choose" class="np-cards">
+        <button type="button" class="np-card np-card-main" data-np="spec">
+          <span class="np-tag">English exams</span>
+          <span class="np-card-title">From the MOE specification</span>
+          <span class="np-card-text">The exact parts, marks and writing rubrics of the End-of-Term exam for your class.</span>
+        </button>
+        <button type="button" class="np-card" data-np="ai">
+          <span class="np-card-title">Create with AI</span>
+          <span class="np-card-text">Any subject — from the MOE curriculum lessons, your notes or a short description.</span>
+        </button>
+        <button type="button" class="np-card" data-np="import">
+          <span class="np-card-title">Import a paper</span>
+          <span class="np-card-text">Turn an existing Word or PDF exam into an online assessment.</span>
+        </button>
+      </div>
+
+      <div id="spec-panel" class="np-panel" style="display:none;">
+        <div class="np-panel-head"><h2>From the MOE specification</h2><button type="button" class="btn ghost np-change">Change</button></div>
+        <p class="np-help">The AI writes the paper exactly as the official test specification sets it out for your class, then checks every part against it.</p>
+        <div class="np-grid">
+          <div class="field" id="spec-set-wrap" style="display:none;"><label>Specification</label><select id="spec-set"></select></div>
+          <div class="field"><label>Class</label><select id="spec-class"><option value="">Loading…</option></select></div>
+          <div class="field"><label>Length</label><select id="spec-size">
+              <option value="full">Full paper</option>
+              <option value="half">Half-length quiz</option>
+              <option value="quarter">Short quiz</option>
+            </select></div>
+        </div>
+        <details class="np-more">
+          <summary>Parts, writing tasks and topic</summary>
+          <div class="field" style="margin-top:10px;"><label>Topic (optional)</label><input type="text" id="spec-topic" placeholder="Online shopping, a trip to the museum" /></div>
+          <div id="spec-info" class="muted" style="font-size:13px; margin-top:8px;"></div>
         <div id="spec-parts" style="margin-top:8px;"></div>
         <div id="spec-writing" style="margin-top:8px;"></div>
-        <div class="row" style="margin-top:10px; gap:10px; align-items:center;">
-          <button id="spec-generate-btn" class="btn primary">📋 Generate from the specification</button>
-          <span id="spec-total" class="muted" style="font-size:13px;"></span>
+        
+        </details>
+        <div class="np-actions">
+          <span id="spec-total" class="np-help" style="margin:0;"></span>
+          <button id="spec-generate-btn" class="btn primary">Generate paper</button>
         </div>
-        <div id="spec-status" class="muted" style="font-size:13px; margin-top:6px;"></div>
+        <div id="spec-status" class="np-status"></div>
       </div>
 
-      <div class="panel" style="background: linear-gradient(135deg, #ede9fe, #fce7f3); border: 2px solid #c4b5fd;">
-        <h2 style="margin-top: 0;">✨ AI-generated assessment <span class="badge" style="background: #4f46e5; color: white; font-size: 11px;">NEW</span></h2>
-        <p class="muted">Tell the AI what you want — like ChatGPT. Optionally upload your scheme of work and the AI will base the questions on it. You review and edit before publishing.</p>
-
-        <div class="field">
-          <label>📚 Subject (required)</label>
-          <select id="ai-subject" required>
+      <div id="ai-panel" class="np-panel" style="display:none;">
+        <div class="np-panel-head"><h2>Create with AI</h2><button type="button" class="btn ghost np-change">Change</button></div>
+        <div class="np-grid">
+          <div class="field"><label>Subject</label><select id="ai-subject" required>
             <option value="">— Choose your subject —</option>
             <option value="Math">Math</option>
             <option value="Science">Science</option>
@@ -359,13 +368,43 @@
               <option value="TOEFL">TOEFL</option>
               <option value="PISA">PISA</option>
             <option value="Other">Other</option>
-          </select>
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">Tells the AI to use the right style and conventions — diagrams, formulas, sources, vocabulary — for this subject.</div>
+          </select></div>
+          <div class="field"><label>Length</label>
+            <select id="ai-length">
+              <option value="10">Quick quiz · 10 questions</option>
+              <option value="20">Unit test · 20 questions</option>
+              <option value="30">Full exam · 30 questions</option>
+              <option value="custom">Choose the number…</option>
+            </select>
+            <input type="number" id="ai-count" value="10" min="1" max="50" style="display:none; margin-top:6px;" />
+          </div>
         </div>
-
+        <div class="field np-cur" id="ai-cur-box">
+          <label>Lessons from the MOE curriculum <span class="np-opt">optional</span></label>
+          <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:6px;">
+            <select id="ai-cur-grade" style="width:auto;"><option value="">Grade…</option>
+              <option value="3">Grade 3</option><option value="4">Grade 4</option><option value="5">Grade 5</option><option value="6">Grade 6</option><option value="7">Grade 7</option><option value="8">Grade 8</option>
+              <option value="9">Grade 9</option><option value="10">Grade 10</option><option value="11">Grade 11</option><option value="12">Grade 12</option></select>
+            <select id="ai-cur-stream" style="width:auto; display:none;"><option value="A">Advanced</option><option value="G">General</option></select>
+            <select id="ai-cur-term" style="width:auto;"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+          </div>
+          <div class="row" style="gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+            <span style="font-size:13px;">Class (for outcome coverage)</span>
+            <select id="ai-cov-class" style="width:auto; min-width:200px;"></select>
+            
+          </div>
+          <div id="ai-cov-summary"></div>
+          <div id="ai-cur-status" class="muted" style="font-size:12px; margin-top:6px;">Choose the subject and grade to see the lessons.</div>
+          <div id="ai-cur-list" style="max-height:260px; overflow:auto; margin-top:6px;"></div>
+        </div>
         <div class="field">
-          <label>🌐 Generate the assessment in this language</label>
-          <select id="ai-language">
+          <label>Anything else for the AI? <span class="np-opt">optional</span></label>
+          <textarea id="ai-prompt" rows="3" placeholder="Include two graph questions and one long-answer question about forces."></textarea>
+        </div>
+        <details class="np-more" id="ai-more">
+          <summary>More options</summary>
+          <div class="np-grid" style="margin-top:10px;">
+            <div class="field"><label>Language of the paper</label><select id="ai-language">
             <option value="English">English</option>
             <optgroup label="Most common in international schools">
               <option value="Arabic">Arabic — العربية</option>
@@ -408,129 +447,59 @@
               <option value="Polish">Polish — Polski</option>
               <option value="Dutch">Dutch — Nederlands</option>
             </optgroup>
-          </select>
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">The AI will write the title, descriptions, prompts, options, and answer keys entirely in this language. Right-to-left scripts (Arabic, Hebrew, Urdu, Persian) are handled correctly.</div>
-        </div>
-
-        <div class="field">
-          <label>📎 Scheme of work (optional) — up to 20 files</label>
-          <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg,.gif,.webp" multiple />
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">
-            Upload one or more PDFs, Word docs, text files, <strong>or screenshots</strong> of your unit plan, syllabus, textbook pages, or chapter summary.
-            Screenshots are read by the AI directly — diagrams, formulas, handwritten notes, Arabic text, all fine. Max 20 files; each image under 4&nbsp;MB.
+          </select></div>
+            <div class="field"><label>Assessment date <span class="np-opt">sets the weekly difficulty</span></label><input type="date" id="ai-week-date" /><div id="ai-week-info" class="np-help"></div></div>
           </div>
-          <div id="ai-sow-files-list" class="muted" style="font-size: 12px; margin-top: 6px;"></div>
-        </div>
-
-        <div class="field" id="ai-cur-box" style="border:1px solid #c7d2fe; background:#f5f7ff; border-radius:10px; padding:12px 14px;">
-          <label>📘 Base it on the MOE curriculum (optional)</label>
-          <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:6px;">
-            <select id="ai-cur-grade" style="width:auto;"><option value="">Grade…</option>
-              <option value="3">Grade 3</option><option value="4">Grade 4</option><option value="5">Grade 5</option><option value="6">Grade 6</option><option value="7">Grade 7</option><option value="8">Grade 8</option>
-              <option value="9">Grade 9</option><option value="10">Grade 10</option><option value="11">Grade 11</option><option value="12">Grade 12</option></select>
-            <select id="ai-cur-stream" style="width:auto; display:none;"><option value="A">Advanced</option><option value="G">General</option></select>
-            <select id="ai-cur-term" style="width:auto;"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+          <div class="field"><label>Your own material <span class="np-opt">scheme of work, notes, textbook pages — up to 20 files</span></label>
+            <input type="file" id="ai-sow-file" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg,.gif,.webp" multiple />
+            <div id="ai-sow-files-list" class="np-help"></div></div>
+          <div class="np-grid">
+            <div class="field"><label>Question types</label><div id="ai-qtypes" data-cc-multi="qtypes"></div></div>
+            <div class="field" id="ai-focus-field"><label>Question focus</label><div id="ai-focus" data-cc-multi="focus"></div></div>
+            <div class="field" id="ai-skills-field"><label>Skills to assess</label><div id="ai-skills" data-cc-multi="skills"></div></div>
           </div>
-          <div class="row" style="gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
-            <span style="font-size:13px; font-weight:600;">🎯 Class:</span>
-            <select id="ai-cov-class" style="width:auto; min-width:200px;"></select>
-            <span class="muted" style="font-size:12px;">shows which outcomes this class has not been assessed on yet</span>
+          <div class="np-grid" id="ai-cefr-row" style="display:none;">
+            <div class="field"><label>CEFR level</label><div id="ai-cefr" data-cc-multi="cefr"></div></div>
+            <div class="field"><label>CEFR scales</label><div id="ai-cefr-scales" data-cc-multi="cefrscales"></div></div>
           </div>
-          <div id="ai-cov-summary"></div>
-          <div id="ai-cur-status" class="muted" style="font-size:12px; margin-top:6px;">Pick the subject above, then the grade — the lessons from the MOE curriculum appear here. Tick the lessons this assessment should cover.</div>
-          <div id="ai-cur-list" style="max-height:260px; overflow:auto; margin-top:6px;"></div>
+          <label class="np-check"><input type="checkbox" id="ai-want-graphics" checked /> Suggest pictures where they help</label>
+          <label class="np-check"><input type="checkbox" id="ai-auto-pictures" checked /> Add the pictures automatically (AI diagrams or free-licence photos)</label>
+        </details>
+        <div class="np-actions">
+          <span class="np-help" style="margin:0;">The draft opens for you to review before anything is published.</span>
+          <button id="ai-generate-btn" class="btn primary">Generate</button>
         </div>
-
-        <div class="field">
-          <label>📅 Date of this assessment (sets the weekly difficulty level)</label>
-          <input type="date" id="ai-week-date" style="width:auto;" />
-          <div id="ai-week-info" class="muted" style="font-size:12px; margin-top:4px;"></div>
-        </div>
-
-        <div class="field">
-          <label>💬 Tell the AI what to generate</label>
-          <textarea id="ai-prompt" rows="4" placeholder="Examples:&#10;• 15 multiple-choice questions on photosynthesis for Grade 9&#10;• A 25-question mixed assessment on World War 2 — MCQs, true/false, plus 2 essay questions&#10;• 10 short-answer math problems on quadratic equations, with answer keys&#10;• A reading-comprehension test from Surah Al-Baqarah verses 1–10"></textarea>
-        </div>
-
-        <div class="field">
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="ai-want-graphics" checked style="width: 16px; height: 16px;" />
-            <span>🖼 Suggest graphics where helpful (recommended)</span>
-          </label>
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">When ticked, the AI flags which questions would benefit from a diagram, chart, or image — and describes what to upload. You can still add your own graphics manually to any question.</div>
-          <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
-            <input type="checkbox" id="ai-auto-pictures" checked style="width: 16px; height: 16px;" />
-            <span>🎨 Add the pictures automatically (3D-style diagrams drawn by AI, or free-licence photos)</span>
-          </label>
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">Diagrams with labels or numbers are drawn exactly for the question; real-life photos come from Wikimedia Commons with the credit added. Every picture is saved in the school 🗂 Image bank so other teachers can reuse it. Always check the pictures before saving.</div>
-        </div>
-
-        <div class="row" style="gap:14px; flex-wrap:wrap; align-items:flex-start;">
-          <div class="field" style="flex:1 1 320px; margin-bottom:0;">
-            <label>🧩 Question types (optional)</label>
-            <div id="ai-qtypes" data-cc-multi="qtypes"></div>
-            <div class="muted" style="font-size:12px; margin-top:4px;">Tick the types you want and, if you like, how many of each — no need to type it in the instructions.</div>
-          </div>
-          <div class="field" id="ai-focus-field" style="flex:1 1 260px; margin-bottom:0;">
-            <label>🔎 Question focus (optional)</label>
-            <div id="ai-focus" data-cc-multi="focus"></div>
-            <div class="muted" style="font-size:12px; margin-top:4px;">What each question tests — e.g. main idea, inference, vocabulary. Add counts if you like.</div>
-          </div>
-          <div class="field" id="ai-skills-field" style="flex:1 1 260px; margin-bottom:0;">
-            <label>📝 Skills to assess (optional)</label>
-            <div id="ai-skills" data-cc-multi="skills"></div>
-            <div class="muted" style="font-size:12px; margin-top:4px;">Language skills and skills from the MOE curriculum — each gets its own section.</div>
-          </div>
-        </div>
-
-        <div class="row" id="ai-cefr-row" style="gap:14px; flex-wrap:wrap; align-items:flex-start; margin-top:12px; display:none;">
-          <div class="field" style="flex:1 1 260px; margin-bottom:0;">
-            <label>🌍 CEFR level (optional)</label>
-            <div id="ai-cefr" data-cc-multi="cefr"></div>
-            <div class="muted" style="font-size:12px; margin-top:4px;">One level, or a mix such as B1 + B2. Add counts if you like — each question is tagged with its level.</div>
-          </div>
-          <div class="field" style="flex:2 1 360px; margin-bottom:0;">
-            <label>📏 CEFR scales (optional)</label>
-            <div id="ai-cefr-scales" data-cc-multi="cefrscales"></div>
-            <div class="muted" style="font-size:12px; margin-top:4px;">The CEFR descriptor scales the questions should assess (Companion Volume 2020).</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field" style="flex: 0 0 200px;">
-            <label>Number of questions</label>
-            <input type="number" id="ai-count" value="10" min="1" max="50" />
-          </div>
-          <div class="spacer"></div>
-          <div class="field" style="margin: 0;">
-            <button id="ai-generate-btn" class="btn primary" style="margin-top: 22px;">✨ Generate assessment</button>
-          </div>
-        </div>
-
-        <div id="ai-status" class="muted" style="font-size: 13px; margin-top: 6px;"></div>
-        <div class="muted" style="font-size: 12px; margin-top: 8px;">
-          ⓘ Requires an Anthropic API key in Settings. Cost: ~$0.05–$0.40 per generation (uses a stronger model for accurate maths and Arabic).
-          The AI's draft opens in the builder where you can edit any question before publishing.
-        </div>
+        <div id="ai-status" class="np-status"></div>
       </div>
 
+      <div id="np-import-host" class="np-panel" style="display:none;">
+        <div class="np-panel-head"><h2>Import a paper</h2><button type="button" class="btn ghost np-change">Change</button></div>
+      </div>
     </div>
 
     <div id="builder-view" style="display:none;">
-      <div class="row" style="margin-bottom: 12px;">
-        <button id="back-btn" class="btn">&larr; Back</button>
-        <h1 id="builder-title" style="margin:0;">New assessment</h1>
-      </div>
-
-      <div class="panel">
-        <div class="field">
-          <label>Title</label>
-          <input type="text" id="title" placeholder="e.g., Midterm Chapter 1-3" />
+      <div class="bld-head">
+        <button id="back-btn" class="btn ghost" title="Back to your assessments">&larr;</button>
+        <div class="bld-head-main">
+          <div id="builder-title" class="bld-kicker">New assessment</div>
+          <input type="text" id="title" class="bld-title" placeholder="Untitled assessment" />
+          <div id="bld-summary" class="bld-summary"></div>
         </div>
+        <div class="bld-head-actions">
+          <button type="button" class="btn" id="bld-settings-btn">Settings</button>
+          <button id="save-btn" class="btn primary">Save</button>
+        </div>
+      </div>
+      <div id="save-status" class="bld-save-status muted"></div>
+
+      <details id="bld-settings" class="bld-settings">
+      <summary>Settings</summary>
+      <div class="panel">
+        <div class="np-panel-head" style="margin-bottom:10px;"><h2>Settings</h2><button type="button" class="btn ghost" onclick="document.getElementById('bld-settings').open=false">Close</button></div>
         <div class="field">
           <label>🏫 Class</label>
           <select id="builder-class"></select>
-          <div class="muted" style="font-size: 12px; margin-top: 4px;">Pick which class this assessment belongs to. Manage classes from the dashboard.</div>
+          
         </div>
         <div class="row">
           <div class="field" style="flex:1;">
@@ -771,27 +740,25 @@
 
       </div>
 
+      </details>
+
       <div class="panel" id="builder-questions-panel">
-        <div class="row" style="margin-bottom: 10px;">
+        <div class="bld-q-head">
           <h2 style="margin:0;">Questions</h2>
-          <button type="button" class="btn" id="tag-skills-btn" style="margin-left:10px; background:#eef2ff; border-color:#c7d2fe; color:#3730a3;" title="AI names the skill each question tests and writes feedback for students">🏷 Tag skills &amp; feedback with AI</button>
+          <span id="bld-q-count" class="muted" style="font-size:13px;"></span>
           <div class="spacer"></div>
-          <button class="btn" data-add="mc">+ Multiple choice</button>
-          <button class="btn" data-add="tf">+ True/False</button>
-          <button class="btn" data-add="tfng">+ True/False/Not Given</button>
-          <button class="btn" data-add="short">+ Short answer</button>
-          <button class="btn" data-add="long">+ Long answer (manual)</button>
-          <button class="btn" data-add="essay">+ Essay (manual grade)</button>
-          <button class="btn" data-add="match">+ Match the following</button>
-          <button class="btn" data-add="writing">+ Essay (auto-graded)</button>
+          <div class="bld-menu" id="bld-tools">
+            <button type="button" class="btn" data-bld-menu>AI tools ▾</button>
+            <div class="bld-menu-list" id="bld-tools-list"><button type="button" class="bld-menu-item" id="tag-skills-btn" title="AI names the skill each question tests and writes feedback for students">🏷 Tag skills &amp; feedback with AI</button></div>
+          </div>
+          <div class="bld-menu" id="bld-add">
+            <button type="button" class="btn primary" data-bld-menu>+ Add question ▾</button>
+            <div class="bld-menu-list"><button class="bld-menu-item" data-add="mc">Multiple choice</button><button class="bld-menu-item" data-add="tf">True/False</button><button class="bld-menu-item" data-add="tfng">True/False/Not Given</button><button class="bld-menu-item" data-add="short">Short answer</button><button class="bld-menu-item" data-add="long">Long answer (manual)</button><button class="bld-menu-item" data-add="essay">Essay (manual grade)</button><button class="bld-menu-item" data-add="match">Match the following</button><button class="bld-menu-item" data-add="writing">Essay (auto-graded)</button></div>
+          </div>
         </div>
         <div id="questions"></div>
       </div>
 
-      <div class="row" id="builder-save-row">
-        <button id="save-btn" class="btn primary">Save assessment</button>
-        <span id="save-status" class="muted"></span>
-      </div>
     </div>
 
     <div id="results-view" style="display:none;">
@@ -911,6 +878,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1799000000"></script>
+  <script src="/js/teacher.js?v=1800000000"></script>
 </body>
 </html>

@@ -2140,7 +2140,59 @@ function openTemplatePicker() {
   if (!els.templatePicker) return openBuilder(null);
   els.templatePicker.style.display = 'block';
   renderTemplateGrid();
+  ccNpShow('');
 }
+
+// Keep each question's "More" section open across re-renders.
+document.addEventListener('toggle', (e) => {
+  const d = e.target;
+  if (!d || !d.matches || !d.matches('details[data-q-more]')) return;
+  const q = (typeof questions !== 'undefined' ? questions : []).find((x) => x.id === d.getAttribute('data-q-more'));
+  if (q) q._moreOpen = d.open;
+}, true);
+
+// ── New assessment: choose a way to start, then show only that form ──
+const _ccNpImportHome = { parent: null, next: null };
+function ccNpShow(which) {
+  const pick = document.getElementById('template-picker');
+  if (!pick) return;
+  const sub = document.getElementById('np-sub');
+  const views = { spec: 'spec-panel', ai: 'ai-panel', import: 'np-import-host' };
+  document.getElementById('np-choose').style.display = which ? 'none' : '';
+  Object.entries(views).forEach(([k, id]) => { const el = document.getElementById(id); if (el) el.style.display = k === which ? '' : 'none'; });
+  if (sub) sub.textContent = which === 'spec' ? 'English exam from the MOE test specification' : which === 'ai' ? 'Create with AI' : which === 'import' ? 'Import a Word or PDF exam' : 'How do you want to start?';
+  // The import box lives on the dashboard; borrow it while "Import a paper" is open.
+  const imp = els.importPanel;
+  if (imp) {
+    if (which === 'import') {
+      if (!_ccNpImportHome.parent) { _ccNpImportHome.parent = imp.parentNode; _ccNpImportHome.next = imp.nextSibling; }
+      const host = document.getElementById('np-import-host');
+      host.appendChild(imp); imp.style.display = 'block'; imp.style.border = '0'; imp.style.padding = '0'; imp.style.boxShadow = 'none';
+      const h = imp.querySelector('h2'); if (h) h.style.display = 'none';
+      const c = document.getElementById('import-close'); if (c) c.style.display = 'none';
+    } else if (_ccNpImportHome.parent && imp.parentNode !== _ccNpImportHome.parent) {
+      _ccNpImportHome.parent.insertBefore(imp, _ccNpImportHome.next);
+      imp.style.display = 'none'; imp.style.border = ''; imp.style.padding = ''; imp.style.boxShadow = '';
+      const h = imp.querySelector('h2'); if (h) h.style.display = '';
+      const c = document.getElementById('import-close'); if (c) c.style.display = '';
+    }
+  }
+  if (which === 'spec') { const sp = document.getElementById('spec-panel'); if (sp) sp.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+}
+document.addEventListener('click', (e) => {
+  const card = e.target && e.target.closest && e.target.closest('[data-np]');
+  if (card) { ccNpShow(card.getAttribute('data-np')); return; }
+  if (e.target && e.target.closest && e.target.closest('.np-change')) ccNpShow('');
+});
+// Length presets fill the question count (Custom shows the number box).
+(function ccNpLength() {
+  const sel = document.getElementById('ai-length'), n = document.getElementById('ai-count');
+  if (!sel || !n) return;
+  sel.onchange = () => {
+    if (sel.value === 'custom') { n.style.display = ''; n.focus(); }
+    else { n.style.display = 'none'; n.value = sel.value; }
+  };
+})();
 function closeTemplatePicker() {
   if (els.templatePicker) els.templatePicker.style.display = 'none';
 }
@@ -2541,27 +2593,21 @@ document.querySelectorAll('button[data-add]').forEach((b) => {
 // up/down and Remove buttons, plus a section-id->name dropdown on each
 // question so teachers can reassign questions between sections.
 function renderSectionPanel(s, sidx) {
+  const hasPassage = !!String(s.passage || '').trim();
   return `
-    <div class="panel" data-section="${s.id}" style="background: #fff7ed; border: 2px solid #fdba74; padding: 14px 16px;">
-      <div class="row" style="margin-bottom: 8px;">
-        <strong style="color: #9a3412;">Section ${sidx + 1}</strong>
-        <div class="spacer"></div>
-        <button class="btn ghost" data-act="sec-up" data-sid="${s.id}">↑</button>
-        <button class="btn ghost" data-act="sec-down" data-sid="${s.id}">↓</button>
-        <button class="btn danger" data-act="sec-remove" data-sid="${s.id}">Remove section</button>
+    <div class="bld-section" data-section="${s.id}">
+      <div class="bld-section-head">
+        <span class="bld-section-no">Section ${sidx + 1}</span>
+        <input type="text" class="bld-section-title" data-sf="title" data-sid="${s.id}" value="${escapeAttr(s.title || '')}" placeholder="Section title, e.g. Part 1: Vocabulary" />
+        <button class="btn ghost q-icon" data-act="sec-up" data-sid="${s.id}" title="Move section up">↑</button>
+        <button class="btn ghost q-icon" data-act="sec-down" data-sid="${s.id}" title="Move section down">↓</button>
+        <button class="btn ghost q-del" data-act="sec-remove" data-sid="${s.id}">Remove</button>
       </div>
-      <div class="field" style="margin-bottom: 8px;">
-        <label>Section title</label>
-        <input type="text" data-sf="title" data-sid="${s.id}" value="${escapeAttr(s.title || '')}" placeholder="e.g. Section A: Reading Comprehension" />
-      </div>
-      <div class="field" style="margin-bottom: 8px;">
-        <label>Instructions (shown to students above the questions)</label>
-        <textarea data-sf="instructions" data-sid="${s.id}" rows="2" placeholder="e.g. Read the passage carefully and answer questions 1-5.">${escapeHtml(s.instructions || '')}</textarea>
-      </div>
-      <div class="field" style="margin-bottom: 0;">
-        <label>Reading passage / source text (optional — shown before this section's questions)</label>
-        <textarea data-sf="passage" data-sid="${s.id}" rows="6" placeholder="Paste a reading passage, source text, story, poem, or case study here.">${escapeHtml(s.passage || '')}</textarea>
-      </div>
+      <textarea class="bld-section-instr" data-sf="instructions" data-sid="${s.id}" rows="1" placeholder="Instructions for students (optional)">${escapeHtml(s.instructions || '')}</textarea>
+      <details class="q-more" ${hasPassage ? 'open' : ''}>
+        <summary>${hasPassage ? 'Reading text' : 'Add a reading text for this section'}</summary>
+        <textarea data-sf="passage" data-sid="${s.id}" rows="${hasPassage ? 8 : 4}" placeholder="Paste a reading passage, source text, story, poem or case study.">${escapeHtml(s.passage || '')}</textarea>
+      </details>
     </div>
   `;
 }
@@ -2931,7 +2977,6 @@ function renderQuestion(q, idx) {
     body = `
       <div class="field">
         <label>Options (check the correct one)</label>
-        <div class="muted" style="font-size:12px; margin:-2px 0 6px;">Each answer can be words, a picture, or both — use 🖼 to add a picture to an option.</div>
         ${q.options.map((opt, oi) => {
           const pic = (q.optionImages || [])[oi] || '';
           return `
@@ -3032,28 +3077,26 @@ function renderQuestion(q, idx) {
     `;
   }
 
+  const _picShown = !!(q.imageUrl || q.imageDescription);
   return `
     <div class="q-row" id="q-${q.id}">
       <div class="row" style="margin-bottom: 8px;">
         <strong>Q${idx + 1}</strong>
         <span class="badge">${typeLabel}</span>
+        <label class="q-marks">Marks <input type="number" min="1" data-f="points" value="${q.points || 1}" /></label>
         <div class="spacer"></div>
-        <button class="btn ghost" data-act="up">↑</button>
-        <button class="btn ghost" data-act="down">↓</button>
-        <button class="btn ghost" data-act="clear" title="Empty this question so you can type or paste a new one">🧹 Clear</button>
-        <button class="btn danger" data-act="remove">Remove</button>
-      </div>
-      <div class="field" style="margin-bottom:6px;">
-        <label style="margin:0 0 2px; color:#4338ca;">📘 Learning outcome <span style="font-weight:400; text-transform:none; letter-spacing:0; color:#94a3b8;">(shown above the question when “Show the learning outcome” is ticked)</span></label>
-        <input type="text" data-f="outcome" dir="auto" value="${escapeAttr(q.outcome || '')}" placeholder="e.g. Infer the meaning of unknown words from context" style="font-style:italic; color:#3730a3; background:#f5f7ff;" />
+        <button class="btn ghost q-icon" data-act="up" title="Move up">↑</button>
+        <button class="btn ghost q-icon" data-act="down" title="Move down">↓</button>
+        <button class="btn ghost" data-act="clear" title="Empty this question so you can type or paste a new one">Clear</button>
+        <button class="btn ghost q-del" data-act="remove">Remove</button>
       </div>
       <div class="field">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
-          <label style="margin:0;">Prompt</label>
-          <span style="font-size:12px; color:#6b7280;">type, paste text, or paste a screenshot of a question (⌘V)</span>
+          <label style="margin:0;">Question</label>
+          
           <span style="flex:1;"></span>
-          <button type="button" class="btn ghost" data-act="shot-upload" style="padding:4px 10px; font-size:12px;">📷 Screenshot → question</button>
-          <button type="button" class="btn ghost" data-act="ai-tidy" style="padding:4px 10px; font-size:12px;" title="Turn pasted text into a clean question with proper maths symbols">✨ Tidy with AI</button>
+          <button type="button" class="btn ghost" data-act="shot-upload" style="padding:4px 10px; font-size:12px;">Screenshot → question</button>
+          <button type="button" class="btn ghost" data-act="ai-tidy" style="padding:4px 10px; font-size:12px;" title="Turn pasted text into a clean question with proper maths symbols">Tidy with AI</button>
           <input type="file" accept="image/*" data-shot-file style="display:none;" />
         </div>
         <textarea data-f="prompt" dir="auto" placeholder="Type the question — or paste a screenshot of a question and the AI will turn it into a real question.">${escapeHtml(q.prompt || '')}</textarea>
@@ -3062,9 +3105,13 @@ function renderQuestion(q, idx) {
         ${q._refitNote ? `<div style="font-size:12px; color:${q._refitNote.kind === 'changed' ? '#1e3a8a' : q._refitNote.kind === 'busy' ? '#4338ca' : q._refitNote.kind === 'error' ? '#b91c1c' : '#166534'}; background:${q._refitNote.kind === 'changed' ? '#dbeafe' : q._refitNote.kind === 'error' ? '#fee2e2' : '#f0fdf4'}; border-radius:6px; padding:6px 10px; margin-top:6px;">${escapeHtml(q._refitNote.text)}${q._refitNote.kind === 'changed' ? ' <button type="button" class="btn ghost" data-act="refit-undo" style="padding:2px 8px; font-size:12px; margin-left:6px;">↩ Undo</button><button type="button" class="btn ghost" data-act="refit-ok" style="padding:2px 8px; font-size:12px; margin-left:4px;">✓ Looks right</button>' : ''}</div>` : ''}
         <div data-math-preview style="display:none; margin-top:8px; padding:10px 12px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:8px;"></div>
       </div>
-      <div class="field">
-        <label>Points</label>
-        <input type="number" min="1" data-f="points" value="${q.points || 1}" style="width: 80px;" />
+      ${body}
+      ${_picShown ? imageSection : ''}
+      <details class="q-more" data-q-more="${q.id}" ${q._moreOpen ? 'open' : ''}>
+        <summary>${_picShown ? '' : 'Picture, '}learning outcome, skill and feedback${q.outcome || q.skill || q.explanation ? ' <span class="q-more-dot">•</span>' : ''}</summary>
+      <div class="field" style="margin-bottom:6px;">
+        <label style="margin:0 0 2px; color:#4338ca;">📘 Learning outcome <span style="font-weight:400; text-transform:none; letter-spacing:0; color:#94a3b8;">(shown above the question when “Show the learning outcome” is ticked)</span></label>
+        <input type="text" data-f="outcome" dir="auto" value="${escapeAttr(q.outcome || '')}" placeholder="e.g. Infer the meaning of unknown words from context" style="font-style:italic; color:#3730a3; background:#f5f7ff;" />
       </div>
       <div class="row" style="gap:10px; align-items:flex-start;">
         <div class="field" style="flex:1; min-width:200px;">
@@ -3088,8 +3135,8 @@ function renderQuestion(q, idx) {
           <textarea data-f="explanation" dir="auto" rows="2" placeholder="Why the correct answer is right, and the common mistake behind the wrong ones.">${escapeHtml(q.explanation || '')}</textarea>
         </div>
       </div>
-      ${imageSection}
-      ${body}
+        ${_picShown ? '' : imageSection}
+      </details>
     </div>
   `;
 }
@@ -7989,7 +8036,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       .observe(document.body, { childList: true, subtree: true });
   }
 
-  window.ccToast('Pro features loaded — press ⌘K to search', { type: 'success', duration: 3000 });
+
 })();
 // ─────────────────────────────────────────────────────────────────────
 
@@ -10112,6 +10159,7 @@ function ccGenerateForOutcomes(p) {
   if (p.classId) { setActiveClassId(p.classId); if (els.classSwitcher) els.classSwitcher.value = p.classId; }
   const nb = document.getElementById('new-btn'); if (nb) nb.click();
   setTimeout(() => {
+    ccNpShow('ai');
     const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
     set('ai-subject', p.subject); set('ai-cur-grade', p.grade); set('ai-cur-stream', p.stream || 'A'); set('ai-cur-term', p.term);
     const cs = document.getElementById('ai-cov-class'); if (cs) { cs.setAttribute('data-want', p.classId); }
@@ -12334,3 +12382,61 @@ async function ccEditSpecSet(id) {
   };
 }
 (function () { const b = document.getElementById('admin-specs'); if (b) b.onclick = () => { const dd = document.getElementById('admin-menu-dropdown'); if (dd) dd.style.display = 'none'; ccOpenSpecAdmin(); }; })();
+
+// ════════════════════════════════════════════════════════════════════════
+// Builder: clean header with a one-line summary, settings tucked away,
+// one "Add question" menu and one "AI tools" menu.
+// ════════════════════════════════════════════════════════════════════════
+(function ccBuilderChrome() {
+  // Drop-down menus (Add question / AI tools)
+  document.addEventListener('click', (e) => {
+    const t = e.target && e.target.closest && e.target.closest('[data-bld-menu]');
+    document.querySelectorAll('.bld-menu.open').forEach((m) => { if (!t || m !== t.parentNode) m.classList.remove('open'); });
+    if (t) { t.parentNode.classList.toggle('open'); return; }
+    const item = e.target && e.target.closest && e.target.closest('.bld-menu-item');
+    if (item) { const m = item.closest('.bld-menu'); if (m) m.classList.remove('open'); }
+  });
+  // AI tool buttons added by other features land in the list — give them the menu look.
+  const list = document.getElementById('bld-tools-list');
+  const tidy = () => {
+    if (!list) return;
+    list.querySelectorAll('button').forEach((b) => {
+      if (b.classList.contains('bld-menu-item') && b.dataset.tidied) return;
+      b.className = 'bld-menu-item'; b.style.cssText = ''; b.dataset.tidied = '1';
+      b.textContent = String(b.textContent || '').replace(/^[^A-Za-z0-9]+\s*/, '');
+    });
+  };
+  tidy();
+  if (list && window.MutationObserver) new MutationObserver(tidy).observe(list, { childList: true });
+  // Settings button opens/closes the settings section.
+  const sb = document.getElementById('bld-settings-btn'), sd = document.getElementById('bld-settings');
+  if (sb && sd) sb.onclick = () => { sd.open = !sd.open; if (sd.open) sd.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  // One-line summary under the title, and the listening panel only when it is needed.
+  const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const txt = (id) => { const el = document.getElementById(id); return el && el.selectedIndex >= 0 && el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : ''; };
+  const update = () => {
+    const bv = document.getElementById('builder-view');
+    if (!bv || bv.style.display === 'none') return;
+    const qs = (typeof questions !== 'undefined' && Array.isArray(questions)) ? questions : [];
+    const marks = qs.reduce((t, q) => t + (Number(q.points) || 0), 0);
+    const parts = [];
+    const cls = txt('builder-class'); if (cls) parts.push(cls);
+    const subj = val('subject'); if (subj) parts.push(subj);
+    if (val('grade')) parts.push('Grade ' + val('grade'));
+    parts.push(`${qs.length} question${qs.length === 1 ? '' : 's'}`, `${Math.round(marks * 10) / 10} marks`, `${val('duration') || 30} min`);
+    parts.push(val('delivery-mode') === 'onsite' ? 'On-site' : 'Online');
+    if ((document.getElementById('shuffle-toggle') || {}).checked) parts.push('Shuffled');
+    parts.push(val('published') === 'true' ? 'Published' : 'Draft');
+    const sum = document.getElementById('bld-summary');
+    const html = parts.map(escapeHtml).join(' · ') + ' <a href="#" id="bld-summary-edit">Edit settings</a>';
+    if (sum && sum.dataset.h !== html) { sum.innerHTML = html; sum.dataset.h = html; const a = document.getElementById('bld-summary-edit'); if (a) a.onclick = (e) => { e.preventDefault(); if (sd) { sd.open = true; sd.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }; }
+    const cnt = document.getElementById('bld-q-count'); if (cnt) cnt.textContent = qs.length ? `${qs.length} · ${Math.round(marks * 10) / 10} marks` : '';
+    const lh = document.getElementById('listening-audio-host');
+    if (lh) {
+      const listening = /^(english|listening|ielts|toefl)$/i.test(subj) || !!val('audio-script').trim() || (document.getElementById('audio-current') || {}).style?.display === 'block';
+      lh.style.display = listening ? '' : 'none';
+    }
+  };
+  setInterval(update, 800);
+  document.addEventListener('input', update); document.addEventListener('change', update);
+})();
