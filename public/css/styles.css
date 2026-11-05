@@ -1500,3 +1500,5 @@ input.bld-section-title:hover, input.bld-section-title:focus { border-color: #c7
 textarea.bld-section-instr { margin-top: 6px; min-height: 36px; font-size: 13.5px; background: #fff; }
 .np-box { margin-top: 12px; background: var(--panel-tint); border: 1px solid #eef0f6; border-radius: 10px; padding: 12px 14px; }
 .np-box-title { font-size: 13px; font-weight: 600; color: var(--muted-strong); margin-bottom: 6px; }
+.btn.np-change { background: var(--primary-soft); color: var(--primary); border: 1px solid var(--primary-line); font-weight: 600; padding: 8px 16px; }
+.btn.np-change:hover { background: var(--primary); color: #fff; border-color: var(--primary); }

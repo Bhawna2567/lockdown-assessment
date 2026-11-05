@@ -56,7 +56,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1801000000" />
+  <link rel="stylesheet" href="/css/styles.css?v=1802000000" />
   <style id="cc-dashboard-closes-builder">
     /* Loaded after styles.css and more specific, so it always wins:
      * on the dashboard, the builder's questions + Save row never show. */
@@ -295,7 +295,7 @@
     <!-- TEMPLATE PICKER: shown when user clicks "+ New assessment" -->
     <div id="template-picker" style="display:none;">
       <div class="np-head">
-        <button id="template-back" class="btn ghost">&larr; Back</button>
+        <button id="template-back" class="btn ghost" title="Back to your assessments">&larr; My assessments</button>
         <div>
           <h1 class="np-title">New assessment</h1>
           <p class="np-sub" id="np-sub">How do you want to start?</p>
@@ -319,7 +319,7 @@
       </div>
 
       <div id="spec-panel" class="np-panel" style="display:none;">
-        <div class="np-panel-head"><h2>From the MOE specification</h2><button type="button" class="btn ghost np-change">Change</button></div>
+        <div class="np-panel-head"><h2>From the MOE specification</h2><button type="button" class="btn np-change" title="Back to the three ways to start">&larr; Back</button></div>
         <p class="np-help">The AI writes the paper exactly as the official test specification sets it out for your class, then checks every part against it.</p>
         <div class="np-grid">
           <div class="field" id="spec-set-wrap" style="display:none;"><label>Specification</label><select id="spec-set"></select></div>
@@ -352,7 +352,7 @@
       </div>
 
       <div id="ai-panel" class="np-panel" style="display:none;">
-        <div class="np-panel-head"><h2>Create with AI</h2><button type="button" class="btn ghost np-change">Change</button></div>
+        <div class="np-panel-head"><h2>Create with AI</h2><button type="button" class="btn np-change" title="Back to the three ways to start">&larr; Back</button></div>
         <div class="np-grid">
           <div class="field"><label>Subject</label><select id="ai-subject" required>
             <option value="">— Choose your subject —</option>
@@ -479,7 +479,7 @@
       </div>
 
       <div id="np-import-host" class="np-panel" style="display:none;">
-        <div class="np-panel-head"><h2>Import a paper</h2><button type="button" class="btn ghost np-change">Change</button></div>
+        <div class="np-panel-head"><h2>Import a paper</h2><button type="button" class="btn np-change" title="Back to the three ways to start">&larr; Back</button></div>
       </div>
     </div>
 
