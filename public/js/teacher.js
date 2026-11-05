@@ -12093,20 +12093,39 @@ async function ccShowRubric(id) {
   function render() {
     const x = cur();
     $('spec-info').innerHTML = x ? `<strong>${escapeHtml(x.b.setLabel)}</strong> · ${escapeHtml(x.b.title)}` : '';
-    if (!x) { $('spec-parts').innerHTML = ''; $('spec-writing').innerHTML = ''; $('spec-total').textContent = ''; return; }
-    $('spec-parts').innerHTML = `<div style="font-weight:600; font-size:13px; margin-bottom:4px;">Parts (untick to make a shorter paper)</div>` +
+    if (!x) { $('spec-parts').innerHTML = ''; $('spec-writing').innerHTML = ''; $('spec-total').textContent = ''; $('spec-hint').style.display = ''; $('spec-parts').style.display = 'none'; $('spec-writing').style.display = 'none'; return; }
+    $('spec-hint').style.display = 'none';
+    $('spec-parts').innerHTML = `<div class="np-box-title">Parts</div>` +
       x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing · ' + p.marks + ' marks' : countFor(p) + ' Q · ' + (sizeSel.value === 'full' ? p.marks : countFor(p) * (Number(p.marksEach) || 0)) + ' marks'})</span></label>`).join('');
     const ws = x.b.writing || [];
     const main = ws.filter((w) => !w.alternativeTo);
     const alt = ws.find((w) => w.alternativeTo);
-    $('spec-writing').innerHTML = ws.length ? `<div style="font-weight:600; font-size:13px; margin-bottom:4px;">Writing tasks</div>` + main.map((w) => `
+    $('spec-writing').innerHTML = ws.length ? `<div class="np-box-title">Writing ${main.length > 1 ? 'tasks — tick the ones you want' : 'task'}</div>` + main.map((w) => `
       <label style="display:flex; gap:6px; align-items:flex-start; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-w value="${escapeAttr(w.key)}" checked style="width:auto; margin:2px 0 0;">
         <span><strong>${main.length > 1 ? 'Task ' + escapeHtml(w.id) + ' – ' : ''}${escapeHtml(w.name)}</strong> · ${w.marks} marks · ${escapeHtml(w.length || '')} · <a href="#" data-spec-rub="${escapeAttr(w.rubric)}">${w.rubric === 'main-idea' ? 'Main-idea rubric' : 'Writing rubric'}</a>
         ${alt && w.id === alt.alternativeTo ? `<div style="margin-top:3px;">Task 1.2 type: <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(w.key)}" checked style="width:auto;"> ${escapeHtml(w.name)} (as in the specification)</label> &nbsp; <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(alt.key)}" style="width:auto;"> ${escapeHtml(alt.name)}</label></div>` : ''}</span></label>`).join('') : '';
-    document.querySelectorAll('[data-spec-part], [data-spec-w], input[name="spec-w12"]').forEach((el) => { el.onchange = () => { $('spec-writing').style.display = document.querySelector('[data-spec-part][data-skill="writing"]:checked') ? '' : 'none'; total(); }; });
+    document.querySelectorAll('[data-spec-part], [data-spec-w], input[name="spec-w12"]').forEach((el) => { el.onchange = () => { showBoxes(); total(); }; });
+    applyScope();
     document.querySelectorAll('[data-spec-rub]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); const r = (window.ccSpecData.rubrics || []).find((rr) => rr.kind === a.getAttribute('data-spec-rub') && rr.classes.some((c) => c.grade === x.c.grade && c.stream === x.c.stream)); if (r) ccShowRubric(r.id); }; });
     total();
   }
+  // "What to include": whole paper / writing only / reading only / choose parts.
+  const scopeSel = document.getElementById('spec-scope');
+  function showBoxes() {
+    const x = cur();
+    const hasW = !!document.querySelector('[data-spec-part][data-skill="writing"]:checked');
+    $('spec-parts').style.display = x && scopeSel.value === 'custom' ? '' : 'none';
+    $('spec-writing').style.display = x && hasW && $('spec-writing').innerHTML ? '' : 'none';
+  }
+  function applyScope() {
+    const v = scopeSel.value;
+    if (v !== 'custom') document.querySelectorAll('[data-spec-part]').forEach((cb) => {
+      const w = cb.getAttribute('data-skill') === 'writing';
+      cb.checked = v === 'all' || (v === 'writing' ? w : !w);
+    });
+    showBoxes(); total();
+  }
+  scopeSel.onchange = applyScope;
   sel.onchange = render;
   setSel.onchange = () => fill();
   sizeSel.onchange = render;

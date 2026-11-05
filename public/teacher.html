@@ -56,7 +56,7 @@
   <meta name="apple-mobile-web-app-title" content="ClassCurio" />
   <meta name="mobile-web-app-capable" content="yes" />
 
-  <link rel="stylesheet" href="/css/styles.css?v=1800000000" />
+  <link rel="stylesheet" href="/css/styles.css?v=1801000000" />
   <style id="cc-dashboard-closes-builder">
     /* Loaded after styles.css and more specific, so it always wins:
      * on the dashboard, the builder's questions + Save row never show. */
@@ -329,14 +329,20 @@
               <option value="half">Half-length quiz</option>
               <option value="quarter">Short quiz</option>
             </select></div>
+          <div class="field"><label>What to include</label><select id="spec-scope">
+              <option value="all">Whole paper (all parts)</option>
+              <option value="writing">Writing only</option>
+              <option value="reading">Vocabulary, grammar and reading only</option>
+              <option value="custom">Choose the parts…</option>
+            </select></div>
         </div>
+        <div id="spec-hint" class="np-help" style="margin-top:10px;">Choose your class to see its parts and writing tasks.</div>
+        <div id="spec-parts" class="np-box" style="display:none;"></div>
+        <div id="spec-writing" class="np-box" style="display:none;"></div>
         <details class="np-more">
-          <summary>Parts, writing tasks and topic</summary>
-          <div class="field" style="margin-top:10px;"><label>Topic (optional)</label><input type="text" id="spec-topic" placeholder="Online shopping, a trip to the museum" /></div>
-          <div id="spec-info" class="muted" style="font-size:13px; margin-top:8px;"></div>
-        <div id="spec-parts" style="margin-top:8px;"></div>
-        <div id="spec-writing" style="margin-top:8px;"></div>
-        
+          <summary>Add a topic (optional)</summary>
+          <div class="field" style="margin-top:10px;"><input type="text" id="spec-topic" placeholder="Online shopping, a trip to the museum" /></div>
+          <div id="spec-info" class="np-help"></div>
         </details>
         <div class="np-actions">
           <span id="spec-total" class="np-help" style="margin:0;"></span>
@@ -878,6 +884,6 @@
     </div>
   </div>
 
-  <script src="/js/teacher.js?v=1800000000"></script>
+  <script src="/js/teacher.js?v=1801000000"></script>
 </body>
 </html>
