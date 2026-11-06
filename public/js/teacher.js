@@ -3084,6 +3084,9 @@ function renderQuestion(q, idx) {
         <strong>Q${idx + 1}</strong>
         <span class="badge">${typeLabel}</span>
         <label class="q-marks">Marks <input type="number" min="1" data-f="points" value="${q.points || 1}" /></label>
+        ${q.level || q.specPart ? `<select class="q-level q-level-${escapeAttr(q.level || 'medium')}" data-qlevel="${escapeAttr(q.id)}" title="Difficulty of this question (teachers and admins only — students never see it)">
+          ${['easy', 'medium', 'hard'].map((l) => `<option value="${l}" ${(q.level || 'medium') === l ? 'selected' : ''}>${l === 'easy' ? 'Easy' : l === 'medium' ? 'Medium' : 'Hard'}</option>`).join('')}
+        </select>` : ''}
         <div class="spacer"></div>
         <button class="btn ghost q-icon" data-act="up" title="Move up">↑</button>
         <button class="btn ghost q-icon" data-act="down" title="Move down">↓</button>
@@ -12225,6 +12228,19 @@ async function ccSpecBanner(chk, notes) {
   }
   await ccSpecLoad();
   const b = ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id && (!st.set || x.set === st.set)) || ((window.ccSpecData || {}).blueprints || []).find((x) => x.id === st.id);
+  // Papers made before levels existed: give each question its part's level.
+  if (b && Array.isArray(questions)) {
+    let added = false;
+    for (const q of questions) {
+      if (q.level || !q.specPart) continue;
+      const part = (b.parts || []).find((p) => p.id === q.specPart);
+      if (!part) continue;
+      const l = String(part.level || '').toLowerCase();
+      q.level = part.skill === 'writing' ? 'medium' : /beyond|greater depth/.test(l) ? 'hard' : /towards?/.test(l) ? 'easy' : 'medium';
+      q.levelSource = 'specification'; added = true;
+    }
+    if (added) renderQuestions();
+  }
   if (!chk) { try { chk = await ccSpecCheckNow(); } catch (e) { chk = null; } }
   const ok = chk && chk.ok;
   el.style.cssText = `margin:0 0 12px; padding:10px 14px; border-radius:10px; font-size:13px; border:2px solid ${ok ? '#10b981' : '#f59e0b'}; background:${ok ? '#ecfdf5' : '#fffbeb'};`;
@@ -12537,3 +12553,14 @@ async function ccRubricMarker(item, root) {
     return out;
   };
 }
+
+
+// Easy / Medium / Hard tag on a question (MOE specification papers). The teacher can change it.
+document.addEventListener('change', (e) => {
+  const sel = e.target && e.target.closest && e.target.closest('select[data-qlevel]');
+  if (!sel) return;
+  const q = (typeof questions !== 'undefined' ? questions : []).find((x) => x.id === sel.getAttribute('data-qlevel'));
+  if (!q) return;
+  q.level = sel.value; q.levelSource = 'teacher';
+  sel.className = 'q-level q-level-' + sel.value;
+});

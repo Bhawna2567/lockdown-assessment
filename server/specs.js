@@ -32,6 +32,16 @@ function wordRange(w) {
   return [Math.floor(lo * 0.9), Math.ceil(hi * 1.1)];
 }
 const stripGaps = (t) => String(t || '').replace(/\(\d+\)\s*_{2,}/g, 'gap');
+// Easy / medium / hard from the level the specification gives each part:
+// "Towards Grade Level Goal" = easy, "At Grade Level Goal" / "Mastery" = medium,
+// "Beyond Grade Level Goal" / "Mastery with Greater Depth" = hard. Writing = medium.
+function levelOf(p) {
+  const l = String((p && p.level) || '').toLowerCase();
+  if (!p || p.skill === 'writing') return 'medium';
+  if (/beyond|greater depth/.test(l)) return 'hard';
+  if (/towards?/.test(l)) return 'easy';
+  return 'medium';
+}
 
 // Paper length: the full paper, or a shorter quiz with fewer questions per part
 // (same texts, same task types, same balance between parts).
@@ -414,7 +424,7 @@ module.exports = function specs(app, deps) {
         const rub = rubricFor(cls.grade, cls.stream, w.rubric);
         questions.push({
           type: 'writing', prompt: String(t.prompt || '').trim(), options: [], correctAnswer: null,
-          points: Number(w.marks) || 0, sectionId: section.id, specPart: p.id, specTask: w.id, rubricId: rub ? rub.id : '',
+          points: Number(w.marks) || 0, sectionId: section.id, specPart: p.id, specTask: w.id, rubricId: rub ? rub.id : '', level: levelOf(p), levelSource: 'specification',
           imageDescription: w.image ? String(t.imageDescription || '').slice(0, 500) : '', imageKind: w.image ? 'photo' : '', imageSearch: '', imageUrl: '',
           skill: `Writing – Task ${w.id} ${w.name}`.slice(0, 80), outcome: '', explanation: '',
         });
@@ -431,7 +441,7 @@ module.exports = function specs(app, deps) {
       const oc = (p.outcomes || []).find((o) => o.code === String(q.outcome || '').trim()) || null;
       questions.push({
         type: 'mc', prompt: String(q.prompt || '').trim() || 'Choose the correct answer.', options: opts.slice(0, Math.max(want, 2)), correctAnswer: ci,
-        points: Number(it.marksEach) || 1, sectionId: section.id, specPart: p.id,
+        points: Number(it.marksEach) || 1, sectionId: section.id, specPart: p.id, level: levelOf(p), levelSource: 'specification',
         imageDescription: it.format === 'matching' ? String(q.imageDescription || '').slice(0, 500) : '', imageKind: it.format === 'matching' ? 'diagram' : '', imageSearch: '', imageUrl: '',
         skill: String(q.skill || (oc && oc.skill) || p.title.split(':').pop().trim()).slice(0, 80),
         outcome: oc ? `${oc.code}: ${oc.text}`.slice(0, 300) : String(q.outcome || '').slice(0, 300),
@@ -592,3 +602,4 @@ module.exports.check = check;
 module.exports.writingTasksFor = writingTasksFor;
 module.exports.partCounts = partCounts;
 module.exports.reviewBlueprint = reviewBlueprint;
+module.exports.levelOf = levelOf;

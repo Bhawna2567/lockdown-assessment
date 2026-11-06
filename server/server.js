@@ -1215,6 +1215,10 @@ function _ccSpecQFields(q) {
   if (q && typeof q.specPart === 'string' && /^P[0-9A-Z]{1,4}$/.test(q.specPart)) o.specPart = q.specPart;
   if (q && typeof q.specTask === 'string' && /^[0-9.]{1,6}$/.test(q.specTask)) o.specTask = q.specTask;
   if (q && typeof q.rubricId === 'string' && /^[a-z0-9-]{2,60}$/.test(q.rubricId)) o.rubricId = q.rubricId;
+  if (q && /^(easy|medium|hard)$/.test(String(q.level || ''))) {
+    o.level = q.level;
+    o.levelSource = q.levelSource === 'teacher' ? 'teacher' : 'specification';
+  }
   return o;
 }
 function _ccSpecAssessmentField(spec) {
@@ -3884,6 +3888,19 @@ function _ccDifficultyAfterSave(req, a) {
     if (a && a.id) setTimeout(() => { _ccTagMissingSkills(a.id).catch((e) => console.warn('[skills] auto-tag failed:', e.message)); }, 1500);
     if (!a || !Array.isArray(a.questions)) return;
     const tid = req.session && req.session.user && req.session.user.id;
+    // Labels shown on the paper (MOE specification papers, or set by the teacher) are the record.
+    const existing = new Map(_ccDiffFor(a.id).map((r) => [r.questionId, r]));
+    const shown = [];
+    for (const q of a.questions) {
+      if (!q.level) continue;
+      const r = existing.get(q.id);
+      const src = q.levelSource === 'teacher' ? 'teacher' : 'specification';
+      if (!r || r.level !== q.level || (r.source !== src && r.source !== 'admin')) {
+        shown.push({ questionId: q.id, level: q.level, source: src,
+          reason: src === 'teacher' ? 'Set by the teacher on the paper.' : 'Level of this part in the MOE test specification.' });
+      }
+    }
+    _ccDiffUpsert(a.id, shown);
     const have = new Set(_ccDiffFor(a.id).map((r) => r.questionId));
     const fromPending = [];
     for (const q of a.questions) {
