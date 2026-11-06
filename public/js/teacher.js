@@ -4644,9 +4644,10 @@ async function printAssessmentPDF(assessmentId, setNo) {
   overlay.innerHTML = `
     <div style="display:flex; gap:8px; align-items:center; padding: 10px 14px; background: #1a1e33; color:#fff;">
       <strong>Preview — ${escapeHtml(a.title)}</strong>
+      <span style="font-size:12px; opacity:.8; margin-left:8px;">In the print window choose “Save as PDF” as the printer.</span>
       <div style="flex:1;"></div>
       <button class="btn primary" id="pdf-print-btn">🖨️ Print / Save as PDF</button>
-      <button class="btn" id="pdf-print-close" style="background:#374151; color:#fff; border-color:#374151;">Close</button>
+      <button class="btn" id="pdf-print-close" style="background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:600;">&larr; Back</button>
     </div>
     <iframe id="pdf-print-iframe" style="flex: 1; width: 100%; border: 0; background: #fff;"></iframe>
   `;

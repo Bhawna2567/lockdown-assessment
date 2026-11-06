@@ -1,12 +1,14 @@
 // Developer credit bar — pinned to the top of every ClassCurio page, full
 // width, centred. Hidden while a student is taking an exam, and on printouts.
+// It sits BELOW pop-up windows (previews, PDF, dialogs) so their Close / Back /
+// Print buttons at the top are never hidden behind it.
 (function () {
   if (window.__ccCredit) return; window.__ccCredit = true;
   function build() {
     if (document.getElementById('cc-credit')) return;
     const st = document.createElement('style');
     st.textContent = `
-      #cc-credit{position:fixed;top:0;left:0;right:0;width:100%;box-sizing:border-box;z-index:2147483000;margin:0;
+      #cc-credit{position:fixed;top:0;left:0;right:0;width:100%;box-sizing:border-box;z-index:1000;margin:0;
         background:#121826;color:#f1f5f9;text-align:center;padding:12px 20px 12px;
         font:400 18px/1.4 Georgia,"Times New Roman",serif;box-shadow:0 2px 12px rgba(0,0,0,.35);}
       #cc-credit .cc-cr-line{display:block;}

@@ -1452,7 +1452,7 @@ body.cc-builder-open #builder-save-row { display: flex !important; }
 
 /* ── Builder: header, settings, menus, question cards ─────────────────── */
 #builder-view { max-width: 1000px; margin: 0 auto; }
-.bld-head { position: sticky; top: 0; z-index: 50; display: flex; align-items: flex-start; gap: 12px; background: rgba(255,255,255,.96); backdrop-filter: blur(6px);
+.bld-head { position: sticky; top: var(--cc-credit-h, 0px); z-index: 50; display: flex; align-items: flex-start; gap: 12px; background: rgba(255,255,255,.96); backdrop-filter: blur(6px);
   border: 1px solid #e5e7eb; border-radius: 14px; padding: 14px 18px; margin-bottom: 12px; }
 .bld-head-main { flex: 1; min-width: 0; }
 .bld-kicker { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
