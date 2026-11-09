@@ -9084,6 +9084,166 @@ app.get('/api/teacher/classes/:cid/assessments', (req, res) => {
   } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 });
 
+// ── 🎯 Combined skills report: one Excel for several assessments ──────────
+// Skills are grouped by MOE learning-outcome code when the question has one
+// (all specification papers do), otherwise by the skill name.
+function _ccSkillKey(q) {
+  const o = String((q && q.outcome) || '').trim();
+  const m = o.match(/^(ENG\.\d{2}\.[A-Z]{2}\.[A-Z]{1,3}\.\d+\.\d+|\d+\.[A-Z]{1,3}\.[A-Z]{1,4}\.\d+|[A-Z]{2,6}\.\d{1,2}(?:\.[A-Z0-9]{1,4}){2,4})\s*[:\-–]?\s*(.*)$/);
+  if (m) return { key: m[1], label: m[2] ? `${m[1]} — ${m[2].slice(0, 120)}` : m[1] };
+  const n = _ccSkillName(q);
+  return { key: 'skill:' + n.toLowerCase(), label: n };
+}
+app.post('/api/teacher/combined-skills-excel', requireTeacher, async (req, res) => {
+  try {
+    const { classId, assessmentIds } = req.body || {};
+    const ids = new Set((Array.isArray(assessmentIds) ? assessmentIds : []).map(String));
+    const uid = req.session.user.id;
+    const list = readAll('assessments.json').filter((a) => ids.has(a.id) && (!a.teacherId || a.teacherId === uid) && (!classId || a.classId === classId));
+    if (!list.length) return res.status(400).json({ error: 'Choose at least one assessment.' });
+    const allRes = readAll('results.json');
+    const dateOf = (a, rs) => a.publishedAt || (rs.map((r) => r.submittedAt).filter(Boolean).sort()[0]) || a.scheduledDate || a.createdAt || '';
+    const papers = list.map((a) => { const rs = allRes.filter((r) => r.assessmentId === a.id); return { a, rs, date: dateOf(a, rs) }; })
+      .sort((x, y) => String(x.date).localeCompare(String(y.date)));
+    const plain = (t) => _ccLatexToPlain(String(t == null ? '' : t));
+    const dShort = (d) => { const t = new Date(d); return isNaN(t) ? '' : t.toISOString().slice(0, 10); };
+
+    // skill → { label, perPaper: Map(aid → {e,m}), perStudent: Map(sid → {e,m,name}), questions }
+    const skills = new Map(), focus = new Map(), cefr = new Map();
+    const students = new Map();
+    const add = (map, key, label, aid, r, earned, max) => {
+      if (!map.has(key)) map.set(key, { label, e: 0, m: 0, perPaper: new Map(), perStudent: new Map(), questions: 0 });
+      const s = map.get(key);
+      s.e += earned; s.m += max;
+      const pp = s.perPaper.get(aid) || { e: 0, m: 0 }; pp.e += earned; pp.m += max; s.perPaper.set(aid, pp);
+      const sid = r.studentId || r.studentEmail;
+      const ps = s.perStudent.get(sid) || { e: 0, m: 0 }; ps.e += earned; ps.m += max; s.perStudent.set(sid, ps);
+    };
+    const qRows = [];
+    for (const { a, rs } of papers) {
+      (a.questions || []).forEach((q, i) => {
+        const sk = _ccSkillKey(q);
+        if (!skills.has(sk.key)) skills.set(sk.key, { label: sk.label, e: 0, m: 0, perPaper: new Map(), perStudent: new Map(), questions: 0 });
+        skills.get(sk.key).questions++;
+        const _f = _ccFocusName(q), _c = _ccCefrName(q);
+        if (_f) { const k = _f.toLowerCase(); if (!focus.has(k)) focus.set(k, { label: _f, e: 0, m: 0, perPaper: new Map(), perStudent: new Map(), questions: 0 }); focus.get(k).questions++; }
+        if (_c) { if (!cefr.has(_c)) cefr.set(_c, { label: _c, e: 0, m: 0, perPaper: new Map(), perStudent: new Map(), questions: 0 }); cefr.get(_c).questions++; }
+        let qe = 0, qm = 0;
+        for (const r of rs) {
+          const em = _ccQuestionEarned(q, r);
+          if (!em || !em.max) continue;
+          const sid = r.studentId || r.studentEmail;
+          if (!students.has(sid)) students.set(sid, { name: r.studentName || r.studentEmail || 'Student', email: r.studentEmail || '' });
+          add(skills, sk.key, sk.label, a.id, r, em.earned, em.max);
+          const f = _ccFocusName(q); if (f) add(focus, f.toLowerCase(), f, a.id, r, em.earned, em.max);
+          const c = _ccCefrName(q); if (c) add(cefr, c, c, a.id, r, em.earned, em.max);
+          qe += em.earned / em.max; qm++;
+        }
+        if (qm) {
+          let wrong = '';
+          if (q.type === 'mc') {
+            const cnt = {};
+            rs.forEach((r) => { const x = (r.answers || []).find((y) => y.questionId === q.id); if (x && x.correct === false && x.given !== null && x.given !== undefined && x.given !== '') cnt[x.given] = (cnt[x.given] || 0) + 1; });
+            const top = Object.entries(cnt).sort((x, y) => y[1] - x[1])[0];
+            if (top) wrong = `${plain((q.options || [])[Number(top[0])])} (${top[1]} students)`;
+          }
+          qRows.push({ paper: a.title, n: i + 1, skill: sk.label, text: plain(q.prompt).slice(0, 300), pct: Math.round((qe / qm) * 100), wrong });
+        }
+      });
+    }
+    const pct = (x) => (x && x.m ? Math.round((x.e / x.m) * 100) : null);
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook();
+    const head = (ws) => { ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } }; ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } }; ws.getRow(1).alignment = { wrapText: true, vertical: 'middle' }; ws.views = [{ state: 'frozen', ySplit: 1, xSplit: 1 }]; };
+    const band = (cell, p) => { if (p == null || p === '') return; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: p >= 80 ? 'FFDCFCE7' : p >= 60 ? 'FFFEF3C7' : 'FFFEE2E2' } }; };
+    const sorted = (map) => Array.from(map.values()).filter((s) => s.m > 0).sort((x, y) => pct(x) - pct(y));
+
+    // 1. Skills summary (weakest first)
+    const sum = (map, title, width) => {
+      const ws = wb.addWorksheet(title);
+      ws.columns = [
+        { header: title === 'Skills summary' ? 'Skill / learning outcome' : title, key: 's', width },
+        { header: 'Questions', key: 'q', width: 11 },
+        { header: 'Class average %', key: 'p', width: 15 },
+        { header: 'Students below 60%', key: 'n', width: 17 },
+        { header: 'Students who need support', key: 'w', width: 70 },
+      ];
+      head(ws);
+      for (const s of sorted(map)) {
+        const low = Array.from(s.perStudent.entries()).map(([sid, v]) => ({ name: (students.get(sid) || {}).name || sid, p: pct(v) })).filter((x) => x.p != null && x.p < 60).sort((x, y) => x.p - y.p);
+        const row = ws.addRow({ s: s.label, q: s.questions || '', p: pct(s), n: low.length, w: low.map((x) => `${x.name} (${x.p}%)`).join(', ') });
+        band(row.getCell('p'), pct(s));
+        row.getCell('s').alignment = { wrapText: true, vertical: 'top' }; row.getCell('w').alignment = { wrapText: true, vertical: 'top' };
+      }
+      return ws;
+    };
+    sum(skills, 'Skills summary', 60);
+
+    // 2. Skills over time (one column per assessment, in date order)
+    const ws2 = wb.addWorksheet('Skills over time');
+    ws2.columns = [{ header: 'Skill / learning outcome', key: 's', width: 60 }]
+      .concat(papers.map((p, i) => ({ header: `${p.a.title}${dShort(p.date) ? '\n' + dShort(p.date) : ''}`, key: 'a' + i, width: 22 })))
+      .concat([{ header: 'Overall %', key: 'o', width: 12 }, { header: 'Change (first → last)', key: 'c', width: 18 }]);
+    head(ws2); ws2.getRow(1).height = 48;
+    for (const s of sorted(skills)) {
+      const vals = { s: s.label, o: pct(s) };
+      const seen = [];
+      papers.forEach((p, i) => { const v = pct(s.perPaper.get(p.a.id)); vals['a' + i] = v == null ? '' : v; if (v != null) seen.push(v); });
+      vals.c = seen.length >= 2 ? (seen[seen.length - 1] - seen[0] > 0 ? '+' : '') + (seen[seen.length - 1] - seen[0]) : '';
+      const row = ws2.addRow(vals);
+      row.getCell('s').alignment = { wrapText: true, vertical: 'top' };
+      papers.forEach((p, i) => band(row.getCell('a' + i), vals['a' + i] === '' ? null : vals['a' + i]));
+      band(row.getCell('o'), vals.o);
+    }
+
+    // 3. Students by skill
+    const sk = sorted(skills);
+    const ws3 = wb.addWorksheet('Students by skill');
+    ws3.columns = [{ header: 'Student', key: 'name', width: 28 }].concat(sk.map((s, i) => ({ header: s.label.length > 60 ? s.label.slice(0, 57) + '…' : s.label, key: 'k' + i, width: 16 })))
+      .concat([{ header: 'Overall %', key: 'o', width: 11 }, { header: 'Needs work in', key: 'nw', width: 60 }]);
+    head(ws3); ws3.getRow(1).height = 60;
+    const studs = Array.from(students.entries()).sort((x, y) => String(x[1].name).localeCompare(String(y[1].name)));
+    for (const [sid, st] of studs) {
+      const vals = { name: st.name }; let e = 0, m = 0; const nw = [];
+      sk.forEach((s, i) => { const v = s.perStudent.get(sid); const p = pct(v); vals['k' + i] = p == null ? '' : p; if (v) { e += v.e; m += v.m; } if (p != null && p < 60) nw.push(s.label.split(' — ')[0]); });
+      vals.o = m ? Math.round((e / m) * 100) : ''; vals.nw = nw.join(', ');
+      const row = ws3.addRow(vals);
+      sk.forEach((s, i) => band(row.getCell('k' + i), vals['k' + i] === '' ? null : vals['k' + i]));
+      band(row.getCell('o'), vals.o === '' ? null : vals.o);
+    }
+
+    // 4. Question focus / CEFR (when the questions have them)
+    if (focus.size) sum(focus, 'Question focus', 32);
+    if (cefr.size) sum(cefr, 'CEFR', 20);
+
+    // 5. Hardest questions across the papers
+    const ws5 = wb.addWorksheet('Question analysis');
+    ws5.columns = [
+      { header: 'Assessment', key: 'paper', width: 34 }, { header: 'Q', key: 'n', width: 6 }, { header: 'Skill / outcome', key: 'skill', width: 40 },
+      { header: 'Question', key: 'text', width: 60 }, { header: '% correct', key: 'pct', width: 11 }, { header: 'Most common wrong answer', key: 'wrong', width: 36 },
+    ];
+    head(ws5);
+    for (const q of qRows.sort((x, y) => x.pct - y.pct)) { const row = ws5.addRow(q); band(row.getCell('pct'), q.pct); }
+
+    // 6. The assessments included
+    const ws6 = wb.addWorksheet('Assessments included');
+    ws6.columns = [{ header: 'Assessment', key: 't', width: 50 }, { header: 'Date', key: 'd', width: 14 }, { header: 'Submissions', key: 'n', width: 13 }, { header: 'Questions', key: 'q', width: 11 }];
+    head(ws6);
+    papers.forEach((p) => ws6.addRow({ t: p.a.title, d: dShort(p.date), n: p.rs.length, q: (p.a.questions || []).length }));
+
+    const cls = classId ? readAll('classes.json').find((c) => c.id === classId) : null;
+    const fname = ((cls ? cls.name : 'class') + '_combined_skills_report').replace(/[^A-Za-z0-9_\-]+/g, '_').slice(0, 80) + '.xlsx';
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${fname}"`);
+    await wb.xlsx.write(res);
+    res.end();
+  } catch (e) {
+    console.error('[combined-skills]', e);
+    res.status(500).json({ error: String(e.message || e) });
+  }
+});
+
+
 // Build the Excel and stream it back.
 app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), async (req, res) => {
   try {

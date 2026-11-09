@@ -8069,13 +8069,16 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     return j;
   }
 
-  window.openClassAveragesModal = async function () {
+  window.openClassAveragesModal = async function (mode) {
+    const SK = mode === 'skills';
     let classes = [];
     try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch(e){}
     const overlay = el('div', { style: 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; justify-content:center;' });
     const modal = el('div', { style: 'background:#fff; border-radius:12px; max-width:720px; width:92%; max-height:92vh; overflow:auto; padding:24px;' });
-    modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, '📊 Class Averages'));
-    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, 'Pick a class, tick the assessments to include, and download an Excel with each student\'s score per assessment and their average (out of 100).'));
+    modal.appendChild(el('h2', { style: 'margin:0 0 8px;' }, SK ? '🎯 Combined skills report' : '📊 Class Averages'));
+    modal.appendChild(el('p', { style: 'margin:0 0 16px; color:#666;' }, SK
+      ? 'Pick a class and tick the assessments to include. You get one Excel with the class\'s skills across all of them: skills summary, skills over time, each student by skill, and the hardest questions.'
+      : 'Pick a class, tick the assessments to include, and download an Excel with each student\'s score per assessment and their average (out of 100).'));
 
     const clsLbl = el('label', { style: 'display:block; font-weight:600; margin:8px 0 4px;' }, 'Class');
     const clsSel = el('select', { style: 'width:100%; padding:8px; border:1px solid #D1D5DB; border-radius:6px;' });
@@ -8168,7 +8171,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
       genBtn.disabled = true; genBtn.textContent = 'Building Excel…';
       status.style.display = 'block'; status.textContent = 'Computing averages and building spreadsheet…';
       try {
-        const r = await fetch('/api/teacher/class-averages-excel', {
+        const r = await fetch(SK ? '/api/teacher/combined-skills-excel' : '/api/teacher/class-averages-excel', {
           method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'include',
           body: JSON.stringify({ classId: clsSel.value, assessmentIds: ids }),
         });
@@ -8178,7 +8181,7 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
         const a = document.createElement('a'); a.href = url;
         const cd = r.headers.get('Content-Disposition') || '';
         const m = cd.match(/filename="?([^";]+)"?/i);
-        a.download = m ? m[1] : 'class_averages.xlsx';
+        a.download = m ? m[1] : (SK ? 'combined_skills_report.xlsx' : 'class_averages.xlsx');
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
         status.textContent = '✓ Downloaded. Check your Downloads folder.';
@@ -8210,6 +8213,12 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
     btn.style.cssText = 'padding:12px 18px; background:#0369A1; color:#fff; border:none; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,0.15); cursor:pointer; font-weight:600; font-size:14px; white-space:nowrap;';
     btn.onclick = function () { menu.style.display = 'none'; window.openClassAveragesModal(); };
     menu.insertBefore(btn, menu.firstChild);
+    const sb = document.createElement('button');
+    sb.className = 'cc-skills-btn'; sb.type = 'button';
+    sb.textContent = '🎯 Combined skills report';
+    sb.style.cssText = btn.style.cssText.replace('#0369A1', '#4338CA');
+    sb.onclick = function () { menu.style.display = 'none'; window.openClassAveragesModal('skills'); };
+    btn.insertAdjacentElement('afterend', sb);
   }
   setInterval(injectFabItem, 500);
   document.addEventListener('DOMContentLoaded', injectFabItem);
