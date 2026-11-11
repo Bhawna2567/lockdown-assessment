@@ -12121,6 +12121,16 @@ async function ccShowRubric(id) {
       <label style="display:flex; gap:6px; align-items:flex-start; margin:3px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-w value="${escapeAttr(w.key)}" checked style="width:auto; margin:2px 0 0;">
         <span><strong>${main.length > 1 ? 'Task ' + escapeHtml(w.id) + ' – ' : ''}${escapeHtml(w.name)}</strong> · ${w.marks} marks · ${escapeHtml(w.length || '')} · <a href="#" data-spec-rub="${escapeAttr(w.rubric)}">${w.rubric === 'main-idea' ? 'Main-idea rubric' : 'Writing rubric'}</a>
         ${alt && w.id === alt.alternativeTo ? `<div style="margin-top:3px;">Task 1.2 type: <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(w.key)}" checked style="width:auto;"> ${escapeHtml(w.name)} (as in the specification)</label> &nbsp; <label style="display:inline; text-transform:none; letter-spacing:0; font-weight:400;"><input type="radio" name="spec-w12" value="${escapeAttr(alt.key)}" style="width:auto;"> ${escapeHtml(alt.name)}</label></div>` : ''}</span></label>`).join('') : '';
+    const wPart = x.b.parts.find((pp) => pp.skill === 'writing');
+    const wThemes = (wPart && wPart.themes) || [];
+    if (ws.length && wThemes.length > 1) {
+      $('spec-writing').innerHTML += `<div style="margin-top:8px; font-size:13px;"><strong>Writing topic</strong>
+        <select id="spec-wtheme" style="margin-top:4px; width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+          <option value="">Changes every time — uses both specification themes (recommended)</option>
+          ${wThemes.map((t, i) => `<option value="${i}">Only this theme: ${escapeHtml(t)}</option>`).join('')}
+        </select>
+        <div class="muted" style="font-size:12px; margin-top:3px;">Each new paper gets a fresh text and new prompts — never a repeat of the last few papers.</div></div>`;
+    }
     document.querySelectorAll('[data-spec-part], [data-spec-w], input[name="spec-w12"]').forEach((el) => { el.onchange = () => { showBoxes(); total(); }; });
     applyScope();
     document.querySelectorAll('[data-spec-rub]').forEach((a) => { a.onclick = (e) => { e.preventDefault(); const r = (window.ccSpecData.rubrics || []).find((rr) => rr.kind === a.getAttribute('data-spec-rub') && rr.classes.some((c) => c.grade === x.c.grade && c.stream === x.c.stream)); if (r) ccShowRubric(r.id); }; });
@@ -12163,7 +12173,7 @@ async function ccShowRubric(id) {
     const start = `🧠 Writing the paper part by part and checking it against the specification… this takes 1–3 minutes.`;
     $('spec-status').textContent = start;
     try {
-      const body = JSON.stringify({ set: x.b.set, size: sizeSel.value, grade: x.c.grade, stream: x.c.stream, parts, writing: wantsWriting ? writing : [], topic: ($('spec-topic').value || '').trim() });
+      const body = JSON.stringify({ set: x.b.set, size: sizeSel.value, grade: x.c.grade, stream: x.c.stream, parts, writing: wantsWriting ? writing : [], topic: ($('spec-topic').value || '').trim(), writingTheme: ($('spec-wtheme') && $('spec-wtheme').value) || '' });
       const job = await ccFetchJobJson('/api/specs/' + encodeURIComponent(x.b.id) + '/generate', body, (sec) => { $('spec-status').textContent = start + ` (${sec}s)`; });
       const data = job.data || {};
       if (!job.ok || !data.ok) throw new Error(data.error || 'Generation failed');
@@ -12573,3 +12583,151 @@ document.addEventListener('change', (e) => {
   q.level = sel.value; q.levelSource = 'teacher';
   sel.className = 'q-level q-level-' + sel.value;
 });
+
+// ── 📄 Mark paper scripts ─────────────────────────────────────────────
+(function () {
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const WR = ['writing', 'essay', 'long'];
+  // Phone photos are shrunk in the browser (long side 1800px, JPEG) so uploads are quick and the AI can read them.
+  function shrink(file) {
+    return new Promise((resolve) => {
+      if (!/^image\//.test(file.type) || /gif/.test(file.type)) return resolve(file);
+      const img = new Image(); const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, 1800 / Math.max(img.width, img.height));
+        const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob((b) => { URL.revokeObjectURL(url); resolve(b ? new File([b], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file); }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+  function shell(title) {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1200;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:28px 12px;';
+    const m = document.createElement('div');
+    m.style.cssText = 'background:#fff;border-radius:14px;max-width:1100px;width:100%;padding:22px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25);font-size:14px;color:#1a1e33;';
+    m.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><h2 style="margin:0;flex:1;">${esc(title)}</h2><button type="button" data-x style="background:#475569;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:600;cursor:pointer;">✕ Close</button></div><div data-body></div>`;
+    ov.appendChild(m); document.body.appendChild(ov);
+    m.querySelector('[data-x]').onclick = () => ov.remove();
+    return { ov, body: m.querySelector('[data-body]') };
+  }
+  const btnCss = (bg) => `background:${bg};color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:600;cursor:pointer;font-size:14px;`;
+
+  window.ccOpenPaperScripts = async function () {
+    const { ov, body } = shell('📄 Mark paper scripts');
+    body.innerHTML = '<p>Loading your assessments…</p>';
+    let list = [], classes = [];
+    try {
+      list = await (await fetch('/api/assessments', { credentials: 'include' })).json();
+      const c = await (await fetch('/api/classes', { credentials: 'include' })).json(); classes = c.classes || c || [];
+    } catch (e) {}
+    list = (Array.isArray(list) ? list : []).filter((a) => (a.questions || []).some((q) => WR.includes(q.type)));
+    if (!list.length) { body.innerHTML = '<p>None of your assessments has a writing question yet. Create the assessment first (the same paper the students sat), then come back here.</p>'; return; }
+    const cname = (id) => { const c = classes.find((x) => x.id === id); return c ? c.name : 'No class'; };
+    list.sort((x, y) => String(y.createdAt || '').localeCompare(String(x.createdAt || '')));
+    body.innerHTML = `
+      <p style="color:#475569;margin:0 0 14px;">Upload photos or scans of the students' handwritten scripts. The AI reads each student's name and writing, marks every writing question with its rubric, and shows you the marks to check before anything is saved.</p>
+      <label style="font-weight:600;display:block;margin-bottom:4px;">1. Which assessment did the students sit on paper?</label>
+      <select data-a style="width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:14px;">${list.map((a) => `<option value="${esc(a.id)}">${esc(a.title)} — ${esc(cname(a.classId))}</option>`).join('')}</select>
+      <label style="font-weight:600;display:block;margin-bottom:4px;">2. Upload all the pages (photos or PDFs)</label>
+      <input type="file" data-f multiple accept="image/*,application/pdf" style="margin-bottom:6px;">
+      <div style="background:#F1F5F9;border-radius:8px;padding:10px 12px;color:#334155;font-size:13px;margin:8px 0 14px;line-height:1.5;">
+        <b>Tips for good results</b><br>• Each student writes their <b>full name at the top of their first page</b>.<br>• Upload pages in order — one student's pages together. A page with a new name starts the next student.<br>• Take photos straight-on in good light; one page per photo. Up to 150 pages at a time.<br>• Only the writing questions are marked from paper.
+      </div>
+      <button type="button" data-go style="${btnCss('#0369A1')}">Read and mark the scripts</button>
+      <div data-st style="margin-top:12px;color:#475569;"></div>`;
+    const st = body.querySelector('[data-st]');
+    body.querySelector('[data-go]').onclick = async (ev) => {
+      const aid = body.querySelector('[data-a]').value;
+      const files = Array.from(body.querySelector('[data-f]').files || []);
+      if (!files.length) { st.textContent = 'Choose the photos or PDFs first.'; return; }
+      ev.target.disabled = true;
+      st.textContent = 'Preparing ' + files.length + ' file(s)…';
+      const fd = new FormData();
+      for (const f of files) fd.append('files', await shrink(f), f.name);
+      try {
+        const job = await ccFetchJob('/api/paper/' + encodeURIComponent(aid) + '/scripts', fd, (s) => { st.textContent = `Reading and marking the scripts… ${s}s (about 20–40 seconds per student — you can leave this open)`; });
+        if (!job.ok || !job.data.batch) throw new Error((job.data && job.data.error) || 'Something went wrong.');
+        review(body, job.data.batch, list.find((a) => a.id === aid), ov);
+      } catch (e) { st.innerHTML = '<span style="color:#B91C1C;">' + esc(e.message) + '</span>'; ev.target.disabled = false; }
+    };
+  };
+
+  function review(body, b, a, ov) {
+    const qs = b.questions;
+    const opts = (sel) => `<option value="">— choose student —</option>` + b.students.map((s) => `<option value="${esc(s.key)}"${s.key === sel ? ' selected' : ''}>${esc(s.name)}${s.hasAccount ? '' : s.email ? ' (no account yet)' : ' (no email)'}</option>`).join('');
+    const used = {};
+    b.scripts.forEach((s) => { if (s.match) used[s.match.key] = (used[s.match.key] || 0) + 1; });
+    const rows = b.scripts.map((s) => {
+      const flags = s.flags.slice();
+      if (s.match && used[s.match.key] > 1) flags.push('Same student matched to more than one script.');
+      const cells = qs.map((q) => { const g = s.grades[q.id] || {}; return `<td style="white-space:nowrap;vertical-align:top;"><input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc="${esc(q.id)}" style="width:62px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}<br><a href="#" data-fb="${esc(q.id)}" style="font-size:12px;">feedback</a></td>`; }).join('');
+      return `<tr data-s="${esc(s.id)}" style="border-top:1px solid #e2e8f0;">
+        <td style="vertical-align:top;padding:8px 6px;"><div style="font-size:12px;color:#64748b;">Name on paper: <b>${esc(s.nameRead || '—')}</b></div>
+          <select data-st style="margin-top:4px;padding:6px;border:1px solid ${s.match ? '#cbd5e1' : '#F59E0B'};border-radius:6px;max-width:230px;">${opts(s.match && s.match.key)}</select>
+          <div style="margin-top:4px;font-size:12px;">${s.pages.map((p, i) => `<a href="/api/paper/batches/${esc(b.id)}/pages/${esc(p)}" target="_blank">page ${i + 1}</a>`).join(' · ')}</div></td>
+        ${cells}
+        <td data-tot style="vertical-align:top;font-weight:700;padding-top:12px;"></td>
+        <td style="vertical-align:top;font-size:12px;color:#B45309;min-width:170px;max-width:260px;padding:8px 6px;">${flags.map((f) => '⚠️ ' + esc(f)).join('<br>')}</td>
+        <td style="vertical-align:top;"><label style="font-size:12px;white-space:nowrap;"><input type="checkbox" data-skip> Skip</label></td></tr>
+        <tr data-fbrow="${esc(s.id)}" style="display:none;"><td colspan="${qs.length + 4}" style="padding:6px 6px 12px;">${qs.map((q) => `<div data-fbbox="${esc(q.id)}" style="display:none;"><b>${esc(q.label)} feedback</b> <span style="color:#64748b;font-size:12px;">(what the student will see)</span><textarea data-fbt="${esc(q.id)}" rows="6" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;margin-top:4px;">${esc((s.grades[q.id] || {}).feedback || '')}</textarea>${(s.text && s.text[q.id]) ? `<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:12px;">What the AI read</summary><div style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:8px;border-radius:6px;">${esc(s.text[q.id])}</div></details>` : ''}</div>`).join('')}</td></tr>`;
+    }).join('');
+    const noAcc = b.students.filter((s) => !s.hasAccount).length;
+    body.innerHTML = `
+      <p style="margin:0 0 10px;color:#475569;">The AI found <b>${b.scripts.length}</b> script(s) in ${b.pages.length} page(s). Check each name and mark, open the feedback to edit it, then approve. Nothing is saved until you approve.</p>
+      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="text-align:left;background:#F1F5F9;"><th style="padding:8px 6px;">Student</th>${qs.map((q) => `<th>${esc(q.label)}</th>`).join('')}<th>Total</th><th>Check</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      ${noAcc ? `<label style="display:block;margin:12px 0 0;font-size:13px;"><input type="checkbox" data-acc checked> Create ClassCurio accounts for students on the class list who don't have one yet (they set their own password at first sign-in)</label>` : ''}
+      <div style="display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap;"><button type="button" data-ok style="${btnCss('#047857')}">✓ Approve and save marks</button><span data-msg style="color:#475569;"></span></div>`;
+    const tot = (tr) => { let t = 0, m = 0; qs.forEach((q) => { t += Number(tr.querySelector(`[data-sc="${q.id}"]`).value) || 0; m += Number(q.points) || 0; }); tr.querySelector('[data-tot]').textContent = `${Math.round(t * 2) / 2} / ${m}`; };
+    body.querySelectorAll('tr[data-s]').forEach((tr) => { tot(tr); tr.querySelectorAll('[data-sc]').forEach((i) => (i.oninput = () => tot(tr))); });
+    body.querySelectorAll('[data-fb]').forEach((aEl) => (aEl.onclick = (e) => {
+      e.preventDefault();
+      const sid = aEl.closest('tr').dataset.s; const row = body.querySelector(`[data-fbrow="${sid}"]`);
+      const box = row.querySelector(`[data-fbbox="${aEl.dataset.fb}"]`); const open = box.style.display !== 'none';
+      row.querySelectorAll('[data-fbbox]').forEach((x) => (x.style.display = 'none'));
+      box.style.display = open ? 'none' : ''; row.style.display = open ? 'none' : '';
+    }));
+    body.querySelector('[data-ok]').onclick = async (ev) => {
+      const msg = body.querySelector('[data-msg]');
+      const scripts = []; const seen = {}; let missing = 0;
+      for (const tr of body.querySelectorAll('tr[data-s]')) {
+        const id = tr.dataset.s; const skip = tr.querySelector('[data-skip]').checked; const key = tr.querySelector('[data-st]').value;
+        if (!skip && !key) missing++;
+        if (!skip && key) { if (seen[key]) { msg.innerHTML = '<span style="color:#B91C1C;">Two scripts are matched to the same student — fix one or tick Skip.</span>'; return; } seen[key] = 1; }
+        const grades = {}; const fbRow = body.querySelector(`[data-fbrow="${id}"]`);
+        qs.forEach((q) => { grades[q.id] = { score: tr.querySelector(`[data-sc="${q.id}"]`).value, feedback: fbRow.querySelector(`[data-fbt="${q.id}"]`).value }; });
+        scripts.push({ id, key, skip, grades });
+      }
+      if (missing && !confirm(missing + ' script(s) have no student chosen and will be skipped. Continue?')) return;
+      ev.target.disabled = true; msg.textContent = 'Saving marks and building the marked PDFs…';
+      try {
+        const accEl = body.querySelector('[data-acc]');
+        const r = await fetch('/api/paper/batches/' + encodeURIComponent(b.id) + '/approve', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scripts, createAccounts: accEl ? accEl.checked : false }) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) throw new Error(j.error || 'Saving failed.');
+        body.innerHTML = `<div style="padding:10px 0;"><h3 style="margin:0 0 8px;color:#047857;">✓ Saved ${j.recorded} result(s)</h3>
+          <p>The marks now appear in <b>Results</b>, <b>Class Averages</b> and the skills reports for <b>${esc(a ? a.title : 'this assessment')}</b>. A marked PDF for each student is in the class's writing folder (AI Mark Writing → folders).</p>
+          ${j.created && j.created.length ? `<p><b>New student accounts</b> — give each student her temporary password (she chooses a new one at first sign-in). Copy these now; they are not shown again.</p><table style="border-collapse:collapse;font-size:13px;margin-bottom:10px;">${j.created.map((c) => `<tr><td style="padding:3px 10px 3px 0;">${esc(c.name)}</td><td style="padding:3px 10px;color:#475569;">${esc(c.email)}</td><td style="padding:3px 10px;font-family:monospace;">${esc(c.tempPassword)}</td></tr>`).join('')}</table>` : ''}
+          ${j.skipped && j.skipped.length ? `<p style="color:#B45309;">Skipped: ${esc(j.skipped.join(', '))}</p>` : ''}
+          <button type="button" style="${btnCss('#0369A1')}" data-done>Done</button></div>`;
+        body.querySelector('[data-done]').onclick = () => { ov.remove(); try { if (typeof loadResults === 'function') loadResults(); } catch (e) {} };
+      } catch (e) { msg.innerHTML = '<span style="color:#B91C1C;">' + esc(e.message) + '</span>'; ev.target.disabled = false; }
+    };
+  }
+
+  function injectFab() {
+    const fabWrap = document.getElementById('cc-fab'); if (!fabWrap) return;
+    const menu = fabWrap.querySelector('div'); if (!menu || menu.querySelector('.cc-paper-btn')) return;
+    const ref = menu.querySelector('.cc-skills-btn'); if (!ref) return;
+    const pb = document.createElement('button'); pb.className = 'cc-paper-btn'; pb.type = 'button';
+    pb.textContent = '📄 Mark paper scripts';
+    pb.style.cssText = ref.style.cssText.replace('#4338CA', '#047857');
+    pb.onclick = function () { menu.style.display = 'none'; window.ccOpenPaperScripts(); };
+    ref.insertAdjacentElement('afterend', pb);
+  }
+  setInterval(injectFab, 600);
+})();

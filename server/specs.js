@@ -257,7 +257,7 @@ module.exports = function specs(app, deps) {
     return {
       id: b.id, set: s.id, setLabel: s.label, cycle: b.cycle, title: b.title, gradeLevelGoal: b.gradeLevelGoal,
       classes: b.classes, stage: b.stage, cefr: b.cefr, totalMarks: b.totalMarks,
-      parts: (b.parts || []).map((p) => ({ id: p.id, title: p.title, level: p.level, skill: p.skill, marks: (p.items || {}).totalMarks, items: (p.items || {}).count, marksEach: (p.items || {}).marksEach })),
+      parts: (b.parts || []).map((p) => ({ id: p.id, title: p.title, level: p.level, skill: p.skill, themes: (p.themes || []).map((t) => t.theme), marks: (p.items || {}).totalMarks, items: (p.items || {}).count, marksEach: (p.items || {}).marksEach })),
       writing: writingChoices(b),
     };
   }
@@ -299,8 +299,11 @@ module.exports = function specs(app, deps) {
     const size = SIZES[body.size] ? body.size : 'full';
     const counts = partCounts(b, size);
     const topic = String(body.topic || '').slice(0, 300);
+    const plans = {};
+    for (const p of parts) plans[p.id] = makePlan(b, p, wTasks, p.skill === 'writing' ? body.writingTheme : null);
     try {
-      const results = await Promise.all(parts.map((p) => genPart(b, p, cls, wTasks, topic, counts)));
+      const results = await Promise.all(parts.map((p) => genPart(b, p, cls, wTasks, topic, counts, plans[p.id])));
+      try { remember(b, parts, results, plans); } catch (e) { console.warn('[specs] history', e.message); }
       const sections = [], questions = [], notes = [];
       results.forEach((r) => { sections.push(r.section); questions.push(...r.questions); if (r.note) notes.push(r.note); });
       sections.forEach((s, i) => { s.order = i; });
@@ -321,12 +324,63 @@ module.exports = function specs(app, deps) {
     }
   });
 
-  async function genPart(b, p, cls, wTasks, topic, counts) {
+  // ── Variety: rotate the specification's themes and never repeat recent prompts ──
+  // Every generated part is remembered (data/spec-gen-history.json, across all teachers),
+  // so the next paper for the same Grade Level Goal uses the theme used longest ago and
+  // a different situation / text / question from the last few papers.
+  const HISTORY = 'spec-gen-history.json';
+  const histFor = (key) => (readAll(HISTORY) || []).filter((h) => h && h.key === key);
+  // Does this writing task use the source text the students read first?
+  const usesSource = (w) => w.genre === 'main-idea' || w.genre === 'email' || !!w.alternativeTo || !!w.sourceText;
+  function makePlan(b, p, wTasks, chosen) {
+    const key = b.id + '|' + p.id;
+    const themes = (p.themes || []).map((t) => t.theme).filter(Boolean);
+    const hist = histFor(key);
+    let main = null;
+    if (themes.length) {
+      const idx = Number.parseInt(chosen, 10);
+      if (chosen !== null && chosen !== undefined && chosen !== '' && idx >= 0 && idx < themes.length) main = themes[idx];
+      else {
+        // The theme used longest ago (or never) comes next; ties are broken at random.
+        const lastUse = (t) => { for (let i = hist.length - 1; i >= 0; i--) if (hist[i].theme === t) return i; return -1; };
+        const order = themes.map((t) => ({ t, at: lastUse(t), r: Math.random() })).sort((x, y) => x.at - y.at || x.r - y.r);
+        main = order[0].t;
+      }
+    }
+    const plan = { theme: main, themeFor: {}, avoid: [] };
+    if (p.skill === 'writing') {
+      const other = themes.find((t) => t !== main) || null;
+      const pinned = chosen !== null && chosen !== undefined && chosen !== '';
+      const hasSource = wTasks.some(usesSource);
+      for (const w of wTasks) {
+        // A task that does not use the source text takes the paper's other theme, so both
+        // themes of the specification are covered (unless the teacher picked one theme).
+        plan.themeFor[w.id] = (!pinned && other && hasSource && wTasks.length > 1 && !usesSource(w)) ? other : main;
+      }
+    }
+    for (const h of hist.slice(-6).reverse()) for (const x of h.items || []) if (x && plan.avoid.length < 12) plan.avoid.push(x);
+    return plan;
+  }
+  function remember(b, parts, results, plans) {
+    const all = readAll(HISTORY) || [];
+    parts.forEach((p, i) => {
+      const r = results[i]; if (!r) return;
+      const items = [];
+      const clip = (t) => String(t || '').replace(/\s+/g, ' ').trim().slice(0, 170);
+      if (r.section && r.section.passage) items.push('Text: ' + clip(r.section.passage));
+      if (p.skill === 'writing') for (const q of r.questions || []) items.push(`Task ${q.specTask}: ` + clip(q.prompt));
+      all.push({ key: b.id + '|' + p.id, theme: plans[p.id] && plans[p.id].theme, items: items.filter((x) => x.length > 12), at: new Date().toISOString() });
+    });
+    writeAll(HISTORY, all.slice(-600));
+  }
+
+  async function genPart(b, p, cls, wTasks, topic, counts, plan) {
     let last = null, issues = [];
     const keys = wTasks.map((w) => w.key);
     for (let attempt = 0; attempt < 3; attempt++) {
-      const raw = await askPart(b, p, cls, wTasks, topic, issues, counts);
+      const raw = await askPart(b, p, cls, wTasks, topic, issues, counts, plan);
       const built = buildPart(b, p, cls, wTasks, raw, counts);
+      if (plan && plan.theme) built.section.theme = plan.theme;
       const chk = check(b, [built.section], built.questions, { parts: [p.id], writing: keys, counts });
       last = built;
       if (chk.ok) return built;
@@ -337,14 +391,19 @@ module.exports = function specs(app, deps) {
     return last;
   }
 
-  function partBrief(b, p, cls, wTasks, counts) {
+  function partBrief(b, p, cls, wTasks, counts, plan) {
+    plan = plan || {};
+    const vocabOf = (name) => { const t = (p.themes || []).find((x) => x.theme === name); return t && t.vocabulary && t.vocabulary.length ? ' (vocabulary: ' + t.vocabulary.join(', ') + ')' : ''; };
     const it = p.items || {};
     const n = (counts && counts[p.id]) || it.count;
     const lines = [
       `Class: ${classLabel(cls)} · ${b.gradeLevelGoal} · Learning Continuum Stage ${b.stage || '-'} · CEFR ${b.cefr || '-'}.`,
       `Part: ${p.title} — ${p.level}. Task type: ${p.taskType}.`,
       `Instructions printed on the paper: ${p.instructions}`,
-      p.themes && p.themes.length ? `Theme(s) — base the part on ONE of these: ${p.themes.map((t) => t.theme + (t.vocabulary && t.vocabulary.length ? ' (vocabulary: ' + t.vocabulary.join(', ') + ')' : '')).join(' || ')}` : '',
+      plan.theme ? (p.skill === 'writing' && Object.values(plan.themeFor || {}).some((t) => t !== plan.theme)
+          ? `Themes for this paper: the source text and the tasks that use it are on "${plan.theme}"${vocabOf(plan.theme)}; the other task is on "${Object.values(plan.themeFor).find((t) => t !== plan.theme)}" — a different topic.`
+          : `Theme for this paper: "${plan.theme}"${vocabOf(plan.theme)}. Base the whole part on this theme.`)
+        : (p.themes && p.themes.length ? `Theme(s) — base the part on ONE of these: ${p.themes.map((t) => t.theme + vocabOf(t.theme)).join(' || ')}` : ''),
       p.grammar && p.grammar.length ? `Grammar points to test: ${p.grammar.join('; ')}` : '',
       p.functionalLanguage && p.functionalLanguage.length ? `Functional language: ${p.functionalLanguage.join('; ')}` : '',
       p.outcomes && p.outcomes.length ? `Learning outcomes (number of questions for each in the full paper): ${p.outcomes.map((o) => `${o.count || 1} × ${o.code}${o.skill ? ' (' + o.skill + ')' : ''}: ${o.text}`).join(' || ')}` : '',
@@ -353,7 +412,7 @@ module.exports = function specs(app, deps) {
     if (p.skill === 'writing') {
       lines.push('Write these writing tasks (put each in "tasks" with its taskId):');
       for (const w of wTasks) {
-        lines.push(`- Task ${w.id} "${w.name}" (${w.marks} marks). Template from the specification: ${w.instructions} Length: ${w.length || '-'}.` +
+        lines.push(`- Task ${w.id} "${w.name}" (${w.marks} marks)${plan.themeFor && plan.themeFor[w.id] ? ` — topic from the theme "${plan.themeFor[w.id]}"` : ''}. Template from the specification: ${w.instructions} Length: ${w.length || '-'}.` +
           (w.alternativeTo ? ' IMPORTANT: instead of an email reply, this task is an OPINION ESSAY about an issue raised in the email: "Write an opinion essay in which you:" followed by 3 bullet prompts. Write at least 130 words in paragraphs.' : '') +
           (w.promptBullets ? ` Exactly ${w.promptBullets} bullet prompts, each on its own line starting with "• ".` : '') +
           (w.image ? ' The task uses a picture: describe the picture(s) in imageDescription.' : '') +
@@ -378,10 +437,14 @@ module.exports = function specs(app, deps) {
         lines.push(`Write ONE ${p.text && p.text.type ? p.text.type : ''} text in "passage" of ${p.text ? p.text.words : '?'} words${p.text && p.text.cefr ? ' (' + p.text.cefr + ')' : ''}${r ? ` — it MUST be between ${r[0]} and ${r[1]} words` : ''}. Then exactly ${n} questions about it, each with exactly ${it.options || 3} options and one correct answer, following the outcome counts above (put the outcome code in "outcome").`);
       }
     }
+    if (plan.avoid && plan.avoid.length) {
+      lines.push('Recent papers for this class level already used the texts and prompts below. Write something clearly NEW: a different situation, different people, a different question and different bullet prompts (same theme is fine, but not the same idea):');
+      plan.avoid.forEach((x) => lines.push('  ✗ ' + x));
+    }
     return lines.filter(Boolean).join('\n');
   }
 
-  async function askPart(b, p, cls, wTasks, topic, issues, counts) {
+  async function askPart(b, p, cls, wTasks, topic, issues, counts, plan) {
     const isW = p.skill === 'writing';
     const tool = {
       name: 'submit_part', description: 'Submit this part of the exam paper.',
@@ -401,10 +464,10 @@ module.exports = function specs(app, deps) {
       'Multiple choice: exactly one correct option, plausible distractors of similar length, no "all/none of the above"; vary the position of the correct answer.',
       'Count the words of every text you write and keep it inside the required range.',
     ].join('\n');
-    const user = partBrief(b, p, cls, wTasks, counts) + (topic ? `\nTeacher's topic request (stay inside the specification): ${topic}` : '') +
+    const user = partBrief(b, p, cls, wTasks, counts, plan) + (topic ? `\nTeacher's topic request (stay inside the specification): ${topic}` : '') +
       (issues && issues.length ? `\n\nYOUR PREVIOUS VERSION DID NOT MATCH THE SPECIFICATION. Fix these problems: ${issues.join(' ')}` : '') +
       '\n\nSubmit with the submit_part tool.';
-    const r = await claudeFetch({ max_tokens: 8000, system, messages: [{ role: 'user', content: user }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_part' } }, 'smart');
+    const r = await claudeFetch({ max_tokens: 8000, temperature: 1, system, messages: [{ role: 'user', content: user }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_part' } }, 'smart');
     if (!r || !r.ok) { const t = r ? await r.text().catch(() => '') : ''; throw new Error('AI service error ' + (r ? r.status : '') + ' ' + t.slice(0, 120)); }
     const d = await r.json();
     const blk = (d.content || []).find((x) => x.type === 'tool_use');

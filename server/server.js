@@ -8978,6 +8978,13 @@ app.get('/api/teacher/markings/:id/download', (req, res) => {
   _ccFsV.createReadStream(p).pipe(res);
 });
 
+// 📄 Mark paper scripts (photos of handwritten scripts → AI marks → results + class folder)
+try {
+  require('./paper')(app, { requireTeacher, readAll, writeAll, upload, asyncJob: _ccAsyncJob, claudeFetch: (b, t) => _ccClaudeFetch(b, t), gradeWriting,
+    getSpecRubric: (id) => (_ccSpecs && _ccSpecs.getRubric ? _ccSpecs.getRubric(id) : null), uuid: uuidv4, bcrypt, tempPassword: generateTempPassword,
+    dataDir: _ccDataDir, folders: { load: _ccLoadFolders, save: _ccSaveFolders, loadMarkings: _ccLoadMarkings, saveMarkings: _ccSaveMarkings, dir: _ccFolderDir, ensureDir: _ccEnsureFolderDirs } });
+} catch (e) { console.error('[paper] module failed to load:', e); }
+
 
 app.delete('/api/teacher/folders/:id', (req, res) => {
   if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
@@ -9333,6 +9340,17 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
         return ids.includes(sid) || (student.name && s.studentName && String(s.studentName).toLowerCase() === String(student.name).toLowerCase());
       });
       if (!sub) return null;
+      // Normal ClassCurio results: count teacher/AI marks for writing (manualGrades), partial match marks
+      // and right/wrong answers — the same scoring as the Results page.
+      if (Array.isArray(a.questions) && a.questions.length && (sub.manualGrades || (Array.isArray(sub.answers) && sub.answers.some(x => x && x.questionId)))) {
+        let t = 0, m = 0;
+        for (const q of a.questions) {
+          const e = _ccQuestionEarned(q, sub);
+          m += e ? e.max : (Number(q.points) || 1);
+          if (e) t += e.earned;
+        }
+        return m ? Math.round((t / m) * 1000) / 10 : null;
+      }
       let total = Number(sub.totalScore || sub.score || 0);
       let max   = Number(sub.maxScore  || sub.outOf  || assessmentMax(a));
       // If total came back 0 but per-question correctness exists, compute from that.
