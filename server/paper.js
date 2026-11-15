@@ -247,14 +247,18 @@ module.exports = function paper(app, d) {
   // Compares the task wording that really differs between papers (the extended-writing question and
   // the reading text). Most of those signals must differ before a script is treated as another paper.
   function looksLikeOtherPaper(a, s) {
+    // The AI's own judgement while reading the pages comes first.
+    const v = s.paperVotes || { same: 0, different: 0 };
+    if (v.different > v.same) return true;
+    if (v.same > v.different) return false;
     const signals = [];
     for (const q of writingQs(a)) {
       const v = similarity((s.printed || {})[q.id], q.prompt);
-      if (v !== null) signals.push(v < 0.2);
+      if (v !== null) signals.push(v < 0.3);
     }
     const classText = (a.sections || []).map((x) => x.passage || '').join(' ');
     const v2 = similarity(s.printedSource, classText);
-    if (v2 !== null) signals.push(v2 < 0.15);
+    if (v2 !== null) signals.push(v2 < 0.2);
     return signals.length > 0 && signals.filter(Boolean).length > signals.length / 2;
   }
   function ownPaperOverride(a, s) {
@@ -346,6 +350,7 @@ module.exports = function paper(app, d) {
           readable: { type: 'boolean', description: 'false if the handwriting or photo is too unclear to read reliably' },
           printedTasks: { type: 'array', description: 'The PRINTED task instructions visible on this page (not the student writing), if any', items: { type: 'object', required: ['question', 'text'], properties: { question: { type: 'string', description: 'Task label from the list, e.g. ' + wq.map((q) => JSON.stringify(qLabel(a, q))).join(' or ') }, text: { type: 'string', description: 'The printed instructions word for word' } } } },
           printedText: { type: 'string', description: 'The PRINTED reading text / email / article on this page, word for word; empty if none' },
+          samePaper: { type: 'string', enum: ['same', 'different', 'unknown'], description: 'Compare the PRINTED questions / reading text on this page with the writing questions listed above. "different" if they are clearly about a different topic or a different paper; "same" if they match; "unknown" if no printed questions or text are visible on this page.' },
           parts: { type: 'array', items: { type: 'object', required: ['question', 'text'], properties: {
             question: { type: 'string', description: 'Which writing task this answers — use the label from the list exactly, e.g. ' + wq.map((q) => JSON.stringify(qLabel(a, q))).join(' or ') + '. If the page only continues an answer from the previous page and shows no task number, write "continued".' },
             text: { type: 'string', description: 'The student\'s handwriting transcribed word for word — keep their spelling, grammar and punctuation mistakes; write [?] for an unreadable word' } } } },
@@ -397,6 +402,7 @@ module.exports = function paper(app, d) {
           const q = wq.find((x) => labelKey(qLabel(a, x)) === labelKey(pt.question)) || null;
           if (q && pt.text && !s.printed[q.id]) s.printed[q.id] = String(pt.text).slice(0, 2000);
         }
+        if (r.samePaper === 'different' || r.samePaper === 'same') { s.paperVotes = s.paperVotes || { same: 0, different: 0 }; s.paperVotes[r.samePaper]++; }
         if (r.printedText && String(r.printedText).trim().length > 40) s.printedSource = ((s.printedSource || '') + '\n' + String(r.printedText)).trim().slice(0, 6000);
         for (const part of r.parts || []) {
           if (!String(part.text || '').trim()) continue;
@@ -435,7 +441,7 @@ module.exports = function paper(app, d) {
           if (mk.mistakesOk) s.flags = s.flags.filter((f) => !f.startsWith(`Mistakes and feedback for ${qLabel(a, q)}`));
         }
       }
-      scripts.forEach((s) => { delete s.lastTask; });
+      scripts.forEach((s) => { delete s.lastTask; delete s.paperVotes; });
       const batch = { id: batchId, assessmentId: a.id, teacherId: req.session.user.id, createdAt: new Date().toISOString(), status: 'review', pages, scripts };
       const all = readAll(BATCHES); all.push(batch); writeAll(BATCHES, all.slice(-200));
       res.json({ ok: true, batch: publicBatch(batch, a) });
