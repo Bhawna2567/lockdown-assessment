@@ -266,6 +266,37 @@ module.exports = function paper(app, d) {
     for (const q of writingQs(a)) out[q.id] = { prompt: (s.printed || {})[q.id] || q.prompt, passage: s.printedSource || '', label: qLabel(a, q) };
     return out;
   }
+  // Split a student's transcribed writing into the right tasks, using the questions she actually
+  // answered. Used when a task came out empty (her writing was all put under one task) and whenever
+  // a script is marked against a different paper. Her words are kept exactly; nothing is rewritten.
+  async function resplitTasks(a, s, override) {
+    const wq = writingQs(a);
+    if (wq.length < 2) return false;
+    const original = wq.map((q) => s.text[q.id] || '').filter((t) => t.trim()).join('\n\n');
+    const words = (t) => String(t || '').trim().split(/\s+/).filter(Boolean).length;
+    if (words(original) < 15) return false;
+    const list = wq.map((q) => { const o = override && override[q.id]; return `${qLabel(a, q)}: ${String((o && o.prompt) || q.prompt || '').replace(/\s+/g, ' ').slice(0, 600)}`; }).join('\n');
+    const tool = { name: 'submit_split', description: 'The student writing split into the answer for each task.', input_schema: { type: 'object', required: ['tasks'], properties: {
+      tasks: { type: 'array', items: { type: 'object', required: ['task', 'text'], properties: { task: { type: 'string', description: 'Task label exactly as listed, e.g. ' + wq.map((q) => JSON.stringify(qLabel(a, q))).join(' or ') }, text: { type: 'string', description: "The student's own words for this task, copied exactly" } } } } } } };
+    const prompt = "Below is a student's handwritten exam answers, transcribed in page order. The exam had these writing tasks:\n" + list +
+      "\n\nSplit the writing into the answer for each task (a short summary usually answers the main-ideas task; the longer essay, email or opinion piece answers the extended-writing task). Copy the student's words EXACTLY, keep her mistakes, do not add, correct or leave out anything. Every sentence must go to one task.\n---\n" + original.slice(0, 9000) + '\n---\nSubmit with submit_split.';
+    const r = await claudeFetch({ max_tokens: 6000, messages: [{ role: 'user', content: prompt }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_split' } }, 'smart');
+    if (!r || !r.ok) return false;
+    const j = await r.json();
+    if (j.stop_reason === 'max_tokens') return false;
+    const inp = ((j.content || []).find((x) => x.type === 'tool_use') || {}).input || {};
+    const out = {};
+    for (const t of Array.isArray(inp.tasks) ? inp.tasks : []) {
+      const q = wq.find((x) => labelKey(qLabel(a, x)) === labelKey(t.task)) || wq.find((x) => String(x.specTask || '') === String(t.task || '').replace(/^\D+/, ''));
+      if (q && String(t.text || '').trim()) out[q.id] = ((out[q.id] || '') + '\n' + String(t.text)).trim();
+    }
+    // Accept only if every task got writing and (almost) none of her words were lost.
+    const got = Object.values(out).join(' ');
+    if (Object.keys(out).length < wq.length || words(got) < words(original) * 0.85) return false;
+    for (const q of wq) s.text[q.id] = out[q.id];
+    return true;
+  }
+  const hasEmptyTask = (a, s) => { const wq = writingQs(a); return wq.length > 1 && wq.some((q) => !(s.text[q.id] || '').trim()) && wq.some((q) => (s.text[q.id] || '').trim()); };
   // Read the printed questions and reading text from a script's own pages (used when re-marking).
   async function readPrinted(b, s, a) {
     const wq = writingQs(a);
@@ -426,6 +457,7 @@ module.exports = function paper(app, d) {
           s.questionsUsed = ov;
           s.flags.push(OTHER_FLAG);
         }
+        if (ov || hasEmptyTask(a, s)) await resplitTasks(a, s, ov).catch((e) => console.warn('[paper] split', e.message));
         await gradeTasks(a, s, ov);
       }
       // Second pass: any task still without full feedback is tried again now, one at a time,
@@ -527,11 +559,9 @@ module.exports = function paper(app, d) {
       const mode = String((req.body || {}).mode || 'own');
       let ov = null, title = '';
       if (mode === 'own') {
-        const have = writingQs(a).some((q) => (s.printed || {})[q.id]);
-        if (!have || !s.printedSource) {
-          const got = await readPrinted(b, s, a).catch((e) => { console.warn('[paper] printed', e.message); return null; });
-          if (got) { s.printed = Object.assign({}, s.printed || {}, got.printed); if (got.source) s.printedSource = got.source; }
-        }
+        // Read her printed questions again from all her pages together (more reliable than page by page).
+        const got = await readPrinted(b, s, a).catch((e) => { console.warn('[paper] printed', e.message); return null; });
+        if (got && Object.keys(got.printed).length) { s.printed = Object.assign({}, s.printed || {}, got.printed); if (got.source) s.printedSource = got.source; }
         if (!writingQs(a).some((q) => (s.printed || {})[q.id])) return res.status(422).json({ error: 'The printed questions could not be read from this student\'s pages. Choose the paper from your assessments instead.' });
         ov = ownPaperOverride(a, s); title = "the questions printed on the student's own paper";
       } else if (mode === 'assessment') {
@@ -550,6 +580,7 @@ module.exports = function paper(app, d) {
       s.flags = (s.flags || []).filter((f) => !TASK_FLAG_RE.test(f));
       s.markedAgainst = ov ? { mode, title, assessmentId: mode === 'assessment' ? req.body.assessmentId : undefined } : null;
       s.questionsUsed = ov;
+      await resplitTasks(a, s, ov).catch((e) => console.warn('[paper] split', e.message));
       await gradeTasks(a, s, ov);
       writeAll(BATCHES, all);
       res.json({ ok: true, script: s });
