@@ -12667,9 +12667,30 @@ document.addEventListener('change', (e) => {
     const taskBlock = (s, q) => {
       const g = s.grades[q.id] || {};
       const rb = q.rubric;
-      const fb = `<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Feedback${(s.text && s.text[q.id]) ? ' and what the AI read' : ''}</summary>
-        <textarea data-fbt="${esc(q.id)}" rows="5" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;margin-top:4px;">${esc(g.feedback || '')}</textarea>
-        ${(s.text && s.text[q.id]) ? `<div style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:8px;border-radius:6px;margin-top:4px;"><b>What the AI read:</b>\n${esc(s.text[q.id])}</div>` : ''}</details>`;
+      // Mistakes found by the AI (highlighted in the student's writing) + the two feedback boxes.
+      const MK = { spelling: ['Spelling', '#FDE2E2', '#DC2626', '#991B1B'], grammar: ['Grammar', '#DBEAFE', '#2563EB', '#1E40AF'],
+        punctuation: ['Punctuation', '#FFEDD5', '#EA580C', '#9A3412'], word_choice: ['Word choice', '#EDE9FE', '#7C3AED', '#5B21B6'] };
+      const txt = String((s.text && s.text[q.id]) || '');
+      const ms = (g.mistakes || []).map((m, i) => Object.assign({ i, at: txt.indexOf(m.text) }, m)).filter((m) => m.at >= 0).sort((x, y) => x.at - y.at);
+      let hl = '', last = 0;
+      ms.forEach((m, n) => {
+        if (m.at < last) return;
+        const c = MK[m.type] || MK.grammar;
+        hl += esc(txt.slice(last, m.at)) + `<span data-hl="${m.i}" style="background:${c[1]};border-bottom:2px solid ${c[2]};border-radius:2px;padding:0 1px;">${esc(m.text)}</span><sup style="color:${c[3]};font-weight:700;font-size:10px;">${n + 1}</sup>`;
+        last = m.at + m.text.length;
+      });
+      hl += esc(txt.slice(last));
+      const fb = `<details style="margin-top:6px;"${ms.length ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Mistakes (${ms.length}) and feedback</summary>
+        ${txt ? `<div style="white-space:pre-wrap;font-size:13px;line-height:1.9;background:#F8FAFC;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;margin-top:6px;">${hl}</div>` : ''}
+        ${ms.length ? `<div style="font-size:12px;color:#64748b;margin:6px 0 2px;">Untick any mistake you don't agree with. It won't appear in the student's report.</div>
+        <div style="display:grid;gap:3px;">${ms.map((m, n) => { const c = MK[m.type] || MK.grammar; return `<label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;text-transform:none;letter-spacing:0;font-weight:400;">
+          <input type="checkbox" data-mk="${m.i}" checked style="width:auto;margin:2px 0 0;"><b style="min-width:16px;">${n + 1}</b>
+          <span style="background:${c[1]};color:${c[3]};font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;white-space:nowrap;">${c[0]}</span>
+          <span><s style="color:#64748b;">${esc(m.text)}</s> → <b>${esc(m.correction)}</b>${m.reason ? ` <span style="color:#64748b;">· ${esc(m.reason)}</span>` : ''}</span></label>`; }).join('')}</div>` : ''}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <label style="font-size:12px;font-weight:600;color:#166534;text-transform:none;letter-spacing:0;">What went well<textarea data-ww rows="3" style="width:100%;padding:6px;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.wentWell || '')}</textarea></label>
+          <label style="font-size:12px;font-weight:600;color:#92400E;text-transform:none;letter-spacing:0;">To improve<textarea data-ti rows="3" style="width:100%;padding:6px;border:1px solid #FDE68A;background:#FFFBEB;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.toImprove || g.feedback || '')}</textarea></label>
+        </div></details>`;
       if (!rb) {
         return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>
           <input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc style="width:70px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}${fb}</div>`;
@@ -12733,6 +12754,7 @@ document.addEventListener('change', (e) => {
       card.querySelector('[data-gtot]').textContent = `${round(tot)} / ${qMax}` + (complete ? '' : ' *');
       return complete;
     };
+    body.querySelectorAll('[data-mk]').forEach((cb) => { cb.onchange = () => { const h = cb.closest('[data-q]').querySelector(`[data-hl="${cb.dataset.mk}"]`); if (h) { h.style.opacity = cb.checked ? '1' : '0.35'; h.style.textDecoration = cb.checked ? '' : 'line-through'; } }; });
     body.querySelectorAll('[data-s]').forEach((card) => { recalc(card); card.querySelectorAll('select[data-crit], [data-sc]').forEach((el) => { el.addEventListener('change', () => recalc(card)); el.addEventListener('input', () => recalc(card)); }); });
     body.querySelector('[data-ok]').onclick = async (ev) => {
       const msg = body.querySelector('[data-msg]');
@@ -12744,7 +12766,7 @@ document.addEventListener('change', (e) => {
         if (!skip && key && !recalc(card)) incomplete++;
         const grades = {};
         card.querySelectorAll('[data-q]').forEach((qb) => {
-          const qid = qb.dataset.q; const g = { feedback: qb.querySelector('[data-fbt]').value };
+          const qid = qb.dataset.q; const g = { wentWell: qb.querySelector('[data-ww]').value, toImprove: qb.querySelector('[data-ti]').value, keepMistakes: Array.from(qb.querySelectorAll('[data-mk]')).filter((c) => c.checked).map((c) => Number(c.dataset.mk)) };
           const sels = qb.querySelectorAll('select[data-crit]');
           if (sels.length) { g.criteria = {}; sels.forEach((sl) => { g.criteria[sl.dataset.crit] = sl.value === '' ? '' : Number(sl.value); }); }
           else g.score = qb.querySelector('[data-sc]').value;

@@ -62,10 +62,46 @@ module.exports = function paper(app, d) {
     const spec = q.rubricId ? getSpecRubric(q.rubricId) : null;
     const r = spec || (getStageRubric ? getStageRubric(stageOf(a)) : null);
     if (!r || !Array.isArray(r.criteria) || !r.criteria.length) return null;
-    const criteria = r.criteria.map((c) => ({ id: c.id, name: c.name, max: Number(c.max || r.scoreMax) || 0 }));
+    const criteria = r.criteria.map((c) => ({ id: c.id, name: c.name, max: Number(c.max || r.scoreMax) || 0, bands: c.bands || {} }));
     const total = criteria.reduce((t, c) => t + c.max, 0) || Number(r.totalMax) || 0;
     return { id: spec ? spec.id : 'stage-' + stageOf(a), stage: spec ? spec.id : stageOf(a), title: r.title, total, criteria };
   }
+  // The rubric's own descriptor for a score (used when the teacher changes the AI's mark).
+  function bandText(c, v) {
+    const b = c.bands || {};
+    if (b[String(v)] !== undefined) return String(b[String(v)]);
+    const k = Object.keys(b).find((key) => { const m = key.split('-').map(Number); return m.length === 2 && v >= m[0] && v <= m[1]; });
+    return k ? String(b[k]) : '';
+  }
+  const MISTAKE_TYPES = ['spelling', 'grammar', 'punctuation', 'word_choice'];
+  // Mistakes in the student's writing (exact words, type, correction) + what went well / to improve.
+  async function findMistakes(q, text, rb) {
+    const tool = { name: 'submit_mistakes', description: 'The language mistakes in the student writing and short feedback.', input_schema: { type: 'object', required: ['mistakes', 'wentWell', 'toImprove'], properties: {
+      mistakes: { type: 'array', items: { type: 'object', required: ['text', 'type', 'correction'], properties: {
+        text: { type: 'string', description: 'The wrong words copied EXACTLY from the student writing (1-6 words, as short as possible)' },
+        type: { type: 'string', enum: MISTAKE_TYPES, description: 'spelling | grammar | punctuation (includes capital letters) | word_choice' },
+        correction: { type: 'string', description: 'The corrected words' },
+        reason: { type: 'string', description: 'Very short reason for the student, max 12 words' } } } },
+      wentWell: { type: 'string', description: '1-2 sentences to the student ("You...") on what went well' },
+      toImprove: { type: 'string', description: '1-2 sentences to the student ("You...") on the most important things to improve' } } } };
+    const prompt = 'Task: ' + String(q.prompt || '').slice(0, 800) + '\nRubric: ' + (rb ? rb.title : 'writing') +
+      "\n\nThe student's handwritten answer, transcribed exactly (mistakes kept; [?] = unreadable word):\n---\n" + text.slice(0, 6000) + '\n---\n\n' +
+      'List the clear language mistakes (spelling, grammar, punctuation/capital letters, word choice) - at most 15, the most important first. ' +
+      "Copy each mistake's words exactly as they appear above so they can be found in the text. Ignore [?] words and handwriting. " +
+      'Then write what went well and what to improve, kindly and simply, for a school student. Submit with submit_mistakes.';
+    const r = await claudeFetch({ max_tokens: 3000, messages: [{ role: 'user', content: prompt }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_mistakes' } }, 'smart');
+    if (!r || !r.ok) throw new Error('AI service error ' + (r ? r.status : ''));
+    const j = await r.json();
+    const blk = (j.content || []).find((x) => x.type === 'tool_use');
+    const inp = (blk && blk.input) || {};
+    // Keep only mistakes whose words really appear in the writing.
+    const mistakes = (Array.isArray(inp.mistakes) ? inp.mistakes : []).slice(0, 15)
+      .map((m) => ({ text: String(m.text || '').trim().slice(0, 80), type: MISTAKE_TYPES.includes(m.type) ? m.type : 'grammar', correction: String(m.correction || '').slice(0, 120), reason: String(m.reason || '').slice(0, 120) }))
+      .filter((m) => m.text && text.includes(m.text));
+    return { mistakes, wentWell: String(inp.wentWell || '').slice(0, 600), toImprove: String(inp.toImprove || '').slice(0, 600) };
+  }
+  // The grader's feedback lists every criterion again; keep only its overall comment.
+  const overallOnly = (f) => { const t = String(f || ''); const i = t.search(/Overall:/i); return (i >= 0 ? t.slice(i).replace(/^Overall:\s*/i, '') : t).trim(); };
   const toQuestion = (raw, total, points) => (total ? Math.round((raw * (Number(points) || total) / total) * 2) / 2 : raw);
   const writingQs = (a) => (a.questions || []).filter((q) => WRITING.has(q.type));
   // Label for a writing question: its MOE task number if it has one, else "Writing 1", "Writing 2"…
@@ -171,8 +207,11 @@ module.exports = function paper(app, d) {
           const rub = q.rubricId ? getSpecRubric(q.rubricId) : null;
           const sec = (a.sections || []).find((x) => x.id === q.sectionId);
           const stage = ['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8';
-          const g = await gradeWriting({ rubric: rub, rubricStage: stage, context: sec && sec.passage, prompt: q.prompt, essay: text, maxScore: q.points }).catch((e) => ({ ok: false, detail: e.message }));
-          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank('') }; return; }
+          const [g, mk] = await Promise.all([
+            gradeWriting({ rubric: rub, rubricStage: stage, context: sec && sec.passage, prompt: q.prompt, essay: text, maxScore: q.points }).catch((e) => ({ ok: false, detail: e.message })),
+            findMistakes(q, text, rb).catch((e) => { console.warn('[paper] mistakes', e.message); return { mistakes: [], wentWell: '', toImprove: '' }; }),
+          ]);
+          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank(''), mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove }; return; }
           // Rubrics scored out of 40/12 are scaled to the question's own marks.
           const max = Number(q.points) || g.maxScore;
           const f = g.maxScore ? max / g.maxScore : 1;
@@ -189,7 +228,8 @@ module.exports = function paper(app, d) {
               raw += n;
             }
           }
-          s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: g.feedback, breakdown: bd, rubricStage: g.rubricStage, criteria };
+          s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: overallOnly(g.feedback), breakdown: bd, rubricStage: g.rubricStage, criteria,
+            mistakes: mk.mistakes, wentWell: mk.wentWell || '', toImprove: mk.toImprove || overallOnly(g.feedback) };
         }));
       }
       const batch = { id: batchId, assessmentId: a.id, teacherId: req.session.user.id, createdAt: new Date().toISOString(), status: 'review', pages, scripts };
@@ -271,13 +311,24 @@ module.exports = function paper(app, d) {
             const n = Math.max(0, Math.min(c.max, Math.round(Number(crit[c.id]) || 0)));
             const aiC = ai.criteria && ai.criteria[c.id];
             rubricRaw += n;
+            // AI comment only when the teacher kept the AI's mark; otherwise the rubric's descriptor for her mark.
+            const kept = aiC && aiC.ai !== '' && Number(aiC.ai) === n;
+            const comment = kept ? (aiC.comment || '') : (bandText(c, n) || 'Mark set by your teacher.');
             breakdown[c.id] = { name: c.name, score: Math.round(n * f * 10) / 10, max: Math.round(c.max * f * 10) / 10, raw: n, rawMax: c.max,
-              ai: aiC && aiC.ai !== '' ? aiC.ai : undefined, comment: (aiC && aiC.comment) || '' };
+              ai: aiC && aiC.ai !== '' ? aiC.ai : undefined, comment: String(comment).slice(0, 400), changed: !kept };
           }
           score = Math.max(0, Math.min(pts, toQuestion(rubricRaw, rb.total, pts)));
           rubricStage = rb.stage;
         }
-        manual[q.id] = { score, maxScore: pts, feedback: String(g.feedback != null ? g.feedback : '').slice(0, 4000),
+        // Mistakes the teacher kept (indexes into the AI's list) and the two feedback boxes.
+        const allM = Array.isArray(ai.mistakes) ? ai.mistakes : [];
+        const keepIdx = Array.isArray(g.keepMistakes) ? g.keepMistakes.map(Number) : allM.map((_, i) => i);
+        const mistakes = allM.filter((_, i) => keepIdx.includes(i));
+        const wentWell = String(g.wentWell != null ? g.wentWell : (ai.wentWell || '')).slice(0, 1200).trim();
+        const toImprove = String(g.toImprove != null ? g.toImprove : (ai.toImprove || '')).slice(0, 1200).trim();
+        const feedback = g.feedback != null && g.wentWell == null && g.toImprove == null ? String(g.feedback)
+          : [wentWell && 'What went well: ' + wentWell, toImprove && 'To improve: ' + toImprove].filter(Boolean).join('\n\n');
+        manual[q.id] = { score, maxScore: pts, feedback: feedback.slice(0, 4000), wentWell, toImprove, mistakes,
           breakdown, rubricStage, rubricTitle: rb ? rb.title : undefined, rubricRaw, rubricTotal,
           gradedAt: new Date().toISOString(), gradedBy: req.session.user.name + ' (paper script, AI-assisted)', paper: true };
       }
@@ -301,6 +352,7 @@ module.exports = function paper(app, d) {
   // Marked PDF: marks and feedback per question, then the student's pages.
   async function saveMarkedPdf(req, a, cls, b, s, rec, wq) {
     const PDFKit = require('pdfkit');
+    const report = require('./paper-pdf');
     const fl = folders.load();
     let folder = fl.find((f) => f.teacherId === req.session.user.id && f.classId === (cls && cls.id));
     if (!folder) {
@@ -313,21 +365,24 @@ module.exports = function paper(app, d) {
     const hasPdfPages = s.pages.some((pid) => (b.pages.find((x) => x.id === pid) || {}).kind === 'pdf');
     const pdfSlots = {};   // page index in the marked PDF → original scanned PDF page
     let buf = await new Promise((resolve, reject) => {
-      const doc = new PDFKit({ size: 'A4', margin: 46 });
+      const doc = new PDFKit({ size: 'A4', margins: { top: 40, bottom: 30, left: 46, right: 46 } });
       const chunks = [];
       doc.on('data', (c) => chunks.push(c)); doc.on('end', () => resolve(Buffer.concat(chunks))); doc.on('error', reject);
       let pageNo = 1; doc.on('pageAdded', () => pageNo++);
-      doc.fontSize(18).fillColor('#1a1e33').text(rec.studentName);
-      doc.fontSize(11).fillColor('#475569').text(`${a.title} · paper script marked ${new Date().toLocaleDateString('en-GB')}`);
+      // Colour-coded summary: the student's writing with mistakes highlighted, corrections, rubric marks, feedback.
+      const TYPE = { spelling: 'spell', grammar: 'grammar', punctuation: 'punct', word_choice: 'vocab' };
       let tot = 0, max = 0;
-      for (const q of wq) {
-        const g = rec.manualGrades[q.id]; tot += g.score; max += g.maxScore;
-        doc.moveDown(0.8).fontSize(13).fillColor('#1a1e33').text(`${qLabel(a, q)} — ${g.score} / ${g.maxScore}` + (g.rubricTotal && g.rubricTotal !== g.maxScore ? `  (rubric ${g.rubricRaw} / ${g.rubricTotal})` : ''));
-        if (g.rubricTitle) doc.fontSize(9).fillColor('#64748b').text(g.rubricTitle);
-        if (g.breakdown) for (const v of Object.values(g.breakdown)) doc.fontSize(10).fillColor('#334155').text(`• ${v.name}: ${v.raw != null ? v.raw : v.score} / ${v.rawMax != null ? v.rawMax : v.max}${v.comment ? ' — ' + v.comment : ''}`);
-        if (g.feedback) doc.moveDown(0.3).fontSize(10).fillColor('#475569').text(String(g.feedback).slice(0, 2500));
-      }
-      doc.moveDown(0.8).fontSize(13).fillColor('#1a1e33').text(`Total: ${tot} / ${max}`);
+      const tasks = wq.map((q) => {
+        const g = rec.manualGrades[q.id] || {}; tot += Number(g.score) || 0; max += Number(g.maxScore) || 0;
+        const text = String(s.text[q.id] || '');
+        const mistakes = report.locateMistakes(text, (g.mistakes || []).map((m) => ({ wrong: m.text, type: TYPE[m.type] || 'grammar', correct: m.correction, why: m.reason })));
+        const criteria = Object.values(g.breakdown || {}).filter((v) => v && v.raw != null).map((v) => ({ name: v.name, score: v.raw, max: v.rawMax, comment: v.comment || '' }));
+        return { label: `${qLabel(a, q)}`, score: g.score, max: g.maxScore, rubricTitle: g.rubricTitle || '',
+          rubricNote: g.rubricTotal && g.rubricTotal !== g.maxScore ? `= ${g.score} / ${g.maxScore} marks` : '',
+          text, mistakes, criteria, wentWell: g.wentWell || '', toImprove: g.toImprove || '', feedback: g.feedback || '' };
+      });
+      report.drawReport(doc, { student: rec.studentName, subtitle: `${a.title} · paper script marked ${new Date().toLocaleDateString('en-GB')}`,
+        total: Math.round(tot * 2) / 2, max, tasks });
       for (const pid of s.pages) {
         const p = b.pages.find((x) => x.id === pid);
         if (!p) continue;
