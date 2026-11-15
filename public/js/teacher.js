@@ -7193,10 +7193,34 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
             // Optional: deleting a report can also remove the student's mark (only for reports linked to an assessment).
             const linked = j.markings.some(function(m){ return !!m.assessmentId; });
             const alsoBox = el('input', { type: 'checkbox', style: 'width:auto; margin:0;' });
+            // Select reports (or all) and download them together as one ZIP file.
+            const allBox = el('input', { type: 'checkbox', style: 'width:auto; margin:0;' });
+            const zipBtn = el('button', { type: 'button', style: 'background:#4338CA; color:#fff; border:none; border-radius:6px; padding:5px 12px; font-weight:600; font-size:12.5px; cursor:pointer;' }, '⬇ Download selected (0)');
+            const picks = [];
+            const updateZip = function () {
+              const n = picks.filter(function (c) { return c.checked; }).length;
+              zipBtn.textContent = '⬇ Download selected (' + n + ')';
+              zipBtn.style.opacity = n ? '1' : '0.5';
+              allBox.checked = n > 0 && n === picks.length;
+              allBox.indeterminate = n > 0 && n < picks.length;
+            };
+            allBox.onchange = function () { picks.forEach(function (c) { c.checked = allBox.checked; }); updateZip(); };
+            zipBtn.onclick = function () {
+              const ids = picks.filter(function (c) { return c.checked; }).map(function (c) { return c.dataset.id; });
+              if (!ids.length) { alert('Tick the reports you want, or tick "Select all".'); return; }
+              const a = document.createElement('a');
+              a.href = '/api/teacher/folders/' + encodeURIComponent(f.id) + '/download-zip?ids=' + encodeURIComponent(ids.join(','));
+              document.body.appendChild(a); a.click(); a.remove();
+            };
+            detail.appendChild(el('div', { style: 'display:flex; align-items:center; gap:10px; padding:6px; background:#F8FAFC; border-radius:6px; margin-bottom:4px;' },
+              el('label', { style: 'display:flex; gap:6px; align-items:center; flex:1; font-size:13px; font-weight:600; text-transform:none; letter-spacing:0; cursor:pointer;' }, allBox, 'Select all (' + j.markings.length + ')'),
+              zipBtn));
             j.markings.forEach(function(m){
+              const pick = el('input', { type: 'checkbox', style: 'width:auto; margin:0 8px 0 0;' });
+              pick.dataset.id = m.id; pick.onchange = updateZip; picks.push(pick);
               const del = el('button', { type: 'button', style: 'background:#fff; color:#B91C1C; border:1px solid #FCA5A5; border-radius:6px; padding:3px 9px; font-weight:600; font-size:12px; cursor:pointer; margin-left:10px;' }, 'Delete');
               const row = el('div', { style: 'padding:6px; border-top:1px solid #F3F4F6; display:flex; justify-content:space-between; align-items:center;' },
-                el('div', { style: 'flex:1;' }, '📄 ' + m.studentName + '  ', el('span', { style: 'color:#6B7280; font-size:12px;' }, new Date(m.createdAt).toLocaleString())),
+                el('label', { style: 'flex:1; display:flex; align-items:center; text-transform:none; letter-spacing:0; font-weight:400; cursor:pointer;' }, pick, el('span', {}, '📄 ' + m.studentName + '  ', el('span', { style: 'color:#6B7280; font-size:12px;' }, new Date(m.createdAt).toLocaleString()))),
                 el('a', { href: '/api/teacher/markings/' + m.id + '/download', style: 'color:#4338CA; text-decoration:none; font-size:13px;' }, 'Download'),
                 del);
               del.onclick = async function () {
@@ -7206,11 +7230,13 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
                 try {
                   const r = await fetchJson('/api/teacher/markings/' + m.id + (alsoMark ? '?removeResult=1' : ''), { method: 'DELETE' });
                   row.remove();
+                  const k = picks.indexOf(pick); if (k >= 0) picks.splice(k, 1); updateZip();
                   if (alsoMark && !r.resultRemoved) alert('The report was deleted. No saved mark was found to remove.');
                 } catch (e) { del.disabled = false; alert('Delete failed: ' + e.message); }
               };
               detail.appendChild(row);
             });
+            updateZip();
             if (linked) detail.appendChild(el('label', { style: 'display:flex; gap:6px; align-items:center; margin-top:8px; font-size:12px; color:#6B7280; text-transform:none; letter-spacing:0; font-weight:400;' }, alsoBox, 'When I delete a report, also remove that student\'s mark from Results and Class Averages'));
           }
           detail.style.display = 'block'; openBtn.textContent = 'Close';

@@ -8966,6 +8966,33 @@ app.post('/api/teacher/folders/:id/save-marking', upload.single('pdf'), express.
     res.json(rec);
   } catch(e){ res.status(500).json({ error: String(e.message||e) }); }
 });
+// Download several marked reports from one folder as a single ZIP (?ids=a,b,c; no ids = the whole folder).
+app.get('/api/teacher/folders/:id/download-zip', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const folder = _ccLoadFolders().find(f => f.id === req.params.id && f.teacherId === uid);
+  if (!folder) return res.status(404).json({ error: 'Folder not found' });
+  const want = String(req.query.ids || '').split(',').map(x => x.trim()).filter(Boolean);
+  const list = _ccLoadMarkings().filter(m => m.folderId === folder.id && m.teacherId === uid && (!want.length || want.includes(m.id)));
+  const files = list.map(m => ({ m, p: _ccPathV.join(_ccFolderDir, _ccPathV.basename(m.filename)) })).filter(x => _ccFsV.existsSync(x.p));
+  if (!files.length) return res.status(404).json({ error: 'No reports to download' });
+  const zipName = _ccMpSlug(folder.name || 'marked_reports') + '.zip';
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="' + zipName + '"');
+  const archive = _ccArchiver('zip', { zlib: { level: 6 } });
+  archive.on('warning', e => console.warn('[folder-zip] warning', e));
+  archive.on('error', e => { console.error('[folder-zip] error', e); try { res.status(500).end(); } catch (_) {} });
+  archive.pipe(res);
+  const used = new Set();
+  for (const { m, p } of files) {
+    let base = _ccMpSlug(m.studentName) + '_marked_writing', name = base + '.pdf', n = 2;
+    while (used.has(name.toLowerCase())) name = base + '_' + (n++) + '.pdf';
+    used.add(name.toLowerCase());
+    archive.file(p, { name });
+  }
+  archive.finalize();
+});
+
 app.get('/api/teacher/markings/:id/download', (req, res) => {
   if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
   const uid = req.session.user.id;
