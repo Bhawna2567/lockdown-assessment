@@ -189,6 +189,105 @@ module.exports = function paper(app, d) {
     if (!mistakes.length) console.warn('[paper] no usable mistakes; raw list was', typeof inp.mistakes, String(JSON.stringify(inp.mistakes) || '').slice(0, 300));
     return { mistakes, wentWell: String(inp.wentWell || '').slice(0, 600), toImprove: String(inp.toImprove || '').slice(0, 600) };
   }
+  // Mark every writing task of one script (rubric, criteria, mistakes, feedback). `override` gives
+  // other question wording / reading text per task, for a student who answered a different paper.
+  async function gradeTasks(a, s, override) {
+    const wq = writingQs(a);
+    s.grades = {};
+    await Promise.all(wq.map(async (q) => {
+
+      const text = s.text[q.id] || '';
+      const rb = rubricOf(a, q);
+      const blank = (v) => (rb ? Object.fromEntries(rb.criteria.map((c) => [c.id, { ai: v, score: v, comment: '' }])) : null);
+      if (!text.trim()) { s.flags.push(`No answer found for ${qLabel(a, q)}.`); s.grades[q.id] = { score: 0, maxScore: Number(q.points) || 0, feedback: 'No answer found on the script.', breakdown: null, criteria: blank(0) }; return; }
+      const rub = q.rubricId ? getSpecRubric(q.rubricId) : null;
+      const sec = (a.sections || []).find((x) => x.id === q.sectionId);
+      const o = override && override[q.id];
+      const qx = o ? Object.assign({}, q, { prompt: o.prompt || q.prompt }) : q;
+      const ctx = o ? (o.passage || '') : (sec && sec.passage);
+      const stage = ['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8';
+      const [g, mk] = await Promise.all([
+        gradeSafe({ rubric: rub, rubricStage: stage, context: ctx, prompt: qx.prompt, essay: text, maxScore: q.points }),
+        findMistakesSafe(qx, text, rb),
+      ]);
+      if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank(''), mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: mk.mistakesOk }; return; }
+      // Rubrics scored out of 40/12 are scaled to the question's own marks.
+      const max = Number(q.points) || g.maxScore;
+      const f = g.maxScore ? max / g.maxScore : 1;
+      const bd = {};
+      for (const [k, v] of Object.entries(g.breakdown || {})) bd[k] = Object.assign({}, v, { score: Math.round(v.score * f * 10) / 10, max: Math.round(v.max * f * 10) / 10 });
+      // The AI's mark for each criterion on the rubric's own scale (e.g. 0–5 or 0–8).
+      let criteria = null, raw = 0;
+      if (rb) {
+        criteria = {};
+        for (const c of rb.criteria) {
+      const v = (g.breakdown || {})[c.id];
+          const n = v && Number(v.max) ? Math.max(0, Math.min(c.max, Math.round(Number(v.score) * c.max / Number(v.max)))) : 0;
+          criteria[c.id] = { ai: n, score: n, comment: (v && v.comment) || '' };
+          raw += n;
+        }
+      }
+      s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: overallOnly(g.feedback), breakdown: bd, rubricStage: g.rubricStage, criteria,
+        mistakes: mk.mistakes, wentWell: mk.wentWell || '', toImprove: mk.toImprove || overallOnly(g.feedback), mistakesOk: mk.mistakesOk };
+      if (!mk.mistakesOk) s.flags.push(`Mistakes and feedback for ${qLabel(a, q)} could not be found — use "Find mistakes again" below.`);
+    }));
+  }
+  const OTHER_FLAG = "This student seems to have answered a different paper, so she was marked against the questions printed on her own paper. You can change this below.";
+  const TASK_FLAG_RE = /^(No answer found for|.* could not be marked automatically|Mistakes and feedback for|This student seems to have answered a different paper)/;
+  // Does the printed task wording on the student's pages differ from the assessment's questions?
+  const STOP = new Set('the and that this with your from have will about which what when where their there they them then than into some more most also each other write words least paragraphs sentences text email read main ideas your own task include following answer question'.split(' '));
+  const contentWords = (t) => new Set(String(t || '').toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter((w) => w.length >= 4 && !STOP.has(w)));
+  // null = too little wording to judge (e.g. the standard "Write the main ideas…" instruction)
+  function similarity(x, y) {
+    const A = contentWords(x), B = contentWords(y);
+    if (A.size < 4 || B.size < 4) return null;
+    let hit = 0; A.forEach((w) => { if (B.has(w)) hit++; });
+    return hit / Math.min(A.size, B.size);
+  }
+  // Compares the task wording that really differs between papers (the extended-writing question and
+  // the reading text). Most of those signals must differ before a script is treated as another paper.
+  function looksLikeOtherPaper(a, s) {
+    const signals = [];
+    for (const q of writingQs(a)) {
+      const v = similarity((s.printed || {})[q.id], q.prompt);
+      if (v !== null) signals.push(v < 0.2);
+    }
+    const classText = (a.sections || []).map((x) => x.passage || '').join(' ');
+    const v2 = similarity(s.printedSource, classText);
+    if (v2 !== null) signals.push(v2 < 0.15);
+    return signals.length > 0 && signals.filter(Boolean).length > signals.length / 2;
+  }
+  function ownPaperOverride(a, s) {
+    const out = {};
+    for (const q of writingQs(a)) out[q.id] = { prompt: (s.printed || {})[q.id] || q.prompt, passage: s.printedSource || '', label: qLabel(a, q) };
+    return out;
+  }
+  // Read the printed questions and reading text from a script's own pages (used when re-marking).
+  async function readPrinted(b, s, a) {
+    const wq = writingQs(a);
+    const content = [];
+    for (const pid of (s.pages || []).slice(0, 6)) {
+      const pg = (b.pages || []).find((x) => x.id === pid); if (!pg) continue;
+      const buf = fs.readFileSync(path.join(ROOT, b.id, pg.file));
+      content.push(pg.kind === 'pdf' ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: buf.toString('base64') } }
+        : { type: 'image', source: { type: 'base64', media_type: pg.mime, data: buf.toString('base64') } });
+    }
+    if (!content.length) return null;
+    const tool = { name: 'submit_printed', description: 'The printed exam questions and reading text on these pages.', input_schema: { type: 'object', required: ['tasks'], properties: {
+      tasks: { type: 'array', items: { type: 'object', required: ['task', 'text'], properties: { task: { type: 'string', description: 'Task number as printed, e.g. 1.1 or 1.2' }, text: { type: 'string', description: 'The printed task instructions, word for word (including bullet prompts and word count)' } } } },
+      readingText: { type: 'string', description: 'The printed reading text / email / article the students read, word for word; empty if none' } } } };
+    content.push({ type: 'text', text: 'These are the pages of one student\'s exam paper. Copy the PRINTED writing task instructions (not the student\'s handwriting) for each task, and the printed reading text if there is one. The tasks are: ' + wq.map((q) => qLabel(a, q)).join(', ') + '. Submit with submit_printed.' });
+    const r = await claudeFetch({ max_tokens: 4000, messages: [{ role: 'user', content }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_printed' } }, 'smart');
+    if (!r || !r.ok) throw new Error('AI service error ' + (r ? r.status : ''));
+    const j = await r.json();
+    const inp = ((j.content || []).find((x) => x.type === 'tool_use') || {}).input || {};
+    const printed = {};
+    for (const t of Array.isArray(inp.tasks) ? inp.tasks : []) {
+      const q = wq.find((x) => String(x.specTask || '') === String(t.task || '').replace(/^\D+/, '')) || wq.find((x) => labelKey(qLabel(a, x)) === labelKey(t.task)) || wq[(inp.tasks.indexOf(t))];
+      if (q && t.text) printed[q.id] = String(t.text).slice(0, 2000);
+    }
+    return { printed, source: String(inp.readingText || '').slice(0, 6000) };
+  }
   // The grader's feedback lists every criterion again; keep only its overall comment.
   const overallOnly = (f) => { const t = String(f || ''); const i = t.search(/Overall:/i); return (i >= 0 ? t.slice(i).replace(/^Overall:\s*/i, '') : t).trim(); };
   const toQuestion = (raw, total, points) => (total ? Math.round((raw * (Number(points) || total) / total) * 2) / 2 : raw);
@@ -245,12 +344,14 @@ module.exports = function paper(app, d) {
         const tool = { name: 'submit_page', description: 'What is on this page.', input_schema: { type: 'object', required: ['studentName', 'parts'], properties: {
           studentName: { type: 'string', description: 'The student name written on this page, exactly as written; empty if no name on this page.' },
           readable: { type: 'boolean', description: 'false if the handwriting or photo is too unclear to read reliably' },
+          printedTasks: { type: 'array', description: 'The PRINTED task instructions visible on this page (not the student writing), if any', items: { type: 'object', required: ['question', 'text'], properties: { question: { type: 'string', description: 'Task label from the list, e.g. ' + wq.map((q) => JSON.stringify(qLabel(a, q))).join(' or ') }, text: { type: 'string', description: 'The printed instructions word for word' } } } },
+          printedText: { type: 'string', description: 'The PRINTED reading text / email / article on this page, word for word; empty if none' },
           parts: { type: 'array', items: { type: 'object', required: ['question', 'text'], properties: {
             question: { type: 'string', description: 'Which writing task this answers — use the label from the list exactly, e.g. ' + wq.map((q) => JSON.stringify(qLabel(a, q))).join(' or ') + '. If the page only continues an answer from the previous page and shows no task number, write "continued".' },
             text: { type: 'string', description: 'The student\'s handwriting transcribed word for word — keep their spelling, grammar and punctuation mistakes; write [?] for an unreadable word' } } } },
         } } };
-        const r = await claudeFetch({ max_tokens: 4000, messages: [{ role: 'user', content: [block, { type: 'text', text:
-          `This is one page of a student's handwritten answers to an exam. The writing questions are:\n${qList}\n\nRead the page. Give the student's name if it is written on this page, and transcribe each answer word for word under the writing task it answers (decide from what the student wrote and any numbers on the page; label it exactly as in the list above; if the writing simply continues from the previous page with no task number, label it "continued"). Do not correct anything. Ignore the printed question text — transcribe only what the student wrote. Submit with submit_page.` }] }],
+        const r = await claudeFetch({ max_tokens: 7000, messages: [{ role: 'user', content: [block, { type: 'text', text:
+          `This is one page of a student's handwritten answers to an exam. The writing questions are:\n${qList}\n\nRead the page. Give the student's name if it is written on this page, and transcribe each answer word for word under the writing task it answers (decide from what the student wrote and any numbers on the page; label it exactly as in the list above; if the writing simply continues from the previous page with no task number, label it "continued"). Do not correct anything. Put only the student's handwriting in parts. Copy any printed task instructions into printedTasks and any printed reading text into printedText. Submit with submit_page.` }] }],
           tools: [tool], tool_choice: { type: 'tool', name: 'submit_page' } }, 'smart');
         if (!r || !r.ok) throw new Error('AI service error ' + (r ? r.status : ''));
         const j = await r.json();
@@ -291,6 +392,12 @@ module.exports = function paper(app, d) {
         s.pages.push(r.page.id);
         if (r.error) s.flags.push(`Page ${r.page.source} could not be read (${r.error}).`);
         if (r.readable === false) s.flags.push(`Handwriting on ${r.page.source} is hard to read — please check.`);
+        s.printed = s.printed || {};
+        for (const pt of Array.isArray(r.printedTasks) ? r.printedTasks : []) {
+          const q = wq.find((x) => labelKey(qLabel(a, x)) === labelKey(pt.question)) || null;
+          if (q && pt.text && !s.printed[q.id]) s.printed[q.id] = String(pt.text).slice(0, 2000);
+        }
+        if (r.printedText && String(r.printedText).trim().length > 40) s.printedSource = ((s.printedSource || '') + '\n' + String(r.printedText)).trim().slice(0, 6000);
         for (const part of r.parts || []) {
           if (!String(part.text || '').trim()) continue;
           const q = matchTask(part.question, s);
@@ -305,40 +412,15 @@ module.exports = function paper(app, d) {
         s.match = m ? { key: m.key, email: m.email, name: m.name, studentId: m.studentId, hasAccount: m.hasAccount, confidence: m.confidence } : null;
         if (!s.nameRead) s.flags.push('No name found on the first page.');
         else if (!m) s.flags.push(`"${s.nameRead}" does not match anyone on the class list.`);
-        s.grades = {};
-        await Promise.all(wq.map(async (q) => {
-          const text = s.text[q.id] || '';
-          const rb = rubricOf(a, q);
-          const blank = (v) => (rb ? Object.fromEntries(rb.criteria.map((c) => [c.id, { ai: v, score: v, comment: '' }])) : null);
-          if (!text.trim()) { s.flags.push(`No answer found for ${qLabel(a, q)}.`); s.grades[q.id] = { score: 0, maxScore: Number(q.points) || 0, feedback: 'No answer found on the script.', breakdown: null, criteria: blank(0) }; return; }
-          const rub = q.rubricId ? getSpecRubric(q.rubricId) : null;
-          const sec = (a.sections || []).find((x) => x.id === q.sectionId);
-          const stage = ['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8';
-          const [g, mk] = await Promise.all([
-            gradeSafe({ rubric: rub, rubricStage: stage, context: sec && sec.passage, prompt: q.prompt, essay: text, maxScore: q.points }),
-            findMistakesSafe(q, text, rb),
-          ]);
-          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank(''), mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: mk.mistakesOk }; return; }
-          // Rubrics scored out of 40/12 are scaled to the question's own marks.
-          const max = Number(q.points) || g.maxScore;
-          const f = g.maxScore ? max / g.maxScore : 1;
-          const bd = {};
-          for (const [k, v] of Object.entries(g.breakdown || {})) bd[k] = Object.assign({}, v, { score: Math.round(v.score * f * 10) / 10, max: Math.round(v.max * f * 10) / 10 });
-          // The AI's mark for each criterion on the rubric's own scale (e.g. 0–5 or 0–8).
-          let criteria = null, raw = 0;
-          if (rb) {
-            criteria = {};
-            for (const c of rb.criteria) {
-              const v = (g.breakdown || {})[c.id];
-              const n = v && Number(v.max) ? Math.max(0, Math.min(c.max, Math.round(Number(v.score) * c.max / Number(v.max)))) : 0;
-              criteria[c.id] = { ai: n, score: n, comment: (v && v.comment) || '' };
-              raw += n;
-            }
-          }
-          s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: overallOnly(g.feedback), breakdown: bd, rubricStage: g.rubricStage, criteria,
-            mistakes: mk.mistakes, wentWell: mk.wentWell || '', toImprove: mk.toImprove || overallOnly(g.feedback), mistakesOk: mk.mistakesOk };
-          if (!mk.mistakesOk) s.flags.push(`Mistakes and feedback for ${qLabel(a, q)} could not be found — use "Find mistakes again" below.`);
-        }));
+        // A script that answers a different paper (detected from the printed task wording) is
+        // marked against the questions printed on the student's own paper.
+        const ov = looksLikeOtherPaper(a, s) ? ownPaperOverride(a, s) : null;
+        if (ov) {
+          s.markedAgainst = { mode: 'own', title: "the questions printed on the student's own paper" };
+          s.questionsUsed = ov;
+          s.flags.push(OTHER_FLAG);
+        }
+        await gradeTasks(a, s, ov);
       }
       // Second pass: any task still without full feedback is tried again now, one at a time,
       // after the busy part of the batch is over.
@@ -346,7 +428,8 @@ module.exports = function paper(app, d) {
         const g = s.grades && s.grades[q.id];
         const text = s.text[q.id] || '';
         if (!g || !text.trim() || (g.mistakesOk && g.wentWell && g.toImprove && ((g.mistakes || []).length || text.trim().split(/\s+/).length < 25))) continue;
-        const mk = await findMistakesSafe(q, text, rubricOf(a, q), 2);
+        const o = (s.questionsUsed || {})[q.id];
+        const mk = await findMistakesSafe(o ? Object.assign({}, q, { prompt: o.prompt }) : q, text, rubricOf(a, q), 2);
         if (mk.wentWell || mk.toImprove || mk.mistakes.length) {
           Object.assign(g, { mistakes: mk.mistakes.length ? mk.mistakes : (g.mistakes || []), wentWell: mk.wentWell || g.wentWell || '', toImprove: mk.toImprove || g.toImprove || '', mistakesOk: mk.mistakesOk });
           if (mk.mistakesOk) s.flags = s.flags.filter((f) => !f.startsWith(`Mistakes and feedback for ${qLabel(a, q)}`));
@@ -425,6 +508,50 @@ module.exports = function paper(app, d) {
     writeAll(BATCHES, all);
     res.json({ ok: true, batchDeleted: !b.scripts.length });
   });
+  // Mark one student's script again: against the class paper, the questions printed on her own
+  // paper, or another assessment in ClassCurio (same rubric and marks as the class).
+  app.post('/api/paper/batches/:bid/scripts/:sid/remark', requireTeacher, asyncJob, async (req, res) => {
+    try {
+      const all = readAll(BATCHES);
+      const b = all.find((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
+      if (!b) return res.status(404).json({ error: 'Not found' });
+      const a = readAll('assessments.json').find((x) => x.id === b.assessmentId);
+      const s = (b.scripts || []).find((x) => x.id === req.params.sid);
+      if (!a || !s) return res.status(404).json({ error: 'Not found' });
+      const mode = String((req.body || {}).mode || 'own');
+      let ov = null, title = '';
+      if (mode === 'own') {
+        const have = writingQs(a).some((q) => (s.printed || {})[q.id]);
+        if (!have || !s.printedSource) {
+          const got = await readPrinted(b, s, a).catch((e) => { console.warn('[paper] printed', e.message); return null; });
+          if (got) { s.printed = Object.assign({}, s.printed || {}, got.printed); if (got.source) s.printedSource = got.source; }
+        }
+        if (!writingQs(a).some((q) => (s.printed || {})[q.id])) return res.status(422).json({ error: 'The printed questions could not be read from this student\'s pages. Choose the paper from your assessments instead.' });
+        ov = ownPaperOverride(a, s); title = "the questions printed on the student's own paper";
+      } else if (mode === 'assessment') {
+        const other = readAll('assessments.json').find((x) => x.id === (req.body || {}).assessmentId && x.teacherId === req.session.user.id);
+        if (!other) return res.status(404).json({ error: 'Assessment not found' });
+        const oq = writingQs(other);
+        if (!oq.length) return res.status(400).json({ error: 'That assessment has no writing questions.' });
+        ov = {};
+        writingQs(a).forEach((q, i) => {
+          const m = oq.find((x) => x.specTask && x.specTask === q.specTask) || oq[i] || oq[oq.length - 1];
+          const sec = (other.sections || []).find((x) => x.id === m.sectionId);
+          ov[q.id] = { prompt: m.prompt, passage: (sec && sec.passage) || '', label: qLabel(a, q) };
+        });
+        title = other.title;
+      }
+      s.flags = (s.flags || []).filter((f) => !TASK_FLAG_RE.test(f));
+      s.markedAgainst = ov ? { mode, title, assessmentId: mode === 'assessment' ? req.body.assessmentId : undefined } : null;
+      s.questionsUsed = ov;
+      await gradeTasks(a, s, ov);
+      writeAll(BATCHES, all);
+      res.json({ ok: true, script: s });
+    } catch (e) {
+      console.error('[paper] remark failed', e);
+      res.status(500).json({ error: 'Marking again failed: ' + e.message });
+    }
+  });
   // Find mistakes and feedback again for one task of one script.
   app.post('/api/paper/batches/:bid/scripts/:sid/questions/:qid/mistakes', requireTeacher, asyncJob, async (req, res) => {
     const all = readAll(BATCHES);
@@ -436,7 +563,8 @@ module.exports = function paper(app, d) {
     if (!s || !q) return res.status(404).json({ error: 'Not found' });
     const text = String((s.text || {})[q.id] || '');
     if (!text.trim()) return res.status(400).json({ error: 'There is no writing for this task on the script.' });
-    const mk = await findMistakesSafe(q, text, rubricOf(a, q));
+    const o = (s.questionsUsed || {})[q.id];
+    const mk = await findMistakesSafe(o ? Object.assign({}, q, { prompt: o.prompt }) : q, text, rubricOf(a, q));
     if (!mk.mistakesOk && !(mk.wentWell || mk.toImprove || mk.mistakes.length)) return res.status(502).json({ error: 'The AI could not check this writing right now. Please try again in a minute.' });
     s.grades = s.grades || {};
     const g = s.grades[q.id] = Object.assign(s.grades[q.id] || {}, { mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: mk.mistakesOk });
@@ -522,6 +650,7 @@ module.exports = function paper(app, d) {
         id: uuid(), assessmentId: a.id, assessmentTitle: a.title, studentId: u.id, studentName: u.name, studentEmail: u.email,
         startedAt: null, submittedAt: new Date().toISOString(), source: 'paper', paperBatchId: b.id, paperScriptId: s.id,
         autoScore: 0, autoMax: 0, violations: [], submitReason: 'paper',
+        markedAgainst: s.markedAgainst || undefined,
         answers: (a.questions || []).map((q) => ({ questionId: q.id, given: s.text[q.id] || null, correct: null })), manualGrades: manual,
       };
       const i = resultsAll.findIndex((r) => r.assessmentId === a.id && r.studentId === u.id);
@@ -568,6 +697,7 @@ module.exports = function paper(app, d) {
           text, mistakes, criteria, wentWell: g.wentWell || '', toImprove: g.toImprove || '', feedback: g.feedback || '' };
       });
       report.drawReport(doc, { student: rec.studentName, subtitle: `${a.title} · paper script marked ${new Date().toLocaleDateString('en-GB')}`,
+        note: s.markedAgainst ? `Marked against a different paper: ${s.markedAgainst.title}.` : '',
         total: Math.round(tot * 2) / 2, max, tasks });
       for (const pid of s.pages) {
         const p = b.pages.find((x) => x.id === pid);

@@ -12714,14 +12714,14 @@ document.addEventListener('change', (e) => {
     const td = 'border:1px solid #e2e8f0;padding:5px 6px;text-align:center;vertical-align:top;';
     // One block per writing task: the rubric's criteria with a dropdown each (rubric's own scale).
     // The question and its reading text (collapsed; open it to compare with the student's answer).
-    const qPanel = (q) => (q.prompt || q.passage ? `<details style="margin:4px 0 2px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">📖 Question${q.passage ? ' and reading text' : ''}</summary>
+    const qPanel = (q0, s) => { const o = s && s.questionsUsed && s.questionsUsed[q0.id]; const q = o ? Object.assign({}, q0, { prompt: o.prompt || q0.prompt, passage: o.passage || '', sectionTitle: 'her own paper' }) : q0; return (q.prompt || q.passage ? `<details style="margin:4px 0 2px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">📖 Question${q.passage ? ' and reading text' : ''}</summary>
       <div style="border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;padding:8px 10px;background:#fff;">
         ${q.passage ? `<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;">Reading text${q.sectionTitle ? ' · ' + esc(q.sectionTitle) : ''}</div>
           <div style="white-space:pre-wrap;font-size:13px;line-height:1.6;max-height:340px;overflow:auto;background:#FFFBEB;border-radius:4px;padding:8px 10px;margin:3px 0 8px;">${esc(q.passage)}</div>` : ''}
         ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" alt="" style="max-width:100%;max-height:260px;border-radius:4px;margin-bottom:6px;">` : ''}
         <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;">${esc(q.label)} question (${q.points} marks)</div>
         <div style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin-top:3px;">${esc(q.prompt)}</div>
-      </div></details>` : '');
+      </div></details>` : ''); };
     const taskBlock = (s, q) => {
       const g = s.grades[q.id] || {};
       const rb = q.rubric;
@@ -12754,7 +12754,7 @@ document.addEventListener('change', (e) => {
           <label style="font-size:12px;font-weight:600;color:#92400E;text-transform:none;letter-spacing:0;">To improve<textarea data-ti rows="3" style="width:100%;padding:6px;border:1px solid #FDE68A;background:#FFFBEB;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.toImprove || g.feedback || '')}</textarea></label>
         </div></details>`;
       if (!rb) {
-        return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>${qPanel(q)}
+        return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>${qPanel(q, s)}
           <input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc style="width:70px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}${fb}</div>`;
       }
       const crit = g.criteria || {};
@@ -12768,7 +12768,7 @@ document.addEventListener('change', (e) => {
           <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${ai == null ? '&nbsp;' : 'AI: ' + ai}</div></td>`;
       }).join('');
       return `<div data-q="${esc(q.id)}" style="margin-top:10px;">
-        <div style="font-weight:600;">${esc(q.label)} <span style="font-weight:400;color:#64748b;font-size:12px;">· ${esc(rb.title)}</span></div>${qPanel(q)}
+        <div style="font-weight:600;">${esc(q.label)} <span style="font-weight:400;color:#64748b;font-size:12px;">· ${esc(rb.title)}</span></div>${qPanel(q, s)}
         <div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;margin-top:4px;table-layout:fixed;">
           <tr>${rb.criteria.map((c) => `<th style="${th}">${esc(c.name)} <span style="font-weight:400;color:#64748b;">/${c.max}</span></th>`).join('')}<th style="${th}width:110px;">Task total</th></tr>
           <tr>${cells}<td style="${td}font-weight:700;" data-ttot data-total="${rb.total}" data-points="${q.points}" data-conv="${conv ? 1 : 0}"></td></tr>
@@ -12776,7 +12776,18 @@ document.addEventListener('change', (e) => {
         ${rb.criteria.some((c) => crit[c.id] && crit[c.id].comment) ? `<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">AI comments for each criterion</summary>
           <div style="font-size:12.5px;line-height:1.5;margin-top:4px;">${rb.criteria.filter((c) => crit[c.id] && crit[c.id].comment).map((c) => `<div style="margin:3px 0;"><b>${esc(c.name)}:</b> ${esc(crit[c.id].comment)}</div>`).join('')}</div></details>` : ''}${fb}</div>`;
     };
-    const cards = b.scripts.map((s) => {
+    const otherBar = (s) => `<div data-otherbar style="margin-top:8px;border:1px solid ${s.markedAgainst ? '#FDBA74' : '#e2e8f0'};background:${s.markedAgainst ? '#FFF7ED' : '#F8FAFC'};border-radius:8px;padding:7px 10px;font-size:12.5px;">
+        ${s.markedAgainst ? `<b style="color:#9A3412;">📄 Marked against a different paper:</b> ${esc(s.markedAgainst.title)}.` : `<span style="color:#475569;">Did this student answer a different paper from the class?</span>`}
+        <span style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:6px;">
+          <select data-remark-mode style="padding:4px;border:1px solid #cbd5e1;border-radius:6px;font-size:12.5px;">
+            <option value="own">Mark against the questions on her paper</option>
+            <option value="pick">Mark against one of my assessments…</option>
+            ${s.markedAgainst ? '<option value="class">Mark against the class paper</option>' : ''}
+          </select>
+          <select data-remark-assess style="display:none;padding:4px;border:1px solid #cbd5e1;border-radius:6px;font-size:12.5px;max-width:260px;"></select>
+          <button type="button" data-remark style="background:#EA580C;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-weight:600;font-size:12.5px;cursor:pointer;">Mark again</button>
+        </span></div>`;
+    const cardHtml = (s) => {
       const flags = s.flags.slice();
       if (s.match && used[s.match.key] > 1) flags.push('Same student matched to more than one script.');
       return `<div data-s="${esc(s.id)}" style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
@@ -12788,9 +12799,11 @@ document.addEventListener('change', (e) => {
           <button type="button" data-rmscript style="background:#fff;color:#B91C1C;border:1px solid #FCA5A5;border-radius:6px;padding:5px 10px;font-weight:600;font-size:12.5px;cursor:pointer;">Remove script</button>
         </div>
         ${flags.length ? `<div style="font-size:12px;color:#B45309;margin-top:6px;">${flags.map((f) => '⚠️ ' + esc(f)).join('<br>')}</div>` : ''}
+        ${otherBar(s)}
         ${qs.map((q) => taskBlock(s, q)).join('')}
       </div>`;
-    }).join('');
+    };
+    const cards = b.scripts.map(cardHtml).join('');
     const noAcc = b.students.filter((s) => !s.hasAccount).length;
     body.innerHTML = `
       <p style="margin:0 0 6px;color:#475569;">The AI found <b>${b.scripts.length}</b> script(s) in ${b.pages.length} page(s). Check each name and the mark for every rubric criterion, then approve. Nothing is saved until you approve.</p>
@@ -12819,7 +12832,32 @@ document.addEventListener('change', (e) => {
       card.querySelector('[data-gtot]').textContent = `${round(tot)} / ${qMax}` + (complete ? '' : ' *');
       return complete;
     };
+    let myAssessments = null;
     const bindCard = (card) => {
+      const modeSel = card.querySelector('[data-remark-mode]'), aSel = card.querySelector('[data-remark-assess]'), rbtn = card.querySelector('[data-remark]');
+      if (modeSel) modeSel.onchange = async () => {
+        if (modeSel.value !== 'pick') { aSel.style.display = 'none'; return; }
+        aSel.style.display = ''; aSel.innerHTML = '<option>Loading…</option>';
+        try { myAssessments = myAssessments || await (await fetch('/api/assessments', { credentials: 'include' })).json(); } catch (e) { myAssessments = []; }
+        const opts = (Array.isArray(myAssessments) ? myAssessments : []).filter((x) => x.id !== b.assessmentId && (x.questions || []).some((q) => ['writing', 'essay', 'long'].includes(q.type)));
+        aSel.innerHTML = opts.length ? opts.map((x) => `<option value="${esc(x.id)}">${esc(x.title)}</option>`).join('') : '<option value="">No other writing assessments</option>';
+      };
+      if (rbtn) rbtn.onclick = async () => {
+        const sc = b.scripts.find((x) => x.id === card.dataset.s);
+        const mode = modeSel.value === 'pick' ? 'assessment' : modeSel.value;
+        if (mode === 'assessment' && !aSel.value) { alert('Choose the assessment she answered.'); return; }
+        rbtn.disabled = true; rbtn.textContent = 'Marking… (about 30 seconds)';
+        try {
+          const job = await ccFetchJobJson(`/api/paper/batches/${encodeURIComponent(b.id)}/scripts/${encodeURIComponent(sc.id)}/remark`, JSON.stringify({ mode, assessmentId: aSel.value }));
+          if (!job.ok || !job.data.script) throw new Error((job.data && job.data.error) || 'Please try again.');
+          const keep = card.querySelector('[data-st]').value;
+          Object.assign(sc, job.data.script);
+          const tmp = document.createElement('div'); tmp.innerHTML = cardHtml(sc);
+          const fresh = tmp.firstElementChild; card.replaceWith(fresh);
+          fresh.querySelector('[data-st]').value = keep;
+          recalc(fresh); bindCard(fresh);
+        } catch (e) { rbtn.disabled = false; rbtn.textContent = 'Mark again'; alert('Could not mark it again: ' + e.message); }
+      };
       const rm = card.querySelector('[data-rmscript]');
       if (rm) rm.onclick = async () => {
         const sc = b.scripts.find((x) => x.id === card.dataset.s);

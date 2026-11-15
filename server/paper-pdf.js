@@ -41,6 +41,7 @@ function drawReport(doc, data) {
   y += 24;
   doc.font(F).fontSize(9).fillColor(MUTED).text(clean(data.subtitle), L, y, { width: W - 120 });
   y += 16;
+  if (data.note) { doc.font(FI).fontSize(8.5).fillColor('#92400E').text(clean(data.note), L, y, { width: W - 120 }); y += 13; }
   doc.moveTo(L, y).lineTo(L + W, y).lineWidth(1.6).strokeColor(INK).stroke();
   y += 10;
 
