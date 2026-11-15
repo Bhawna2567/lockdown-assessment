@@ -74,6 +74,35 @@ module.exports = function paper(app, d) {
     return k ? String(b[k]) : '';
   }
   const MISTAKE_TYPES = ['spelling', 'grammar', 'punctuation', 'word_choice'];
+  // The exact words in the student's text matching what the AI quoted (ignores curly quotes, spacing, line breaks, capitals).
+  function findInText(text, frag) {
+    const f0 = String(frag || '').trim(); if (!f0) return null;
+    if (text.includes(f0)) return f0;
+    const nq = (ch) => (/[\u2018\u2019\u02BC`]/.test(ch) ? "'" : /[\u201C\u201D]/.test(ch) ? '"' : ch);
+    let n = ''; const map = [];
+    for (let k = 0; k < text.length; k++) {
+      let ch = nq(text[k]);
+      if (/\s/.test(ch)) { if (n.endsWith(' ')) continue; ch = ' '; }
+      n += ch.toLowerCase(); map.push(k);
+    }
+    const f = f0.split('').map(nq).join('').replace(/\s+/g, ' ').toLowerCase();
+    const i = n.indexOf(f);
+    return i < 0 ? null : text.slice(map[i], map[i + f.length - 1] + 1);
+  }
+  // Up to three tries, so one slow or failed AI reply doesn't leave a task without mistakes and feedback.
+  async function findMistakesSafe(q, text, rb) {
+    let last = null;
+    for (let t = 0; t < 3; t++) {
+      try {
+        const r = await findMistakes(q, text, rb);
+        if (r.mistakes.length || r.wentWell || r.toImprove) return Object.assign(r, { mistakesOk: true });
+        last = new Error('empty reply');
+      } catch (e) { last = e; }
+      await new Promise((ok) => setTimeout(ok, 2000 * (t + 1)));
+    }
+    console.warn('[paper] mistakes failed:', last && last.message);
+    return { mistakes: [], wentWell: '', toImprove: '', mistakesOk: false };
+  }
   // Mistakes in the student's writing (exact words, type, correction) + what went well / to improve.
   async function findMistakes(q, text, rb) {
     const tool = { name: 'submit_mistakes', description: 'The language mistakes in the student writing and short feedback.', input_schema: { type: 'object', required: ['mistakes', 'wentWell', 'toImprove'], properties: {
@@ -89,15 +118,18 @@ module.exports = function paper(app, d) {
       'List the clear language mistakes (spelling, grammar, punctuation/capital letters, word choice) - at most 15, the most important first. ' +
       "Copy each mistake's words exactly as they appear above so they can be found in the text. Ignore [?] words and handwriting. " +
       'Then write what went well and what to improve, kindly and simply, for a school student. Submit with submit_mistakes.';
-    const r = await claudeFetch({ max_tokens: 3000, messages: [{ role: 'user', content: prompt }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_mistakes' } }, 'smart');
+    const r = await claudeFetch({ max_tokens: 6000, messages: [{ role: 'user', content: prompt }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_mistakes' } }, 'smart');
     if (!r || !r.ok) throw new Error('AI service error ' + (r ? r.status : ''));
     const j = await r.json();
+    if (j.stop_reason === 'max_tokens') throw new Error('reply was cut off');
     const blk = (j.content || []).find((x) => x.type === 'tool_use');
     const inp = (blk && blk.input) || {};
-    // Keep only mistakes whose words really appear in the writing.
+    if (typeof inp.mistakes === 'string') { try { inp.mistakes = JSON.parse(inp.mistakes); } catch (e) { inp.mistakes = []; } }
+    // Keep only mistakes whose words really appear in the writing (matched loosely: quotes, spaces, line breaks, capitals).
     const mistakes = (Array.isArray(inp.mistakes) ? inp.mistakes : []).slice(0, 15)
       .map((m) => ({ text: String(m.text || '').trim().slice(0, 80), type: MISTAKE_TYPES.includes(m.type) ? m.type : 'grammar', correction: String(m.correction || '').slice(0, 120), reason: String(m.reason || '').slice(0, 120) }))
-      .filter((m) => m.text && text.includes(m.text));
+      .map((m) => Object.assign(m, { text: findInText(text, m.text) || '' }))
+      .filter((m) => m.text);
     return { mistakes, wentWell: String(inp.wentWell || '').slice(0, 600), toImprove: String(inp.toImprove || '').slice(0, 600) };
   }
   // The grader's feedback lists every criterion again; keep only its overall comment.
@@ -209,9 +241,9 @@ module.exports = function paper(app, d) {
           const stage = ['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8';
           const [g, mk] = await Promise.all([
             gradeWriting({ rubric: rub, rubricStage: stage, context: sec && sec.passage, prompt: q.prompt, essay: text, maxScore: q.points }).catch((e) => ({ ok: false, detail: e.message })),
-            findMistakes(q, text, rb).catch((e) => { console.warn('[paper] mistakes', e.message); return { mistakes: [], wentWell: '', toImprove: '' }; }),
+            findMistakesSafe(q, text, rb),
           ]);
-          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank(''), mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove }; return; }
+          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank(''), mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: mk.mistakesOk }; return; }
           // Rubrics scored out of 40/12 are scaled to the question's own marks.
           const max = Number(q.points) || g.maxScore;
           const f = g.maxScore ? max / g.maxScore : 1;
@@ -229,7 +261,8 @@ module.exports = function paper(app, d) {
             }
           }
           s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: overallOnly(g.feedback), breakdown: bd, rubricStage: g.rubricStage, criteria,
-            mistakes: mk.mistakes, wentWell: mk.wentWell || '', toImprove: mk.toImprove || overallOnly(g.feedback) };
+            mistakes: mk.mistakes, wentWell: mk.wentWell || '', toImprove: mk.toImprove || overallOnly(g.feedback), mistakesOk: mk.mistakesOk };
+          if (!mk.mistakesOk) s.flags.push(`Mistakes and feedback for ${qLabel(a, q)} could not be found — use "Find mistakes again" below.`);
         }));
       }
       const batch = { id: batchId, assessmentId: a.id, teacherId: req.session.user.id, createdAt: new Date().toISOString(), status: 'review', pages, scripts };
@@ -257,6 +290,33 @@ module.exports = function paper(app, d) {
     const b = ownBatch(req, res); if (!b) return;
     const a = readAll('assessments.json').find((x) => x.id === b.assessmentId);
     res.json({ batch: publicBatch(b, a || { questions: [] }) });
+  });
+  // Batches not approved yet (so the teacher can come back to one without uploading again).
+  app.get('/api/paper/batches', requireTeacher, (req, res) => {
+    const as = readAll('assessments.json');
+    const list = readAll(BATCHES).filter((b) => b.teacherId === req.session.user.id && b.status === 'review')
+      .map((b) => ({ id: b.id, createdAt: b.createdAt, assessmentId: b.assessmentId, title: ((as.find((x) => x.id === b.assessmentId) || {}).title) || 'Assessment', scripts: (b.scripts || []).length }))
+      .sort((x, y) => String(y.createdAt).localeCompare(String(x.createdAt))).slice(0, 10);
+    res.json({ batches: list });
+  });
+  // Find mistakes and feedback again for one task of one script.
+  app.post('/api/paper/batches/:bid/scripts/:sid/questions/:qid/mistakes', requireTeacher, asyncJob, async (req, res) => {
+    const all = readAll(BATCHES);
+    const b = all.find((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
+    if (!b) return res.status(404).json({ error: 'Not found' });
+    const a = readAll('assessments.json').find((x) => x.id === b.assessmentId);
+    const s = (b.scripts || []).find((x) => x.id === req.params.sid);
+    const q = a && (a.questions || []).find((x) => x.id === req.params.qid);
+    if (!s || !q) return res.status(404).json({ error: 'Not found' });
+    const text = String((s.text || {})[q.id] || '');
+    if (!text.trim()) return res.status(400).json({ error: 'There is no writing for this task on the script.' });
+    const mk = await findMistakesSafe(q, text, rubricOf(a, q));
+    if (!mk.mistakesOk) return res.status(502).json({ error: 'The AI could not check this writing right now. Please try again in a minute.' });
+    s.grades = s.grades || {};
+    const g = s.grades[q.id] = Object.assign(s.grades[q.id] || {}, { mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: true });
+    s.flags = (s.flags || []).filter((f) => !f.startsWith(`Mistakes and feedback for ${qLabel(a, q)}`));
+    writeAll(BATCHES, all);
+    res.json({ ok: true, grade: g, flags: s.flags });
   });
   app.get('/api/paper/batches/:bid/pages/:pid', requireTeacher, (req, res) => {
     const b = ownBatch(req, res); if (!b) return;

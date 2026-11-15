@@ -12627,7 +12627,13 @@ document.addEventListener('change', (e) => {
     if (!list.length) { body.innerHTML = '<p>None of your assessments has a writing question yet. Create the assessment first (the same paper the students sat), then come back here.</p>'; return; }
     const cname = (id) => { const c = classes.find((x) => x.id === id); return c ? c.name : 'No class'; };
     list.sort((x, y) => String(y.createdAt || '').localeCompare(String(x.createdAt || '')));
-    body.innerHTML = `
+    let pending = [];
+    try { pending = ((await (await fetch('/api/paper/batches', { credentials: 'include' })).json()).batches) || []; } catch (e) {}
+    const pendingHtml = pending.length ? `<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;margin:0 0 14px;">
+        <div style="font-weight:600;margin-bottom:4px;">Continue where you left off</div>
+        ${pending.map((p) => `<div style="display:flex;gap:10px;align-items:center;font-size:13px;margin:3px 0;"><span style="flex:1;">${esc(p.title)} · ${p.scripts} script(s) · ${new Date(p.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+          <button type="button" data-resume="${esc(p.id)}" style="${btnCss('#0369A1')}padding:5px 12px;font-size:13px;">Review and approve</button></div>`).join('')}</div>` : '';
+    body.innerHTML = pendingHtml + `
       <p style="color:#475569;margin:0 0 14px;">Upload photos or scans of the students' handwritten scripts. The AI reads each student's name and writing, marks every writing question with its rubric, and shows you the marks to check before anything is saved.</p>
       <label style="font-weight:600;display:block;margin-bottom:4px;">1. Which assessment did the students sit on paper?</label>
       <select data-a style="width:100%;padding:9px;border:1px solid #cbd5e1;border-radius:8px;margin-bottom:14px;">${list.map((a) => `<option value="${esc(a.id)}">${esc(a.title)} — ${esc(cname(a.classId))}</option>`).join('')}</select>
@@ -12639,6 +12645,14 @@ document.addEventListener('change', (e) => {
       <button type="button" data-go style="${btnCss('#0369A1')}">Read and mark the scripts</button>
       <div data-st style="margin-top:12px;color:#475569;"></div>`;
     const st = body.querySelector('[data-st]');
+    body.querySelectorAll('[data-resume]').forEach((btn) => { btn.onclick = async () => {
+      btn.disabled = true; btn.textContent = 'Opening…';
+      try {
+        const j = await (await fetch('/api/paper/batches/' + encodeURIComponent(btn.dataset.resume), { credentials: 'include' })).json();
+        if (!j.batch) throw new Error(j.error || 'Not found');
+        review(body, j.batch, list.find((x) => x.id === j.batch.assessmentId), ov);
+      } catch (e) { btn.disabled = false; btn.textContent = 'Review and approve'; alert('Could not open it: ' + e.message); }
+    }; });
     body.querySelector('[data-go]').onclick = async (ev) => {
       const aid = body.querySelector('[data-a]').value;
       const files = Array.from(body.querySelector('[data-f]').files || []);
@@ -12680,13 +12694,17 @@ document.addEventListener('change', (e) => {
         last = m.at + m.text.length;
       });
       hl += esc(txt.slice(last));
-      const fb = `<details style="margin-top:6px;"${ms.length ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Mistakes (${ms.length}) and feedback</summary>
+      const failed = g.mistakesOk === false || (!ms.length && !g.wentWell && txt.trim());
+      const fb = `<details style="margin-top:6px;"${ms.length || failed ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Mistakes (${ms.length}) and feedback</summary>
         ${txt ? `<div style="white-space:pre-wrap;font-size:13px;line-height:1.9;background:#F8FAFC;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;margin-top:6px;">${hl}</div>` : ''}
         ${ms.length ? `<div style="font-size:12px;color:#64748b;margin:6px 0 2px;">Untick any mistake you don't agree with. It won't appear in the student's report.</div>
         <div style="display:grid;gap:3px;">${ms.map((m, n) => { const c = MK[m.type] || MK.grammar; return `<label style="display:flex;gap:8px;align-items:flex-start;font-size:12.5px;text-transform:none;letter-spacing:0;font-weight:400;">
           <input type="checkbox" data-mk="${m.i}" checked style="width:auto;margin:2px 0 0;"><b style="min-width:16px;">${n + 1}</b>
           <span style="background:${c[1]};color:${c[3]};font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;white-space:nowrap;">${c[0]}</span>
           <span><s style="color:#64748b;">${esc(m.text)}</s> → <b>${esc(m.correction)}</b>${m.reason ? ` <span style="color:#64748b;">· ${esc(m.reason)}</span>` : ''}</span></label>`; }).join('')}</div>` : ''}
+        ${failed ? `<div style="display:flex;gap:10px;align-items:center;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:7px 10px;margin-top:6px;font-size:12.5px;color:#92400E;">
+          <span style="flex:1;">${g.mistakesOk === false ? 'The AI could not check this writing for mistakes.' : 'No mistakes or feedback were found for this writing.'}</span>
+          <button type="button" data-refind style="background:#D97706;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-weight:600;cursor:pointer;">🔍 Find mistakes again</button></div>` : ''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
           <label style="font-size:12px;font-weight:600;color:#166534;text-transform:none;letter-spacing:0;">What went well<textarea data-ww rows="3" style="width:100%;padding:6px;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.wentWell || '')}</textarea></label>
           <label style="font-size:12px;font-weight:600;color:#92400E;text-transform:none;letter-spacing:0;">To improve<textarea data-ti rows="3" style="width:100%;padding:6px;border:1px solid #FDE68A;background:#FFFBEB;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.toImprove || g.feedback || '')}</textarea></label>
@@ -12754,8 +12772,25 @@ document.addEventListener('change', (e) => {
       card.querySelector('[data-gtot]').textContent = `${round(tot)} / ${qMax}` + (complete ? '' : ' *');
       return complete;
     };
-    body.querySelectorAll('[data-mk]').forEach((cb) => { cb.onchange = () => { const h = cb.closest('[data-q]').querySelector(`[data-hl="${cb.dataset.mk}"]`); if (h) { h.style.opacity = cb.checked ? '1' : '0.35'; h.style.textDecoration = cb.checked ? '' : 'line-through'; } }; });
-    body.querySelectorAll('[data-s]').forEach((card) => { recalc(card); card.querySelectorAll('select[data-crit], [data-sc]').forEach((el) => { el.addEventListener('change', () => recalc(card)); el.addEventListener('input', () => recalc(card)); }); });
+    const bindCard = (card) => {
+      card.querySelectorAll('[data-mk]').forEach((cb) => { cb.onchange = () => { const h = cb.closest('[data-q]').querySelector(`[data-hl="${cb.dataset.mk}"]`); if (h) { h.style.opacity = cb.checked ? '1' : '0.35'; h.style.textDecoration = cb.checked ? '' : 'line-through'; } }; });
+      card.querySelectorAll('select[data-crit], [data-sc]').forEach((el) => { el.onchange = () => recalc(card); el.oninput = () => recalc(card); });
+      card.querySelectorAll('[data-refind]').forEach((btn) => { btn.onclick = async () => {
+        const qb = btn.closest('[data-q]'); const qid = qb.dataset.q; const sc = b.scripts.find((x) => x.id === card.dataset.s); const q = qs.find((x) => x.id === qid);
+        btn.disabled = true; btn.textContent = 'Checking… (about 20 seconds)';
+        try {
+          const job = await ccFetchJobJson(`/api/paper/batches/${encodeURIComponent(b.id)}/scripts/${encodeURIComponent(sc.id)}/questions/${encodeURIComponent(qid)}/mistakes`, '{}');
+          if (!job.ok || !job.data.grade) throw new Error((job.data && job.data.error) || 'Please try again.');
+          // keep the teacher's criterion marks for this task, then redraw just this task
+          const g = sc.grades[qid] = Object.assign(sc.grades[qid] || {}, job.data.grade);
+          qb.querySelectorAll('select[data-crit]').forEach((sl) => { if (g.criteria && g.criteria[sl.dataset.crit]) g.criteria[sl.dataset.crit].score = sl.value === '' ? '' : Number(sl.value); });
+          const ww = qb.querySelector('[data-ww]'); if (ww && ww.value.trim()) g.wentWell = ww.value;
+          const tmp = document.createElement('div'); tmp.innerHTML = taskBlock(sc, q); qb.replaceWith(tmp.firstElementChild);
+          bindCard(card); recalc(card);
+        } catch (e) { btn.disabled = false; btn.textContent = '🔍 Find mistakes again'; alert('Could not check the writing: ' + e.message); }
+      }; });
+    };
+    body.querySelectorAll('[data-s]').forEach((card) => { recalc(card); bindCard(card); });
     body.querySelector('[data-ok]').onclick = async (ev) => {
       const msg = body.querySelector('[data-msg]');
       const scripts = []; const seen = {}; let missing = 0, incomplete = 0;
