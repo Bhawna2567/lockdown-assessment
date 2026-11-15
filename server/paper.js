@@ -278,7 +278,12 @@ module.exports = function paper(app, d) {
   function publicBatch(b, a) {
     const { students } = classList(a);
     return { id: b.id, status: b.status, createdAt: b.createdAt, assessmentId: b.assessmentId,
-      questions: writingQs(a).map((q) => ({ id: q.id, label: qLabel(a, q), points: q.points, prompt: String(q.prompt || '').slice(0, 200), rubric: rubricOf(a, q) })),
+      questions: writingQs(a).map((q) => {
+        // The full task and the reading text it is based on, so the teacher can compare them with the student's answer.
+        const sec = (a.sections || []).find((x) => x.id === q.sectionId) || {};
+        return { id: q.id, label: qLabel(a, q), points: q.points, prompt: String(q.prompt || '').slice(0, 4000), rubric: rubricOf(a, q),
+          passage: String(sec.passage || '').slice(0, 15000), sectionTitle: String(sec.title || '').slice(0, 200), imageUrl: q.imageUrl || '' };
+      }),
       students, pages: b.pages.map((p) => ({ id: p.id, kind: p.kind, source: p.source })), scripts: b.scripts };
   }
   const ownBatch = (req, res) => {

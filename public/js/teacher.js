@@ -12713,6 +12713,15 @@ document.addEventListener('change', (e) => {
     const th = 'border:1px solid #e2e8f0;padding:5px 6px;background:#F8FAFC;font-size:12px;font-weight:600;text-align:center;';
     const td = 'border:1px solid #e2e8f0;padding:5px 6px;text-align:center;vertical-align:top;';
     // One block per writing task: the rubric's criteria with a dropdown each (rubric's own scale).
+    // The question and its reading text (collapsed; open it to compare with the student's answer).
+    const qPanel = (q) => (q.prompt || q.passage ? `<details style="margin:4px 0 2px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">📖 Question${q.passage ? ' and reading text' : ''}</summary>
+      <div style="border:1px solid #e2e8f0;border-radius:6px;margin-top:4px;padding:8px 10px;background:#fff;">
+        ${q.passage ? `<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;">Reading text${q.sectionTitle ? ' · ' + esc(q.sectionTitle) : ''}</div>
+          <div style="white-space:pre-wrap;font-size:13px;line-height:1.6;max-height:340px;overflow:auto;background:#FFFBEB;border-radius:4px;padding:8px 10px;margin:3px 0 8px;">${esc(q.passage)}</div>` : ''}
+        ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" alt="" style="max-width:100%;max-height:260px;border-radius:4px;margin-bottom:6px;">` : ''}
+        <div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.03em;">${esc(q.label)} question (${q.points} marks)</div>
+        <div style="white-space:pre-wrap;font-size:13px;line-height:1.6;margin-top:3px;">${esc(q.prompt)}</div>
+      </div></details>` : '');
     const taskBlock = (s, q) => {
       const g = s.grades[q.id] || {};
       const rb = q.rubric;
@@ -12745,7 +12754,7 @@ document.addEventListener('change', (e) => {
           <label style="font-size:12px;font-weight:600;color:#92400E;text-transform:none;letter-spacing:0;">To improve<textarea data-ti rows="3" style="width:100%;padding:6px;border:1px solid #FDE68A;background:#FFFBEB;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.toImprove || g.feedback || '')}</textarea></label>
         </div></details>`;
       if (!rb) {
-        return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>
+        return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>${qPanel(q)}
           <input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc style="width:70px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}${fb}</div>`;
       }
       const crit = g.criteria || {};
@@ -12759,7 +12768,7 @@ document.addEventListener('change', (e) => {
           <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${ai == null ? '&nbsp;' : 'AI: ' + ai}</div></td>`;
       }).join('');
       return `<div data-q="${esc(q.id)}" style="margin-top:10px;">
-        <div style="font-weight:600;">${esc(q.label)} <span style="font-weight:400;color:#64748b;font-size:12px;">· ${esc(rb.title)}</span></div>
+        <div style="font-weight:600;">${esc(q.label)} <span style="font-weight:400;color:#64748b;font-size:12px;">· ${esc(rb.title)}</span></div>${qPanel(q)}
         <div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;margin-top:4px;table-layout:fixed;">
           <tr>${rb.criteria.map((c) => `<th style="${th}">${esc(c.name)} <span style="font-weight:400;color:#64748b;">/${c.max}</span></th>`).join('')}<th style="${th}width:110px;">Task total</th></tr>
           <tr>${cells}<td style="${td}font-weight:700;" data-ttot data-total="${rb.total}" data-points="${q.points}" data-conv="${conv ? 1 : 0}"></td></tr>
