@@ -89,6 +89,42 @@ module.exports = function paper(app, d) {
     const i = n.indexOf(f);
     return i < 0 ? null : text.slice(map[i], map[i + f.length - 1] + 1);
   }
+  // The AI sometimes returns the list as text, or with other field names — read all of those forms.
+  function parseMistakeList(v) {
+    let list = v;
+    if (typeof list === 'string') {
+      const t = list.trim();
+      try { list = JSON.parse(t); } catch (e) {
+        try { list = JSON.parse(t.replace(/[\u201C\u201D]/g, '"').replace(/,\s*([\]}])/g, '$1')); } catch (e2) {
+          // last resort: pull "text"/"correction" pairs out of the text, or lines like  wrong -> right
+          const objs = [];
+          const re = /\{[^{}]*\}/g; let m;
+          while ((m = re.exec(t))) {
+            const o = {}; const kv = /"(\w+)"\s*:\s*"((?:[^"\\]|\\.)*)"/g; let k;
+            while ((k = kv.exec(m[0]))) o[k[1]] = k[2];
+            if (Object.keys(o).length) objs.push(o);
+          }
+          if (!objs.length) t.split(/\n+/).forEach((ln) => { const mm = ln.match(/^\s*[-*\d.)]*\s*["']?(.+?)["']?\s*(?:->|→|=>)\s*["']?(.+?)["']?\s*$/); if (mm) objs.push({ text: mm[1], correction: mm[2] }); });
+          list = objs;
+        }
+      }
+    }
+    if (list && !Array.isArray(list) && typeof list === 'object') list = Object.values(list).find(Array.isArray) || [list];
+    return (Array.isArray(list) ? list : []).filter((m) => m && typeof m === 'object').map((m) => ({
+      text: m.text || m.wrong || m.original || m.error || m.mistake || m.incorrect || m.quote || '',
+      correction: m.correction || m.correct || m.corrected || m.fix || m.right || '',
+      type: m.type || m.category || '', reason: m.reason || m.explanation || m.why || '' }));
+  }
+  const normType = (t) => { const x = String(t || '').toLowerCase(); return x.startsWith('spell') ? 'spelling' : x.startsWith('punct') || x.includes('capital') ? 'punctuation' : x.includes('word') || x.includes('vocab') ? 'word_choice' : 'grammar'; };
+  // Exact words in the text for what the AI quoted; if the whole quote isn't there, its longest matching word.
+  function locate(text, frag) {
+    const f = String(frag || '').trim().replace(/^["'\u2018\u201C]+|["'\u2019\u201D.,;:!?]+$/g, '');
+    const hit = findInText(text, f) || findInText(text, String(frag || '').trim());
+    if (hit) return hit;
+    const words = f.split(/\s+/).filter((w) => w.replace(/\W/g, '').length >= 4).sort((a, b) => b.length - a.length);
+    for (const w of words) { const re = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i'); const m = text.match(re); if (m) return m[0]; }
+    return null;
+  }
   // Up to three tries, so one slow or failed AI reply doesn't leave a task without mistakes and feedback.
   // A reply only counts when BOTH feedback boxes are filled in; otherwise it is tried again
   // (waits grow each time, and the last try uses the faster model). The best partial reply is kept.
@@ -98,8 +134,10 @@ module.exports = function paper(app, d) {
     for (let t = 0; t < n; t++) {
       try {
         const r = await findMistakes(q, text, rb, t === n - 1 ? 'bg-haiku' : 'smart');
-        if (r.wentWell && r.toImprove) return Object.assign(r, { mistakesOk: true });
-        if (!best || (r.wentWell || r.toImprove || r.mistakes.length)) best = r;
+        const words = text.trim().split(/\s+/).length;
+        const needList = words >= 25 && t < n - 1;   // a real essay almost always has some mistakes
+        if (r.wentWell && r.toImprove && (r.mistakes.length || !needList)) return Object.assign(r, { mistakesOk: true });
+        if (!best || r.mistakes.length > best.mistakes.length || (!best.wentWell && r.wentWell)) best = r;
         last = new Error('feedback incomplete');
       } catch (e) { last = e; }
       if (t < n - 1) await new Promise((ok) => setTimeout(ok, [3000, 8000, 15000][t] || 15000));
@@ -131,7 +169,7 @@ module.exports = function paper(app, d) {
       toImprove: { type: 'string', description: '1-2 sentences to the student ("You...") on the most important things to improve. Never empty.' } } } };
     const prompt = 'Task: ' + String(q.prompt || '').slice(0, 800) + '\nRubric: ' + (rb ? rb.title : 'writing') +
       "\n\nThe student's handwritten answer, transcribed exactly (mistakes kept; [?] = unreadable word):\n---\n" + text.slice(0, 6000) + '\n---\n\n' +
-      'List the clear language mistakes (spelling, grammar, punctuation/capital letters, word choice) - at most 15, the most important first. ' +
+      'List the clear language mistakes (spelling, grammar, punctuation/capital letters, word choice) - at most 20, the most important first. The mistakes field must be a JSON array of objects, not text. ' +
       "Copy each mistake's words exactly as they appear above so they can be found in the text. Ignore [?] words and handwriting. " +
       'Then ALWAYS write both "what went well" and "what to improve", kindly and simply, for a school student. Submit with submit_mistakes.';
     const r = await claudeFetch({ max_tokens: 6000, messages: [{ role: 'user', content: prompt }], tools: [tool], tool_choice: { type: 'tool', name: 'submit_mistakes' } }, tier || 'smart');
@@ -140,12 +178,15 @@ module.exports = function paper(app, d) {
     if (j.stop_reason === 'max_tokens') throw new Error('reply was cut off');
     const blk = (j.content || []).find((x) => x.type === 'tool_use');
     const inp = (blk && blk.input) || {};
-    if (typeof inp.mistakes === 'string') { try { inp.mistakes = JSON.parse(inp.mistakes); } catch (e) { inp.mistakes = []; } }
+    const rawList = parseMistakeList(inp.mistakes);
     // Keep only mistakes whose words really appear in the writing (matched loosely: quotes, spaces, line breaks, capitals).
-    const mistakes = (Array.isArray(inp.mistakes) ? inp.mistakes : []).slice(0, 15)
-      .map((m) => ({ text: String(m.text || '').trim().slice(0, 80), type: MISTAKE_TYPES.includes(m.type) ? m.type : 'grammar', correction: String(m.correction || '').slice(0, 120), reason: String(m.reason || '').slice(0, 120) }))
-      .map((m) => Object.assign(m, { text: findInText(text, m.text) || '' }))
-      .filter((m) => m.text);
+    const seen = new Set();
+    const mistakes = rawList.slice(0, 25)
+      .map((m) => ({ text: String(m.text || '').trim().slice(0, 80), type: normType(m.type), correction: String(m.correction || '').slice(0, 120), reason: String(m.reason || '').slice(0, 120) }))
+      .map((m) => Object.assign(m, { text: locate(text, m.text) || '' }))
+      .filter((m) => m.text && !seen.has(m.text.toLowerCase() + '|' + m.correction) && seen.add(m.text.toLowerCase() + '|' + m.correction))
+      .slice(0, 20);
+    if (!mistakes.length) console.warn('[paper] no usable mistakes; raw list was', typeof inp.mistakes, String(JSON.stringify(inp.mistakes) || '').slice(0, 300));
     return { mistakes, wentWell: String(inp.wentWell || '').slice(0, 600), toImprove: String(inp.toImprove || '').slice(0, 600) };
   }
   // The grader's feedback lists every criterion again; keep only its overall comment.
@@ -304,7 +345,7 @@ module.exports = function paper(app, d) {
       for (const s of scripts) for (const q of wq) {
         const g = s.grades && s.grades[q.id];
         const text = s.text[q.id] || '';
-        if (!g || !text.trim() || (g.mistakesOk && g.wentWell && g.toImprove)) continue;
+        if (!g || !text.trim() || (g.mistakesOk && g.wentWell && g.toImprove && ((g.mistakes || []).length || text.trim().split(/\s+/).length < 25))) continue;
         const mk = await findMistakesSafe(q, text, rubricOf(a, q), 2);
         if (mk.wentWell || mk.toImprove || mk.mistakes.length) {
           Object.assign(g, { mistakes: mk.mistakes.length ? mk.mistakes : (g.mistakes || []), wentWell: mk.wentWell || g.wentWell || '', toImprove: mk.toImprove || g.toImprove || '', mistakesOk: mk.mistakesOk });

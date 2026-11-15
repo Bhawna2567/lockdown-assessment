@@ -12738,7 +12738,7 @@ document.addEventListener('change', (e) => {
         last = m.at + m.text.length;
       });
       hl += esc(txt.slice(last));
-      const failed = !!txt.trim() && (g.mistakesOk === false || !g.wentWell || !(g.toImprove || g.feedback));
+      const failed = !!txt.trim() && (g.mistakesOk === false || !g.wentWell || !(g.toImprove || g.feedback) || (!ms.length && txt.trim().split(/\s+/).length >= 25));
       const fb = `<details style="margin-top:6px;"${ms.length || failed ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Mistakes (${ms.length}) and feedback</summary>
         ${txt ? `<div style="white-space:pre-wrap;font-size:13px;line-height:1.9;background:#F8FAFC;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;margin-top:6px;">${hl}</div>` : ''}
         ${ms.length ? `<div style="font-size:12px;color:#64748b;margin:6px 0 2px;">Untick any mistake you don't agree with. It won't appear in the student's report.</div>
@@ -12747,7 +12747,7 @@ document.addEventListener('change', (e) => {
           <span style="background:${c[1]};color:${c[3]};font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;white-space:nowrap;">${c[0]}</span>
           <span><s style="color:#64748b;">${esc(m.text)}</s> → <b>${esc(m.correction)}</b>${m.reason ? ` <span style="color:#64748b;">· ${esc(m.reason)}</span>` : ''}</span></label>`; }).join('')}</div>` : ''}
         ${failed ? `<div style="display:flex;gap:10px;align-items:center;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:7px 10px;margin-top:6px;font-size:12.5px;color:#92400E;">
-          <span style="flex:1;">${g.mistakesOk === false ? 'The AI could not fully check this writing.' : 'Some feedback is missing for this writing.'} Click to try again, or type the feedback yourself.</span>
+          <span style="flex:1;">${!ms.length ? 'No mistakes are highlighted for this writing yet.' : g.mistakesOk === false ? 'The AI could not fully check this writing.' : 'Some feedback is missing for this writing.'} Click to try again, or type the feedback yourself.</span>
           <button type="button" data-refind style="background:#D97706;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-weight:600;cursor:pointer;">🔍 Find mistakes again</button></div>` : ''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
           <label style="font-size:12px;font-weight:600;color:#166534;text-transform:none;letter-spacing:0;">What went well<textarea data-ww rows="3" style="width:100%;padding:6px;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.wentWell || '')}</textarea></label>
@@ -12772,7 +12772,9 @@ document.addEventListener('change', (e) => {
         <div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;margin-top:4px;table-layout:fixed;">
           <tr>${rb.criteria.map((c) => `<th style="${th}">${esc(c.name)} <span style="font-weight:400;color:#64748b;">/${c.max}</span></th>`).join('')}<th style="${th}width:110px;">Task total</th></tr>
           <tr>${cells}<td style="${td}font-weight:700;" data-ttot data-total="${rb.total}" data-points="${q.points}" data-conv="${conv ? 1 : 0}"></td></tr>
-        </table></div>${fb}</div>`;
+        </table></div>
+        ${rb.criteria.some((c) => crit[c.id] && crit[c.id].comment) ? `<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">AI comments for each criterion</summary>
+          <div style="font-size:12.5px;line-height:1.5;margin-top:4px;">${rb.criteria.filter((c) => crit[c.id] && crit[c.id].comment).map((c) => `<div style="margin:3px 0;"><b>${esc(c.name)}:</b> ${esc(crit[c.id].comment)}</div>`).join('')}</div></details>` : ''}${fb}</div>`;
     };
     const cards = b.scripts.map((s) => {
       const flags = s.flags.slice();
