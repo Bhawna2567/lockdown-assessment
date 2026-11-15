@@ -514,12 +514,21 @@ module.exports = function paper(app, d) {
     res.json({ batches: list });
   });
   // ── Deleting: a whole batch (and its uploaded photos), old batches, or one student's script ──
+  // Save or remove ONE batch against the latest copy of the file, so a long AI step on one batch can
+  // never overwrite (or wipe out) another batch that was created or changed in the meantime.
+  function saveBatch(b) {
+    const all = readAll(BATCHES);
+    const i = all.findIndex((x) => x.id === b.id);
+    if (i >= 0) all[i] = b; else all.push(b);
+    writeAll(BATCHES, all.slice(-200));
+  }
+  function removeBatch(id) { writeAll(BATCHES, readAll(BATCHES).filter((x) => x.id !== id)); }
   const rmBatchFiles = (bid) => { try { fs.rmSync(path.join(ROOT, path.basename(bid)), { recursive: true, force: true }); } catch (e) {} };
   app.delete('/api/paper/batches/:bid', requireTeacher, (req, res) => {
     const all = readAll(BATCHES);
     const i = all.findIndex((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
     if (i < 0) return res.status(404).json({ error: 'Not found' });
-    const [b] = all.splice(i, 1); writeAll(BATCHES, all); rmBatchFiles(b.id);
+    const b = all[i]; removeBatch(b.id); rmBatchFiles(b.id);
     res.json({ ok: true });
   });
   app.post('/api/paper/batches/cleanup', requireTeacher, (req, res) => {
@@ -527,7 +536,7 @@ module.exports = function paper(app, d) {
     const cutoff = Date.now() - days * 864e5;
     const all = readAll(BATCHES);
     const old = all.filter((b) => b.teacherId === req.session.user.id && b.status === 'review' && new Date(b.createdAt).getTime() < cutoff);
-    writeAll(BATCHES, all.filter((b) => !old.includes(b)));
+    old.forEach((b) => removeBatch(b.id));
     old.forEach((b) => rmBatchFiles(b.id));
     res.json({ ok: true, deleted: old.length });
   });
@@ -542,8 +551,7 @@ module.exports = function paper(app, d) {
       const pi = (b.pages || []).findIndex((p) => p.id === pid);
       if (pi >= 0) { try { fs.unlinkSync(path.join(ROOT, b.id, path.basename(b.pages[pi].file))); } catch (e) {} b.pages.splice(pi, 1); }
     }
-    if (!b.scripts.length) { all.splice(all.indexOf(b), 1); rmBatchFiles(b.id); }
-    writeAll(BATCHES, all);
+    if (!b.scripts.length) { removeBatch(b.id); rmBatchFiles(b.id); } else saveBatch(b);
     res.json({ ok: true, batchDeleted: !b.scripts.length });
   });
   // Mark one student's script again: against the class paper, the questions printed on her own
@@ -582,7 +590,7 @@ module.exports = function paper(app, d) {
       s.questionsUsed = ov;
       await resplitTasks(a, s, ov).catch((e) => console.warn('[paper] split', e.message));
       await gradeTasks(a, s, ov);
-      writeAll(BATCHES, all);
+      saveBatch(b);
       res.json({ ok: true, script: s });
     } catch (e) {
       console.error('[paper] remark failed', e);
@@ -606,7 +614,7 @@ module.exports = function paper(app, d) {
     s.grades = s.grades || {};
     const g = s.grades[q.id] = Object.assign(s.grades[q.id] || {}, { mistakes: mk.mistakes, wentWell: mk.wentWell, toImprove: mk.toImprove, mistakesOk: mk.mistakesOk });
     s.flags = (s.flags || []).filter((f) => !f.startsWith(`Mistakes and feedback for ${qLabel(a, q)}`));
-    writeAll(BATCHES, all);
+    saveBatch(b);
     res.json({ ok: true, grade: g, flags: s.flags });
   });
   app.get('/api/paper/batches/:bid/pages/:pid', requireTeacher, (req, res) => {
@@ -619,13 +627,22 @@ module.exports = function paper(app, d) {
 
   // ── 2) Approve: results for each student + marked PDFs in the class folder ──
   app.post('/api/paper/batches/:bid/approve', requireTeacher, async (req, res) => {
-    const all = readAll(BATCHES);
-    const b = all.find((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
-    if (!b) return res.status(404).json({ error: 'Not found' });
+    const body = req.body || {};
+    let b = readAll(BATCHES).find((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
+    if (!b) {
+      // The batch is no longer on the server: use the copy the teacher has on screen (her own marks).
+      const fb = body.fallback;
+      const own = fb && readAll('assessments.json').find((x) => x.id === fb.assessmentId && x.teacherId === req.session.user.id);
+      if (!own || !Array.isArray(fb.scripts)) return res.status(404).json({ error: 'This batch is no longer on the server. Please upload the pages again.' });
+      b = { id: path.basename(String(req.params.bid)), assessmentId: own.id, teacherId: req.session.user.id, createdAt: new Date().toISOString(), status: 'review',
+        pages: Array.isArray(fb.pages) ? fb.pages.map((p) => ({ id: String(p.id), kind: p.kind === 'pdf' ? 'pdf' : 'image', mime: p.kind === 'pdf' ? 'application/pdf' : 'image/jpeg', file: String(p.id) + (p.kind === 'pdf' ? '.pdf' : '.jpg'), source: String(p.source || '') })) : [],
+        scripts: fb.scripts.map((x) => ({ id: String(x.id), nameRead: String(x.nameRead || ''), pages: Array.isArray(x.pages) ? x.pages.map(String) : [], text: x.text || {}, grades: x.grades || {},
+          flags: [], markedAgainst: x.markedAgainst || null, questionsUsed: x.questionsUsed || null })), recovered: true };
+      console.warn('[paper] approve: batch', b.id, 'was missing; using the on-screen copy');
+    }
     const a = readAll('assessments.json').find((x) => x.id === b.assessmentId);
     if (!a) return res.status(404).json({ error: 'Assessment missing' });
     const wq = writingQs(a);
-    const body = req.body || {};
     const decisions = Array.isArray(body.scripts) ? body.scripts : [];
     const users = readAll('users.json');
     const { cls, students } = classList(a);
@@ -697,7 +714,7 @@ module.exports = function paper(app, d) {
     if (created.length) writeAll('users.json', users);
     writeAll('results.json', resultsAll);
     b.status = 'approved'; b.approvedAt = new Date().toISOString();
-    writeAll(BATCHES, all);
+    saveBatch(b);
     res.json({ ok: true, recorded: saved.length, created, skipped, folderId: saved.find((x) => x.folderId) ? saved.find((x) => x.folderId).folderId : null });
   });
 

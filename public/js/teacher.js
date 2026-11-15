@@ -12911,7 +12911,9 @@ document.addEventListener('change', (e) => {
       ev.target.disabled = true; msg.textContent = 'Saving marks and building the marked PDFs…';
       try {
         const accEl = body.querySelector('[data-acc]');
-        const r = await fetch('/api/paper/batches/' + encodeURIComponent(b.id) + '/approve', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scripts, createAccounts: accEl ? accEl.checked : false }) });
+        const r = await fetch('/api/paper/batches/' + encodeURIComponent(b.id) + '/approve', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scripts, createAccounts: accEl ? accEl.checked : false,
+          // back-up copy of what is on screen, used only if the batch has gone missing on the server
+          fallback: { assessmentId: b.assessmentId, pages: b.pages, scripts: b.scripts.map((x) => ({ id: x.id, nameRead: x.nameRead, pages: x.pages, text: x.text, grades: x.grades, markedAgainst: x.markedAgainst, questionsUsed: x.questionsUsed })) } }) });
         const j = await r.json().catch(() => ({}));
         if (!r.ok || !j.ok) throw new Error(j.error || 'Saving failed.');
         body.innerHTML = `<div style="padding:10px 0;"><h3 style="margin:0 0 8px;color:#047857;">✓ Saved ${j.recorded} result(s)</h3>
