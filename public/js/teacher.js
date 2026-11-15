@@ -12660,48 +12660,99 @@ document.addEventListener('change', (e) => {
     const opts = (sel) => `<option value="">— choose student —</option>` + b.students.map((s) => `<option value="${esc(s.key)}"${s.key === sel ? ' selected' : ''}>${esc(s.name)}${s.hasAccount ? '' : s.email ? ' (no account yet)' : ' (no email)'}</option>`).join('');
     const used = {};
     b.scripts.forEach((s) => { if (s.match) used[s.match.key] = (used[s.match.key] || 0) + 1; });
-    const rows = b.scripts.map((s) => {
+    const qMax = qs.reduce((t, q) => t + (Number(q.points) || 0), 0);
+    const th = 'border:1px solid #e2e8f0;padding:5px 6px;background:#F8FAFC;font-size:12px;font-weight:600;text-align:center;';
+    const td = 'border:1px solid #e2e8f0;padding:5px 6px;text-align:center;vertical-align:top;';
+    // One block per writing task: the rubric's criteria with a dropdown each (rubric's own scale).
+    const taskBlock = (s, q) => {
+      const g = s.grades[q.id] || {};
+      const rb = q.rubric;
+      const fb = `<details style="margin-top:6px;"><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Feedback${(s.text && s.text[q.id]) ? ' and what the AI read' : ''}</summary>
+        <textarea data-fbt="${esc(q.id)}" rows="5" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;margin-top:4px;">${esc(g.feedback || '')}</textarea>
+        ${(s.text && s.text[q.id]) ? `<div style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:8px;border-radius:6px;margin-top:4px;"><b>What the AI read:</b>\n${esc(s.text[q.id])}</div>` : ''}</details>`;
+      if (!rb) {
+        return `<div data-q="${esc(q.id)}" style="margin-top:10px;"><div style="font-weight:600;">${esc(q.label)}</div>
+          <input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc style="width:70px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}${fb}</div>`;
+      }
+      const crit = g.criteria || {};
+      const conv = Number(q.points) && Number(q.points) !== rb.total;
+      const cells = rb.criteria.map((c) => {
+        const cur = crit[c.id] || {};
+        const ai = cur.ai === '' || cur.ai == null ? null : Number(cur.ai);
+        const val = cur.score === '' || cur.score == null ? '' : Number(cur.score);
+        const o = `<option value=""${val === '' ? ' selected' : ''}>—</option>` + Array.from({ length: c.max + 1 }, (_, i) => c.max - i).map((v) => `<option value="${v}"${val === v ? ' selected' : ''}>${v}</option>`).join('');
+        return `<td style="${td}" data-cell><select data-crit="${esc(c.id)}" data-ai="${ai == null ? '' : ai}" aria-label="${esc(c.name)}" style="padding:4px;border:1px solid #cbd5e1;border-radius:6px;">${o}</select>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${ai == null ? '&nbsp;' : 'AI: ' + ai}</div></td>`;
+      }).join('');
+      return `<div data-q="${esc(q.id)}" style="margin-top:10px;">
+        <div style="font-weight:600;">${esc(q.label)} <span style="font-weight:400;color:#64748b;font-size:12px;">· ${esc(rb.title)}</span></div>
+        <div style="overflow:auto;"><table style="border-collapse:collapse;width:100%;margin-top:4px;table-layout:fixed;">
+          <tr>${rb.criteria.map((c) => `<th style="${th}">${esc(c.name)} <span style="font-weight:400;color:#64748b;">/${c.max}</span></th>`).join('')}<th style="${th}width:110px;">Task total</th></tr>
+          <tr>${cells}<td style="${td}font-weight:700;" data-ttot data-total="${rb.total}" data-points="${q.points}" data-conv="${conv ? 1 : 0}"></td></tr>
+        </table></div>${fb}</div>`;
+    };
+    const cards = b.scripts.map((s) => {
       const flags = s.flags.slice();
       if (s.match && used[s.match.key] > 1) flags.push('Same student matched to more than one script.');
-      const cells = qs.map((q) => { const g = s.grades[q.id] || {}; return `<td style="white-space:nowrap;vertical-align:top;"><input type="number" step="0.5" min="0" max="${q.points}" value="${esc(g.score)}" data-sc="${esc(q.id)}" style="width:62px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;"> / ${q.points}<br><a href="#" data-fb="${esc(q.id)}" style="font-size:12px;">feedback</a></td>`; }).join('');
-      return `<tr data-s="${esc(s.id)}" style="border-top:1px solid #e2e8f0;">
-        <td style="vertical-align:top;padding:8px 6px;"><div style="font-size:12px;color:#64748b;">Name on paper: <b>${esc(s.nameRead || '—')}</b></div>
-          <select data-st style="margin-top:4px;padding:6px;border:1px solid ${s.match ? '#cbd5e1' : '#F59E0B'};border-radius:6px;max-width:230px;">${opts(s.match && s.match.key)}</select>
-          <div style="margin-top:4px;font-size:12px;">${s.pages.map((p, i) => `<a href="/api/paper/batches/${esc(b.id)}/pages/${esc(p)}" target="_blank">page ${i + 1}</a>`).join(' · ')}</div></td>
-        ${cells}
-        <td data-tot style="vertical-align:top;font-weight:700;padding-top:12px;"></td>
-        <td style="vertical-align:top;font-size:12px;color:#B45309;min-width:170px;max-width:260px;padding:8px 6px;">${flags.map((f) => '⚠️ ' + esc(f)).join('<br>')}</td>
-        <td style="vertical-align:top;"><label style="font-size:12px;white-space:nowrap;"><input type="checkbox" data-skip> Skip</label></td></tr>
-        <tr data-fbrow="${esc(s.id)}" style="display:none;"><td colspan="${qs.length + 4}" style="padding:6px 6px 12px;">${qs.map((q) => `<div data-fbbox="${esc(q.id)}" style="display:none;"><b>${esc(q.label)} feedback</b> <span style="color:#64748b;font-size:12px;">(what the student will see)</span><textarea data-fbt="${esc(q.id)}" rows="6" style="width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;margin-top:4px;">${esc((s.grades[q.id] || {}).feedback || '')}</textarea>${(s.text && s.text[q.id]) ? `<details style="margin-top:4px;"><summary style="cursor:pointer;font-size:12px;">What the AI read</summary><div style="white-space:pre-wrap;font-size:12px;background:#F8FAFC;padding:8px;border-radius:6px;">${esc(s.text[q.id])}</div></details>` : ''}</div>`).join('')}</td></tr>`;
+      return `<div data-s="${esc(s.id)}" style="border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;"><div style="font-size:12px;color:#64748b;">Name on paper: <b>${esc(s.nameRead || '—')}</b> · ${s.pages.map((p, i) => `<a href="/api/paper/batches/${esc(b.id)}/pages/${esc(p)}" target="_blank">page ${i + 1}</a>`).join(' · ')}</div>
+            <select data-st style="margin-top:4px;padding:6px;border:1px solid ${s.match ? '#cbd5e1' : '#F59E0B'};border-radius:6px;max-width:280px;">${opts(s.match && s.match.key)}</select></div>
+          <div style="text-align:right;"><div style="font-size:12px;color:#64748b;">Total</div><div data-gtot style="font-size:20px;font-weight:700;"></div></div>
+          <label style="font-size:12px;white-space:nowrap;margin-top:4px;"><input type="checkbox" data-skip> Skip</label>
+        </div>
+        ${flags.length ? `<div style="font-size:12px;color:#B45309;margin-top:6px;">${flags.map((f) => '⚠️ ' + esc(f)).join('<br>')}</div>` : ''}
+        ${qs.map((q) => taskBlock(s, q)).join('')}
+      </div>`;
     }).join('');
     const noAcc = b.students.filter((s) => !s.hasAccount).length;
     body.innerHTML = `
-      <p style="margin:0 0 10px;color:#475569;">The AI found <b>${b.scripts.length}</b> script(s) in ${b.pages.length} page(s). Check each name and mark, open the feedback to edit it, then approve. Nothing is saved until you approve.</p>
-      <div style="overflow:auto;"><table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="text-align:left;background:#F1F5F9;"><th style="padding:8px 6px;">Student</th>${qs.map((q) => `<th>${esc(q.label)}</th>`).join('')}<th>Total</th><th>Check</th><th></th></tr></thead>
-        <tbody>${rows}</tbody></table></div>
+      <p style="margin:0 0 6px;color:#475569;">The AI found <b>${b.scripts.length}</b> script(s) in ${b.pages.length} page(s). Check each name and the mark for every rubric criterion, then approve. Nothing is saved until you approve.</p>
+      <p style="margin:0 0 12px;font-size:12px;color:#64748b;">Grey "AI" numbers show the AI's mark. A criterion you change turns yellow. Totals add up automatically.</p>
+      ${cards}
       ${noAcc ? `<label style="display:block;margin:12px 0 0;font-size:13px;"><input type="checkbox" data-acc checked> Create ClassCurio accounts for students on the class list who don't have one yet (they set their own password at first sign-in)</label>` : ''}
       <div style="display:flex;gap:10px;margin-top:16px;align-items:center;flex-wrap:wrap;"><button type="button" data-ok style="${btnCss('#047857')}">✓ Approve and save marks</button><span data-msg style="color:#475569;"></span></div>`;
-    const tot = (tr) => { let t = 0, m = 0; qs.forEach((q) => { t += Number(tr.querySelector(`[data-sc="${q.id}"]`).value) || 0; m += Number(q.points) || 0; }); tr.querySelector('[data-tot]').textContent = `${Math.round(t * 2) / 2} / ${m}`; };
-    body.querySelectorAll('tr[data-s]').forEach((tr) => { tot(tr); tr.querySelectorAll('[data-sc]').forEach((i) => (i.oninput = () => tot(tr))); });
-    body.querySelectorAll('[data-fb]').forEach((aEl) => (aEl.onclick = (e) => {
-      e.preventDefault();
-      const sid = aEl.closest('tr').dataset.s; const row = body.querySelector(`[data-fbrow="${sid}"]`);
-      const box = row.querySelector(`[data-fbbox="${aEl.dataset.fb}"]`); const open = box.style.display !== 'none';
-      row.querySelectorAll('[data-fbbox]').forEach((x) => (x.style.display = 'none'));
-      box.style.display = open ? 'none' : ''; row.style.display = open ? 'none' : '';
-    }));
+    const round = (x) => Math.round(x * 2) / 2;
+    // Task total = sum of criteria (rubric scale); converted when the rubric total differs from the task's marks.
+    const recalc = (card) => {
+      let tot = 0, complete = true;
+      card.querySelectorAll('[data-q]').forEach((qb) => {
+        const cell = qb.querySelector('[data-ttot]');
+        if (!cell) { tot += Number(qb.querySelector('[data-sc]').value) || 0; return; }
+        const sels = Array.from(qb.querySelectorAll('select[data-crit]'));
+        sels.forEach((sl) => { const ai = sl.dataset.ai; sl.closest('[data-cell]').style.background = (ai !== '' && sl.value !== '' && Number(sl.value) !== Number(ai)) ? '#FEF3C7' : ''; });
+        const missing = sels.some((sl) => sl.value === '');
+        const raw = sels.reduce((t, sl) => t + (Number(sl.value) || 0), 0);
+        const total = Number(cell.dataset.total), pts = Number(cell.dataset.points) || total;
+        const marks = round(raw * pts / total);
+        if (missing) complete = false;
+        tot += marks;
+        cell.innerHTML = missing ? '<span style="color:#B45309;font-weight:400;font-size:12px;">choose every mark</span>'
+          : (cell.dataset.conv === '1' ? `${raw} / ${total}<div style="font-weight:400;font-size:12px;color:#475569;">= ${marks} / ${pts}</div>` : `${raw} / ${total}`);
+      });
+      card.querySelector('[data-gtot]').textContent = `${round(tot)} / ${qMax}` + (complete ? '' : ' *');
+      return complete;
+    };
+    body.querySelectorAll('[data-s]').forEach((card) => { recalc(card); card.querySelectorAll('select[data-crit], [data-sc]').forEach((el) => { el.addEventListener('change', () => recalc(card)); el.addEventListener('input', () => recalc(card)); }); });
     body.querySelector('[data-ok]').onclick = async (ev) => {
       const msg = body.querySelector('[data-msg]');
-      const scripts = []; const seen = {}; let missing = 0;
-      for (const tr of body.querySelectorAll('tr[data-s]')) {
-        const id = tr.dataset.s; const skip = tr.querySelector('[data-skip]').checked; const key = tr.querySelector('[data-st]').value;
+      const scripts = []; const seen = {}; let missing = 0, incomplete = 0;
+      for (const card of body.querySelectorAll('[data-s]')) {
+        const id = card.dataset.s; const skip = card.querySelector('[data-skip]').checked; const key = card.querySelector('[data-st]').value;
         if (!skip && !key) missing++;
         if (!skip && key) { if (seen[key]) { msg.innerHTML = '<span style="color:#B91C1C;">Two scripts are matched to the same student — fix one or tick Skip.</span>'; return; } seen[key] = 1; }
-        const grades = {}; const fbRow = body.querySelector(`[data-fbrow="${id}"]`);
-        qs.forEach((q) => { grades[q.id] = { score: tr.querySelector(`[data-sc="${q.id}"]`).value, feedback: fbRow.querySelector(`[data-fbt="${q.id}"]`).value }; });
+        if (!skip && key && !recalc(card)) incomplete++;
+        const grades = {};
+        card.querySelectorAll('[data-q]').forEach((qb) => {
+          const qid = qb.dataset.q; const g = { feedback: qb.querySelector('[data-fbt]').value };
+          const sels = qb.querySelectorAll('select[data-crit]');
+          if (sels.length) { g.criteria = {}; sels.forEach((sl) => { g.criteria[sl.dataset.crit] = sl.value === '' ? '' : Number(sl.value); }); }
+          else g.score = qb.querySelector('[data-sc]').value;
+          grades[qid] = g;
+        });
         scripts.push({ id, key, skip, grades });
       }
+      if (incomplete) { msg.innerHTML = `<span style="color:#B91C1C;">${incomplete} script(s) still have a criterion without a mark (marked *). Choose every mark or tick Skip.</span>`; return; }
       if (missing && !confirm(missing + ' script(s) have no student chosen and will be skipped. Continue?')) return;
       ev.target.disabled = true; msg.textContent = 'Saving marks and building the marked PDFs…';
       try {
@@ -12710,11 +12761,11 @@ document.addEventListener('change', (e) => {
         const j = await r.json().catch(() => ({}));
         if (!r.ok || !j.ok) throw new Error(j.error || 'Saving failed.');
         body.innerHTML = `<div style="padding:10px 0;"><h3 style="margin:0 0 8px;color:#047857;">✓ Saved ${j.recorded} result(s)</h3>
-          <p>The marks now appear in <b>Results</b>, <b>Class Averages</b> and the skills reports for <b>${esc(a ? a.title : 'this assessment')}</b>. A marked PDF for each student is in the class's writing folder (AI Mark Writing → folders).</p>
+          <p>The marks, including each rubric criterion, now appear in <b>Results</b>, <b>Class Averages</b> and the skills reports for <b>${esc(a ? a.title : 'this assessment')}</b>. A marked PDF for each student is in the class's writing folder (AI Mark Writing → folders).</p>
           ${j.created && j.created.length ? `<p><b>New student accounts</b> — give each student her temporary password (she chooses a new one at first sign-in). Copy these now; they are not shown again.</p><table style="border-collapse:collapse;font-size:13px;margin-bottom:10px;">${j.created.map((c) => `<tr><td style="padding:3px 10px 3px 0;">${esc(c.name)}</td><td style="padding:3px 10px;color:#475569;">${esc(c.email)}</td><td style="padding:3px 10px;font-family:monospace;">${esc(c.tempPassword)}</td></tr>`).join('')}</table>` : ''}
           ${j.skipped && j.skipped.length ? `<p style="color:#B45309;">Skipped: ${esc(j.skipped.join(', '))}</p>` : ''}
           <button type="button" style="${btnCss('#0369A1')}" data-done>Done</button></div>`;
-        body.querySelector('[data-done]').onclick = () => { ov.remove(); try { if (typeof loadResults === 'function') loadResults(); } catch (e) {} };
+        body.querySelector('[data-done]').onclick = () => { ov.remove(); };
       } catch (e) { msg.innerHTML = '<span style="color:#B91C1C;">' + esc(e.message) + '</span>'; ev.target.disabled = false; }
     };
   }

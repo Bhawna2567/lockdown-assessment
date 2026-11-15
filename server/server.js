@@ -8981,7 +8981,7 @@ app.get('/api/teacher/markings/:id/download', (req, res) => {
 // 📄 Mark paper scripts (photos of handwritten scripts → AI marks → results + class folder)
 try {
   require('./paper')(app, { requireTeacher, readAll, writeAll, upload, asyncJob: _ccAsyncJob, claudeFetch: (b, t) => _ccClaudeFetch(b, t), gradeWriting,
-    getSpecRubric: (id) => (_ccSpecs && _ccSpecs.getRubric ? _ccSpecs.getRubric(id) : null), uuid: uuidv4, bcrypt, tempPassword: generateTempPassword,
+    getSpecRubric: (id) => (_ccSpecs && _ccSpecs.getRubric ? _ccSpecs.getRubric(id) : null), getStageRubric: require('./rubrics').getRubric, uuid: uuidv4, bcrypt, tempPassword: generateTempPassword,
     dataDir: _ccDataDir, folders: { load: _ccLoadFolders, save: _ccSaveFolders, loadMarkings: _ccLoadMarkings, saveMarkings: _ccSaveMarkings, dir: _ccFolderDir, ensureDir: _ccEnsureFolderDirs } });
 } catch (e) { console.error('[paper] module failed to load:', e); }
 

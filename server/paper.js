@@ -13,7 +13,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 module.exports = function paper(app, d) {
-  const { requireTeacher, readAll, writeAll, upload, asyncJob, claudeFetch, gradeWriting, getSpecRubric, uuid, bcrypt, tempPassword,
+  const { requireTeacher, readAll, writeAll, upload, asyncJob, claudeFetch, gradeWriting, getSpecRubric, getStageRubric, uuid, bcrypt, tempPassword,
     dataDir, folders } = d;
   const ROOT = path.join(dataDir, 'paper-scripts');
   const BATCHES = 'paper-batches.json';
@@ -55,6 +55,18 @@ module.exports = function paper(app, d) {
     }
     return bestScore >= 0.5 ? Object.assign({ confidence: Math.round(bestScore * 100) }, best) : null;
   }
+  // The rubric used for a writing question: its MOE grade rubric (specification papers),
+  // otherwise the assessment's rubric stage. Criterion marks stay on the rubric's own scale.
+  const stageOf = (a) => (['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8');
+  function rubricOf(a, q) {
+    const spec = q.rubricId ? getSpecRubric(q.rubricId) : null;
+    const r = spec || (getStageRubric ? getStageRubric(stageOf(a)) : null);
+    if (!r || !Array.isArray(r.criteria) || !r.criteria.length) return null;
+    const criteria = r.criteria.map((c) => ({ id: c.id, name: c.name, max: Number(c.max || r.scoreMax) || 0 }));
+    const total = criteria.reduce((t, c) => t + c.max, 0) || Number(r.totalMax) || 0;
+    return { id: spec ? spec.id : 'stage-' + stageOf(a), stage: spec ? spec.id : stageOf(a), title: r.title, total, criteria };
+  }
+  const toQuestion = (raw, total, points) => (total ? Math.round((raw * (Number(points) || total) / total) * 2) / 2 : raw);
   const writingQs = (a) => (a.questions || []).filter((q) => WRITING.has(q.type));
   // Label for a writing question: its MOE task number if it has one, else "Writing 1", "Writing 2"…
   const qLabel = (a, q) => (q.specTask ? 'Task ' + q.specTask : 'Writing ' + (writingQs(a).indexOf(q) + 1));
@@ -153,18 +165,31 @@ module.exports = function paper(app, d) {
         s.grades = {};
         await Promise.all(wq.map(async (q) => {
           const text = s.text[q.id] || '';
-          if (!text.trim()) { s.flags.push(`No answer found for ${qLabel(a, q)}.`); s.grades[q.id] = { score: 0, maxScore: Number(q.points) || 0, feedback: 'No answer found on the script.', breakdown: null }; return; }
+          const rb = rubricOf(a, q);
+          const blank = (v) => (rb ? Object.fromEntries(rb.criteria.map((c) => [c.id, { ai: v, score: v, comment: '' }])) : null);
+          if (!text.trim()) { s.flags.push(`No answer found for ${qLabel(a, q)}.`); s.grades[q.id] = { score: 0, maxScore: Number(q.points) || 0, feedback: 'No answer found on the script.', breakdown: null, criteria: blank(0) }; return; }
           const rub = q.rubricId ? getSpecRubric(q.rubricId) : null;
           const sec = (a.sections || []).find((x) => x.id === q.sectionId);
           const stage = ['7', '8', '3-5', '5-9'].includes(String(a.rubricStage)) ? String(a.rubricStage) : '8';
           const g = await gradeWriting({ rubric: rub, rubricStage: stage, context: sec && sec.passage, prompt: q.prompt, essay: text, maxScore: q.points }).catch((e) => ({ ok: false, detail: e.message }));
-          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null }; return; }
+          if (!g || !g.ok) { s.flags.push(`${qLabel(a, q)} could not be marked automatically — enter the mark yourself.`); s.grades[q.id] = { score: '', maxScore: Number(q.points) || 0, feedback: '', breakdown: null, criteria: blank('') }; return; }
           // Rubrics scored out of 40/12 are scaled to the question's own marks.
           const max = Number(q.points) || g.maxScore;
           const f = g.maxScore ? max / g.maxScore : 1;
           const bd = {};
           for (const [k, v] of Object.entries(g.breakdown || {})) bd[k] = Object.assign({}, v, { score: Math.round(v.score * f * 10) / 10, max: Math.round(v.max * f * 10) / 10 });
-          s.grades[q.id] = { score: Math.round(g.score * f * 2) / 2, maxScore: max, feedback: g.feedback, breakdown: bd, rubricStage: g.rubricStage };
+          // The AI's mark for each criterion on the rubric's own scale (e.g. 0–5 or 0–8).
+          let criteria = null, raw = 0;
+          if (rb) {
+            criteria = {};
+            for (const c of rb.criteria) {
+              const v = (g.breakdown || {})[c.id];
+              const n = v && Number(v.max) ? Math.max(0, Math.min(c.max, Math.round(Number(v.score) * c.max / Number(v.max)))) : 0;
+              criteria[c.id] = { ai: n, score: n, comment: (v && v.comment) || '' };
+              raw += n;
+            }
+          }
+          s.grades[q.id] = { score: criteria ? toQuestion(raw, rb.total, max) : Math.round(g.score * f * 2) / 2, maxScore: max, feedback: g.feedback, breakdown: bd, rubricStage: g.rubricStage, criteria };
         }));
       }
       const batch = { id: batchId, assessmentId: a.id, teacherId: req.session.user.id, createdAt: new Date().toISOString(), status: 'review', pages, scripts };
@@ -180,7 +205,7 @@ module.exports = function paper(app, d) {
   function publicBatch(b, a) {
     const { students } = classList(a);
     return { id: b.id, status: b.status, createdAt: b.createdAt, assessmentId: b.assessmentId,
-      questions: writingQs(a).map((q) => ({ id: q.id, label: qLabel(a, q), points: q.points, prompt: String(q.prompt || '').slice(0, 200) })),
+      questions: writingQs(a).map((q) => ({ id: q.id, label: qLabel(a, q), points: q.points, prompt: String(q.prompt || '').slice(0, 200), rubric: rubricOf(a, q) })),
       students, pages: b.pages.map((p) => ({ id: p.id, kind: p.kind, source: p.source })), scripts: b.scripts };
   }
   const ownBatch = (req, res) => {
@@ -232,9 +257,28 @@ module.exports = function paper(app, d) {
       const manual = {};
       for (const q of wq) {
         const g = (dcs.grades || {})[q.id] || s.grades[q.id] || {};
-        const score = Math.max(0, Math.min(Number(q.points) || 0, Number(g.score) || 0));
-        manual[q.id] = { score, maxScore: Number(q.points) || 0, feedback: String(g.feedback != null ? g.feedback : '').slice(0, 4000),
-          breakdown: (s.grades[q.id] || {}).breakdown || undefined, rubricStage: (s.grades[q.id] || {}).rubricStage || undefined,
+        const ai = s.grades[q.id] || {};
+        const pts = Number(q.points) || 0;
+        let score = Math.max(0, Math.min(pts, Number(g.score != null && g.score !== '' ? g.score : ai.score) || 0));
+        let breakdown = ai.breakdown || undefined, rubricStage = ai.rubricStage || undefined, rubricRaw, rubricTotal;
+        // Marked criterion by criterion: the total is the sum of the criteria, converted to the question's marks.
+        const rb = rubricOf(a, q);
+        const crit = g.criteria && typeof g.criteria === 'object' ? g.criteria : null;
+        if (rb && crit && rb.criteria.every((c) => crit[c.id] !== undefined && crit[c.id] !== '' && crit[c.id] !== null)) {
+          const f = rb.total ? (pts || rb.total) / rb.total : 1;
+          breakdown = {}; rubricRaw = 0; rubricTotal = rb.total;
+          for (const c of rb.criteria) {
+            const n = Math.max(0, Math.min(c.max, Math.round(Number(crit[c.id]) || 0)));
+            const aiC = ai.criteria && ai.criteria[c.id];
+            rubricRaw += n;
+            breakdown[c.id] = { name: c.name, score: Math.round(n * f * 10) / 10, max: Math.round(c.max * f * 10) / 10, raw: n, rawMax: c.max,
+              ai: aiC && aiC.ai !== '' ? aiC.ai : undefined, comment: (aiC && aiC.comment) || '' };
+          }
+          score = Math.max(0, Math.min(pts, toQuestion(rubricRaw, rb.total, pts)));
+          rubricStage = rb.stage;
+        }
+        manual[q.id] = { score, maxScore: pts, feedback: String(g.feedback != null ? g.feedback : '').slice(0, 4000),
+          breakdown, rubricStage, rubricTitle: rb ? rb.title : undefined, rubricRaw, rubricTotal,
           gradedAt: new Date().toISOString(), gradedBy: req.session.user.name + ' (paper script, AI-assisted)', paper: true };
       }
       const rec = {
@@ -278,8 +322,9 @@ module.exports = function paper(app, d) {
       let tot = 0, max = 0;
       for (const q of wq) {
         const g = rec.manualGrades[q.id]; tot += g.score; max += g.maxScore;
-        doc.moveDown(0.8).fontSize(13).fillColor('#1a1e33').text(`${qLabel(a, q)} — ${g.score} / ${g.maxScore}`);
-        if (g.breakdown) for (const v of Object.values(g.breakdown)) doc.fontSize(10).fillColor('#334155').text(`• ${v.name}: ${v.score} / ${v.max}${v.comment ? ' — ' + v.comment : ''}`);
+        doc.moveDown(0.8).fontSize(13).fillColor('#1a1e33').text(`${qLabel(a, q)} — ${g.score} / ${g.maxScore}` + (g.rubricTotal && g.rubricTotal !== g.maxScore ? `  (rubric ${g.rubricRaw} / ${g.rubricTotal})` : ''));
+        if (g.rubricTitle) doc.fontSize(9).fillColor('#64748b').text(g.rubricTitle);
+        if (g.breakdown) for (const v of Object.values(g.breakdown)) doc.fontSize(10).fillColor('#334155').text(`• ${v.name}: ${v.raw != null ? v.raw : v.score} / ${v.rawMax != null ? v.rawMax : v.max}${v.comment ? ' — ' + v.comment : ''}`);
         if (g.feedback) doc.moveDown(0.3).fontSize(10).fillColor('#475569').text(String(g.feedback).slice(0, 2500));
       }
       doc.moveDown(0.8).fontSize(13).fillColor('#1a1e33').text(`Total: ${tot} / ${max}`);
