@@ -12738,7 +12738,7 @@ document.addEventListener('change', (e) => {
         last = m.at + m.text.length;
       });
       hl += esc(txt.slice(last));
-      const failed = g.mistakesOk === false || (!ms.length && !g.wentWell && txt.trim());
+      const failed = !!txt.trim() && (g.mistakesOk === false || !g.wentWell || !(g.toImprove || g.feedback));
       const fb = `<details style="margin-top:6px;"${ms.length || failed ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;color:#0369A1;">Mistakes (${ms.length}) and feedback</summary>
         ${txt ? `<div style="white-space:pre-wrap;font-size:13px;line-height:1.9;background:#F8FAFC;border:1px solid #e2e8f0;padding:8px 10px;border-radius:6px;margin-top:6px;">${hl}</div>` : ''}
         ${ms.length ? `<div style="font-size:12px;color:#64748b;margin:6px 0 2px;">Untick any mistake you don't agree with. It won't appear in the student's report.</div>
@@ -12747,7 +12747,7 @@ document.addEventListener('change', (e) => {
           <span style="background:${c[1]};color:${c[3]};font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;white-space:nowrap;">${c[0]}</span>
           <span><s style="color:#64748b;">${esc(m.text)}</s> → <b>${esc(m.correction)}</b>${m.reason ? ` <span style="color:#64748b;">· ${esc(m.reason)}</span>` : ''}</span></label>`; }).join('')}</div>` : ''}
         ${failed ? `<div style="display:flex;gap:10px;align-items:center;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;padding:7px 10px;margin-top:6px;font-size:12.5px;color:#92400E;">
-          <span style="flex:1;">${g.mistakesOk === false ? 'The AI could not check this writing for mistakes.' : 'No mistakes or feedback were found for this writing.'}</span>
+          <span style="flex:1;">${g.mistakesOk === false ? 'The AI could not fully check this writing.' : 'Some feedback is missing for this writing.'} Click to try again, or type the feedback yourself.</span>
           <button type="button" data-refind style="background:#D97706;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-weight:600;cursor:pointer;">🔍 Find mistakes again</button></div>` : ''}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
           <label style="font-size:12px;font-weight:600;color:#166534;text-transform:none;letter-spacing:0;">What went well<textarea data-ww rows="3" style="width:100%;padding:6px;border:1px solid #BBF7D0;background:#F0FDF4;border-radius:6px;font-size:13px;font-weight:400;color:#1a1e33;margin-top:2px;">${esc(g.wentWell || '')}</textarea></label>
