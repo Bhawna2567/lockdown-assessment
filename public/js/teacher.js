@@ -3374,14 +3374,16 @@ async function openResults(id) {
             const mg = r.manualGrades || {};
             for (const k in mg) {
               const g = mg[k];
-              if (g && g.aiGrade) {
+              if (g && (g.aiGrade || g.paper)) {   // AI-marked online essays and paper scripts
                 aiScore += Number(g.score) || 0;
                 aiMax   += Number(g.maxScore) || 0;
               }
             }
             const totalScore = (Number(r.autoScore) || 0) + aiScore;
             const totalMax   = (Number(r.autoMax)   || 0) + aiMax;
-            const breakdown = aiMax > 0
+            const breakdown = r.source === 'paper'
+              ? `<div class=\"muted\" style=\"font-size:11px;\">📄 Paper script · writing</div>`
+              : aiMax > 0
               ? `<div class=\"muted\" style=\"font-size:11px;\">MC/TF: ${r.autoScore}/${r.autoMax} · Essay: ${aiScore}/${aiMax}</div>`
               : '';
             return `<strong>${totalScore}/${totalMax}</strong>${breakdown}`;
@@ -3391,7 +3393,7 @@ async function openResults(id) {
           <td class="muted">${new Date(r.submittedAt).toLocaleString()}</td>
           <td>
             <button class="btn primary" data-report="${r.id}">📋 Report</button>
-            ${vcount || (r.submitReason && r.submitReason !== 'manual')
+            ${r.source !== 'paper' && (vcount || (r.submitReason && r.submitReason !== 'manual'))
               ? `<button class="btn" data-grant-reentry="${assessment.id}" data-student-id="${r.studentId}" data-student-name="${escapeAttr(r.studentName || r.studentEmail || '')}" style="margin-left: 4px;">🔓 Grant re-entry</button>`
               : ''}
           </td>
