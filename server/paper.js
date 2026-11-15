@@ -299,6 +299,39 @@ module.exports = function paper(app, d) {
       .sort((x, y) => String(y.createdAt).localeCompare(String(x.createdAt))).slice(0, 10);
     res.json({ batches: list });
   });
+  // ── Deleting: a whole batch (and its uploaded photos), old batches, or one student's script ──
+  const rmBatchFiles = (bid) => { try { fs.rmSync(path.join(ROOT, path.basename(bid)), { recursive: true, force: true }); } catch (e) {} };
+  app.delete('/api/paper/batches/:bid', requireTeacher, (req, res) => {
+    const all = readAll(BATCHES);
+    const i = all.findIndex((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
+    if (i < 0) return res.status(404).json({ error: 'Not found' });
+    const [b] = all.splice(i, 1); writeAll(BATCHES, all); rmBatchFiles(b.id);
+    res.json({ ok: true });
+  });
+  app.post('/api/paper/batches/cleanup', requireTeacher, (req, res) => {
+    const days = Math.max(1, Math.min(365, Number((req.body || {}).days) || 7));
+    const cutoff = Date.now() - days * 864e5;
+    const all = readAll(BATCHES);
+    const old = all.filter((b) => b.teacherId === req.session.user.id && b.status === 'review' && new Date(b.createdAt).getTime() < cutoff);
+    writeAll(BATCHES, all.filter((b) => !old.includes(b)));
+    old.forEach((b) => rmBatchFiles(b.id));
+    res.json({ ok: true, deleted: old.length });
+  });
+  app.delete('/api/paper/batches/:bid/scripts/:sid', requireTeacher, (req, res) => {
+    const all = readAll(BATCHES);
+    const b = all.find((x) => x.id === req.params.bid && x.teacherId === req.session.user.id);
+    if (!b) return res.status(404).json({ error: 'Not found' });
+    const si = (b.scripts || []).findIndex((x) => x.id === req.params.sid);
+    if (si < 0) return res.status(404).json({ error: 'Script not found' });
+    const [sc] = b.scripts.splice(si, 1);
+    for (const pid of sc.pages || []) {
+      const pi = (b.pages || []).findIndex((p) => p.id === pid);
+      if (pi >= 0) { try { fs.unlinkSync(path.join(ROOT, b.id, path.basename(b.pages[pi].file))); } catch (e) {} b.pages.splice(pi, 1); }
+    }
+    if (!b.scripts.length) { all.splice(all.indexOf(b), 1); rmBatchFiles(b.id); }
+    writeAll(BATCHES, all);
+    res.json({ ok: true, batchDeleted: !b.scripts.length });
+  });
   // Find mistakes and feedback again for one task of one script.
   app.post('/api/paper/batches/:bid/scripts/:sid/questions/:qid/mistakes', requireTeacher, asyncJob, async (req, res) => {
     const all = readAll(BATCHES);
@@ -475,7 +508,7 @@ module.exports = function paper(app, d) {
     }
     fs.writeFileSync(path.join(folders.dir, file), buf);
     const mk = folders.loadMarkings();
-    mk.push({ id, folderId: folder.id, teacherId: req.session.user.id, studentName: rec.studentName, filename: file, createdAt: new Date().toISOString(), assessmentId: a.id, source: 'paper' });
+    mk.push({ id, folderId: folder.id, teacherId: req.session.user.id, studentName: rec.studentName, studentId: rec.studentId, filename: file, createdAt: new Date().toISOString(), assessmentId: a.id, source: 'paper' });
     folders.saveMarkings(mk);
     return { folderId: folder.id, markingId: id };
   }

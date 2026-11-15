@@ -8978,6 +8978,29 @@ app.get('/api/teacher/markings/:id/download', (req, res) => {
   _ccFsV.createReadStream(p).pipe(res);
 });
 
+// Delete one student's marked report from a folder. ?removeResult=1 also removes that student's
+// result for the assessment (Results, Class Averages), e.g. when the script is to be marked again.
+app.delete('/api/teacher/markings/:id', (req, res) => {
+  if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
+  const uid = req.session.user.id;
+  const all = _ccLoadMarkings();
+  const rec = all.find(m => m.id === req.params.id && m.teacherId === uid);
+  if (!rec) return res.status(404).json({ error: 'Report not found' });
+  try { _ccFsV.unlinkSync(_ccPathV.join(_ccFolderDir, _ccPathV.basename(rec.filename))); } catch (e) {}
+  _ccSaveMarkings(all.filter(m => m.id !== rec.id));
+  let resultRemoved = false;
+  if (String(req.query.removeResult) === '1' && rec.assessmentId) {
+    const a = readAll('assessments.json').find(x => x.id === rec.assessmentId);
+    if (a && a.teacherId === uid) {
+      const results = readAll('results.json');
+      const keep = results.filter(r => !(r.assessmentId === a.id && (rec.studentId ? r.studentId === rec.studentId : String(r.studentName || '').toLowerCase() === String(rec.studentName || '').toLowerCase())));
+      resultRemoved = keep.length !== results.length;
+      if (resultRemoved) writeAll('results.json', keep);
+    }
+  }
+  res.json({ ok: true, resultRemoved });
+});
+
 // 📄 Mark paper scripts (photos of handwritten scripts → AI marks → results + class folder)
 try {
   require('./paper')(app, { requireTeacher, readAll, writeAll, upload, asyncJob: _ccAsyncJob, claudeFetch: (b, t) => _ccClaudeFetch(b, t), gradeWriting,

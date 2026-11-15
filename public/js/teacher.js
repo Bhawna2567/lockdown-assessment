@@ -7187,12 +7187,30 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
           const j = await fetchJson('/api/teacher/folders/' + f.id);
           detail.innerHTML = '';
           if (!j.markings.length) { detail.appendChild(el('div', { style: 'color:#6B7280;' }, 'Empty folder.')); }
-          else j.markings.forEach(function(m){
-            detail.appendChild(el('div', { style: 'padding:6px; border-top:1px solid #F3F4F6; display:flex; justify-content:space-between; align-items:center;' },
-              el('div', {}, '📄 ' + m.studentName + '  ', el('span', { style: 'color:#6B7280; font-size:12px;' }, new Date(m.createdAt).toLocaleString())),
-              el('a', { href: '/api/teacher/markings/' + m.id + '/download', style: 'color:#4338CA; text-decoration:none; font-size:13px;' }, 'Download'),
-            ));
-          });
+          else {
+            // Optional: deleting a report can also remove the student's mark (only for reports linked to an assessment).
+            const linked = j.markings.some(function(m){ return !!m.assessmentId; });
+            const alsoBox = el('input', { type: 'checkbox', style: 'width:auto; margin:0;' });
+            j.markings.forEach(function(m){
+              const del = el('button', { type: 'button', style: 'background:#fff; color:#B91C1C; border:1px solid #FCA5A5; border-radius:6px; padding:3px 9px; font-weight:600; font-size:12px; cursor:pointer; margin-left:10px;' }, 'Delete');
+              const row = el('div', { style: 'padding:6px; border-top:1px solid #F3F4F6; display:flex; justify-content:space-between; align-items:center;' },
+                el('div', { style: 'flex:1;' }, '📄 ' + m.studentName + '  ', el('span', { style: 'color:#6B7280; font-size:12px;' }, new Date(m.createdAt).toLocaleString())),
+                el('a', { href: '/api/teacher/markings/' + m.id + '/download', style: 'color:#4338CA; text-decoration:none; font-size:13px;' }, 'Download'),
+                del);
+              del.onclick = async function () {
+                const alsoMark = !!(m.assessmentId && alsoBox.checked);
+                if (!confirm('Delete the marked report for ' + m.studentName + '?' + (alsoMark ? ' Her mark will also be removed from Results and Class Averages.' : '') + ' This cannot be undone.')) return;
+                del.disabled = true;
+                try {
+                  const r = await fetchJson('/api/teacher/markings/' + m.id + (alsoMark ? '?removeResult=1' : ''), { method: 'DELETE' });
+                  row.remove();
+                  if (alsoMark && !r.resultRemoved) alert('The report was deleted. No saved mark was found to remove.');
+                } catch (e) { del.disabled = false; alert('Delete failed: ' + e.message); }
+              };
+              detail.appendChild(row);
+            });
+            if (linked) detail.appendChild(el('label', { style: 'display:flex; gap:6px; align-items:center; margin-top:8px; font-size:12px; color:#6B7280; text-transform:none; letter-spacing:0; font-weight:400;' }, alsoBox, 'When I delete a report, also remove that student\'s mark from Results and Class Averages'));
+          }
           detail.style.display = 'block'; openBtn.textContent = 'Close';
         } catch (e) { alert('Load failed: ' + e.message); }
       };
@@ -12630,9 +12648,10 @@ document.addEventListener('change', (e) => {
     let pending = [];
     try { pending = ((await (await fetch('/api/paper/batches', { credentials: 'include' })).json()).batches) || []; } catch (e) {}
     const pendingHtml = pending.length ? `<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:10px 12px;margin:0 0 14px;">
-        <div style="font-weight:600;margin-bottom:4px;">Continue where you left off</div>
+        <div style="display:flex;align-items:center;margin-bottom:4px;"><div style="font-weight:600;flex:1;">Continue where you left off</div>${pending.some((p) => Date.now() - new Date(p.createdAt).getTime() > 7 * 864e5) ? `<button type="button" data-cleanup style="background:#fff;color:#B91C1C;border:1px solid #FCA5A5;border-radius:6px;padding:5px 10px;font-weight:600;font-size:12.5px;cursor:pointer;">Delete all older than 7 days</button>` : ''}</div>
         ${pending.map((p) => `<div style="display:flex;gap:10px;align-items:center;font-size:13px;margin:3px 0;"><span style="flex:1;">${esc(p.title)} · ${p.scripts} script(s) · ${new Date(p.createdAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
-          <button type="button" data-resume="${esc(p.id)}" style="${btnCss('#0369A1')}padding:5px 12px;font-size:13px;">Review and approve</button></div>`).join('')}</div>` : '';
+          <button type="button" data-resume="${esc(p.id)}" style="${btnCss('#0369A1')}padding:5px 12px;font-size:13px;">Review and approve</button>
+          <button type="button" data-delbatch="${esc(p.id)}" style="background:#fff;color:#B91C1C;border:1px solid #FCA5A5;border-radius:6px;padding:5px 10px;font-weight:600;font-size:12.5px;cursor:pointer;">Delete</button></div>`).join('')}</div>` : '';
     body.innerHTML = pendingHtml + `
       <p style="color:#475569;margin:0 0 14px;">Upload photos or scans of the students' handwritten scripts. The AI reads each student's name and writing, marks every writing question with its rubric, and shows you the marks to check before anything is saved.</p>
       <label style="font-weight:600;display:block;margin-bottom:4px;">1. Which assessment did the students sit on paper?</label>
@@ -12645,6 +12664,20 @@ document.addEventListener('change', (e) => {
       <button type="button" data-go style="${btnCss('#0369A1')}">Read and mark the scripts</button>
       <div data-st style="margin-top:12px;color:#475569;"></div>`;
     const st = body.querySelector('[data-st]');
+    body.querySelectorAll('[data-delbatch]').forEach((btn) => { btn.onclick = async () => {
+      if (!confirm('Delete this batch and its uploaded photos? Marks you have already approved are not affected. This cannot be undone.')) return;
+      btn.disabled = true;
+      const r = await fetch('/api/paper/batches/' + encodeURIComponent(btn.dataset.delbatch), { method: 'DELETE', credentials: 'include' });
+      if (r.ok) { const row = btn.parentElement; row.remove(); } else { btn.disabled = false; alert('Could not delete it. Please try again.'); }
+    }; });
+    const cl = body.querySelector('[data-cleanup]');
+    if (cl) cl.onclick = async () => {
+      if (!confirm('Delete every unapproved batch older than 7 days, with its uploaded photos? This cannot be undone.')) return;
+      cl.disabled = true;
+      const r = await fetch('/api/paper/batches/cleanup', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ days: 7 }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { alert(`${j.deleted || 0} batch(es) deleted.`); window.ccOpenPaperScripts(); ov.remove(); } else { cl.disabled = false; alert('Could not delete them. Please try again.'); }
+    };
     body.querySelectorAll('[data-resume]').forEach((btn) => { btn.onclick = async () => {
       btn.disabled = true; btn.textContent = 'Opening…';
       try {
@@ -12739,6 +12772,7 @@ document.addEventListener('change', (e) => {
             <select data-st style="margin-top:4px;padding:6px;border:1px solid ${s.match ? '#cbd5e1' : '#F59E0B'};border-radius:6px;max-width:280px;">${opts(s.match && s.match.key)}</select></div>
           <div style="text-align:right;"><div style="font-size:12px;color:#64748b;">Total</div><div data-gtot style="font-size:20px;font-weight:700;"></div></div>
           <label style="font-size:12px;white-space:nowrap;margin-top:4px;"><input type="checkbox" data-skip> Skip</label>
+          <button type="button" data-rmscript style="background:#fff;color:#B91C1C;border:1px solid #FCA5A5;border-radius:6px;padding:5px 10px;font-weight:600;font-size:12.5px;cursor:pointer;">Remove script</button>
         </div>
         ${flags.length ? `<div style="font-size:12px;color:#B45309;margin-top:6px;">${flags.map((f) => '⚠️ ' + esc(f)).join('<br>')}</div>` : ''}
         ${qs.map((q) => taskBlock(s, q)).join('')}
@@ -12773,6 +12807,18 @@ document.addEventListener('change', (e) => {
       return complete;
     };
     const bindCard = (card) => {
+      const rm = card.querySelector('[data-rmscript]');
+      if (rm) rm.onclick = async () => {
+        const sc = b.scripts.find((x) => x.id === card.dataset.s);
+        if (!confirm(`Remove ${sc && sc.nameRead ? '"' + sc.nameRead + '"' : 'this script'} from the batch, with its pages and marks? This cannot be undone.`)) return;
+        rm.disabled = true;
+        const r = await fetch(`/api/paper/batches/${encodeURIComponent(b.id)}/scripts/${encodeURIComponent(card.dataset.s)}`, { method: 'DELETE', credentials: 'include' });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { rm.disabled = false; alert('Could not remove it. Please try again.'); return; }
+        b.scripts = b.scripts.filter((x) => x.id !== card.dataset.s);
+        card.remove();
+        if (j.batchDeleted) { body.innerHTML = '<p>All scripts were removed, so the batch was deleted.</p>'; }
+      };
       card.querySelectorAll('[data-mk]').forEach((cb) => { cb.onchange = () => { const h = cb.closest('[data-q]').querySelector(`[data-hl="${cb.dataset.mk}"]`); if (h) { h.style.opacity = cb.checked ? '1' : '0.35'; h.style.textDecoration = cb.checked ? '' : 'line-through'; } }; });
       card.querySelectorAll('select[data-crit], [data-sc]').forEach((el) => { el.onchange = () => recalc(card); el.oninput = () => recalc(card); });
       card.querySelectorAll('[data-refind]').forEach((btn) => { btn.onclick = async () => {
