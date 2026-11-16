@@ -46,12 +46,16 @@ function levelOf(p) {
 // Paper length: the full paper, or a shorter quiz with fewer questions per part
 // (same texts, same task types, same balance between parts).
 const SIZES = { full: 1, half: 0.5, quarter: 0.25 };
+// Task-based parts (Grade 1-2 SSA plans): a fixed list of tasks, each with its own SSLO, marks and mode
+// (mc = multiple choice, written = written answer the teacher marks, oral = teacher-led and observed).
+const isTaskPart = (p) => !!(p && p.items && p.items.format === 'tasks' && Array.isArray(p.tasks));
+const TASK_TYPE = { mc: 'mc', written: 'long', oral: 'long' };
 function partCounts(b, size) {
   const f = SIZES[size] || 1;
   const out = {};
   for (const p of b.parts || []) {
     const n = Number((p.items || {}).count) || 0;
-    if (p.skill === 'writing' || !n) continue;
+    if (p.skill === 'writing' || !n || isTaskPart(p)) continue;
     out[p.id] = f === 1 ? n : Math.max(2, Math.min(n, Math.round(n * f)));
   }
   return out;
@@ -120,6 +124,21 @@ function check(b, sections, questions, opts) {
       }
       continue;
     }
+    if (isTaskPart(p)) {
+      for (const t of p.tasks) {
+        expected += Number(t.marks) || 0;
+        const q = qs.find((x) => String(x.specTask) === String(t.id));
+        if (!q) { issues.push({ part: p.id, msg: `${p.title}: task ${t.id} (${t.sslo.code}) is missing.` }); continue; }
+        if (!String(q.prompt || '').trim()) issues.push({ part: p.id, msg: `${p.title}: task ${t.id} has no wording.` });
+        if (t.mode === 'mc') {
+          if (q.type !== 'mc') issues.push({ part: p.id, msg: `${p.title}: task ${t.id} should be multiple choice.` });
+          else if (!Array.isArray(q.options) || q.options.length < 2 || q.options.some((o) => !String(o || '').trim())) issues.push({ part: p.id, msg: `${p.title}: task ${t.id} needs 3 answer choices.` });
+        }
+        if (Number(q.points) !== Number(t.marks)) issues.push({ part: p.id, msg: `${p.title}: task ${t.id} should be worth ${t.marks} mark(s) (now ${q.points}).` });
+        total += Number(q.points) || 0;
+      }
+      continue;
+    }
     const want = (opts.counts && opts.counts[p.id]) || it.count;
     expected += (Number(want) || 0) * (Number(it.marksEach) || 0);
     if (want && qs.length !== want) issues.push({ part: p.id, msg: `${p.title} should have ${want} questions (now ${qs.length}).` });
@@ -160,6 +179,9 @@ function reviewBlueprint(b) {
       const wt = (p.writingTasks || []).reduce((a, x) => a + (Number(x.marks) || 0), 0);
       if (!(p.writingTasks || []).length) w.push(`${p.title || p.id}: no writing tasks.`);
       else if (t && wt !== t) w.push(`${p.title || p.id}: writing tasks add up to ${wt}, the part says ${t}.`);
+    } else if (isTaskPart(p)) {
+      const tm = p.tasks.reduce((a, x) => a + (Number(x.marks) || 0), 0);
+      if (t && tm !== t) w.push(`${p.title || p.id}: tasks add up to ${tm}, the part says ${t}.`);
     } else {
       reading += t;
       if (it.count && it.marksEach && it.count * it.marksEach !== t) w.push(`${p.title || p.id}: ${it.count} × ${it.marksEach} ≠ ${t}.`);
@@ -257,7 +279,9 @@ module.exports = function specs(app, deps) {
     return {
       id: b.id, set: s.id, setLabel: s.label, cycle: b.cycle, title: b.title, gradeLevelGoal: b.gradeLevelGoal,
       classes: b.classes, stage: b.stage, cefr: b.cefr, totalMarks: b.totalMarks,
-      parts: (b.parts || []).map((p) => ({ id: p.id, title: p.title, level: p.level, skill: p.skill, themes: (p.themes || []).map((t) => t.theme), marks: (p.items || {}).totalMarks, items: (p.items || {}).count, marksEach: (p.items || {}).marksEach })),
+      parts: (b.parts || []).map((p) => ({ id: p.id, title: p.title, level: p.level, skill: p.skill, themes: (p.themes || []).map((t) => t.theme), marks: (p.items || {}).totalMarks, items: (p.items || {}).count, marksEach: (p.items || {}).marksEach,
+        fixed: isTaskPart(p) || undefined, tasks: isTaskPart(p) ? p.tasks.map((t) => ({ id: t.id, code: t.sslo.code, text: t.sslo.text, mode: t.mode, marks: t.marks })) : undefined })),
+      assessmentType: b.assessmentType || undefined,
       writing: writingChoices(b),
     };
   }
@@ -310,7 +334,7 @@ module.exports = function specs(app, deps) {
       const writingKeys = wTasks.map((w) => w.key);
       const chk = check(b, sections, questions, { parts: wantParts, writing: writingKeys, counts });
       const whole = parts.length === b.parts.length;
-      const kind = size !== 'full' ? `${size === 'half' ? 'Half-length' : 'Short'} quiz` : whole ? 'End-of-Term practice paper' : parts.map((p) => p.title.split(':')[0]).join(' + ');
+      const kind = size !== 'full' ? `${size === 'half' ? 'Half-length' : 'Short'} quiz` : whole ? (b.assessmentType ? 'School-based Summative Assessment (SSA)' : 'End-of-Term practice paper') : parts.map((p) => p.title.split(':')[0]).join(' + ');
       res.json({
         ok: true, title: `English – ${classLabel(cls)} – ${kind}`,
         description: `Written from the MOE test specification (${b.setLabel}): ${b.gradeLevelGoal}.`,
@@ -409,6 +433,20 @@ module.exports = function specs(app, deps) {
       p.outcomes && p.outcomes.length ? `Learning outcomes (number of questions for each in the full paper): ${p.outcomes.map((o) => `${o.count || 1} × ${o.code}${o.skill ? ' (' + o.skill + ')' : ''}: ${o.text}`).join(' || ')}` : '',
       `Construct limits (follow exactly${n !== it.count ? ', except the number of questions below' : ''}): ${(p.constructLimits || []).join(' · ')}`,
     ];
+    if (isTaskPart(p)) {
+      lines.push(`This is a ${b.assessmentType || 'school-based assessment'} for young learners (Grade ${cls.grade}): short, clear, concrete, game-like tasks with picture support. Use very simple language (Pre-A1/A1).`);
+      lines.push('Write ONE question for each task below, in "questions", with its taskId. Follow each task\'s example closely but make the content new:');
+      for (const t of p.tasks) {
+        const how = t.mode === 'mc' ? 'multiple choice: exactly 3 short options (words or picture descriptions), one correct; give correctAnswer'
+          : t.mode === 'oral' ? 'TEACHER-LED ORAL task: in "prompt" write what the teacher says/does (start with "Teacher:"), and in "teacherNotes" write what to observe and how to award the marks (Independent / Emerging / Not yet evident); options = []'
+          : 'written answer the teacher marks: in "prompt" write the instruction the student sees (with a sentence starter / frame where useful); in "teacherNotes" give a model answer and how to award the marks; options = []';
+        lines.push(`- Task ${t.id} (${t.marks} mark${t.marks > 1 ? 's' : ''}) · SSLO ${t.sslo.code}: ${t.sslo.text}. Example from the plan: ${t.example} → ${how}. Describe any picture in imageDescription.`);
+      }
+      if (p.id === 'P2') lines.push('Put the short listening script the teacher reads aloud (40–60 words, one event, clear) in "passage"; task 2.1 is about it.');
+      else if (p.id === 'P3') lines.push('Put a short, simple story (50–80 words) in "passage"; the reading tasks use it.');
+      else lines.push('Leave "passage" empty unless a task needs a short text.');
+      return lines.filter(Boolean).join('\n');
+    }
     if (p.skill === 'writing') {
       lines.push('Write these writing tasks (put each in "tasks" with its taskId):');
       for (const w of wTasks) {
@@ -451,7 +489,8 @@ module.exports = function specs(app, deps) {
       input_schema: { type: 'object', required: ['passage'].concat(isW ? ['tasks'] : ['questions']), properties: {
         passage: { type: 'string', description: 'The text students read for this part (or the word bank). Empty if the part has no text.' },
         theme: { type: 'string' },
-        questions: { type: 'array', items: { type: 'object', required: ['prompt', 'options', 'correctAnswer'], properties: {
+        questions: { type: 'array', items: { type: 'object', required: isTaskPart(p) ? ['taskId', 'prompt'] : ['prompt', 'options', 'correctAnswer'], properties: {
+          taskId: { type: 'string', description: 'For task-based parts: the task id, e.g. 1.1' }, teacherNotes: { type: 'string', description: 'For teacher-marked or oral tasks: what to observe / model answer / how to award the marks' },
           prompt: { type: 'string' }, options: { type: 'array', items: { type: 'string' } }, correctAnswer: { type: 'integer', description: '0-based index of the correct option' },
           outcome: { type: 'string', description: 'learning outcome code, e.g. ENG.05.RV.CS.2.1' }, skill: { type: 'string' }, imageDescription: { type: 'string' }, explanation: { type: 'string', description: 'one-sentence feedback for students' } } } },
         tasks: { type: 'array', items: { type: 'object', required: ['taskId', 'prompt'], properties: {
@@ -459,7 +498,7 @@ module.exports = function specs(app, deps) {
       } },
     };
     const system = [
-      'You write UAE Ministry of Education English End-of-Term exam papers that follow the official test specification exactly.',
+      isTaskPart(p) ? 'You write UAE Ministry of Education English school-based summative assessment tasks for young learners that follow the official plan exactly.' : 'You write UAE Ministry of Education English End-of-Term exam papers that follow the official test specification exactly.',
       'Write original texts (never copy textbook passages). Age-appropriate and culturally appropriate for UAE schools.',
       'Multiple choice: exactly one correct option, plausible distractors of similar length, no "all/none of the above"; vary the position of the correct answer.',
       'Count the words of every text you write and keep it inside the required range.',
@@ -495,6 +534,26 @@ module.exports = function specs(app, deps) {
       section.instructions = wTasks.length > 1
         ? wTasks.map((w) => `Task ${w.id} – ${w.name} (${w.marks} marks)`).join(' · ')
         : (wTasks[0] ? `${wTasks[0].name} (${wTasks[0].marks} marks)` : section.instructions);
+      return { section, questions };
+    }
+    if (isTaskPart(p)) {
+      p.tasks.forEach((t, k) => {
+        const q = (raw.questions || []).find((x) => String(x.taskId || '').trim() === t.id) || (raw.questions || [])[k] || {};
+        const isMc = t.mode === 'mc';
+        const opts = isMc && Array.isArray(q.options) ? q.options.map((o) => String(o).replace(/^\s*[A-H][).:]\s+/, '').trim()).filter(Boolean).slice(0, 3) : [];
+        let ci = parseInt(q.correctAnswer, 10); if (!(ci >= 0 && ci < opts.length)) ci = 0;
+        const notes = String(q.teacherNotes || '').trim();
+        const head = t.mode === 'oral' ? '👩‍🏫 Teacher-led (oral) task — observe and give the mark. ' : '';
+        questions.push({
+          type: TASK_TYPE[t.mode] || 'long', prompt: (head + String(q.prompt || t.example || '').trim()).slice(0, 2000) + (notes && !isMc ? '\n\nFor the teacher: ' + notes : ''),
+          options: isMc ? opts : [], correctAnswer: isMc ? ci : null, points: Number(t.marks) || 1,
+          sectionId: section.id, specPart: p.id, specTask: t.id, level: 'medium', levelSource: 'specification',
+          imageDescription: String(q.imageDescription || '').slice(0, 500), imageKind: q.imageDescription ? 'diagram' : '', imageSearch: '', imageUrl: '',
+          skill: `${t.sslo.code} ${t.sslo.text}`.slice(0, 80), outcome: `${t.sslo.code}: ${t.sslo.text}`.slice(0, 300),
+          cefr: '', explanation: String(q.explanation || (isMc ? '' : notes) || '').slice(0, 1500),
+        });
+      });
+      section.instructions = p.tasks.map((t) => `Task ${t.id} (${t.marks} mark${t.marks > 1 ? 's' : ''})`).join(' · ');
       return { section, questions };
     }
     const want = it.format === 'matching' ? 3 : Number(it.options) || 3;

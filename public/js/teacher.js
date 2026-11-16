@@ -12137,13 +12137,13 @@ async function ccShowRubric(id) {
   };
   const cur = () => classes.find((x) => x.key === sel.value) || null;
   const SIZE_F = { full: 1, half: 0.5, quarter: 0.25 };
-  const countFor = (p) => { const f = SIZE_F[sizeSel.value] || 1; const n = Number(p.items) || 0; return f === 1 ? n : Math.max(2, Math.min(n, Math.round(n * f))); };
+  const countFor = (p) => { const f = SIZE_F[sizeSel.value] || 1; const n = Number(p.items) || 0; return (f === 1 || p.fixed) ? n : Math.max(2, Math.min(n, Math.round(n * f))); };
   const total = () => {
     const x = cur(); if (!x) return;
     let t = 0;
     document.querySelectorAll('[data-spec-part]:checked').forEach((cb) => {
       const p = x.b.parts.find((pp) => pp.id === cb.value);
-      if (p && p.skill !== 'writing') t += sizeSel.value === 'full' ? (Number(p.marks) || 0) : countFor(p) * (Number(p.marksEach) || 0);
+      if (p && p.skill !== 'writing') t += (sizeSel.value === 'full' || p.fixed) ? (Number(p.marks) || 0) : countFor(p) * (Number(p.marksEach) || 0);
     });
     if (document.querySelector('[data-spec-part][data-skill="writing"]:checked')) {
       const keys = new Set();
@@ -12159,7 +12159,7 @@ async function ccShowRubric(id) {
     if (!x) { $('spec-parts').innerHTML = ''; $('spec-writing').innerHTML = ''; $('spec-total').textContent = ''; $('spec-hint').style.display = ''; $('spec-parts').style.display = 'none'; $('spec-writing').style.display = 'none'; return; }
     $('spec-hint').style.display = 'none';
     $('spec-parts').innerHTML = `<div class="np-box-title">Parts</div>` +
-      x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing · ' + p.marks + ' marks' : countFor(p) + ' Q · ' + (sizeSel.value === 'full' ? p.marks : countFor(p) * (Number(p.marksEach) || 0)) + ' marks'})</span></label>`).join('');
+      x.b.parts.map((p) => `<label style="display:inline-flex; gap:6px; align-items:center; margin:2px 14px 2px 0; text-transform:none; letter-spacing:0; font-weight:400; font-size:13px;"><input type="checkbox" data-spec-part value="${escapeAttr(p.id)}" data-skill="${escapeAttr(p.skill)}" checked style="width:auto; margin:0;"> ${escapeHtml(p.title)} <span class="muted">(${p.skill === 'writing' ? 'writing · ' + p.marks + ' marks' : p.fixed ? (p.items + ' tasks · ' + p.marks + ' marks') : countFor(p) + ' Q · ' + (sizeSel.value === 'full' ? p.marks : countFor(p) * (Number(p.marksEach) || 0)) + ' marks'})</span></label>`).join('');
     const ws = x.b.writing || [];
     const main = ws.filter((w) => !w.alternativeTo);
     const alt = ws.find((w) => w.alternativeTo);
@@ -12193,7 +12193,7 @@ async function ccShowRubric(id) {
   function applyScope() {
     const v = scopeSel.value;
     if (v !== 'custom') document.querySelectorAll('[data-spec-part]').forEach((cb) => {
-      const w = cb.getAttribute('data-skill') === 'writing';
+      const w = /^writing/.test(cb.getAttribute('data-skill') || '');
       cb.checked = v === 'all' || (v === 'writing' ? w : !w);
     });
     showBoxes(); total();

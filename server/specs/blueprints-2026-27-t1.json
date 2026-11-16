@@ -1,5 +1,301 @@
 [
  {
+  "id": "c1-g2",
+  "cycle": 1,
+  "title": "Academic Year 2026-2027: Grade 2 – School-based Summative Assessment (SSA) – Sample plan (Cycle 1 School-based Assessment Guide)",
+  "gradeLevelGoal": null,
+  "classes": [
+   {
+    "grade": "2",
+    "stream": "General"
+   }
+  ],
+  "stage": null,
+  "cefr": "Pre-A1",
+  "totalMarks": 20,
+  "readingMarks": null,
+  "writingMarks": null,
+  "platform": "Observational (teacher-led), paper-based",
+  "languageDomains": "Literacy Readiness; Speaking, Listening and Oral Communication; Reading; Writing",
+  "assessmentType": "School-based Summative Assessment (SSA)",
+  "notes": [
+   "Source: Cycle 1 School-based Assessment Guide 2026-2027, 'Sample SSA plan for Grades 1-2'. The plan is a sample; teachers may adapt it to the SSLOs taught in the term.",
+   "Grade 1 and 2 SSAs are observational assessments based on age-appropriate, engaging activities, conducted in the last two weeks of term within timetabled periods.",
+   "The plan gives 5 marks per part only. Marks per task in ClassCurio: Parts 1-3 = 2 + 2 + 1; Part 4 = 1 + 1 + 3 (the extended writing task). Teachers can change them.",
+   "Record performance against each SSLO (Independent / Emerging / Not yet evident) and keep evidence of students' work."
+  ],
+  "parts": [
+   {
+    "id": "P1",
+    "title": "Part 1: Literacy Readiness",
+    "level": "At Grade Level",
+    "skill": "literacy",
+    "taskType": "Observational tasks",
+    "instructions": "Short, age-appropriate literacy readiness tasks with picture support.",
+    "themes": [],
+    "items": {
+     "count": 3,
+     "format": "tasks",
+     "totalMarks": 5
+    },
+    "tasks": [
+     {
+      "id": "1.1",
+      "sslo": {
+       "code": "2.LR.PA.4",
+       "text": "To identify and produce rhyming words"
+      },
+      "mode": "mc",
+      "marks": 2,
+      "example": "Which word rhymes with mum? (a choice of pictures or words). Circle the rhyming pair (mat – but – sat)."
+     },
+     {
+      "id": "1.2",
+      "sslo": {
+       "code": "2.LR.HFW.3",
+       "text": "Write a sentence using high-frequency words"
+      },
+      "mode": "written",
+      "marks": 2,
+      "example": "Look at the picture and complete the sentence (picture prompts and sentence starters): This is my ____."
+     },
+     {
+      "id": "1.3",
+      "sslo": {
+       "code": "2.LR.CAP.1",
+       "text": "Locate title, page numbers, table of contents"
+      },
+      "mode": "mc",
+      "marks": 1,
+      "example": "Where is the title of the book? How many pages are there? Who wrote the book?"
+     }
+    ],
+    "outcomes": [
+     {
+      "code": "2.LR.PA.4",
+      "count": 1,
+      "text": "To identify and produce rhyming words"
+     },
+     {
+      "code": "2.LR.HFW.3",
+      "count": 1,
+      "text": "Write a sentence using high-frequency words"
+     },
+     {
+      "code": "2.LR.CAP.1",
+      "count": 1,
+      "text": "Locate title, page numbers, table of contents"
+     }
+    ],
+    "constructLimits": [
+     "5 marks"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P2",
+    "title": "Part 2: Speaking, Listening and Oral Communication",
+    "level": "At Grade Level",
+    "skill": "speaking",
+    "taskType": "Observational tasks",
+    "instructions": "Listening to a short spoken text, speaking in complete sentences and responding to a partner.",
+    "themes": [],
+    "items": {
+     "count": 3,
+     "format": "tasks",
+     "totalMarks": 5
+    },
+    "tasks": [
+     {
+      "id": "2.1",
+      "sslo": {
+       "code": "2.SLOC.LC.2",
+       "text": "Identify the main idea in a short-spoken text"
+      },
+      "mode": "mc",
+      "marks": 2,
+      "example": "Listen to the end. What is the main idea? What picture shows the main idea? (short text / one event / clear script)"
+     },
+     {
+      "id": "2.2",
+      "sslo": {
+       "code": "2.SLOC.OLD.2",
+       "text": "Speak in complete sentences with correct subject–verb agreement"
+      },
+      "mode": "oral",
+      "marks": 2,
+      "example": "Students answer open questions: What do you do with your family on Sundays? Students present a drawing and talk about it."
+     },
+     {
+      "id": "2.3",
+      "sslo": {
+       "code": "2.SLOC.DCC.2",
+       "text": "Connect personal comments to another speaker's idea"
+      },
+      "mode": "oral",
+      "marks": 1,
+      "example": "Better practised in pairs (matching pairs). Student A looks at a picture and says: 'I have a cat.' Student B: 'Me too.' 'I don't like vegetables.' 'Me neither.'"
+     }
+    ],
+    "outcomes": [
+     {
+      "code": "2.SLOC.LC.2",
+      "count": 1,
+      "text": "Identify the main idea in a short-spoken text"
+     },
+     {
+      "code": "2.SLOC.OLD.2",
+      "count": 1,
+      "text": "Speak in complete sentences with correct subject–verb agreement"
+     },
+     {
+      "code": "2.SLOC.DCC.2",
+      "count": 1,
+      "text": "Connect personal comments to another speaker's idea"
+     }
+    ],
+    "constructLimits": [
+     "5 marks"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P3",
+    "title": "Part 3: Reading",
+    "level": "At Grade Level",
+    "skill": "reading",
+    "taskType": "Observational tasks",
+    "instructions": "Reading aloud with expression, matching a text with a picture and giving an opinion about a text.",
+    "themes": [],
+    "items": {
+     "count": 3,
+     "format": "tasks",
+     "totalMarks": 5
+    },
+    "tasks": [
+     {
+      "id": "3.1",
+      "sslo": {
+       "code": "2.R.RF.4",
+       "text": "Read aloud with expression to show understanding of characters, events, and ideas"
+      },
+      "mode": "oral",
+      "marks": 2,
+      "example": "Read and show you're happy and excited. (Mum made me cake.) Now can I hear your calm voice / tired voice / scared voice, ...etc. (shhh the baby is asleep)"
+     },
+     {
+      "id": "3.2",
+      "sslo": {
+       "code": "2.R.RC.4",
+       "text": "Identify the roles of the author and illustrator in a text"
+      },
+      "mode": "mc",
+      "marks": 2,
+      "example": "Students work in pairs. They match a text with the right picture (variation: task completion). Student A reads/writes: Leila is playing with ball. Student A identifies and draws the missing part of the picture."
+     },
+     {
+      "id": "3.3",
+      "sslo": {
+       "code": "2.R.ERT.4",
+       "text": "Express opinions about texts with one supporting reason"
+      },
+      "mode": "written",
+      "marks": 1,
+      "example": "Students answer questions such as: Do you like the story? Why? What don't you like in the story and why? (The key is in selecting interesting and level-appropriate material.)"
+     }
+    ],
+    "outcomes": [
+     {
+      "code": "2.R.RF.4",
+      "count": 1,
+      "text": "Read aloud with expression to show understanding of characters, events, and ideas"
+     },
+     {
+      "code": "2.R.RC.4",
+      "count": 1,
+      "text": "Identify the roles of the author and illustrator in a text"
+     },
+     {
+      "code": "2.R.ERT.4",
+      "count": 1,
+      "text": "Express opinions about texts with one supporting reason"
+     }
+    ],
+    "constructLimits": [
+     "5 marks"
+    ],
+    "writingTasks": null
+   },
+   {
+    "id": "P4",
+    "title": "Part 4: Writing",
+    "level": "At Grade Level",
+    "skill": "writing-tasks",
+    "taskType": "Observational tasks",
+    "instructions": "End punctuation, spelling of CVC words and writing short sentences with a title (visual support).",
+    "themes": [],
+    "items": {
+     "count": 3,
+     "format": "tasks",
+     "totalMarks": 5
+    },
+    "tasks": [
+     {
+      "id": "4.1",
+      "sslo": {
+       "code": "2.W.WC.1",
+       "text": "Use end punctuation correctly in simple sentences"
+      },
+      "mode": "mc",
+      "marks": 1,
+      "example": "What is missing? (punctuation cards: full stops and question marks)"
+     },
+     {
+      "id": "4.2",
+      "sslo": {
+       "code": "2.W.SWU.3",
+       "text": "Apply basic spelling rules in writing (CVC words, blends, plurals, etc.)"
+      },
+      "mode": "mc",
+      "marks": 1,
+      "example": "Students identify the missing vowel / sound / letter. This is my b-d. This is my p-n."
+     },
+     {
+      "id": "4.3",
+      "sslo": {
+       "code": "2.W.WP.2",
+       "text": "Draft short texts that include a clear topic and simple supporting details"
+      },
+      "mode": "written",
+      "marks": 3,
+      "example": "Students can write, co-write or complete 3 short sentences and give them a title (visual support). E.g. My ____. My room is ____. It has ____ and a ____. I ____ it very much."
+     }
+    ],
+    "outcomes": [
+     {
+      "code": "2.W.WC.1",
+      "count": 1,
+      "text": "Use end punctuation correctly in simple sentences"
+     },
+     {
+      "code": "2.W.SWU.3",
+      "count": 1,
+      "text": "Apply basic spelling rules in writing (CVC words, blends, plurals, etc.)"
+     },
+     {
+      "code": "2.W.WP.2",
+      "count": 1,
+      "text": "Draft short texts that include a clear topic and simple supporting details"
+     }
+    ],
+    "constructLimits": [
+     "5 marks"
+    ],
+    "writingTasks": null
+   }
+  ]
+ },
+ {
   "id": "c1-g3",
   "cycle": 1,
   "title": "Academic Year 2026-2027: End of Term 1 Exam: Grade 3 – Test Specifications",
