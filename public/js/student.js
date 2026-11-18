@@ -960,6 +960,10 @@ if (els.cameraGrantBtn) {
 
 els.consentStart.onclick = async () => {
   if (envBlocked) return;
+  if (typeof isPageTranslated === 'function' && isPageTranslated()) {
+    alert('This page is being translated. Translation is not allowed in exams. Turn off the translation (Show original / Never translate this site, or switch off the translator extension), then try again.');
+    return;
+  }
   // Pick up a last-second Online/On-site change by the teacher.
   try {
     const { deliveryMode } = await api(`/api/assessments/${currentAssessment.id}/delivery-mode`);
@@ -3003,3 +3007,72 @@ function ccStudentOptionHtml(q, i) {
   const letter = String.fromCharCode(65 + Number(i));
   return `${letter}${pic || txt ? '. ' : ''}${pic ? `<img src="${escapeHtml(pic)}" alt="Option ${letter}" style="height:70px; max-width:150px; object-fit:contain; vertical-align:middle; border:1px solid #e5e7eb; border-radius:6px; background:#fff; margin-right:6px;">` : ''}${escapeHtml(String(txt ?? ''))}`;
 }
+
+
+// ---------- Translation guard ----------
+// The page tells browsers not to translate it (student.html). Some translator extensions and
+// browsers ignore that, so we also watch for any translation: Chrome's translated-ltr/rtl class
+// and lang change, the <font> tags Google Translate inserts, Microsoft Translator's _msttexthash
+// attributes, translator widgets, and a hidden English "canary" sentence that a translator would
+// change. While a translation is active the exam is hidden; during the test it counts as a violation.
+const TR_CANARY_TEXT = 'Read each question carefully and choose the best answer';
+const TR_ORIGINAL_LANG = (document.documentElement.getAttribute('lang') || 'en').toLowerCase();
+let trCanary = null, trOverlay = null, trActive = false, trTimer = null;
+function trEnsureCanary() {
+  if (trCanary && document.body.contains(trCanary)) return;
+  trCanary = document.createElement('span');
+  trCanary.id = '_cc_tr_canary';
+  trCanary.setAttribute('aria-hidden', 'true');
+  trCanary.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;white-space:nowrap;';
+  trCanary.textContent = TR_CANARY_TEXT;
+  document.body.appendChild(trCanary);
+}
+function isPageTranslated() {
+  const h = document.documentElement;
+  if (/\btranslated-(ltr|rtl)\b/.test(h.className)) return true;
+  const lang = (h.getAttribute('lang') || '').toLowerCase();
+  if (lang && lang !== TR_ORIGINAL_LANG) return true;
+  if (document.querySelector('font[style*="vertical-align: inherit"], [_msttexthash], [_msthash], .goog-te-banner-frame, #goog-gt-tt, iframe.skiptranslate, .immersive-translate-target-wrapper, [data-immersive-translate-walked]')) return true;
+  if (trCanary && document.body.contains(trCanary) && trCanary.textContent.trim() !== TR_CANARY_TEXT) return true;
+  return false;
+}
+function trShowOverlay() {
+  if (!trOverlay) {
+    trOverlay = document.createElement('div');
+    trOverlay.id = '_cc_tr_block';
+    trOverlay.setAttribute('translate', 'no');
+    trOverlay.className = 'notranslate';
+    trOverlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#7f1d1d;color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:system-ui,sans-serif;';
+    trOverlay.innerHTML = '<div style="max-width:620px;"><div style="font-size:54px;">🚫</div>' +
+      '<h2 style="margin:8px 0 10px;font-size:26px;">Translation is not allowed</h2>' +
+      '<p style="font-size:17px;line-height:1.6;margin:0 0 10px;">This exam must be read in its original language. Your browser or an extension is translating the page, so the questions are hidden.</p>' +
+      '<p style="font-size:15px;line-height:1.6;margin:0 0 10px;opacity:.9;">Turn off the translation (choose <b>Show original</b> / <b>Never translate</b>, or switch off the translator extension) to continue. Your teacher can see that translation was used.</p>' +
+      '<p dir="rtl" style="font-size:17px;line-height:1.8;margin:12px 0 0;">الترجمة غير مسموح بها في هذا الاختبار. يجب قراءة الأسئلة بلغتها الأصلية. أوقفي الترجمة للمتابعة، وسيرى المعلم أنك استخدمتِ الترجمة.</p></div>';
+  }
+  if (!document.body.contains(trOverlay)) document.body.appendChild(trOverlay);
+}
+function trHideOverlay() { if (trOverlay && trOverlay.parentNode) trOverlay.parentNode.removeChild(trOverlay); }
+function trCheck() {
+  trEnsureCanary();
+  const on = isPageTranslated();
+  if (on && !trActive) {
+    trActive = true;
+    trShowOverlay();
+    // During the test: one violation each time translation is switched on.
+    if (lockdownActive && !submitted) addViolation('Page translated into another language (translation is not allowed)');
+  } else if (!on && trActive) {
+    trActive = false;
+    trHideOverlay();
+  }
+}
+function trScheduleCheck() { if (trTimer) return; trTimer = setTimeout(() => { trTimer = null; trCheck(); }, 250); }
+(function startTranslationGuard() {
+  const go = () => {
+    trCheck();
+    try {
+      new MutationObserver(trScheduleCheck).observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'lang'], childList: true, subtree: true, characterData: true });
+    } catch (e) {}
+    setInterval(trCheck, 1500);
+  };
+  if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+})();
