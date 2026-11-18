@@ -7212,9 +7212,22 @@ setTimeout(_ccInstallMarkedPdfsButtons, 1500);
               a.href = '/api/teacher/folders/' + encodeURIComponent(f.id) + '/download-zip?ids=' + encodeURIComponent(ids.join(','));
               document.body.appendChild(a); a.click(); a.remove();
             };
-            detail.appendChild(el('div', { style: 'display:flex; align-items:center; gap:10px; padding:6px; background:#F8FAFC; border-radius:6px; margin-bottom:4px;' },
+            // Rebuild this folder's paper-script reports with the AI's comment for each criterion.
+            const hasPaper = j.markings.some(function (m) { return m.source === 'paper'; });
+            const refreshBtn = el('button', { type: 'button', style: 'background:#fff; color:#4338CA; border:1px solid #C7D2FE; border-radius:6px; padding:5px 10px; font-weight:600; font-size:12.5px; cursor:pointer;' }, '🔄 Update reports with AI feedback');
+            refreshBtn.onclick = async function () {
+              if (!confirm('Rebuild the marked reports in this folder so they include the AI comment for each rubric criterion? Marks and feedback stay the same.')) return;
+              refreshBtn.disabled = true; refreshBtn.textContent = 'Updating… (a few seconds per report)';
+              try {
+                const job = await ccFetchJobJson('/api/paper/folders/' + encodeURIComponent(f.id) + '/refresh-reports', '{}');
+                if (!job.ok) throw new Error((job.data && job.data.error) || 'Please try again.');
+                refreshBtn.textContent = '✓ ' + job.data.updated + ' report(s) updated';
+                if (job.data.skipped) alert(job.data.updated + ' report(s) updated. ' + job.data.skipped + ' report(s) could not be updated (for example reports made with AI Mark Writing rather than Mark paper scripts).');
+              } catch (e) { refreshBtn.disabled = false; refreshBtn.textContent = '🔄 Update reports with AI feedback'; alert('Could not update the reports: ' + e.message); }
+            };
+            detail.appendChild(el('div', { style: 'display:flex; align-items:center; gap:10px; padding:6px; background:#F8FAFC; border-radius:6px; margin-bottom:4px; flex-wrap:wrap;' },
               el('label', { style: 'display:flex; gap:6px; align-items:center; flex:1; font-size:13px; font-weight:600; text-transform:none; letter-spacing:0; cursor:pointer;' }, allBox, 'Select all (' + j.markings.length + ')'),
-              zipBtn));
+              hasPaper ? refreshBtn : null, zipBtn));
             j.markings.forEach(function(m){
               const pick = el('input', { type: 'checkbox', style: 'width:auto; margin:0 8px 0 0;' });
               pick.dataset.id = m.id; pick.onchange = updateZip; picks.push(pick);

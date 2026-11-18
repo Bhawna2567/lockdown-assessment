@@ -597,6 +597,50 @@ module.exports = function paper(app, d) {
       res.status(500).json({ error: 'Marking again failed: ' + e.message });
     }
   });
+  // Rebuild the paper-script reports in one folder with the AI's comment for each criterion.
+  // Marks, feedback and mistakes stay exactly as approved; AI comments come from the original batch.
+  app.post('/api/paper/folders/:fid/refresh-reports', requireTeacher, asyncJob, async (req, res) => {
+    try {
+      const uid = req.session.user.id;
+      const folder = folders.load().find((f) => f.id === req.params.fid && f.teacherId === uid);
+      if (!folder) return res.status(404).json({ error: 'Folder not found' });
+      const marks = folders.loadMarkings().filter((m) => m.folderId === folder.id && m.teacherId === uid);
+      const assessments = readAll('assessments.json');
+      const batches = readAll(BATCHES);
+      const results = readAll('results.json');
+      let updated = 0, skipped = 0, resultsChanged = false;
+      for (const m of marks) {
+        if (m.source !== 'paper' || !m.assessmentId) { skipped++; continue; }
+        const a = assessments.find((x) => x.id === m.assessmentId && x.teacherId === uid);
+        const rec = a && results.find((r) => r.assessmentId === a.id && r.source === 'paper' &&
+          (m.studentId ? r.studentId === m.studentId : String(r.studentName || '').toLowerCase() === String(m.studentName || '').toLowerCase()));
+        if (!rec) { skipped++; continue; }
+        const wq = writingQs(a);
+        const b = batches.find((x) => x.id === rec.paperBatchId) || { id: String(rec.paperBatchId || 'none'), pages: [], scripts: [] };
+        let s = (b.scripts || []).find((x) => x.id === rec.paperScriptId);
+        if (!s) s = { pages: [], text: Object.fromEntries((rec.answers || []).map((x) => [x.questionId, x.given || ''])), grades: {}, markedAgainst: rec.markedAgainst || null };
+        // Fill in the AI's comments on the saved result (older results did not keep them).
+        for (const q of wq) {
+          const g = (rec.manualGrades || {})[q.id]; if (!g || !g.breakdown) continue;
+          const crit = ((s.grades || {})[q.id] || {}).criteria || {};
+          for (const [cid, v] of Object.entries(g.breakdown)) {
+            if (v && !v.aiComment && crit[cid] && crit[cid].comment) { v.aiComment = String(crit[cid].comment).slice(0, 1200); resultsChanged = true; }
+          }
+        }
+        try {
+          const buf = await buildMarkedPdf(a, b, s, rec, wq);
+          folders.ensureDir();
+          fs.writeFileSync(path.join(folders.dir, path.basename(m.filename)), buf);
+          updated++;
+        } catch (e) { console.warn('[paper] refresh report failed', m.id, e.message); skipped++; }
+      }
+      if (resultsChanged) writeAll('results.json', results);
+      res.json({ ok: true, updated, skipped });
+    } catch (e) {
+      console.error('[paper] refresh failed', e);
+      res.status(500).json({ error: 'Updating the reports failed: ' + e.message });
+    }
+  });
   // Find mistakes and feedback again for one task of one script.
   app.post('/api/paper/batches/:bid/scripts/:sid/questions/:qid/mistakes', requireTeacher, asyncJob, async (req, res) => {
     const all = readAll(BATCHES);
@@ -683,7 +727,8 @@ module.exports = function paper(app, d) {
             const kept = aiC && aiC.ai !== '' && Number(aiC.ai) === n;
             const comment = kept ? (aiC.comment || '') : (bandText(c, n) || 'Mark set by your teacher.');
             breakdown[c.id] = { name: c.name, score: Math.round(n * f * 10) / 10, max: Math.round(c.max * f * 10) / 10, raw: n, rawMax: c.max,
-              ai: aiC && aiC.ai !== '' ? aiC.ai : undefined, comment: String(comment).slice(0, 400), changed: !kept };
+              ai: aiC && aiC.ai !== '' ? aiC.ai : undefined, comment: String(comment).slice(0, 400), changed: !kept,
+              aiComment: String((aiC && aiC.comment) || '').slice(0, 1200) };
           }
           score = Math.max(0, Math.min(pts, toQuestion(rubricRaw, rb.total, pts)));
           rubricStage = rb.stage;
@@ -719,19 +764,22 @@ module.exports = function paper(app, d) {
   });
 
   // Marked PDF: marks and feedback per question, then the student's pages.
-  async function saveMarkedPdf(req, a, cls, b, s, rec, wq) {
+  // Comment shown for each criterion: the AI's explanation; when the teacher changed the mark,
+  // the rubric's description of her mark is added so comment and mark never disagree.
+  function criterionRows(g) {
+    return Object.values(g.breakdown || {}).filter((v) => v && v.raw != null).map((v) => {
+      const ai = String(v.aiComment || (!v.changed ? v.comment : '') || '').trim();
+      const teacher = v.changed ? String(v.comment || '').trim() : '';
+      const comment = ai && teacher ? `${ai}\nTeacher's mark (${v.raw}/${v.rawMax}): ${teacher}` : (ai || teacher);
+      return { name: v.name, score: v.raw, max: v.rawMax, comment };
+    });
+  }
+  async function buildMarkedPdf(a, b, s, rec, wq) {
     const PDFKit = require('pdfkit');
     const report = require('./paper-pdf');
-    const fl = folders.load();
-    let folder = fl.find((f) => f.teacherId === req.session.user.id && f.classId === (cls && cls.id));
-    if (!folder) {
-      folder = { id: 'fld-' + Date.now().toString(36) + crypto.randomBytes(2).toString('hex'), name: 'Writing — ' + ((cls && cls.name) || 'Class'), classId: (cls && cls.id) || null, className: (cls && cls.name) || null, teacherId: req.session.user.id, createdAt: new Date().toISOString() };
-      fl.push(folder); folders.save(fl);
-    }
-    folders.ensureDir();
-    const id = 'mk-' + Date.now().toString(36) + crypto.randomBytes(2).toString('hex');
-    const file = id + '.pdf';
-    const hasPdfPages = s.pages.some((pid) => (b.pages.find((x) => x.id === pid) || {}).kind === 'pdf');
+    const pageFile = (p) => path.join(ROOT, b.id, path.basename(p.file || ''));
+    const pages = (s.pages || []).map((pid) => (b.pages || []).find((x) => x.id === pid)).filter((p) => p && fs.existsSync(pageFile(p)));
+    const hasPdfPages = pages.some((p) => p.kind === 'pdf');
     const pdfSlots = {};   // page index in the marked PDF → original scanned PDF page
     let buf = await new Promise((resolve, reject) => {
       const doc = new PDFKit({ size: 'A4', margins: { top: 40, bottom: 30, left: 46, right: 46 } });
@@ -745,20 +793,18 @@ module.exports = function paper(app, d) {
         const g = rec.manualGrades[q.id] || {}; tot += Number(g.score) || 0; max += Number(g.maxScore) || 0;
         const text = String(s.text[q.id] || '');
         const mistakes = report.locateMistakes(text, (g.mistakes || []).map((m) => ({ wrong: m.text, type: TYPE[m.type] || 'grammar', correct: m.correction, why: m.reason })));
-        const criteria = Object.values(g.breakdown || {}).filter((v) => v && v.raw != null).map((v) => ({ name: v.name, score: v.raw, max: v.rawMax, comment: v.comment || '' }));
+        const criteria = criterionRows(g);
         return { label: `${qLabel(a, q)}`, score: g.score, max: g.maxScore, rubricTitle: g.rubricTitle || '',
           rubricNote: g.rubricTotal && g.rubricTotal !== g.maxScore ? `= ${g.score} / ${g.maxScore} marks` : '',
           text, mistakes, criteria, wentWell: g.wentWell || '', toImprove: g.toImprove || '', feedback: g.feedback || '' };
       });
-      report.drawReport(doc, { student: rec.studentName, subtitle: `${a.title} · paper script marked ${new Date().toLocaleDateString('en-GB')}`,
+      report.drawReport(doc, { student: rec.studentName, subtitle: `${a.title} · paper script marked ${new Date(rec.submittedAt || Date.now()).toLocaleDateString('en-GB')}`,
         note: s.markedAgainst ? `Marked against a different paper: ${s.markedAgainst.title}.` : '',
         total: Math.round(tot * 2) / 2, max, tasks });
-      for (const pid of s.pages) {
-        const p = b.pages.find((x) => x.id === pid);
-        if (!p) continue;
+      for (const p of pages) {
         doc.addPage();
         if (p.kind === 'image' && /jpe?g|png/.test(p.mime)) {
-          try { doc.image(path.join(ROOT, b.id, p.file), { fit: [500, 740], align: 'center' }); continue; } catch (e) {}
+          try { doc.image(pageFile(p), { fit: [500, 740], align: 'center' }); continue; } catch (e) {}
         }
         if (p.kind === 'pdf') { pdfSlots[pageNo - 1] = p; doc.fontSize(11).fillColor('#475569').text(`Scanned page ${p.source}`); continue; }
         doc.fontSize(11).fillColor('#475569').text(`Page ${p.source} could not be shown. What the AI read:`);
@@ -776,13 +822,26 @@ module.exports = function paper(app, d) {
         for (let i = 0; i < copied.length; i++) {
           const p = pdfSlots[i];
           if (p) {
-            const src = await PDFDocument.load(fs.readFileSync(path.join(ROOT, b.id, p.file)), { ignoreEncryption: true });
+            const src = await PDFDocument.load(fs.readFileSync(pageFile(p)), { ignoreEncryption: true });
             const [pg] = await out.copyPages(src, [0]); out.addPage(pg);
           } else out.addPage(copied[i]);
         }
         buf = Buffer.from(await out.save());
       } catch (e) { console.warn('[paper] could not insert PDF pages:', e.message); }
     }
+    return buf;
+  }
+  async function saveMarkedPdf(req, a, cls, b, s, rec, wq) {
+    const fl = folders.load();
+    let folder = fl.find((f) => f.teacherId === req.session.user.id && f.classId === (cls && cls.id));
+    if (!folder) {
+      folder = { id: 'fld-' + Date.now().toString(36) + crypto.randomBytes(2).toString('hex'), name: 'Writing — ' + ((cls && cls.name) || 'Class'), classId: (cls && cls.id) || null, className: (cls && cls.name) || null, teacherId: req.session.user.id, createdAt: new Date().toISOString() };
+      fl.push(folder); folders.save(fl);
+    }
+    folders.ensureDir();
+    const id = 'mk-' + Date.now().toString(36) + crypto.randomBytes(2).toString('hex');
+    const file = id + '.pdf';
+    const buf = await buildMarkedPdf(a, b, s, rec, wq);
     fs.writeFileSync(path.join(folders.dir, file), buf);
     const mk = folders.loadMarkings();
     mk.push({ id, folderId: folder.id, teacherId: req.session.user.id, studentName: rec.studentName, studentId: rec.studentId, filename: file, createdAt: new Date().toISOString(), assessmentId: a.id, source: 'paper' });
