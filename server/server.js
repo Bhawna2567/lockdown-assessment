@@ -9381,8 +9381,8 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
       const qs = _ccMpQuestions(a);
       return qs.reduce((n, q) => n + _ccMpQuestionPoints(q), 0);
     }
-    // Helper: a student's percentage for an assessment.
-    function studentPct(a, student) {
+    // Helper: a student's marks for an assessment -> { earned, max } or null (did not submit).
+    function studentMarks(a, student) {
       const subs = _ccMpLoadSubmissions(a.id);
       const sid = String(student.id || student.email || student.studentId || '');
       const sub = subs.find(s => {
@@ -9399,7 +9399,7 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
           m += e ? e.max : (Number(q.points) || 1);
           if (e) t += e.earned;
         }
-        return m ? Math.round((t / m) * 1000) / 10 : null;
+        return m ? { earned: t, max: m } : null;
       }
       let total = Number(sub.totalScore || sub.score || 0);
       let max   = Number(sub.maxScore  || sub.outOf  || assessmentMax(a));
@@ -9409,56 +9409,72 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
         total = qs.reduce((n, q, i) => n + (Number(_ccMpPointsEarned(sub, i, q)) || 0), 0);
       }
       if (!max) return null;
-      return Math.round((total / max) * 1000) / 10; // one decimal place
+      return { earned: total, max };
     }
+    const r1 = (x) => Math.round(x * 10) / 10;
+
+    // Marks for every student x assessment, and the "out of" for each assessment
+    // (the most common max among submissions, else the assessment's question total).
+    const marks = students.map(st => assessments.map(a => studentMarks(a, st)));
+    const outOf = assessments.map((a, i) => {
+      const counts = {};
+      marks.forEach(row => { const m = row[i]; if (m && m.max) counts[m.max] = (counts[m.max] || 0) + 1; });
+      const best = Object.keys(counts).sort((x, y) => counts[y] - counts[x])[0];
+      return best ? Number(best) : (assessmentMax(a) || 0);
+    });
+    const totalOutOf = outOf.reduce((n, x) => n + x, 0);
 
     // Build workbook.
     const wb = new _ccExcelJS.Workbook();
     wb.creator = 'ClassCurio';
     wb.created = new Date();
-    const ws = wb.addWorksheet('Averages', {
-      views: [{ state: 'frozen', ySplit: 1 }],
+    const ws = wb.addWorksheet('Marks', {
+      views: [{ state: 'frozen', xSplit: 1, ySplit: 1 }],
     });
 
-    // Columns: Student, then one per assessment, then Average, Submitted.
+    // Columns: Student, one per assessment (marks), Total, Average out of 100.
     const cols = [{ header: 'Student', key: 'student', width: 32 }];
     assessments.forEach((a, i) => {
-      cols.push({ header: (a.title || 'Assessment ' + (i + 1)) + ' (%)', key: 'a' + i, width: 26 });
+      cols.push({ header: (a.title || 'Assessment ' + (i + 1)) + ' (out of ' + r1(outOf[i]) + ')', key: 'a' + i, width: 24 });
     });
-    cols.push({ header: 'Average (%)', key: 'avg', width: 14 });
-    cols.push({ header: 'Submitted', key: 'sub', width: 12 });
+    cols.push({ header: 'Total (out of ' + r1(totalOutOf) + ')', key: 'total', width: 18 });
+    cols.push({ header: 'Average (out of 100)', key: 'avg', width: 20 });
     ws.columns = cols;
 
     // Header style.
-    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } };
-    ws.getRow(1).height = 24;
-    ws.getRow(1).alignment = { vertical: 'middle' };
+    const hdr = ws.getRow(1);
+    hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } };
+    hdr.height = 36;
+    hdr.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
-    students.forEach(student => {
+    const colLetter = (n) => { let s = ''; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+    const firstA = colLetter(2), lastA = colLetter(1 + assessments.length);
+    const totalColL = colLetter(2 + assessments.length);
+
+    students.forEach((student, si) => {
       const row = { student: student.name || student.fullName || student.email || 'Student' };
-      const pcts = [];
-      let submittedCount = 0;
+      let total = 0;
       assessments.forEach((a, i) => {
-        const p = studentPct(a, student);
-        if (p !== null) { row['a' + i] = p; pcts.push(p); submittedCount++; }
-        else { row['a' + i] = 'DNS'; }
+        const m = marks[si][i];
+        if (m) {
+          // Scale to the column's "out of" if this student's paper had a different total.
+          const earned = (outOf[i] && m.max && m.max !== outOf[i]) ? (m.earned / m.max) * outOf[i] : m.earned;
+          row['a' + i] = r1(earned); total += r1(earned);
+        } else {
+          row['a' + i] = 'DNS'; // did not submit — counts as 0 in the total
+        }
       });
-      // Average across ALL included assessments (DNS counted as 0).
-      const avg = assessments.length ? Math.round((pcts.reduce((n, x) => n + x, 0) / assessments.length) * 10) / 10 : 0;
-      row.avg = avg;
-      row.sub = submittedCount + ' / ' + assessments.length;
-      ws.addRow(row);
-    });
-
-    // Highlight average column.
-    const avgCol = ws.getColumn('avg');
-    avgCol.eachCell({ includeEmpty: false }, function (cell, rowNumber) {
-      if (rowNumber === 1) return;
-      const v = Number(cell.value) || 0;
-      const fill = v >= 80 ? 'FFDCFCE7' : v >= 60 ? 'FFFEF3C7' : 'FFFEE2E2';
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
-      cell.font = { bold: true };
+      const added = ws.addRow(row);
+      const rn = added.number;
+      const avg = totalOutOf ? r1((total / totalOutOf) * 100) : 0;
+      added.getCell('total').value = { formula: 'SUM(' + firstA + rn + ':' + lastA + rn + ')', result: r1(total) };
+      added.getCell('avg').value = { formula: 'IFERROR(ROUND(' + totalColL + rn + '/' + totalOutOf + '*100,1),0)', result: avg };
+      for (let c = 2; c <= assessments.length + 3; c++) added.getCell(c).alignment = { horizontal: 'center' };
+      added.getCell('total').font = { bold: true };
+      const fill = avg >= 80 ? 'FFDCFCE7' : avg >= 60 ? 'FFFEF3C7' : 'FFFEE2E2';
+      added.getCell('avg').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fill } };
+      added.getCell('avg').font = { bold: true };
     });
 
     // Add a summary row at bottom.
@@ -9469,6 +9485,8 @@ app.post('/api/teacher/class-averages-excel', express.json({ limit: '1mb' }), as
     ws.getCell('A' + (bottomRow + 1)).font = { italic: true, color: { argb: 'FF6B7280' } };
     ws.getCell('A' + (bottomRow + 2)).value = 'Generated: ' + new Date().toLocaleString();
     ws.getCell('A' + (bottomRow + 2)).font = { italic: true, color: { argb: 'FF6B7280' } };
+    ws.getCell('A' + (bottomRow + 3)).value = 'DNS = did not submit (counted as 0 in the total).';
+    ws.getCell('A' + (bottomRow + 3)).font = { italic: true, color: { argb: 'FF6B7280' } };
 
     const fname = _ccMpSlug(className) + '_averages_' + new Date().toISOString().slice(0, 10) + '.xlsx';
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
