@@ -833,7 +833,9 @@ module.exports = function paper(app, d) {
   }
   async function saveMarkedPdf(req, a, cls, b, s, rec, wq) {
     const fl = folders.load();
-    let folder = fl.find((f) => f.teacherId === req.session.user.id && f.classId === (cls && cls.id));
+    // Only a Writing folder for this class (never e.g. "Parent Reports — <class>").
+    const isWriting = (f) => /^writing/i.test(String((f && f.name) || '').trim());
+    let folder = fl.find((f) => f.teacherId === req.session.user.id && isWriting(f) && (cls ? f.classId === cls.id : (!f.classId && f.name === 'Writing — Class')));
     if (!folder) {
       folder = { id: 'fld-' + Date.now().toString(36) + crypto.randomBytes(2).toString('hex'), name: 'Writing — ' + ((cls && cls.name) || 'Class'), classId: (cls && cls.id) || null, className: (cls && cls.name) || null, teacherId: req.session.user.id, createdAt: new Date().toISOString() };
       fl.push(folder); folders.save(fl);

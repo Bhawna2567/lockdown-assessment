@@ -8877,7 +8877,10 @@ function _ccSaveFolders(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'fo
 function _ccLoadMarkings(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), 'utf8')); } catch(e){ return []; } }
 
 
-// Ensure folders unique per (teacher, class). Migrate existing dupes on start.
+// Folder kind = the part of the name before " — " (e.g. "Writing", "Parent Reports").
+function _ccFolderKind(f) { return String((f && f.name) || '').split(' — ')[0].trim().toLowerCase() || 'writing'; }
+function _ccIsWritingFolder(f) { return /^writing/i.test(String((f && f.name) || '').trim()); }
+// Writing folders unique per (teacher, class, kind). Migrate existing dupes on start.
 (function _ccMigrateFolders() {
   try {
     const p = _ccPathV.join(_ccDataDir, 'folders.json');
@@ -8888,10 +8891,10 @@ function _ccLoadMarkings(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV
     const seen = new Set();
     const idRemap = {};
     for (const f of all) {
-      const key = (f.teacherId || '') + '::' + (f.classId || f.name || f.id);
+      const key = (f.teacherId || '') + '::' + _ccFolderKind(f) + '::' + (f.classId || f.name || f.id);
       if (seen.has(key)) {
         // Remap markings from this folder to the first one with the same key.
-        const survivor = kept.find(k => ((k.teacherId||'')+'::'+(k.classId||k.name||k.id)) === key);
+        const survivor = kept.find(k => ((k.teacherId||'')+'::'+_ccFolderKind(k)+'::'+(k.classId||k.name||k.id)) === key);
         if (survivor) idRemap[f.id] = survivor.id;
         continue;
       }
@@ -8916,9 +8919,51 @@ function _ccLoadMarkings(){ try { return JSON.parse(_ccFsV.readFileSync(_ccPathV
 })();
 function _ccSaveMarkings(arr){ _ccFsV.writeFileSync(_ccPathV.join(_ccDataDir, 'markings.json'), JSON.stringify(arr, null, 2)); }
 
+// Writing reports (paper scripts and AI-marked writing) must sit in the class's "Writing — <class>" folder.
+// Repairs reports that were saved into another folder of the same class (e.g. "Parent Reports — …")
+// or whose folder no longer exists, creating the Writing folder when needed. Safe to run repeatedly.
+function _ccRepairWritingFolders(uid) {
+  const folders = _ccLoadFolders();
+  const marks = _ccLoadMarkings();
+  if (!Array.isArray(folders) || !Array.isArray(marks)) return;
+  const byId = new Map(folders.map(f => [f.id, f]));
+  let assessments = null, classes = null;
+  const loadA = () => assessments || (assessments = (() => { try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'assessments.json'), 'utf8')); } catch (e) { return []; } })());
+  const loadC = () => classes || (classes = (() => { try { return JSON.parse(_ccFsV.readFileSync(_ccPathV.join(_ccDataDir, 'classes.json'), 'utf8')); } catch (e) { return []; } })());
+  let fChanged = false, mChanged = 0;
+  function writingFolderFor(classId, className) {
+    let f = folders.find(x => x && x.teacherId === uid && _ccIsWritingFolder(x) && classId && x.classId === classId);
+    if (!f) {
+      f = { id: 'fld-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: 'Writing — ' + (className || 'Class'),
+            classId: classId || null, className: className || null, teacherId: uid, createdAt: new Date().toISOString() };
+      folders.push(f); byId.set(f.id, f); fChanged = true;
+    }
+    return f;
+  }
+  for (const m of marks) {
+    if (!m || m.teacherId !== uid) continue;
+    const isWriting = m.source === 'paper' || /\.pdf$/i.test(String(m.filename || ''));
+    if (!isWriting) continue;
+    const cur = byId.get(m.folderId);
+    if (cur && _ccIsWritingFolder(cur)) continue;
+    // Work out the class: from the assessment, else from the folder it is in now.
+    let classId = null, className = null;
+    if (m.assessmentId) {
+      const a = (loadA() || []).find(x => x && x.id === m.assessmentId);
+      if (a && a.classId) { classId = a.classId; const c = (loadC() || []).find(x => x && x.id === a.classId); className = c ? (c.name || c.title) : null; }
+    }
+    if (!classId && cur) { classId = cur.classId || null; className = cur.className || null; }
+    if (!classId) continue;   // cannot tell which class: leave it where it is
+    const target = writingFolderFor(classId, className);
+    if (m.folderId !== target.id) { m.folderId = target.id; mChanged++; }
+  }
+  if (fChanged) _ccSaveFolders(folders);
+  if (mChanged) { _ccSaveMarkings(marks); console.log('[folders] moved ' + mChanged + ' writing report(s) into Writing folders for ' + uid); }
+}
 app.get('/api/teacher/folders', (req, res) => {
   if (!req.session || !req.session.user) return res.status(401).json({ error: 'Not signed in' });
   const uid = req.session.user.id;
+  try { _ccRepairWritingFolders(uid); } catch (e) { console.warn('[folders] repair failed', e.message); }
   const folders = _ccLoadFolders().filter(f => f && f.teacherId === uid);
   res.json(folders);
 });
@@ -8930,7 +8975,7 @@ app.post('/api/teacher/folders', express.json(), (req, res) => {
   const derivedName = name || ('Writing — ' + (className || 'Class'));
   const folders = _ccLoadFolders();
   // Dedupe: return existing if one already exists for this (teacher, class).
-  const existing = folders.find(f => f && f.teacherId === uid && (
+  const existing = folders.find(f => f && f.teacherId === uid && _ccIsWritingFolder(f) && (
     (classId && f.classId === classId) ||
     (!classId && f.name === derivedName)
   ));
