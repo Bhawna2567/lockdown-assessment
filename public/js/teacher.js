@@ -12997,8 +12997,11 @@ document.addEventListener('change', (e) => {
 
   // ── Step 1: choose classes and the date the support started ──
   window.openLowAchieversImpact = async function () {
-    let classes = [];
-    try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch (e) {}
+    // Same class list as the rest of the app (/api/classes); the brief list is only a fallback.
+    let classes = [], classErr = '';
+    try { const c = await fetchJson('/api/classes'); classes = (Array.isArray(c) ? c : (c.classes || [])).map((x) => ({ id: x.id, name: x.name || x.title || 'Class' })); }
+    catch (e) { classErr = e.message; }
+    if (!classes.length) { try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch (e) { classErr = classErr || e.message; } }
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99999; display:flex; align-items:center; justify-content:center;';
     const modal = document.createElement('div');
@@ -13017,7 +13020,7 @@ document.addEventListener('change', (e) => {
     const $ = (id) => modal.querySelector('#' + id);
     const status = (t) => { const s = $('la-status'); s.style.display = t ? 'block' : 'none'; s.textContent = t || ''; };
     $('la-close').onclick = () => overlay.remove();
-    if (!classes.length) $('la-classes').textContent = 'You have no classes yet.';
+    if (!classes.length) $('la-classes').textContent = classErr ? 'Could not load your classes (' + classErr + '). Please refresh the page and sign in again.' : 'You have no classes yet. Create one from Manage classes first.';
     const picked = new Set();
     let tests = [];
     const excluded = new Set();   // tests the teacher unticked
