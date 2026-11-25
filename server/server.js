@@ -9482,6 +9482,39 @@ function _ccLowAchieversPptx(d, opts) {
     catAxisLabelFontSize: 7, valAxisLabelFontSize: 7, catAxisLabelFontFace: F, valGridLine: { color: 'E7DFC9', size: 0.5 },
     showTitle: true, title, titleFontSize: 9, titleColor: INK, titleFontFace: F });
 
+  // 0. Title slide: tells the reader these results come from ClassCurio.
+  {
+    let ccLogo = null;
+    try { ccLogo = 'data:image/png;base64,' + _ccFsV.readFileSync(_ccPathV.join(__dirname, '..', 'public', 'icon-192.png')).toString('base64'); } catch (e) {}
+    const t0 = pptx.addSlide();
+    t0.background = { color: 'FFFFFF' };
+    t0.addShape(pptx.ShapeType.rect, { x: 0, y: 5.47, w: 10, h: 0.155, fill: { color: GOLD }, line: { color: GOLD } });
+    if (logo) t0.addImage({ data: logo, x: 3.2, y: 0.3, w: 3.6, h: 0.67 });
+    t0.addText(school, { x: 0.5, y: 1.05, w: 9, h: 0.35, fontFace: F, fontSize: 15, bold: true, color: GOLD, align: 'center' });
+    t0.addShape(pptx.ShapeType.line, { x: 2.5, y: 1.45, w: 5, h: 0, line: { color: GOLD, width: 0.75 } });
+    t0.addText(dept, { x: 0.5, y: 1.48, w: 9, h: 0.25, fontFace: F, fontSize: 10, color: MUTED, align: 'center' });
+    t0.addText('Low Achievers — Intervention & Impact', { x: 0.5, y: 1.9, w: 9, h: 0.6, fontFace: F, fontSize: 30, bold: true, color: INK, align: 'center' });
+    t0.addText(d.classes.join(' · '), { x: 0.5, y: 2.5, w: 9, h: 0.32, fontFace: F, fontSize: 14, color: MUTED, align: 'center' });
+    t0.addShape(pptx.ShapeType.line, { x: 4.4, y: 2.92, w: 1.2, h: 0, line: { color: RED, width: 1.5 } });
+    // Evidence panel
+    t0.addShape(pptx.ShapeType.rect, { x: 1.2, y: 3.15, w: 7.6, h: 1.95, fill: { color: CREAM }, line: { color: BEIGE, width: 0.75 } });
+    t0.addShape(pptx.ShapeType.rect, { x: 1.2, y: 3.15, w: 0.07, h: 1.95, fill: { color: GOLD }, line: { color: GOLD } });
+    if (ccLogo) t0.addImage({ data: ccLogo, x: 1.5, y: 3.35, w: 0.7, h: 0.7 });
+    t0.addText('Evidence source: ClassCurio', { x: 2.4, y: 3.3, w: 6.2, h: 0.35, fontFace: F, fontSize: 15, bold: true, color: INK });
+    t0.addText('The results on the following slides are generated directly from students\' real assessment results recorded and marked in ClassCurio, the school\'s assessment platform.',
+      { x: 2.4, y: 3.65, w: 6.2, h: 0.5, fontFace: F, fontSize: 10.5, color: INK, valign: 'top' });
+    const tr0 = (d.trend || []).filter((t) => t.date);
+    const nTests = (d.baseline || []).length + (d.latest || []).length;
+    const facts = [
+      tr0.length ? 'Tests: ' + dt(tr0[0].date) + ' – ' + dt(tr0[tr0.length - 1].date) + ' (' + nTests + ' tests)' : 'Tests: ' + nTests,
+      d.startDate ? 'Support started: ' + dt(d.startDate) : '',
+      'Low achievers: ' + S.identified + ' students below ' + pass + '% before the support',
+      'Generated: ' + dt(d.generatedAt),
+    ].filter(Boolean);
+    t0.addText(facts.map((f, i) => ({ text: f, options: { bullet: { code: '25AA' }, breakLine: i < facts.length - 1 } })),
+      { x: 2.4, y: 4.15, w: 6.2, h: 0.85, fontFace: F, fontSize: 9.5, color: MUTED, valign: 'top', paraSpaceAfter: 2 });
+  }
+
   // 1. Overview: key figures + charts
   const s1 = pptx.addSlide();
   header(s1, 'Low Achievers — Intervention & Impact');
