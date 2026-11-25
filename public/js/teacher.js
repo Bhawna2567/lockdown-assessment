@@ -13094,6 +13094,7 @@ document.addEventListener('change', (e) => {
     const btn = (t, bg) => { const b = document.createElement('button'); b.textContent = t; b.style.cssText = 'padding:7px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:600; background:' + bg + '; color:#fff;'; bar.appendChild(b); return b; };
     const bAnon = btn('👤 Hide names (initials)', '#374151');
     const bXls = btn('⬇ Excel', '#059669');
+    const bPpt = btn('📊 Download as PPT', '#C2410C');
     const bPrint = btn('🖨 Print / Save PDF', '#4338CA');
     const bBack = btn('← Change selection', '#374151');
     const bClose = btn('✕ Close', '#B91C1C');
@@ -13172,6 +13173,18 @@ document.addEventListener('change', (e) => {
         setTimeout(() => URL.revokeObjectURL(a.href), 5000);
       } catch (e) { alert('Excel failed: ' + e.message); }
       finally { bXls.disabled = false; bXls.textContent = '⬇ Excel'; }
+    };
+    bPpt.onclick = async () => {
+      bPpt.disabled = true; bPpt.textContent = 'Preparing slides…';
+      try {
+        const r = await fetch('/api/teacher/low-achievers-impact.pptx', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(Object.assign({}, req, { anonymise: anon, studentNotes, skillNotes, deptLine })) });
+        if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'HTTP ' + r.status); }
+        const blob = await r.blob(); const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'low-achievers-impact_' + new Date().toISOString().slice(0, 10) + '.pptx'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      } catch (e) { alert('PowerPoint failed: ' + e.message); }
+      finally { bPpt.disabled = false; bPpt.textContent = '📊 Download as PPT'; }
     };
   }
 

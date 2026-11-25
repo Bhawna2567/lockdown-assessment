@@ -9376,6 +9376,111 @@ app.post('/api/teacher/low-achievers-impact.xlsx', requireTeacher, express.json(
     await wb.xlsx.write(res); res.end();
   } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
 });
+// PowerPoint version of the Low achievers impact page (editable charts and tables).
+function _ccLowAchieversPptx(d, opts) {
+  const PptxGenJS = require('./vendor/pptxgen.cjs.js');
+  const pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_WIDE';   // 13.33 × 7.5 in
+  const S = d.summary, pass = S.passMark;
+  const anon = !!opts.anonymise;
+  const initials = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w) => w[0].toUpperCase() + '.').join(' ');
+  const nm = (n) => (anon ? initials(n) : String(n || ''));
+  const sNotes = opts.studentNotes || {}, kNotes = opts.skillNotes || {};
+  const dept = String(opts.deptLine || 'Department of English · Academic Year 2026 – 2027').slice(0, 160);
+  const uniq = (a) => a.filter((v, i, x) => x.indexOf(v) === i);
+  const sub = d.classes.join(' · ') + ' · Baseline: ' + uniq(d.baseline.map((x) => x.title)).join('; ') + ' → Latest: ' + uniq(d.latest.map((x) => x.title)).join('; ') + ' · ' + new Date(d.generatedAt).toLocaleDateString('en-GB');
+  const P = (x) => (x == null ? '—' : (Math.round(x * 10) / 10) + '%');
+  const fill = (p) => (p == null ? 'F3F4F6' : p >= pass ? 'DCFCE7' : p >= 50 ? 'FEF3C7' : 'FEE2E2');
+  const FONT = 'Arial';
+  const header = (slide, title) => {
+    slide.background = { color: 'FFFFFF' };
+    slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 13.33, h: 1.15, fill: { color: '3730A3' }, line: { color: '3730A3' } });
+    slide.addText(dept, { x: 0.4, y: 0.08, w: 12.5, h: 0.3, fontFace: FONT, fontSize: 11, color: 'E0E7FF' });
+    slide.addText(title, { x: 0.4, y: 0.34, w: 12.5, h: 0.45, fontFace: FONT, fontSize: 22, bold: true, color: 'FFFFFF' });
+    slide.addText(sub, { x: 0.4, y: 0.78, w: 12.5, h: 0.3, fontFace: FONT, fontSize: 11, color: 'E0E7FF' });
+    slide.addText('Source: ClassCurio assessment results · F = below 50% · BF = 50% to below ' + pass + '% · green = ' + pass + '% or above',
+      { x: 0.4, y: 7.1, w: 12.5, h: 0.3, fontFace: FONT, fontSize: 9, color: '6B7280' });
+  };
+  const chgText = (c) => (c == null ? 'Not assessed yet' : (c > 0 ? '▲ +' : c < 0 ? '▼ ' : '') + c);
+  const chgColor = (c) => (c == null ? '6B7280' : c > 0 ? '15803D' : c < 0 ? 'B91C1C' : '374151');
+  const H = (t) => ({ text: t, options: { bold: true, color: 'FFFFFF', fill: { color: '4338CA' }, fontFace: FONT, fontSize: 11, valign: 'middle' } });
+  const C = (t, o) => ({ text: String(t == null ? '' : t), options: Object.assign({ fontFace: FONT, fontSize: 10.5, valign: 'middle', color: '111827' }, o || {}) });
+
+  // 1. Overview: key figures + charts
+  const s1 = pptx.addSlide();
+  header(s1, 'Low Achievers — Intervention & Impact');
+  const diff = S.avgLatest != null && S.avgBaselineSame != null ? Math.round((S.avgLatest - S.avgBaselineSame) * 10) / 10 : null;
+  const cards = [
+    [String(S.identified), 'Low achievers identified', 'F: ' + S.F + ' · BF: ' + S.BF, 'B91C1C'],
+    [P(S.avgBaselineSame) + ' → ' + P(S.avgLatest), 'Average score', diff == null ? 'Not assessed again yet' : (diff >= 0 ? '+' : '') + diff + ' points', '4338CA'],
+    [S.improved + ' / ' + S.assessedAgain, 'Improved', 'score went up', '15803D'],
+    [S.reachedPass + ' / ' + S.assessedAgain, 'Reached the pass mark', pass + '% or above', '0369A1'],
+    [String(S.outOfF), 'Moved out of F', 'were below 50%', 'B45309'],
+  ];
+  cards.forEach(([big, label, small, col], i) => {
+    const x = 0.4 + i * 2.53;
+    s1.addShape(pptx.ShapeType.rect, { x, y: 1.35, w: 2.38, h: 1.35, fill: { color: 'FFFFFF' }, line: { color: 'E5E7EB' } });
+    s1.addShape(pptx.ShapeType.rect, { x, y: 1.35, w: 2.38, h: 0.07, fill: { color: col }, line: { color: col } });
+    s1.addText(big, { x: x + 0.1, y: 1.45, w: 2.2, h: 0.55, fontFace: FONT, fontSize: big.length > 10 ? 17 : 26, bold: true, color: col });
+    s1.addText(label, { x: x + 0.1, y: 1.98, w: 2.2, h: 0.3, fontFace: FONT, fontSize: 11, bold: true, color: '111827' });
+    s1.addText(small, { x: x + 0.1, y: 2.27, w: 2.2, h: 0.3, fontFace: FONT, fontSize: 9.5, color: '6B7280' });
+  });
+  const chartOpts = (title) => ({ barDir: 'col', barGrouping: 'clustered', chartColors: ['94A3B8', '4338CA'], valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25,
+    showLegend: true, legendPos: 'b', legendFontSize: 10, showValue: true, dataLabelFontSize: 9, dataLabelFormatCode: '0', catAxisLabelFontSize: 10, valAxisLabelFontSize: 9,
+    showTitle: true, title, titleFontSize: 13, titleColor: '111827', titleFontFace: FONT, catAxisLabelFontFace: FONT });
+  const skills = d.skills.filter((k) => k.baseline != null || k.latest != null);
+  if (skills.length) s1.addChart(pptx.ChartType.bar, [
+    { name: 'Baseline', labels: skills.map((k) => k.skill), values: skills.map((k) => k.baseline == null ? 0 : Math.round(k.baseline)) },
+    { name: 'Latest', labels: skills.map((k) => k.skill), values: skills.map((k) => k.latest == null ? 0 : Math.round(k.latest)) },
+  ], Object.assign({ x: 0.4, y: 2.9, w: 6.15, h: 4.1 }, chartOpts('Low achievers — average % by skill')));
+  // Only students assessed again (a missing latest result must not show as 0).
+  const again = d.students.filter((s) => s.latest != null);
+  const lab = (s) => (anon ? initials(s.name) : String(s.name).split(/\s+/)[0]);
+  if (again.length) s1.addChart(pptx.ChartType.bar, [
+    { name: 'Baseline', labels: again.map(lab), values: again.map((s) => Math.round(s.baseline)) },
+    { name: 'Latest', labels: again.map(lab), values: again.map((s) => Math.round(s.latest)) },
+  ], Object.assign({ x: 6.78, y: 2.9, w: 6.15, h: 4.1 }, chartOpts('Each low achiever assessed again — baseline vs latest')));
+  else s1.addText('No low achiever has a latest result yet.', { x: 6.78, y: 4.5, w: 6.15, h: 0.5, fontFace: FONT, fontSize: 13, color: '6B7280', align: 'center' });
+
+  // 2. What was done — by skill
+  const s2 = pptx.addSlide();
+  header(s2, 'What was done — intervention by skill');
+  const rows2 = [[H('Weak skill'), H('Low achievers weakest in it'), H('Intervention strategies'), H('Baseline avg'), H('Latest avg'), H('Change')]];
+  d.skills.forEach((k) => {
+    const c = k.baseline != null && k.latest != null ? Math.round((k.latest - k.baseline) * 10) / 10 : null;
+    rows2.push([C(k.skill, { bold: true }), C(k.weakFor, { align: 'center' }), C(kNotes[k.skill] || ''), C(P(k.baseline), { fill: { color: fill(k.baseline) } }),
+      C(P(k.latest), { fill: { color: fill(k.latest) } }), C(chgText(c), { bold: true, color: chgColor(c) })]);
+  });
+  s2.addTable(rows2, { x: 0.4, y: 1.4, w: 12.53, colW: [1.7, 1.6, 5.43, 1.3, 1.3, 1.2], border: { type: 'solid', pt: 0.75, color: 'E5E7EB' }, rowH: 0.42, autoPage: false });
+
+  // 3+. Each low achiever, 9 per slide
+  const per = 9, pages = Math.max(1, Math.ceil(d.students.length / per));
+  for (let pg = 0; pg < pages; pg++) {
+    const sl = pptx.addSlide();
+    header(sl, 'Each low achiever — baseline, support and progress' + (pages > 1 ? ' (' + (pg + 1) + '/' + pages + ')' : ''));
+    const rows = [[H('Student'), H('Class'), H('Baseline'), H('Weakest skills'), H('Intervention'), H('Latest'), H('Change')]];
+    const chunk = d.students.slice(pg * per, pg * per + per);
+    if (!chunk.length) rows.push([C('No students were below the pass mark in the baseline assessment.', { colspan: 7 })]);
+    chunk.forEach((st) => {
+      const iv = sNotes[st.id] || (st.weakest[0] && kNotes[st.weakest[0].skill]) || '';
+      rows.push([C(nm(st.name)), C(st.cls), C(P(st.baseline) + ' · ' + st.baseBand, { fill: { color: fill(st.baseline) } }),
+        C(st.weakest.map((w) => w.skill + ' ' + Math.round(w.pct) + '%').join('\n')), C(iv),
+        C(st.latest == null ? '—' : P(st.latest) + ' · ' + st.latestBand, { fill: { color: fill(st.latest) } }), C(chgText(st.change), { bold: true, color: chgColor(st.change) })]);
+    });
+    sl.addTable(rows, { x: 0.4, y: 1.35, w: 12.53, colW: [2.3, 1.6, 1.3, 1.9, 2.93, 1.2, 1.3], border: { type: 'solid', pt: 0.75, color: 'E5E7EB' }, rowH: 0.58, autoPage: false });
+  }
+  return pptx.write({ outputType: 'nodebuffer' });
+}
+app.post('/api/teacher/low-achievers-impact.pptx', requireTeacher, express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const d = _ccLowAchieversImpact(req.session.user.id, b);
+    const buf = await _ccLowAchieversPptx(d, b);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    res.setHeader('Content-Disposition', 'attachment; filename="low-achievers-impact_' + new Date().toISOString().slice(0, 10) + '.pptx"');
+    res.end(buf);
+  } catch (e) { console.error('[low-achievers pptx]', e); res.status(400).json({ error: String(e.message || e) }); }
+});
 app.post('/api/teacher/combined-skills-excel', requireTeacher, async (req, res) => {
   try {
     const { classId, assessmentIds } = req.body || {};
