@@ -13113,41 +13113,49 @@ document.addEventListener('change', (e) => {
          '<line x1="' + (L + 175) + '" x2="' + (L + 195) + '" y1="' + (H - 9) + '" y2="' + (H - 9) + '" stroke="' + T.red + '" stroke-dasharray="4 3"/><text x="' + (L + 199) + '" y="' + (H - 5) + '" font-size="10" fill="' + T.red + '">Pass mark ' + pass + '%</text></svg>';
     return s;
   }
-  // Progress over time: low achievers' average on each test (gold) + each student (grey), start-of-support marker.
-  function trendSvg(trend, students, pass, anon) {
-    const tr = trend.filter((t) => t.lowAvg != null);
-    if (tr.length < 2) return '<div style="color:' + T.muted + '; padding:30px; text-align:center;">At least two tests are needed to show progress over time.</div>';
-    const W = 1000, H = 260, L = 40, R = 150, B = 46, Tp = 14, n = tr.length;
-    const x = (i) => L + (n === 1 ? 0 : (W - L - R) * i / (n - 1));
+  // Progress over time in 2-week periods: low achievers' average (gold); optional line per student (grey).
+  function trendSvg(periods, students, pass, anon, showStudents) {
+    const pr = (periods || []).filter((p) => p.avg != null);
+    if (pr.length < 2) return '<div style="color:' + T.muted + '; padding:30px; text-align:center;">Tests from at least two different fortnights are needed to show progress over time.</div>';
+    const W = 1000, H = 250, L = 40, R = showStudents ? 130 : 90, B = 34, Tp = 18, n = pr.length;
+    const x = (i) => L + 30 + (W - L - R - 60) * i / (n - 1);
     const y = (p) => Tp + (H - Tp - B) * (1 - (p || 0) / 100);
     let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="font-family:Calibri,Arial,sans-serif;">';
-    for (let g = 0; g <= 100; g += 20) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#E7DFC9"/><text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" font-size="10" text-anchor="end" fill="' + T.muted + '">' + g + '</text>';
-    s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(pass) + '" y2="' + y(pass) + '" stroke="' + T.red + '" stroke-dasharray="4 3"/>';
-    const fa = tr.findIndex((t) => t.phase === 'after');
-    if (fa > 0) { const xm = (x(fa - 1) + x(fa)) / 2; s += '<line x1="' + xm + '" x2="' + xm + '" y1="' + Tp + '" y2="' + (H - B) + '" stroke="' + T.gold + '" stroke-dasharray="5 4"/><text x="' + (xm + 4) + '" y="' + (Tp + 10) + '" font-size="10" fill="' + T.gold + '">Support starts</text>'; }
-    const greys = ['#9A8F80', '#B9AE9C', '#7E7466', '#C9BFAE', '#8C8273', '#ADA391'];
-    students.forEach((st, k) => {
-      const pts = tr.map((t, i) => (st.tests && st.tests[t.id] != null ? [x(i), y(st.tests[t.id])] : null)).filter(Boolean);
-      if (pts.length < 2) return;
-      const c = greys[k % greys.length];
-      s += '<polyline fill="none" stroke="' + c + '" stroke-width="1.2" points="' + pts.map((p) => p.join(',')).join(' ') + '"/>';
-      const last = pts[pts.length - 1];
-      if (k < 8) s += '<text x="' + (W - R + 6) + '" y="' + (last[1] + 3) + '" font-size="9" fill="' + c + '">' + esc(anon ? initials(st.name) : String(st.name).split(/\s+/)[0]) + '</text>';
+    for (let g = 0; g <= 100; g += 20) s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#E7DFC9"/><text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" font-size="11" text-anchor="end" fill="' + T.muted + '">' + g + '</text>';
+    s += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(pass) + '" y2="' + y(pass) + '" stroke="' + T.red + '" stroke-dasharray="4 3"/><text x="' + (W - R + 6) + '" y="' + (y(pass) + 4) + '" font-size="10" fill="' + T.red + '">Pass ' + pass + '%</text>';
+    // Shade the periods before the support started.
+    const fa = pr.findIndex((p) => p.phase !== 'before');
+    if (fa > 0) {
+      const xm = (x(fa - 1) + x(fa)) / 2;
+      s += '<rect x="' + L + '" y="' + Tp + '" width="' + (xm - L) + '" height="' + (H - Tp - B) + '" fill="#F3EEE2" opacity=".7"/>' +
+        '<line x1="' + xm + '" x2="' + xm + '" y1="' + Tp + '" y2="' + (H - B) + '" stroke="' + T.gold + '" stroke-dasharray="5 4"/>' +
+        '<text x="' + (L + 6) + '" y="' + (Tp + 12) + '" font-size="11" fill="' + T.muted + '">Before support</text><text x="' + (xm + 6) + '" y="' + (Tp + 12) + '" font-size="11" fill="' + T.gold + '">Support started</text>';
+    }
+    if (showStudents) {
+      const greys = ['#9A8F80', '#B9AE9C', '#7E7466', '#C9BFAE', '#8C8273', '#ADA391'];
+      students.forEach((st, k) => {
+        const pts = pr.map((p, i) => (p.perStudent && p.perStudent[st.id] != null ? [x(i), y(p.perStudent[st.id])] : null)).filter(Boolean);
+        if (pts.length < 2) return;
+        const c = greys[k % greys.length];
+        s += '<polyline fill="none" stroke="' + c + '" stroke-width="1.2" points="' + pts.map((q) => q.join(',')).join(' ') + '"/>';
+        const last = pts[pts.length - 1];
+        s += '<text x="' + (last[0] + 6) + '" y="' + (last[1] + 3) + '" font-size="9" fill="' + c + '">' + esc(anon ? initials(st.name) : String(st.name).split(/\s+/)[0]) + '</text>';
+      });
+    }
+    s += '<polyline fill="none" stroke="' + T.gold + '" stroke-width="3.5" stroke-linejoin="round" points="' + pr.map((p, i) => x(i) + ',' + y(p.avg)).join(' ') + '"/>';
+    pr.forEach((p, i) => {
+      s += '<circle cx="' + x(i) + '" cy="' + y(p.avg) + '" r="5" fill="' + T.gold + '" stroke="#fff" stroke-width="1.5"/>' +
+        '<text x="' + x(i) + '" y="' + (y(p.avg) - 10) + '" font-size="13" font-weight="700" text-anchor="middle" fill="' + T.ink + '">' + Math.round(p.avg) + '%</text>' +
+        '<text x="' + x(i) + '" y="' + (H - B + 16) + '" font-size="11" text-anchor="middle" fill="' + T.ink + '">' + esc(p.label) + '</text>' +
+        '<text x="' + x(i) + '" y="' + (H - B + 29) + '" font-size="9.5" text-anchor="middle" fill="' + T.muted + '">' + p.tests + ' test' + (p.tests === 1 ? '' : 's') + ' · ' + p.n + ' students</text>';
     });
-    s += '<polyline fill="none" stroke="' + T.gold + '" stroke-width="3" points="' + tr.map((t, i) => x(i) + ',' + y(t.lowAvg)).join(' ') + '"/>';
-    tr.forEach((t, i) => {
-      s += '<circle cx="' + x(i) + '" cy="' + y(t.lowAvg) + '" r="4" fill="' + T.gold + '"/><text x="' + x(i) + '" y="' + (y(t.lowAvg) - 8) + '" font-size="10" font-weight="700" text-anchor="middle" fill="' + T.ink + '">' + Math.round(t.lowAvg) + '</text>' +
-        '<text x="' + x(i) + '" y="' + (H - B + 15) + '" font-size="10" text-anchor="middle" fill="' + T.ink + '">' + esc(dShort(t.date)) + '</text>' +
-        '<text x="' + x(i) + '" y="' + (H - B + 28) + '" font-size="9.5" text-anchor="middle" fill="' + T.muted + '">' + esc(t.skill) + '</text>';
-    });
-    s += '<text x="' + (W - R + 6) + '" y="' + (y(tr[n - 1].lowAvg) - 8) + '" font-size="10" font-weight="700" fill="' + T.gold + '">Average</text></svg>';
-    return s;
+    return s + '</svg>';
   }
 
   // ── Step 2: the report ──
   function showReport(d, req) {
     const S = d.summary, pass = S.passMark;
-    let anon = false;
+    let anon = false, showStudents = false;
     const studentNotes = {}, skillNotes = {};
     let schoolLine = 'AL NOAIMIYAH GIRLS SCHOOL – CYCLE 1, 2 & 3';
     let deptLine = 'Department of English  ·  Academic Year 2026 – 2027';
@@ -13211,7 +13219,9 @@ document.addEventListener('change', (e) => {
             box('Low achievers — average % by skill', both.length ? barsSvg(both.map((k) => ({ label: k.skill, baseline: k.baseline, latest: k.latest })), pass) : '<div style="padding:30px; text-align:center; color:' + T.muted + ';">No skill was tested both before and after the support yet.</div>') +
             box('Each low achiever — before vs latest', again.length ? barsSvg(again.map((s) => ({ label: anon ? initials(s.name) : String(s.name).split(/\s+/)[0], baseline: s.baseline, latest: s.latest })), pass) : '<div style="padding:30px; text-align:center; color:' + T.muted + ';">No low achiever has a latest result yet.</div>') +
           '</div>' +
-          h3('Progress over time') + '<div style="border:1px solid ' + T.beige + '; padding:10px;">' + trendSvg(d.trend || [], d.students, pass, anon) + '</div>' +
+          '<div style="display:flex; align-items:center; justify-content:space-between; margin:22px 0 8px;"><h3 style="margin:0; font-size:17px;">Progress over time <span style="font-weight:400; font-size:12.5px; color:' + T.muted + ';">(low achievers\' average, in 2-week periods)</span></h3>' +
+          '<button id="la-st" style="padding:4px 10px; border:1px solid ' + T.beige + '; background:' + T.cream + '; border-radius:6px; cursor:pointer; font-size:12px;">' + (showStudents ? 'Hide students' : 'Show each student') + '</button></div>' +
+          '<div style="border:1px solid ' + T.beige + '; padding:10px;">' + trendSvg(d.periods || [], d.students, pass, anon, showStudents) + '</div>' +
           h3('What was done — intervention by skill') +
           '<table style="width:100%; border-collapse:collapse;"><tr>' + th('Weak skill') + th('Low achievers') + th('Intervention strategies (click to type)') + th('Before support') + th('Latest') + th('Change') + '</tr>' +
           d.skills.map((k) => { const c = k.baseline != null && k.latest != null ? Math.round((k.latest - k.baseline) * 10) / 10 : null;
@@ -13223,6 +13233,7 @@ document.addEventListener('change', (e) => {
           'For qualitative evidence, add a before-and-after marked writing report from 📁 My marking folders.</div>' +
         '</div>';
       page.querySelectorAll('td[contenteditable]').forEach((c) => c.addEventListener('input', () => { (c.dataset.kind === 'skill' ? skillNotes : studentNotes)[c.dataset.key] = c.innerText.trim(); }));
+      const stb = page.querySelector('#la-st'); if (stb) stb.onclick = () => { showStudents = !showStudents; render(); };
       const sc = page.querySelector('#la-school'); if (sc) sc.addEventListener('input', () => { schoolLine = sc.innerText.trim(); });
       const dp = page.querySelector('#la-dept'); if (dp) dp.addEventListener('input', () => { deptLine = dp.innerText.trim(); });
     }
@@ -13231,7 +13242,7 @@ document.addEventListener('change', (e) => {
     bPrint.onclick = () => {
       const w = window.open('', '_blank');
       if (!w) return alert('Please allow pop-ups to print.');
-      w.document.write('<!doctype html><html><head><meta charset="utf-8"><base href="' + location.origin + '/"><title>Low achievers — impact</title><style>@page{size:A4 landscape;margin:10mm} body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact} td[data-kind]{background:#fff!important} tr{page-break-inside:avoid}</style></head><body>' + page.outerHTML.replace(/contenteditable="true"/g, '') + '</body></html>');
+      w.document.write('<!doctype html><html><head><meta charset="utf-8"><base href="' + location.origin + '/"><title>Low achievers — impact</title><style>@page{size:A4 landscape;margin:10mm} body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact} td[data-kind]{background:#fff!important} tr{page-break-inside:avoid} #la-st{display:none}</style></head><body>' + page.outerHTML.replace(/contenteditable="true"/g, '') + '</body></html>');
       w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 600);
     };
     const download = async (button, url, label, ext, extra) => {

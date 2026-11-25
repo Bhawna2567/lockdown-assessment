@@ -9344,7 +9344,29 @@ function _ccLowAchieversImpact(uid, body) {
     const vals = out.map((st) => st.tests[a.id]).filter((v) => v != null);
     return { id: a.id, title: a.title, cls: className(a.classId), date: _ccTestDate(a, firstTaken), skill: _ccTestSkill(a), phase: baseIds.has(a.id) ? 'before' : 'after', lowAvg: avg(vals), n: vals.length };
   }).filter((t) => t.n > 0).sort((x, y) => String(x.date || '').localeCompare(String(y.date || '')));
-  return { summary, students: out, skills, trend, startDate: body.startDate || null, baseline: list(baseIds), latest: list(lateIds), classes: [...new Set(assessments.map((a) => className(a.classId)))], generatedAt: new Date().toISOString() };
+  // Smoother view: 2-week periods. Each student's tests in a period are averaged first, then the students,
+  // so a hard test or a different class on one day does not make the line jump.
+  const periods = [];
+  const dated = trend.filter((t) => t.date && !isNaN(new Date(t.date)));
+  if (dated.length) {
+    const day = 864e5, t0 = new Date(dated[0].date); t0.setUTCHours(0, 0, 0, 0);
+    const monday = new Date(t0.getTime() - ((t0.getUTCDay() + 6) % 7) * day);
+    const startMs = body.startDate ? new Date(body.startDate + 'T00:00:00Z').getTime() : null;
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const fmt = (ms) => { const t = new Date(ms); return t.getUTCDate() + ' ' + MON[t.getUTCMonth()]; };
+    const byIdx = new Map();
+    for (const t of dated) { const i = Math.floor((new Date(t.date).getTime() - monday.getTime()) / (14 * day)); if (!byIdx.has(i)) byIdx.set(i, []); byIdx.get(i).push(t); }
+    for (const i of [...byIdx.keys()].sort((a, b) => a - b)) {
+      const ts = byIdx.get(i), from = monday.getTime() + i * 14 * day, to = from + 13 * day;
+      const perStudent = {};
+      for (const st of out) { const v = ts.map((t) => st.tests[t.id]).filter((x) => x != null); if (v.length) perStudent[st.id] = avg(v); }
+      const vals = Object.values(perStudent);
+      if (!vals.length) continue;
+      periods.push({ label: fmt(from) + ' – ' + fmt(to), from: new Date(from).toISOString(), to: new Date(to).toISOString(), avg: avg(vals), n: vals.length, tests: ts.length,
+        phase: startMs != null && from + 13 * day < startMs ? 'before' : startMs != null && from < startMs ? 'both' : (ts.every((t) => t.phase === 'before') ? 'before' : 'after'), perStudent });
+    }
+  }
+  return { summary, students: out, skills, trend, periods, startDate: body.startDate || null, baseline: list(baseIds), latest: list(lateIds), classes: [...new Set(assessments.map((a) => className(a.classId)))], generatedAt: new Date().toISOString() };
 }
 app.post('/api/teacher/low-achievers-impact/tests', requireTeacher, express.json({ limit: '1mb' }), (req, res) => {
   try {
@@ -9489,21 +9511,17 @@ function _ccLowAchieversPptx(d, opts) {
   ], Object.assign({ x: 5.1, y: 3.12, w: 4.5, h: 2.18 }, barOpts('Each low achiever — before vs latest')));
 
   // 2. Progress over time
-  const tr = (d.trend || []).filter((t) => t.lowAvg != null);
-  if (tr.length >= 2) {
+  const pr = d.periods || [];
+  if (pr.length >= 2) {
     const s2 = pptx.addSlide();
     header(s2, 'Progress over time — low achievers');
-    const labels = tr.map((t) => (dt(t.date).slice(0, 5)) + ' ' + t.skill);
-    const series = [{ name: 'Low achievers average', labels, values: tr.map((t) => Math.round(t.lowAvg)) }];
-    const showSt = d.students.filter((st) => Object.keys(st.tests || {}).length >= 2).slice(0, 6);
-    showSt.forEach((st) => series.push({ name: short(st.name), labels, values: tr.map((t) => (st.tests[t.id] == null ? null : Math.round(st.tests[t.id]))) }));
-    s2.addChart(pptx.ChartType.line, series, { x: 0.4, y: 2.0, w: 9.2, h: 2.75, chartColors: [GOLD, '6B6255', 'DC2626', '16A34A', '0369A1', '7C3AED', 'D97706'],
-      lineSize: 1.5, lineDataSymbolSize: 5, valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 20, showLegend: true, legendPos: 'r', legendFontSize: 7, legendFontFace: F,
-      catAxisLabelFontSize: 7, valAxisLabelFontSize: 7, catAxisLabelFontFace: F, valGridLine: { color: 'E7DFC9', size: 0.5 }, displayBlanksAs: 'span' });
-    const firstAfter = tr.findIndex((t) => t.phase === 'after');
-    s2.addText('Tests from ' + dt(tr[0].date) + ' to ' + dt(tr[tr.length - 1].date) + (firstAfter > 0 ? ' · Support began before "' + tr[firstAfter].title + '"' : '') +
-      ' · The gold line is the low achievers\' average; the other lines are individual students' + (showSt.length < d.students.length ? ' (first ' + showSt.length + ')' : '') + '.',
-      { x: 0.4, y: 4.8, w: 9.2, h: 0.45, fontFace: F, fontSize: 8, color: MUTED });
+    s2.addChart(pptx.ChartType.line, [{ name: 'Low achievers average %', labels: pr.map((p) => p.label), values: pr.map((p) => Math.round(p.avg)) }],
+      { x: 0.4, y: 2.0, w: 9.2, h: 2.8, chartColors: [GOLD], lineSize: 3, lineDataSymbol: 'circle', lineDataSymbolSize: 8, showValue: true, dataLabelFontSize: 9, dataLabelPosition: 't', dataLabelFormatCode: '0',
+        valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 20, showLegend: false, catAxisLabelFontSize: 8, valAxisLabelFontSize: 7, catAxisLabelFontFace: F, valGridLine: { color: 'E7DFC9', size: 0.5 } });
+    const firstAfter = pr.findIndex((p) => p.phase !== 'before');
+    s2.addText('Each point is a 2-week period: every low achiever\'s tests in the period are averaged, then the students.' +
+      (firstAfter > 0 ? ' Support began in the period ' + pr[firstAfter].label + '.' : '') + ' Pass mark ' + pass + '%.',
+      { x: 0.4, y: 4.85, w: 9.2, h: 0.4, fontFace: F, fontSize: 8, color: MUTED });
   }
 
   // 3. What was done — by skill
