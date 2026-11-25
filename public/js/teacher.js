@@ -12977,3 +12977,215 @@ document.addEventListener('change', (e) => {
   }
   setInterval(injectFab, 600);
 })();
+
+// ── Low achievers — intervention & impact (screenshot-ready page) ─────
+(function () {
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  async function fetchJson(url, init) {
+    const r = await fetch(url, Object.assign({ credentials: 'include' }, init || {}));
+    const j = await r.json().catch(() => ({ error: 'Bad response' }));
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    return j;
+  }
+  const initials = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w) => w[0].toUpperCase() + '.').join(' ');
+  const colorFor = (p, pass) => (p == null ? '#F3F4F6' : p >= pass ? '#DCFCE7' : p >= 50 ? '#FEF3C7' : '#FEE2E2');
+  const fmtP = (p) => (p == null ? '—' : (Math.round(p * 10) / 10) + '%');
+
+  window.openLowAchieversImpact = async function () {
+    let classes = [];
+    try { classes = await fetchJson('/api/teacher/my-classes-brief'); } catch (e) {}
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99999; display:flex; align-items:center; justify-content:center;';
+    const modal = document.createElement('div');
+    modal.style.cssText = 'background:#fff; border-radius:12px; max-width:860px; width:94%; max-height:92vh; overflow:auto; padding:24px; font-size:14px;';
+    modal.innerHTML = '<h2 style="margin:0 0 6px;">📈 Low achievers — impact</h2>' +
+      '<p style="margin:0 0 14px; color:#555;">Tick the classes, then choose a <b>baseline</b> assessment (e.g. the diagnostic) and a <b>latest</b> assessment for each class. ' +
+      'Students below the pass mark at baseline are the low achievers; the page shows how each of them, and each skill, has changed.</p>' +
+      '<label style="font-weight:600;">Pass mark (%) <input id="la-pass" type="number" min="1" max="100" value="60" style="width:70px; margin-left:6px; padding:4px; border:1px solid #D1D5DB; border-radius:6px;"></label>' +
+      '<div style="font-weight:600; margin:14px 0 6px;">Classes</div><div id="la-classes" style="display:flex; flex-wrap:wrap; gap:8px;"></div>' +
+      '<div id="la-lists" style="margin-top:14px;"></div>' +
+      '<div id="la-status" style="display:none; margin-top:12px; padding:10px; background:#F3F4F6; border-radius:6px;"></div>' +
+      '<div style="margin-top:18px;"><button id="la-go" style="padding:10px 20px; background:#4338CA; color:#fff; border:none; border-radius:6px; font-weight:600; cursor:pointer;">Build impact page</button>' +
+      '<button id="la-close" style="margin-left:8px; padding:10px 20px; background:#F3F4F6; border:1px solid #D1D5DB; border-radius:6px; cursor:pointer;">Close</button></div>';
+    overlay.appendChild(modal); document.body.appendChild(overlay);
+    const $ = (id) => modal.querySelector('#' + id);
+    const status = (t) => { const s = $('la-status'); s.style.display = t ? 'block' : 'none'; s.textContent = t || ''; };
+    $('la-close').onclick = () => overlay.remove();
+    if (!classes.length) $('la-classes').textContent = 'You have no classes yet.';
+    const lists = {};
+    classes.forEach((c) => {
+      const lab = document.createElement('label');
+      lab.style.cssText = 'display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid #E5E7EB; border-radius:999px; cursor:pointer;';
+      lab.innerHTML = '<input type="checkbox" style="width:auto; margin:0;"> ' + esc(c.name);
+      const cb = lab.querySelector('input');
+      cb.onchange = async () => {
+        if (!cb.checked) { if (lists[c.id]) { lists[c.id].remove(); delete lists[c.id]; } return; }
+        const box = document.createElement('div');
+        box.style.cssText = 'border:1px solid #E5E7EB; border-radius:8px; padding:10px; margin-bottom:10px; background:#F9FAFB;';
+        box.innerHTML = '<div style="font-weight:700; color:#3730A3; margin-bottom:6px;">' + esc(c.name) + '</div><div class="la-body">Loading…</div>';
+        $('la-lists').appendChild(box); lists[c.id] = box;
+        const bodyEl = box.querySelector('.la-body');
+        try {
+          const d = await fetchJson('/api/teacher/classes/' + encodeURIComponent(c.id) + '/assessments?withTerm=1');
+          const as = (d.assessments || []).filter((a) => a.submissions > 0);
+          if (!as.length) { bodyEl.textContent = 'No submitted assessments for this class yet.'; return; }
+          const fmt = (iso) => { const t = new Date(iso); return iso && !isNaN(t) ? t.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+          bodyEl.innerHTML = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="text-align:left; color:#6B7280;"><th style="padding:4px;">Assessment</th><th>Date</th><th>Submitted</th><th style="text-align:center;">Baseline</th><th style="text-align:center;">Latest</th></tr>' +
+            as.map((a) => '<tr style="border-top:1px solid #E5E7EB;"><td style="padding:4px;">' + esc(a.title) + '</td><td>' + esc(fmt(a.date)) + (a.inCurrentTerm ? '' : ' · Term ' + esc(a.term || '')) + '</td><td>' + a.submissions + '</td>' +
+              '<td style="text-align:center;"><input type="checkbox" data-role="base" data-aid="' + esc(a.id) + '" style="width:auto;"></td>' +
+              '<td style="text-align:center;"><input type="checkbox" data-role="late" data-aid="' + esc(a.id) + '" style="width:auto;"></td></tr>').join('') + '</table>';
+          // An assessment can't be both baseline and latest.
+          box.querySelectorAll('input[data-role]').forEach((x) => x.addEventListener('change', () => {
+            if (!x.checked) return;
+            const other = box.querySelector('input[data-role="' + (x.dataset.role === 'base' ? 'late' : 'base') + '"][data-aid="' + x.dataset.aid + '"]');
+            if (other) other.checked = false;
+          }));
+        } catch (e) { bodyEl.textContent = 'Could not load: ' + e.message; }
+      };
+      $('la-classes').appendChild(lab);
+    });
+    $('la-go').onclick = async () => {
+      const pick = (role) => Array.from(modal.querySelectorAll('input[data-role="' + role + '"]:checked')).map((x) => x.dataset.aid);
+      const body = { classIds: Object.keys(lists), baselineIds: pick('base'), latestIds: pick('late'), passMark: Number($('la-pass').value) || 60 };
+      if (!body.classIds.length) return status('Tick at least one class.');
+      if (!body.baselineIds.length || !body.latestIds.length) return status('Choose at least one baseline and one latest assessment.');
+      status('Building…'); $('la-go').disabled = true;
+      try {
+        const d = await fetchJson('/api/teacher/low-achievers-impact', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+        overlay.remove(); showReport(d, body);
+      } catch (e) { status('Failed: ' + e.message); }
+      finally { $('la-go').disabled = false; }
+    };
+  };
+
+  // Grouped bars: baseline vs latest for each category.
+  function barsSvg(rows, pass) {
+    const W = 520, H = 230, L = 40, B = 40, T = 16, n = rows.length || 1, gw = (W - L - 10) / n, bw = Math.min(34, gw / 2.8);
+    const y = (p) => T + (H - T - B) * (1 - (p || 0) / 100);
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="max-width:' + W + 'px; font-family:Arial,sans-serif;">';
+    for (let g = 0; g <= 100; g += 25) s += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + y(g) + '" y2="' + y(g) + '" stroke="#E5E7EB"/><text x="' + (L - 6) + '" y="' + (y(g) + 4) + '" font-size="10" text-anchor="end" fill="#6B7280">' + g + '</text>';
+    s += '<line x1="' + L + '" x2="' + (W - 6) + '" y1="' + y(pass) + '" y2="' + y(pass) + '" stroke="#DC2626" stroke-dasharray="4 3"/>';
+    rows.forEach((r, i) => {
+      const cx = L + gw * i + gw / 2;
+      [[r.baseline, '#94A3B8', -1], [r.latest, '#4338CA', 1]].forEach(([v, c, side]) => {
+        if (v == null) return;
+        const x = side < 0 ? cx - bw - 2 : cx + 2;
+        s += '<rect x="' + x + '" y="' + y(v) + '" width="' + bw + '" height="' + (y(0) - y(v)) + '" fill="' + c + '" rx="2"/><text x="' + (x + bw / 2) + '" y="' + (y(v) - 3) + '" font-size="10" text-anchor="middle" fill="#111">' + Math.round(v) + '</text>';
+      });
+      s += '<text x="' + cx + '" y="' + (H - B + 16) + '" font-size="11" text-anchor="middle" fill="#111">' + esc(String(r.label).slice(0, 14)) + '</text>';
+    });
+    s += '<rect x="' + L + '" y="' + (H - 14) + '" width="10" height="10" fill="#94A3B8"/><text x="' + (L + 14) + '" y="' + (H - 5) + '" font-size="10">Baseline</text>' +
+         '<rect x="' + (L + 80) + '" y="' + (H - 14) + '" width="10" height="10" fill="#4338CA"/><text x="' + (L + 94) + '" y="' + (H - 5) + '" font-size="10">Latest</text>' +
+         '<line x1="' + (L + 150) + '" x2="' + (L + 170) + '" y1="' + (H - 9) + '" y2="' + (H - 9) + '" stroke="#DC2626" stroke-dasharray="4 3"/><text x="' + (L + 174) + '" y="' + (H - 5) + '" font-size="10" fill="#DC2626">Pass mark ' + pass + '%</text></svg>';
+    return s;
+  }
+
+  function showReport(d, req) {
+    const S = d.summary, pass = S.passMark;
+    let anon = false;
+    const studentNotes = {}, skillNotes = {};
+    let deptLine = 'Department of English · Academic Year 2026 – 2027';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed; inset:0; background:#E5E7EB; z-index:99999; overflow:auto;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'position:sticky; top:0; z-index:2; background:#111827; color:#fff; padding:10px 16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; font-size:13px;';
+    const title = document.createElement('span'); title.textContent = '📈 Low achievers — impact'; title.style.cssText = 'font-weight:700; margin-right:auto;';
+    bar.appendChild(title);
+    const btn = (t, bg) => { const b = document.createElement('button'); b.textContent = t; b.style.cssText = 'padding:7px 12px; border:none; border-radius:6px; cursor:pointer; font-weight:600; background:' + bg + '; color:#fff;'; bar.appendChild(b); return b; };
+    const bAnon = btn('👤 Hide names (initials)', '#374151');
+    const bXls = btn('⬇ Excel', '#059669');
+    const bPrint = btn('🖨 Print / Save PDF', '#4338CA');
+    const bBack = btn('← Change selection', '#374151');
+    const bClose = btn('✕ Close', '#B91C1C');
+    const page = document.createElement('div');
+    page.style.cssText = 'max-width:1080px; margin:18px auto; background:#fff; border-radius:10px; box-shadow:0 4px 18px rgba(0,0,0,.12); font-family:Arial,Helvetica,sans-serif; color:#111827;';
+    wrap.appendChild(bar); wrap.appendChild(page); document.body.appendChild(wrap);
+    bClose.onclick = () => wrap.remove();
+    bBack.onclick = () => { wrap.remove(); window.openLowAchieversImpact(); };
+
+    const card = (big, label, sub, col) => '<div style="flex:1; min-width:150px; border:1px solid #E5E7EB; border-radius:10px; padding:12px 14px; border-top:4px solid ' + col + ';"><div style="font-size:24px; font-weight:800; color:' + col + ';">' + big + '</div><div style="font-weight:700; font-size:13px;">' + label + '</div><div style="font-size:12px; color:#6B7280;">' + sub + '</div></div>';
+    const editCell = (kind, key, val) => '<td contenteditable="true" data-kind="' + kind + '" data-key="' + esc(key) + '" title="Click to type the intervention" style="padding:6px; border:1px solid #E5E7EB; background:#FFFBEB; min-width:170px; font-size:12px;">' + esc(val || '') + '</td>';
+    const th = (t) => '<th style="padding:7px 6px; background:#4338CA; color:#fff; text-align:left; font-size:12px; border:1px solid #4338CA;">' + t + '</th>';
+    const td = (t, extra) => '<td style="padding:6px; border:1px solid #E5E7EB; font-size:12.5px;' + (extra || '') + '">' + t + '</td>';
+    const chg = (c) => c == null ? '<span style="color:#6B7280;">Not assessed yet</span>' : '<b style="color:' + (c > 0 ? '#15803D' : c < 0 ? '#B91C1C' : '#374151') + ';">' + (c > 0 ? '▲ +' : c < 0 ? '▼ ' : '') + c + '</b>';
+    const uniq = (arr) => arr.filter((v, i, a) => a.indexOf(v) === i);
+
+    function render() {
+      const nm = (n) => (anon ? esc(initials(n)) : esc(n));
+      const today = new Date(d.generatedAt).toLocaleDateString('en-GB');
+      const base = uniq(d.baseline.map((x) => x.title)).join('; ');
+      const late = uniq(d.latest.map((x) => x.title)).join('; ');
+      const diff = S.avgLatest != null && S.avgBaselineSame != null ? Math.round((S.avgLatest - S.avgBaselineSame) * 10) / 10 : null;
+      const studentRows = d.students.length
+        ? d.students.map((s) => '<tr>' + td(nm(s.name)) + td(esc(s.cls)) + td(fmtP(s.baseline) + ' · ' + s.baseBand, 'background:' + colorFor(s.baseline, pass) + '; white-space:nowrap;') +
+            td(s.weakest.map((w) => esc(w.skill) + ' ' + Math.round(w.pct) + '%').join('<br>')) + editCell('student', s.id, studentNotes[s.id]) +
+            td(s.latest == null ? '—' : fmtP(s.latest) + ' · ' + s.latestBand, 'background:' + colorFor(s.latest, pass) + '; white-space:nowrap;') + td(chg(s.change)) + '</tr>').join('')
+        : '<tr><td colspan="7" style="padding:10px; border:1px solid #E5E7EB;">No students were below the pass mark in the baseline assessment.</td></tr>';
+      page.innerHTML =
+        '<div style="background:linear-gradient(90deg,#3730A3,#4338CA); color:#fff; padding:18px 22px; border-radius:10px 10px 0 0;">' +
+          '<div id="la-dept" contenteditable="true" title="Click to edit" style="font-size:12px; opacity:.9;">' + esc(deptLine) + '</div>' +
+          '<div style="font-size:24px; font-weight:800; margin-top:4px;">Low Achievers — Intervention &amp; Impact</div>' +
+          '<div style="font-size:13px; margin-top:4px; opacity:.95;">' + esc(d.classes.join(' · ')) + ' · Baseline: ' + esc(base) + ' → Latest: ' + esc(late) + ' · ' + today + '</div></div>' +
+        '<div style="padding:18px 22px;">' +
+          '<div style="display:flex; gap:10px; flex-wrap:wrap;">' +
+            card(S.identified, 'Low achievers identified', 'F: ' + S.F + ' · BF: ' + S.BF + ' (below ' + pass + '% at baseline)', '#B91C1C') +
+            card(fmtP(S.avgBaselineSame) + ' → ' + fmtP(S.avgLatest), 'Average score', diff == null ? 'Not assessed again yet' : (diff >= 0 ? '+' : '') + diff + ' points', '#4338CA') +
+            card(S.improved + ' / ' + S.assessedAgain, 'Improved', 'students whose score went up', '#15803D') +
+            card(S.reachedPass + ' / ' + S.assessedAgain, 'Reached the pass mark', pass + '% or above in the latest assessment', '#0369A1') +
+            card(S.outOfF, 'Moved out of F', 'were below 50% at baseline', '#B45309') +
+          '</div>' +
+          '<div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:18px;">' +
+            '<div style="flex:1; min-width:320px; border:1px solid #E5E7EB; border-radius:10px; padding:10px;"><div style="font-weight:700; margin-bottom:4px;">Low achievers — average % by skill</div>' + barsSvg(d.skills.map((k) => ({ label: k.skill, baseline: k.baseline, latest: k.latest })), pass) + '</div>' +
+            '<div style="flex:1; min-width:320px; border:1px solid #E5E7EB; border-radius:10px; padding:10px;"><div style="font-weight:700; margin-bottom:4px;">Each low achiever — baseline vs latest</div>' + barsSvg(d.students.map((s) => ({ label: anon ? initials(s.name) : String(s.name).split(/\s+/)[0], baseline: s.baseline, latest: s.latest })), pass) + '</div>' +
+          '</div>' +
+          '<h3 style="margin:20px 0 8px; font-size:16px;">What was done — intervention by skill</h3>' +
+          '<table style="width:100%; border-collapse:collapse;"><tr>' + th('Weak skill') + th('Low achievers weakest in it') + th('Intervention strategies (click to type)') + th('Baseline avg') + th('Latest avg') + th('Change') + '</tr>' +
+          d.skills.map((k) => { const c = k.baseline != null && k.latest != null ? Math.round((k.latest - k.baseline) * 10) / 10 : null;
+            return '<tr>' + td('<b>' + esc(k.skill) + '</b>') + td(String(k.weakFor), 'text-align:center;') + editCell('skill', k.skill, skillNotes[k.skill]) +
+              td(fmtP(k.baseline), 'background:' + colorFor(k.baseline, pass) + ';') + td(fmtP(k.latest), 'background:' + colorFor(k.latest, pass) + ';') + td(chg(c)) + '</tr>'; }).join('') + '</table>' +
+          '<h3 style="margin:20px 0 8px; font-size:16px;">Each low achiever — baseline, support and progress</h3>' +
+          '<table style="width:100%; border-collapse:collapse;"><tr>' + th('Student') + th('Class') + th('Baseline') + th('Weakest skills') + th('Intervention (click to type)') + th('Latest') + th('Change') + '</tr>' + studentRows + '</table>' +
+          '<div style="margin-top:14px; font-size:11.5px; color:#6B7280;">Source: ClassCurio assessment results (each assessment counts equally in a student\'s average). F = below 50% · BF = 50% to below ' + pass + '% · green = ' + pass + '% or above. ' +
+          'For qualitative evidence, add a before-and-after marked writing report from 📁 My marking folders.</div>' +
+        '</div>';
+      page.querySelectorAll('td[contenteditable]').forEach((c) => c.addEventListener('input', () => { (c.dataset.kind === 'skill' ? skillNotes : studentNotes)[c.dataset.key] = c.innerText.trim(); }));
+      const dept = page.querySelector('#la-dept'); if (dept) dept.addEventListener('input', () => { deptLine = dept.innerText.trim(); });
+    }
+    render();
+    bAnon.onclick = () => { anon = !anon; bAnon.textContent = anon ? '👤 Show names' : '👤 Hide names (initials)'; render(); };
+    bPrint.onclick = () => {
+      const w = window.open('', '_blank');
+      if (!w) return alert('Please allow pop-ups to print.');
+      w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Low achievers — impact</title><style>@page{size:A4 landscape;margin:10mm} body{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact} td[data-kind]{background:#fff!important} tr{page-break-inside:avoid}</style></head><body>' + page.outerHTML.replace(/contenteditable="true"/g, '') + '</body></html>');
+      w.document.close(); setTimeout(() => { w.focus(); w.print(); }, 400);
+    };
+    bXls.onclick = async () => {
+      bXls.disabled = true; bXls.textContent = 'Preparing…';
+      try {
+        // Per-student intervention: what was typed for the student, else for her weakest skill.
+        const notes = {};
+        d.students.forEach((s) => { notes[s.id] = studentNotes[s.id] || (s.weakest[0] && skillNotes[s.weakest[0].skill]) || ''; });
+        const r = await fetch('/api/teacher/low-achievers-impact.xlsx', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(Object.assign({}, req, { anonymise: anon, interventions: notes })) });
+        if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'HTTP ' + r.status); }
+        const blob = await r.blob(); const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'low-achievers-impact_' + new Date().toISOString().slice(0, 10) + '.xlsx'; a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      } catch (e) { alert('Excel failed: ' + e.message); }
+      finally { bXls.disabled = false; bXls.textContent = '⬇ Excel'; }
+    };
+  }
+
+  // Add to the quick-actions (+) menu, after the Combined skills report.
+  function inject() {
+    const fabWrap = document.getElementById('cc-fab'); if (!fabWrap) return;
+    const menu = fabWrap.querySelector('div'); if (!menu || menu.querySelector('.cc-la-btn')) return;
+    const after = menu.querySelector('.cc-skills-btn'); if (!after) return;
+    const b = document.createElement('button');
+    b.className = 'cc-la-btn'; b.type = 'button'; b.textContent = '📈 Low achievers impact';
+    b.style.cssText = after.style.cssText.replace('#4338CA', '#B45309');
+    b.onclick = () => { menu.style.display = 'none'; window.openLowAchieversImpact(); };
+    after.insertAdjacentElement('afterend', b);
+  }
+  setInterval(inject, 500);
+  document.addEventListener('DOMContentLoaded', inject);
+})();

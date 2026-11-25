@@ -6574,6 +6574,54 @@ app.get('/api/curriculum/options', requireTeacher, (req, res) => {
   const q = req.query || {};
   res.json(_ccCurriculum.options({ subject: String(q.subject || ''), grade: String(q.grade || ''), stream: String(q.stream || ''), term: String(q.term || '') }));
 });
+// Admin-only export of the MOE curriculum data, for reuse in other apps.
+//   /api/admin/curriculum-export            → ZIP: curriculum + exam specifications + rubrics + README
+//   /api/admin/curriculum-export?format=json → the curriculum JSON only
+// Contains no student or teacher data.
+app.get('/api/admin/curriculum-export', requireTeacher, (req, res) => {
+  if (!_ccIsAdminReq(req)) return res.status(403).json({ error: 'Forbidden — admin only.' });
+  const base = __dirname;
+  const files = [
+    ['curriculum/moe-curriculum.json', 'moe-curriculum.json'],
+    ['specs/blueprints-2026-27-t1.json', 'exam-specifications-2026-27-term1.json'],
+    ['specs/rubrics.json', 'writing-rubrics.json'],
+  ].filter(([src]) => _ccFsV.existsSync(_ccPathV.join(base, src)));
+  const day = new Date().toISOString().slice(0, 10);
+  if (String(req.query.format || '') === 'json') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="moe-curriculum_' + day + '.json"');
+    return _ccFsV.createReadStream(_ccPathV.join(base, 'curriculum/moe-curriculum.json')).pipe(res);
+  }
+  const readme = [
+    '# ClassCurio — MOE curriculum export (' + day + ')',
+    '',
+    'No student or teacher data is included.',
+    '',
+    '## moe-curriculum.json',
+    'Keyed by grade → term → subject:',
+    '- Grades: "3"–"8", then "9A"/"9G" … "12A"/"12G" (A = Advanced, G = General).',
+    '- Terms: "1", "2", "3".',
+    '- Subjects: e.g. "English", "Maths", "Science", "AI & Technology" (varies by grade/term).',
+    '- Each subject has: strands (learning outcomes / SLOs grouped by strand), lessons (sequence),',
+    '  source and lang (where the content came from), and sometimes sequenceSource / previous.',
+    '- "__science_framework" and "__assessment_guides" hold shared framework and assessment-guide data.',
+    '',
+    '## exam-specifications-2026-27-term1.json',
+    'MOE exam blueprints for Term 1 2026-27: parts, tasks, question types and marks for each paper.',
+    '',
+    '## writing-rubrics.json',
+    'MOE writing rubrics: criteria, bands and descriptors used for marking writing tasks.',
+    '',
+  ].join('\n');
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', 'attachment; filename="classcurio-moe-curriculum_' + day + '.zip"');
+  const archive = _ccArchiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (e) => { console.error('[curriculum-export]', e); try { res.end(); } catch (x) {} });
+  archive.pipe(res);
+  for (const [src, name] of files) archive.file(_ccPathV.join(base, src), { name });
+  archive.append(readme, { name: 'README.md' });
+  archive.finalize();
+});
 const _ccJobs = new Map();
 setInterval(() => { const now = Date.now(); for (const [k, j] of _ccJobs) if (now - j.startedAt > 30 * 60 * 1000) _ccJobs.delete(k); }, 5 * 60 * 1000);
 function _ccAsyncJob(req, res, next) {
@@ -9196,6 +9244,138 @@ function _ccSkillKey(q) {
   const n = _ccSkillName(q);
   return { key: 'skill:' + n.toLowerCase(), label: n };
 }
+// ── Low achievers: intervention impact ───────────────────────────────
+// Baseline vs latest results for students below the pass mark at baseline, by student and by skill.
+// Body: { classIds: [...], baselineIds: [...], latestIds: [...], passMark?: 60 }
+function _ccBroadSkill(q) {
+  const s = String((q && q.skill) || '').toLowerCase();
+  const t = String((q && q.type) || '').toLowerCase();
+  if (/listen/.test(s)) return 'Listening';
+  if (/speak/.test(s)) return 'Speaking';
+  if (/writ|essay/.test(s) || /^(writing|essay)$/.test(t)) return 'Writing';
+  if (/read/.test(s)) return 'Reading';
+  if (/gramm/.test(s)) return 'Grammar';
+  if (/vocab|word/.test(s)) return 'Vocabulary';
+  const n = _ccSkillName(q);
+  return n === 'Untagged' ? 'Other' : n.charAt(0).toUpperCase() + n.slice(1);
+}
+function _ccBand(p, pass) { return p == null ? '' : p < 50 ? 'F' : p < pass ? 'BF' : 'Pass'; }
+function _ccLowAchieversImpact(uid, body) {
+  const pass = Math.max(1, Math.min(100, Number(body.passMark) || 60));
+  const classIds = new Set((body.classIds || []).map(String));
+  const baseIds = new Set((body.baselineIds || []).map(String));
+  const lateIds = new Set((body.latestIds || []).map(String));
+  if (!baseIds.size || !lateIds.size) throw new Error('Choose at least one baseline and one latest assessment.');
+  const assessments = readAll('assessments.json').filter((a) => (baseIds.has(a.id) || lateIds.has(a.id)) && (!a.teacherId || a.teacherId === uid) && (!classIds.size || classIds.has(String(a.classId))));
+  const classes = readAll('classes.json');
+  const className = (id) => { const c = classes.find((x) => x.id === id); return (c && (c.name || c.title)) || 'Class'; };
+  const allRes = readAll('results.json');
+  const students = new Map();   // sid → { name, cls, base:{e,m,skills}, late:{...} }
+  const blank = () => ({ e: 0, m: 0, n: 0, skills: {} });
+  for (const a of assessments) {
+    const phase = baseIds.has(a.id) ? 'base' : 'late';
+    // One result per student (the latest).
+    const per = new Map();
+    for (const r of allRes) if (r.assessmentId === a.id) { const k = r.studentId || r.studentEmail; const o = per.get(k); if (!o || String(r.submittedAt || '') > String(o.submittedAt || '')) per.set(k, r); }
+    for (const [sid, r] of per) {
+      if (!students.has(sid)) students.set(sid, { id: sid, name: r.studentName || r.studentEmail || 'Student', cls: className(a.classId), base: blank(), late: blank() });
+      const st = students.get(sid); const ph = st[phase];
+      let e = 0, m = 0;
+      for (const q of a.questions || []) {
+        const em = _ccQuestionEarned(q, r);
+        if (!em || !em.max) continue;
+        e += em.earned; m += em.max;
+        const sk = _ccBroadSkill(q); const x = ph.skills[sk] || (ph.skills[sk] = { e: 0, m: 0 }); x.e += em.earned; x.m += em.max;
+      }
+      if (!m) { const t = Number(r.totalScore || r.score || 0), mx = Number(r.maxScore || r.outOf || 0); if (mx) { e = t; m = mx; } }
+      if (!m) continue;
+      // Each assessment counts equally in the student's average.
+      ph.e += e / m; ph.m += 1; ph.n++;
+    }
+  }
+  const pctOf = (x) => (x && x.m ? Math.round((x.e / x.m) * 1000) / 10 : null);
+  const out = [];
+  for (const st of students.values()) {
+    const b = pctOf(st.base); if (b == null || b >= pass) continue;   // low achievers = below the pass mark at baseline
+    const l = pctOf(st.late);
+    const sk = (ph) => Object.entries(ph.skills).map(([k, v]) => ({ skill: k, pct: pctOf(v) })).filter((x) => x.pct != null).sort((x, y) => x.pct - y.pct);
+    const bs = sk(st.base), ls = sk(st.late);
+    out.push({ id: st.id, name: st.name, cls: st.cls, baseline: b, baseBand: _ccBand(b, pass), latest: l, latestBand: _ccBand(l, pass),
+      change: l == null ? null : Math.round((l - b) * 10) / 10, weakest: bs.slice(0, 2), baseSkills: bs, latestSkills: ls });
+  }
+  out.sort((x, y) => x.baseline - y.baseline);
+  // Skill averages for the low achievers, baseline vs latest.
+  const skillAgg = {};
+  // Compare the same students: once anyone has been assessed again, only those students count in the skill averages.
+  const anyAgain = out.some((x) => x.latest != null);
+  for (const st of out.filter((x) => !anyAgain || x.latest != null)) for (const [ph, list] of [['base', st.baseSkills], ['late', st.latestSkills]]) for (const x of list) {
+    const g = skillAgg[x.skill] || (skillAgg[x.skill] = { skill: x.skill, base: [], late: [], weakFor: 0 }); g[ph].push(x.pct);
+  }
+  for (const st of out) for (const w of st.weakest) { const g = skillAgg[w.skill] || (skillAgg[w.skill] = { skill: w.skill, base: [], late: [], weakFor: 0 }); g.weakFor++; }
+  const avg = (a) => (a.length ? Math.round((a.reduce((n, x) => n + x, 0) / a.length) * 10) / 10 : null);
+  const skills = Object.values(skillAgg).map((g) => ({ skill: g.skill, baseline: avg(g.base), latest: avg(g.late), weakFor: g.weakFor }))
+    .sort((x, y) => (x.baseline == null ? 999 : x.baseline) - (y.baseline == null ? 999 : y.baseline));
+  const withLatest = out.filter((x) => x.latest != null);
+  const summary = {
+    passMark: pass, identified: out.length, F: out.filter((x) => x.baseBand === 'F').length, BF: out.filter((x) => x.baseBand === 'BF').length,
+    assessedAgain: withLatest.length,
+    avgBaseline: avg(out.map((x) => x.baseline)), avgLatest: avg(withLatest.map((x) => x.latest)),
+    avgBaselineSame: avg(withLatest.map((x) => x.baseline)),
+    improved: withLatest.filter((x) => x.change > 0).length,
+    reachedPass: withLatest.filter((x) => x.latest >= pass).length,
+    outOfF: withLatest.filter((x) => x.baseBand === 'F' && x.latestBand !== 'F').length,
+  };
+  const list = (set) => assessments.filter((a) => set.has(a.id)).map((a) => ({ id: a.id, title: a.title, cls: className(a.classId) }));
+  return { summary, students: out, skills, baseline: list(baseIds), latest: list(lateIds), classes: [...new Set(assessments.map((a) => className(a.classId)))], generatedAt: new Date().toISOString() };
+}
+app.post('/api/teacher/low-achievers-impact', requireTeacher, express.json({ limit: '1mb' }), (req, res) => {
+  try { res.json(_ccLowAchieversImpact(req.session.user.id, req.body || {})); }
+  catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
+app.post('/api/teacher/low-achievers-impact.xlsx', requireTeacher, express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    const d = _ccLowAchieversImpact(req.session.user.id, req.body || {});
+    const anon = !!(req.body && req.body.anonymise);
+    const notes = (req.body && req.body.interventions) || {};
+    const initials = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w) => w[0].toUpperCase() + '.').join(' ');
+    const ExcelJS = require('exceljs');
+    const wb = new ExcelJS.Workbook(); wb.creator = 'ClassCurio';
+    const head = (ws) => { const r = ws.getRow(1); r.font = { bold: true, color: { argb: 'FFFFFFFF' } }; r.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4338CA' } }; r.alignment = { wrapText: true, vertical: 'middle' }; r.height = 30; ws.views = [{ state: 'frozen', ySplit: 1 }]; };
+    const band = (cell, p) => { if (p == null) return; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: p >= d.summary.passMark ? 'FFDCFCE7' : p >= 50 ? 'FFFEF3C7' : 'FFFEE2E2' } }; };
+    const ws = wb.addWorksheet('Low achievers');
+    ws.columns = [
+      { header: 'Student', key: 'n', width: 30 }, { header: 'Class', key: 'c', width: 18 },
+      { header: 'Baseline %', key: 'b', width: 11 }, { header: 'Baseline band', key: 'bb', width: 10 },
+      { header: 'Weakest skills (baseline)', key: 'w', width: 30 }, { header: 'Intervention', key: 'i', width: 40 },
+      { header: 'Latest %', key: 'l', width: 10 }, { header: 'Latest band', key: 'lb', width: 10 }, { header: 'Change (points)', key: 'ch', width: 12 },
+    ];
+    head(ws);
+    for (const st of d.students) {
+      const row = ws.addRow({ n: anon ? initials(st.name) : st.name, c: st.cls, b: st.baseline, bb: st.baseBand,
+        w: st.weakest.map((x) => x.skill + ' ' + Math.round(x.pct) + '%').join(', '), i: String(notes[st.id] || ''),
+        l: st.latest == null ? 'Not assessed yet' : st.latest, lb: st.latestBand, ch: st.change == null ? '' : st.change });
+      band(row.getCell('b'), st.baseline); band(row.getCell('l'), st.latest);
+      if (st.change != null) row.getCell('ch').font = { bold: true, color: { argb: st.change > 0 ? 'FF15803D' : st.change < 0 ? 'FFB91C1C' : 'FF374151' } };
+      row.getCell('i').alignment = { wrapText: true };
+    }
+    const ws2 = wb.addWorksheet('By skill');
+    ws2.columns = [{ header: 'Skill', key: 's', width: 20 }, { header: 'Low achievers weakest in this skill', key: 'w', width: 18 }, { header: 'Baseline average %', key: 'b', width: 16 }, { header: 'Latest average %', key: 'l', width: 16 }, { header: 'Change (points)', key: 'c', width: 14 }];
+    head(ws2);
+    for (const k of d.skills) { const r = ws2.addRow({ s: k.skill, w: k.weakFor, b: k.baseline, l: k.latest, c: k.baseline != null && k.latest != null ? Math.round((k.latest - k.baseline) * 10) / 10 : '' }); band(r.getCell('b'), k.baseline); band(r.getCell('l'), k.latest); }
+    const ws3 = wb.addWorksheet('Summary');
+    ws3.columns = [{ header: 'Measure', key: 'a', width: 46 }, { header: 'Value', key: 'b', width: 40 }];
+    head(ws3);
+    const S = d.summary;
+    [['Classes', d.classes.join(', ')], ['Baseline assessment(s)', d.baseline.map((x) => x.title + ' (' + x.cls + ')').join('; ')], ['Latest assessment(s)', d.latest.map((x) => x.title + ' (' + x.cls + ')').join('; ')],
+     ['Pass mark', S.passMark + '%'], ['Low achievers identified (below pass mark at baseline)', S.identified + ' (F: ' + S.F + ', BF: ' + S.BF + ')'], ['Assessed again', S.assessedAgain],
+     ['Average baseline → latest (students assessed again)', (S.avgBaselineSame ?? '—') + '% → ' + (S.avgLatest ?? '—') + '%'], ['Improved', S.improved + ' of ' + S.assessedAgain],
+     ['Reached the pass mark', S.reachedPass + ' of ' + S.assessedAgain], ['Moved out of F', S.outOfF], ['Bands', 'F = below 50% · BF = 50% to below the pass mark'], ['Generated', new Date(d.generatedAt).toLocaleString('en-GB')]]
+      .forEach(([a, b]) => ws3.addRow({ a, b }));
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="low-achievers-impact_' + new Date().toISOString().slice(0, 10) + '.xlsx"');
+    await wb.xlsx.write(res); res.end();
+  } catch (e) { res.status(400).json({ error: String(e.message || e) }); }
+});
 app.post('/api/teacher/combined-skills-excel', requireTeacher, async (req, res) => {
   try {
     const { classId, assessmentIds } = req.body || {};
